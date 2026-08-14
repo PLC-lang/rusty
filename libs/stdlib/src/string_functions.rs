@@ -11,6 +11,12 @@ use num::PrimInt;
 /// Keep this in sync with the `.st` declarations.
 const STRING_RESULT_LEN: usize = 2048;
 
+/// Clamps a requested character count into `0..=available`, the shared
+/// out-of-range policy of the substring functions.
+fn clamp_len(requested: i32, available: usize) -> usize {
+    (requested.max(0) as usize).min(available)
+}
+
 /// # Helper function
 ///
 /// Gets the amount of continuous characters before
@@ -327,7 +333,7 @@ pub unsafe extern "C" fn FIND__WSTRING(src1: *const u16, src2: *const u16) -> i3
 pub unsafe extern "C-unwind" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32, dest: *mut u8) -> i32 {
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src).count();
-    let substr_len = (substr_len.max(0) as usize).min(nchars);
+    let substr_len = clamp_len(substr_len, nchars);
     let chars = EncodedCharsIter::decode(src).take(substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -351,7 +357,7 @@ pub unsafe extern "C-unwind" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32
 pub unsafe extern "C-unwind" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src).count();
-    let substr_len = (substr_len.max(0) as usize).min(nchars);
+    let substr_len = clamp_len(substr_len, nchars);
     let chars = EncodedCharsIter::decode(src).take(substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -375,7 +381,7 @@ pub unsafe extern "C-unwind" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i
 pub unsafe extern "C-unwind" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i32, dest: *mut u8) -> i32 {
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src).count();
-    let substr_len = (substr_len.max(0) as usize).min(nchars);
+    let substr_len = clamp_len(substr_len, nchars);
     let chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -399,7 +405,7 @@ pub unsafe extern "C-unwind" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i3
 pub unsafe extern "C-unwind" fn RIGHT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src).count();
-    let substr_len = (substr_len.max(0) as usize).min(nchars);
+    let substr_len = clamp_len(substr_len, nchars);
     let chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -433,7 +439,7 @@ pub unsafe extern "C-unwind" fn MID_EXT__STRING(
     }
     // correct for 0-indexing
     let start_index = (start_index - 1) as usize;
-    let substr_len = (substr_len.max(0) as usize).min(nchars - start_index);
+    let substr_len = clamp_len(substr_len, nchars - start_index);
     let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -468,7 +474,7 @@ pub unsafe extern "C-unwind" fn MID_EXT__WSTRING(
     }
     // correct for 0-indexing
     let start_index = (start_index - 1) as usize;
-    let substr_len = (substr_len.max(0) as usize).min(nchars - start_index);
+    let substr_len = clamp_len(substr_len, nchars - start_index);
     let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -575,7 +581,7 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__STRING(
     }
     // correct for 0-indexing
     let pos = pos as usize - 1;
-    let ndel = (num_chars_to_delete as usize).min(nchars - pos);
+    let ndel = clamp_len(num_chars_to_delete, nchars - pos);
 
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
@@ -613,7 +619,7 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__WSTRING(
     }
     // correct for 0-indexing
     let pos = pos as usize - 1;
-    let ndel = (num_chars_to_delete as usize).min(nchars - pos);
+    let ndel = clamp_len(num_chars_to_delete, nchars - pos);
 
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
@@ -653,7 +659,7 @@ pub unsafe extern "C-unwind" fn REPLACE_EXT__STRING(
     }
     // correct for 0-indexing
     let pos = (pos - 1) as usize;
-    let nreplace = (num_chars_to_replace as usize).min(nbase - pos);
+    let nreplace = clamp_len(num_chars_to_replace, nbase - pos);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src_base)
@@ -695,7 +701,7 @@ pub unsafe extern "C-unwind" fn REPLACE_EXT__WSTRING(
     }
     // correct for 0-indexing
     let pos = (pos - 1) as usize;
-    let nreplace = (num_chars_to_replace as usize).min(nbase - pos);
+    let nreplace = clamp_len(num_chars_to_replace, nbase - pos);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src_base)
