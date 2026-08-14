@@ -326,6 +326,52 @@ mod tests {
     }
 
     #[test]
+    fn test_retain_lowering_on_program_with_inline_types() {
+        let source: SourceCode = r#"
+        PROGRAM Test
+        VAR RETAIN
+            arr : ARRAY[0..2] OF DINT := [1, 2, 3];
+            sub : DINT(0..100) := 50;
+            str : STRING[20] := 'start';
+            col : (RED, GREEN, BLUE) := GREEN;
+            mat : ARRAY[0..1, 0..2] OF DINT;
+            nst : ARRAY[0..1] OF ARRAY[0..2] OF DINT;
+            rec : STRUCT a : DINT; b : DINT; END_STRUCT
+        END_VAR
+        END_PROGRAM
+        "#
+        .into();
+
+        let (_, project) =
+            parse_and_annotate("test", vec![source]).expect("Failed to parse compilation unit");
+        let unit = project.units[0].get_unit();
+
+        // The extracted inline types and the generated retain pointer types must not clash
+        let mut type_names: Vec<&str> =
+            unit.user_types.iter().filter_map(|it| it.data_type.get_name()).collect();
+        type_names.sort_unstable();
+        let duplicates: Vec<&str> =
+            type_names.windows(2).filter(|pair| pair[0] == pair[1]).map(|pair| pair[0]).collect();
+        assert!(duplicates.is_empty(), "duplicate user types after retain lowering: {duplicates:?}");
+
+        // Every member is extracted into the global retain block
+        let retain_block = find_retain_block(unit);
+        let variable_names: Vec<&str> = retain_block.variables.iter().map(|v| v.get_name()).collect();
+        assert_eq!(
+            variable_names,
+            vec![
+                "__Test_arr__retain",
+                "__Test_sub__retain",
+                "__Test_str__retain",
+                "__Test_col__retain",
+                "__Test_mat__retain",
+                "__Test_nst__retain",
+                "__Test_rec__retain",
+            ]
+        );
+    }
+
+    #[test]
     fn test_retain_in_global_nested_should_move_to_retain_block() {
         let source: SourceCode = r#"
         FUNCTION_BLOCK FB
