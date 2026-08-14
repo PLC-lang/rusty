@@ -314,7 +314,10 @@ pub unsafe extern "C-unwind" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32
         panic!("Requested substring length exceeds string length.")
     }
     let chars = EncodedCharsIter::decode(src).take(substr_len);
-    chars.encode(&mut dest);
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
+    // lossy decoding can expand invalid sequences into wider replacement chars.
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -341,7 +344,10 @@ pub unsafe extern "C-unwind" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i
         panic!("Requested substring length exceeds string length.")
     }
     let chars = EncodedCharsIter::decode(src).take(substr_len);
-    chars.encode(&mut dest);
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
+    // lossy decoding can expand invalid sequences into wider replacement chars.
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -368,7 +374,10 @@ pub unsafe extern "C-unwind" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i3
         panic!("Requested substring length exceeds string length.")
     }
     let chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
-    chars.encode(&mut dest);
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
+    // lossy decoding can expand invalid sequences into wider replacement chars.
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -395,7 +404,10 @@ pub unsafe extern "C-unwind" fn RIGHT_EXT__WSTRING(src: *const u16, substr_len: 
         panic!("Requested substring length exceeds string length.")
     }
     let chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
-    chars.encode(&mut dest);
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
+    // lossy decoding can expand invalid sequences into wider replacement chars.
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
     0
 }
 
@@ -433,7 +445,10 @@ pub unsafe extern "C-unwind" fn MID_EXT__STRING(
         panic!("Requested substring length {substr_len} from position {start_index} exceeds string length.")
     }
     let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
-    chars.encode(&mut dest);
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
+    // lossy decoding can expand invalid sequences into wider replacement chars.
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -472,7 +487,10 @@ pub unsafe extern "C-unwind" fn MID_EXT__WSTRING(
         panic!("Requested substring length {substr_len} from position {start_index} exceeds string length.")
     }
     let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
-    chars.encode(&mut dest);
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
+    // lossy decoding can expand invalid sequences into wider replacement chars.
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -583,10 +601,12 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__STRING(
         )
     }
 
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src)
         .take(pos)
         .chain(EncodedCharsIter::decode(src).skip(ndel + pos))
-        .encode(&mut dest);
+        .encode_bounded(&mut dest, STRING_RESULT_LEN);
     0
 }
 
@@ -626,10 +646,12 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__WSTRING(
         )
     }
 
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src)
         .take(pos)
         .chain(EncodedCharsIter::decode(src).skip(pos + ndel))
-        .encode(&mut dest);
+        .encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -993,6 +1015,33 @@ mod test {
         unsafe {
             let res = FIND__STRING(haystack.as_ptr(), needle.as_ptr());
             assert_eq!(res, 10)
+        }
+    }
+
+    #[test]
+    fn test_left_ext_str_invalid_utf8_expansion_truncates_at_result_capacity() {
+        // 2048 invalid bytes decode to 2048 replacement chars, which would
+        // re-encode to 6144 bytes; the write must stop at STRING_RESULT_LEN
+        // on a character boundary instead of overflowing the result buffer.
+        let mut src = [0xFF_u8; DEFAULT_STRING_SIZE + 1];
+        src[DEFAULT_STRING_SIZE] = 0;
+        let mut dest = [0_u8; DEFAULT_STRING_SIZE + 1];
+        unsafe {
+            LEFT_EXT__STRING(src.as_ptr(), DEFAULT_STRING_SIZE as i32, dest.as_mut_ptr());
+            let str1 = CStr::from_bytes_until_nul(&dest).unwrap().to_str().unwrap();
+            assert_eq!(str1, "\u{FFFD}".repeat(682)); // 682 * 3 = 2046 <= 2048
+        }
+    }
+
+    #[test]
+    fn test_delete_ext_str_invalid_utf8_expansion_truncates_at_result_capacity() {
+        let mut src = [0xFF_u8; DEFAULT_STRING_SIZE + 1];
+        src[DEFAULT_STRING_SIZE] = 0;
+        let mut dest = [0_u8; DEFAULT_STRING_SIZE + 1];
+        unsafe {
+            DELETE_EXT__STRING(src.as_ptr(), 1, 1, dest.as_mut_ptr());
+            let str1 = CStr::from_bytes_until_nul(&dest).unwrap().to_str().unwrap();
+            assert_eq!(str1, "\u{FFFD}".repeat(682));
         }
     }
 
