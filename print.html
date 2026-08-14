@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-018c492d.js";
+            window.path_to_searchindex_js = "searchindex-daa32d40.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-1ac3108a.js"></script>
+        <script src="toc-5ab56ec6.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2620,6 +2620,36 @@ END_FUNCTION
 ELSE
     delta := b - a;
 END_IF
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unary-not-used-with-an-unsupported-operand-type"><a class="header" href="#unary-not-used-with-an-unsupported-operand-type">Unary <code>NOT</code> Used With an Unsupported Operand Type</a></h1>
+<p>The <code>NOT</code> operator is valid for boolean, integer and bit-oriented operands. Other types, such as structs,
+arrays and strings, are not supported.</p>
+<p>Erroneous code example:</p>
+<pre><code class="language-iecst">TYPE Wrapper : STRUCT
+    out : BOOL;
+END_STRUCT
+END_TYPE
+
+PROGRAM mainProg
+VAR
+    value : Wrapper;
+END_VAR
+    value := NOT value;
+END_PROGRAM
+</code></pre>
+<p>To fix this, apply <code>NOT</code> to the actual scalar field instead:</p>
+<pre><code class="language-iecst">TYPE Wrapper : STRUCT
+    out : BOOL;
+END_STRUCT
+END_TYPE
+
+PROGRAM mainProg
+VAR
+    value : Wrapper;
+END_VAR
+    value.out := NOT value.out;
+END_PROGRAM
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
