@@ -884,7 +884,38 @@ fn array_in_parent_generated() {
     entry:
       %self = alloca ptr, align [filtered], !dbg !56
       store ptr %0, ptr %self, align [filtered], !dbg !56
+      %__main_arr__idx0 = alloca i32, align [filtered]
+      store i32 0, ptr %__main_arr__idx0, align [filtered], !dbg !56
+      store i32 0, ptr %__main_arr__idx0, align [filtered], !dbg !56
+      br label %while_body, !dbg !56
+
+    while_body:                                       ; preds = %continue1, %entry
+      %load___main_arr__idx0 = load i32, ptr %__main_arr__idx0, align [filtered], !dbg !56
+      %tmpVar = icmp sgt i32 %load___main_arr__idx0, 10, !dbg !56
+      %1 = zext i1 %tmpVar to i8, !dbg !56
+      %2 = icmp ne i8 %1, 0, !dbg !56
+      br i1 %2, label %condition_body, label %continue1, !dbg !56
+
+    continue:                                         ; preds = %condition_body
       ret void, !dbg !56
+
+    condition_body:                                   ; preds = %while_body
+      br label %continue, !dbg !56
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue1, !dbg !56
+
+    continue1:                                        ; preds = %buffer_block, %while_body
+      %deref = load ptr, ptr %self, align [filtered], !dbg !56
+      %load___main_arr__idx02 = load i32, ptr %__main_arr__idx0, align [filtered], !dbg !56
+      %tmpVar3 = mul i32 1, %load___main_arr__idx02, !dbg !56
+      %tmpVar4 = add i32 %tmpVar3, 0, !dbg !56
+      %tmpVar5 = getelementptr inbounds [11 x %child], ptr %deref, i32 0, i32 %tmpVar4, !dbg !56
+      call void @child__ctor(ptr %tmpVar5), !dbg !56
+      %load___main_arr__idx06 = load i32, ptr %__main_arr__idx0, align [filtered], !dbg !56
+      %tmpVar7 = add i32 %load___main_arr__idx06, 1, !dbg !56
+      store i32 %tmpVar7, ptr %__main_arr__idx0, align [filtered], !dbg !56
+      br label %while_body, !dbg !56
     }
 
     define void @__vtable_grandparent__ctor(ptr %0) {
@@ -1795,21 +1826,114 @@ END_FUNCTION
     entry:
       %self = alloca ptr, align [filtered], !dbg !83
       store ptr %0, ptr %self, align [filtered], !dbg !83
+      %__main_array_of_parent__idx0 = alloca i32, align [filtered]
+      store i32 0, ptr %__main_array_of_parent__idx0, align [filtered], !dbg !83
+      store i32 0, ptr %__main_array_of_parent__idx0, align [filtered], !dbg !83
+      br label %while_body, !dbg !83
+
+    while_body:                                       ; preds = %continue1, %entry
+      %load___main_array_of_parent__idx0 = load i32, ptr %__main_array_of_parent__idx0, align [filtered], !dbg !83
+      %tmpVar = icmp sgt i32 %load___main_array_of_parent__idx0, 2, !dbg !83
+      %1 = zext i1 %tmpVar to i8, !dbg !83
+      %2 = icmp ne i8 %1, 0, !dbg !83
+      br i1 %2, label %condition_body, label %continue1, !dbg !83
+
+    continue:                                         ; preds = %condition_body
       ret void, !dbg !83
+
+    condition_body:                                   ; preds = %while_body
+      br label %continue, !dbg !83
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue1, !dbg !83
+
+    continue1:                                        ; preds = %buffer_block, %while_body
+      %deref = load ptr, ptr %self, align [filtered], !dbg !83
+      %load___main_array_of_parent__idx02 = load i32, ptr %__main_array_of_parent__idx0, align [filtered], !dbg !83
+      %tmpVar3 = mul i32 1, %load___main_array_of_parent__idx02, !dbg !83
+      %tmpVar4 = add i32 %tmpVar3, 0, !dbg !83
+      %tmpVar5 = getelementptr inbounds [3 x %parent], ptr %deref, i32 0, i32 %tmpVar4, !dbg !83
+      call void @parent__ctor(ptr %tmpVar5), !dbg !83
+      %load___main_array_of_parent__idx06 = load i32, ptr %__main_array_of_parent__idx0, align [filtered], !dbg !83
+      %tmpVar7 = add i32 %load___main_array_of_parent__idx06, 1, !dbg !83
+      store i32 %tmpVar7, ptr %__main_array_of_parent__idx0, align [filtered], !dbg !83
+      br label %while_body, !dbg !83
     }
 
     define void @__main_array_of_child__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !83
       store ptr %0, ptr %self, align [filtered], !dbg !83
+      %__main_array_of_child__idx0 = alloca i32, align [filtered]
+      store i32 0, ptr %__main_array_of_child__idx0, align [filtered], !dbg !83
+      store i32 0, ptr %__main_array_of_child__idx0, align [filtered], !dbg !83
+      br label %while_body, !dbg !83
+
+    while_body:                                       ; preds = %continue1, %entry
+      %load___main_array_of_child__idx0 = load i32, ptr %__main_array_of_child__idx0, align [filtered], !dbg !83
+      %tmpVar = icmp sgt i32 %load___main_array_of_child__idx0, 2, !dbg !83
+      %1 = zext i1 %tmpVar to i8, !dbg !83
+      %2 = icmp ne i8 %1, 0, !dbg !83
+      br i1 %2, label %condition_body, label %continue1, !dbg !83
+
+    continue:                                         ; preds = %condition_body
       ret void, !dbg !83
+
+    condition_body:                                   ; preds = %while_body
+      br label %continue, !dbg !83
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue1, !dbg !83
+
+    continue1:                                        ; preds = %buffer_block, %while_body
+      %deref = load ptr, ptr %self, align [filtered], !dbg !83
+      %load___main_array_of_child__idx02 = load i32, ptr %__main_array_of_child__idx0, align [filtered], !dbg !83
+      %tmpVar3 = mul i32 1, %load___main_array_of_child__idx02, !dbg !83
+      %tmpVar4 = add i32 %tmpVar3, 0, !dbg !83
+      %tmpVar5 = getelementptr inbounds [3 x %child], ptr %deref, i32 0, i32 %tmpVar4, !dbg !83
+      call void @child__ctor(ptr %tmpVar5), !dbg !83
+      %load___main_array_of_child__idx06 = load i32, ptr %__main_array_of_child__idx0, align [filtered], !dbg !83
+      %tmpVar7 = add i32 %load___main_array_of_child__idx06, 1, !dbg !83
+      store i32 %tmpVar7, ptr %__main_array_of_child__idx0, align [filtered], !dbg !83
+      br label %while_body, !dbg !83
     }
 
     define void @__main_array_of_grandchild__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !83
       store ptr %0, ptr %self, align [filtered], !dbg !83
+      %__main_array_of_grandchild__idx0 = alloca i32, align [filtered]
+      store i32 0, ptr %__main_array_of_grandchild__idx0, align [filtered], !dbg !83
+      store i32 0, ptr %__main_array_of_grandchild__idx0, align [filtered], !dbg !83
+      br label %while_body, !dbg !83
+
+    while_body:                                       ; preds = %continue1, %entry
+      %load___main_array_of_grandchild__idx0 = load i32, ptr %__main_array_of_grandchild__idx0, align [filtered], !dbg !83
+      %tmpVar = icmp sgt i32 %load___main_array_of_grandchild__idx0, 2, !dbg !83
+      %1 = zext i1 %tmpVar to i8, !dbg !83
+      %2 = icmp ne i8 %1, 0, !dbg !83
+      br i1 %2, label %condition_body, label %continue1, !dbg !83
+
+    continue:                                         ; preds = %condition_body
       ret void, !dbg !83
+
+    condition_body:                                   ; preds = %while_body
+      br label %continue, !dbg !83
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue1, !dbg !83
+
+    continue1:                                        ; preds = %buffer_block, %while_body
+      %deref = load ptr, ptr %self, align [filtered], !dbg !83
+      %load___main_array_of_grandchild__idx02 = load i32, ptr %__main_array_of_grandchild__idx0, align [filtered], !dbg !83
+      %tmpVar3 = mul i32 1, %load___main_array_of_grandchild__idx02, !dbg !83
+      %tmpVar4 = add i32 %tmpVar3, 0, !dbg !83
+      %tmpVar5 = getelementptr inbounds [3 x %grandchild], ptr %deref, i32 0, i32 %tmpVar4, !dbg !83
+      call void @grandchild__ctor(ptr %tmpVar5), !dbg !83
+      %load___main_array_of_grandchild__idx06 = load i32, ptr %__main_array_of_grandchild__idx0, align [filtered], !dbg !83
+      %tmpVar7 = add i32 %load___main_array_of_grandchild__idx06, 1, !dbg !83
+      store i32 %tmpVar7, ptr %__main_array_of_grandchild__idx0, align [filtered], !dbg !83
+      br label %while_body, !dbg !83
     }
 
     define void @__vtable_parent__ctor(ptr %0) {
