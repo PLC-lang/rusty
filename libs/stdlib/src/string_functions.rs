@@ -570,7 +570,7 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__STRING(
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src).count();
     if pos < 1 || pos > nchars as i32 || num_chars_to_delete < 0 {
-        EncodedCharsIter::decode(src).encode(&mut dest);
+        EncodedCharsIter::decode(src).encode_bounded(&mut dest, STRING_RESULT_LEN);
         return 0;
     }
     // correct for 0-indexing
@@ -608,7 +608,7 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__WSTRING(
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src).count();
     if pos < 1 || pos > nchars as i32 || num_chars_to_delete < 0 {
-        EncodedCharsIter::decode(src).encode(&mut dest);
+        EncodedCharsIter::decode(src).encode_bounded(&mut dest, STRING_RESULT_LEN);
         return 0;
     }
     // correct for 0-indexing
@@ -1018,6 +1018,21 @@ mod test {
         let mut dest = [0_u8; DEFAULT_STRING_SIZE + 1];
         unsafe {
             DELETE_EXT__STRING(src.as_ptr(), 1, 1, dest.as_mut_ptr());
+            let str1 = CStr::from_bytes_until_nul(&dest).unwrap().to_str().unwrap();
+            assert_eq!(str1, "\u{FFFD}".repeat(682));
+        }
+    }
+
+    #[test]
+    fn test_delete_ext_str_out_of_range_pos_truncates_base_at_result_capacity() {
+        // The keep-base-untouched fallback must also respect the result-buffer
+        // bound: an invalid position with an expanding base string may not
+        // write past STRING_RESULT_LEN.
+        let mut src = [0xFF_u8; DEFAULT_STRING_SIZE + 1];
+        src[DEFAULT_STRING_SIZE] = 0;
+        let mut dest = [0_u8; DEFAULT_STRING_SIZE + 1];
+        unsafe {
+            DELETE_EXT__STRING(src.as_ptr(), 1, 0, dest.as_mut_ptr());
             let str1 = CStr::from_bytes_until_nul(&dest).unwrap().to_str().unwrap();
             assert_eq!(str1, "\u{FFFD}".repeat(682));
         }
