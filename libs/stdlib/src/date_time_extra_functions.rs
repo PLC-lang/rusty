@@ -105,15 +105,15 @@ pub extern "C" fn CONCAT_DATE__ULINT(in1: u64, in2: u64, in3: u64) -> u32 {
 
 /// .
 /// Concatenates year, month and day to DATE
+/// Unrepresentable dates yield 0; results are clamped to the DATE range (1970-2106)
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn concat_date(in1: i32, in2: u32, in3: u32) -> u32 {
-    let dt = NaiveDate::from_ymd_opt(in1, in2, in3)
+    NaiveDate::from_ymd_opt(in1, in2, in3)
         .and_then(|date| date.and_hms_opt(0, 0, 0))
-        .expect("Invalid parameters, cannot create date");
-
-    dt.and_utc().timestamp() as u32
+        .map(|dt| dt.and_utc().timestamp().clamp(0, u32::MAX as i64) as u32)
+        .unwrap_or(0)
 }
 
 /// .
@@ -364,13 +364,19 @@ pub extern "C" fn CONCAT_LDT__ULINT(
 
 /// .
 /// Concatenates hour, minute, second, millisecond to TOD
+/// Invalid time-of-day fields yield 0
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn concat_tod(in1: u32, in2: u32, in3: u32, in4: u32) -> u32 {
-    NaiveDate::from_ymd_opt(1970, 1, 1)
+    // the range check must run before the arithmetic; out-of-range fields
+    // (e.g. a negative SINT cast to a huge u32) would overflow the formula
+    let valid = NaiveDate::from_ymd_opt(1970, 1, 1)
         .and_then(|date| date.and_hms_milli_opt(in1, in2, in3, in4))
-        .expect("Invalid parameters, cannot create TOD");
+        .is_some();
+    if !valid {
+        return 0;
+    }
 
     ((in1 * 3_600 + in2 * 60 + in3) * MILLIS_PER_SECOND) + in4
 }
