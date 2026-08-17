@@ -63,28 +63,28 @@ fn retain_variables_in_programs_are_in_retain_linker_section() {
       %deref = load ptr, ptr %self, align [filtered]
       %x = getelementptr inbounds nuw %main, ptr %deref, i32 0, i32 0
       %deref1 = load ptr, ptr %x, align [filtered]
-      call void @__main_x__ctor(ptr %deref1)
+      call void @__main_x__retain_ptr__ctor(ptr %deref1)
       %deref2 = load ptr, ptr %self, align [filtered]
       %x3 = getelementptr inbounds nuw %main, ptr %deref2, i32 0, i32 0
       store ptr @__main_x__retain, ptr %x3, align [filtered]
       %deref4 = load ptr, ptr %self, align [filtered]
       %y = getelementptr inbounds nuw %main, ptr %deref4, i32 0, i32 1
       %deref5 = load ptr, ptr %y, align [filtered]
-      call void @__main_y__ctor(ptr %deref5)
+      call void @__main_y__retain_ptr__ctor(ptr %deref5)
       %deref6 = load ptr, ptr %self, align [filtered]
       %y7 = getelementptr inbounds nuw %main, ptr %deref6, i32 0, i32 1
       store ptr @__main_y__retain, ptr %y7, align [filtered]
       ret void
     }
 
-    define void @__main_x__ctor(ptr %0) {
+    define void @__main_x__retain_ptr__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__main_y__ctor(ptr %0) {
+    define void @__main_y__retain_ptr__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
