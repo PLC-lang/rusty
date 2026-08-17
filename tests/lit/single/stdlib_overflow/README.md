@@ -37,12 +37,18 @@ MUL and DIV with a REAL/LREAL factor cannot wrap meaningfully; the functions fol
 - `div_time_by_real_zero.st` - Dividing TIME by zero (REAL)
 - `div_time_by_lreal_zero.st` - Dividing TIME by zero (LREAL)
 
+### String Parameters (clamping)
+
+Out-of-range string function parameters clamp or leave the base string unchanged, matching CODESYS:
+
+- `string_param_clamping.st` - LEFT/MID/INSERT/DELETE/REPLACE with out-of-range lengths and positions
+- `right_string_substring_too_long.st` / `right_wstring_substring_too_long.st` - RIGHT with a length above the string length clamps to the whole string
+
 ### Panic Conditions (`XFAIL: *`)
 
 The remaining conditions panic at runtime by design (integer division by zero is treated as a programming error). Their tests carry `XFAIL: *`, so a non-zero exit code is treated as success:
 
 - `div_time_by_zero.st` - Dividing TIME by zero (LINT)
-- `right_string_substring_too_long.st` / `right_wstring_substring_too_long.st` - RIGHT with a length above the string length
 
 ## Running the Tests
 
