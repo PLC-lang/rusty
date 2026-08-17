@@ -25,6 +25,7 @@ The stdlib ADD/SUB/MUL date and time functions wrap on overflow, exactly like th
 - `mul_time_unsigned_overflow.st` - MUL with an unsigned integer wraps mod 2^64
 - `dt_tod_overflow.st` - ADD_DT_TIME/SUB_DT_TIME past the DT range and SUB_TOD_TOD below zero wrap mod 2^32
 - `concat_invalid_inputs.st` - CONCAT_DATE/CONCAT_TOD yield 0 for unrepresentable inputs and clamp to the DATE range
+- `lreal_to_string_huge_negative.st` - LREAL_TO_STRING picks scientific notation by magnitude instead of overflowing the buffer
 
 ### Float Factors (saturating)
 
