@@ -44,6 +44,12 @@ Out-of-range string function parameters clamp or leave the base string unchanged
 - `string_param_clamping.st` - LEFT/MID/INSERT/DELETE/REPLACE with out-of-range lengths and positions
 - `right_string_substring_too_long.st` / `right_wstring_substring_too_long.st` - RIGHT with a length above the string length clamps to the whole string
 
+### Invalid String Content (lossy decoding)
+
+Strings can carry bytes that are not valid UTF-8/UTF-16 (pointer writes, comms buffers, C interop). The string functions decode them lossily (invalid parts become U+FFFD) instead of aborting the process; CONCAT copies raw code units unchanged:
+
+- `lossy_string_decoding.st` - LEN/FIND/CONCAT/STRING_TO_WSTRING on a `16#FF`-patched STRING, LEN/LEFT on a WSTRING holding an unpaired surrogate
+
 ### Panic Conditions (`XFAIL: *`)
 
 The remaining conditions panic at runtime by design (integer division by zero is treated as a programming error). Their tests carry `XFAIL: *`, so a non-zero exit code is treated as success:
