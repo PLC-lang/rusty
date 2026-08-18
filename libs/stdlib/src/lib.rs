@@ -10,7 +10,9 @@
         clippy::panic,
         clippy::todo,
         clippy::unimplemented,
+        clippy::unreachable,
         clippy::indexing_slicing,
+        clippy::string_slice,
         clippy::exit
     )
 )]

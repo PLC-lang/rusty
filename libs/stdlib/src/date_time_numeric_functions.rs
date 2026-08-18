@@ -572,8 +572,6 @@ pub extern "C-unwind" fn DIV_LTIME__LINT(in1: i64, in2: i64) -> i64 {
 /// Divide TIME/LTIME by ANY_SIGNED_INT
 /// Panics on division by zero
 ///
-// Deliberate policy panic: dividing a TIME by zero is a programming error.
-#[allow(clippy::panic)]
 fn div_time_by_signed_int(in1: i64, in2: i64) -> i64 {
     in1.wrapping_div(in2)
 }
@@ -702,8 +700,6 @@ pub extern "C-unwind" fn DIV_LTIME__ULINT(in1: i64, in2: u64) -> i64 {
 /// Divide TIME/LTIME by ANY_UNSIGNED_INT
 /// Panics on division by zero
 ///
-// Deliberate policy panic: dividing a TIME by zero is a programming error.
-#[allow(clippy::panic)]
 fn div_time_by_unsigned_int(in1: i64, in2: u64) -> i64 {
     // a divisor above the signed range always exceeds the dividend magnitude
     match i64::try_from(in2) {
@@ -848,8 +844,6 @@ pub extern "C-unwind" fn DIV_LTIME__REAL(in1: i64, in2: f32) -> i64 {
     div_time_by_f32(in1, in2)
 }
 
-// Deliberate policy panic: dividing a TIME by zero is a programming error.
-#[allow(clippy::panic)]
 fn div_time_by_f32(in1: i64, in2: f32) -> i64 {
     let negative = in1.is_negative() ^ in2.is_sign_negative();
     let magnitude = std::time::Duration::from_nanos(in1.unsigned_abs());
@@ -1251,8 +1245,6 @@ pub extern "C-unwind" fn DIV_LTIME__LREAL(in1: i64, in2: f64) -> i64 {
     div_time_by_f64(in1, in2)
 }
 
-// Deliberate policy panic: dividing a TIME by zero is a programming error.
-#[allow(clippy::panic)]
 fn div_time_by_f64(in1: i64, in2: f64) -> i64 {
     let negative = in1.is_negative() ^ in2.is_sign_negative();
     let magnitude = std::time::Duration::from_nanos(in1.unsigned_abs());

@@ -128,10 +128,9 @@ where
 fn parse_longest_prefix<T: num::Zero>(s: &str, parse: impl Fn(&str) -> Option<T>) -> T {
     let mut end = s.len();
     while end > 0 {
-        if s.is_char_boundary(end) {
-            if let Some(number) = parse(&s[..end]) {
-                return number;
-            }
+        // `get` returns None between char boundaries
+        if let Some(number) = s.get(..end).and_then(&parse) {
+            return number;
         }
         end -= 1;
     }
