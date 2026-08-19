@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_storage_reset",
+	"files" : [
+		"storage_reset.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

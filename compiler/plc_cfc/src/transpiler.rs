@@ -1,7 +1,10 @@
 use plc_ast::ast::{AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, Variable, VariableBlock};
+use plc_ast::control_statements::{ConditionalBlock, IfStatement};
+use plc_ast::literals::AstLiteral;
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::SourceLocation;
 
+use crate::model::Storage;
 use crate::network::{Argument, Network, Statement};
 use crate::st;
 
@@ -41,8 +44,25 @@ impl Transpiler {
 
     fn render(&mut self, statement: Statement) -> AstNode {
         match statement {
-            Statement::Assignment { sink, source } => {
+            Statement::Assignment { sink, source, storage: None } => {
                 AstFactory::create_assignment(sink, source, self.ids.next_id())
+            }
+
+            // A storage-mode sink latches: the source guards a constant store,
+            // `TRUE` for Set, `FALSE` for Reset; nothing is written otherwise.
+            Statement::Assignment { sink, source, storage: Some(storage) } => {
+                let location = sink.location.clone();
+
+                let value = AstLiteral::Bool(matches!(storage, Storage::Set));
+                let value = AstFactory::create_literal(value, location.clone(), self.ids.next_id());
+                let store = AstFactory::create_assignment(sink, value, self.ids.next_id());
+
+                let statement = IfStatement {
+                    blocks: vec![ConditionalBlock { condition: Box::new(source), body: vec![store] }],
+                    else_block: Vec::new(),
+                    end_location: location.clone(),
+                };
+                AstFactory::create_if_statement(statement, location, self.ids.next_id())
             }
             Statement::Return { condition, location } => {
                 AstFactory::create_return_statement(Some(condition), location, self.ids.next_id())
@@ -228,6 +248,60 @@ mod tests {
         END_VAR
             bar := NOT NOT foo;
         END_PROGRAM");
+        }
+
+        #[test]
+        fn storage_set() {
+            insta::assert_snapshot!(transpile_project("variables/valid/storage_set").unwrap(), @r"
+            PROGRAM storage_set
+            VAR
+                a : BOOL;
+                b : BOOL;
+            END_VAR
+                IF a THEN
+                    b := TRUE
+                END_IF;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn storage_reset() {
+            insta::assert_snapshot!(transpile_project("variables/valid/storage_reset").unwrap(), @r"
+            PROGRAM storage_reset
+            VAR
+                a : BOOL;
+                b : BOOL;
+            END_VAR
+                IF a THEN
+                    b := FALSE
+                END_IF;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn storage_negated() {
+            insta::assert_snapshot!(transpile_project("variables/valid/storage_negated").unwrap(), @r"
+            PROGRAM storage_negated
+            VAR
+                a : BOOL;
+                b : BOOL;
+            END_VAR
+                IF a THEN
+                    b := TRUE
+                END_IF;
+                IF NOT a THEN
+                    b := TRUE
+                END_IF;
+                IF NOT a THEN
+                    b := FALSE
+                END_IF;
+                IF NOT NOT a THEN
+                    b := TRUE
+                END_IF;
+            END_PROGRAM
+            ");
         }
     }
 
