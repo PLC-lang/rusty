@@ -2,11 +2,23 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
+error[E037]: Parameter in_ref_int is passed by reference, it requires an argument of type INT but got LINT
+   ┌─ <internal>:11:17
+   │
+11 │                 var1_lint, // downcast
+   │                 ^^^^^^^^^ Parameter in_ref_int is passed by reference, it requires an argument of type INT but got LINT
+
 warning[E067]: Implicit downcast from 'LINT' to 'INT'.
    ┌─ <internal>:11:17
    │
 11 │                 var1_lint, // downcast
    │                 ^^^^^^^^^ Implicit downcast from 'LINT' to 'INT'.
+
+error[E037]: Parameter in_ref_dword is passed by reference, it requires an argument of type DWORD but got LWORD
+   ┌─ <internal>:12:17
+   │
+12 │                 var_lword, // downcast
+   │                 ^^^^^^^^^ Parameter in_ref_dword is passed by reference, it requires an argument of type DWORD but got LWORD
 
 warning[E067]: Implicit downcast from 'LWORD' to 'DWORD'.
    ┌─ <internal>:12:17
@@ -19,6 +31,12 @@ warning[E067]: Implicit downcast from 'INT' to 'SINT'.
    │
 14 │                 INT#var1_lint, // downcast
    │                 ^^^^^^^^^^^^^ Implicit downcast from 'INT' to 'SINT'.
+
+error[E037]: Parameter in_out is passed by reference, it requires an argument of type INT but got LINT
+   ┌─ <internal>:15:17
+   │
+15 │                 var2_lint, // downcast
+   │                 ^^^^^^^^^ Parameter in_out is passed by reference, it requires an argument of type INT but got LINT
 
 warning[E067]: Implicit downcast from 'LINT' to 'INT'.
    ┌─ <internal>:15:17

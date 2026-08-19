@@ -168,11 +168,36 @@ impl<'a> Llvm<'a> {
         // not from the value's actual lifetime, so re-wrapping it at the builder's
         // lifetime is sound.
         let pointer: PointerValue<'a> = unsafe { PointerValue::new(pointer.as_value_ref()) };
+        let declaration = self.get_intrinsic_declaration(intrinsic_name, &[pointer.get_type().into()])?;
+        // LLVM 21 declares the intrinsic as `(i64 size, ptr)` where -1 means "the whole
+        // object"; newer versions drop the size parameter, so pick the call shape from
+        // the declared arity.
+        let args: Vec<BasicMetadataValueEnum> = if declaration.count_params() == 2 {
+            vec![self.context.i64_type().const_all_ones().into(), pointer.into()]
+        } else {
+            vec![pointer.into()]
+        };
+        self.builder.build_call(declaration, &args, "")?;
+        Ok(())
+    }
+
+    /// Returns the declaration of the given LLVM intrinsic, overloaded for `param_types`,
+    /// in the module the builder currently inserts into.
+    pub fn get_intrinsic_declaration(
+        &self,
+        intrinsic_name: &str,
+        param_types: &[BasicTypeEnum<'a>],
+    ) -> Result<FunctionValue<'a>, CodegenError> {
         let intrinsic = Intrinsic::find(intrinsic_name).ok_or_else(|| {
             CodegenError::new(format!("Intrinsic {intrinsic_name} not found"), SourceLocation::internal())
         })?;
+
+        // Locate the module through the function the builder currently inserts into.
         let block = self.builder.get_insert_block().ok_or_else(|| {
-            CodegenError::new("No insert block when emitting lifetime marker", SourceLocation::internal())
+            CodegenError::new(
+                format!("No insert block when declaring intrinsic {intrinsic_name}"),
+                SourceLocation::internal(),
+            )
         })?;
         let function = block.get_parent().ok_or_else(|| {
             CodegenError::new("No parent function for insert block", SourceLocation::internal())
@@ -188,25 +213,16 @@ impl<'a> Llvm<'a> {
             ));
         }
         let module = unsafe { Module::new(module_ref) };
-        let declaration = intrinsic.get_declaration(&module, &[pointer.get_type().into()]);
+        let declaration = intrinsic.get_declaration(&module, param_types);
         // Prevent Module::drop from disposing the module we don't own.
         std::mem::forget(module);
-        let declaration = declaration.ok_or_else(|| {
+
+        declaration.ok_or_else(|| {
             CodegenError::new(
                 format!("No declaration for intrinsic {intrinsic_name}"),
                 SourceLocation::internal(),
             )
-        })?;
-        // LLVM 21 declares the intrinsic as `(i64 size, ptr)` where -1 means "the whole
-        // object"; newer versions drop the size parameter, so pick the call shape from
-        // the declared arity.
-        let args: Vec<BasicMetadataValueEnum> = if declaration.count_params() == 2 {
-            vec![self.context.i64_type().const_all_ones().into(), pointer.into()]
-        } else {
-            vec![pointer.into()]
-        };
-        self.builder.build_call(declaration, &args, "")?;
-        Ok(())
+        })
     }
 
     /// creates a local variable at the builder's location

@@ -38,12 +38,12 @@ impl From<Option<&str>> for LinkerType {
 }
 
 impl Linker {
-    pub fn new(target: &str, linker: LinkerType) -> Result<Linker, LinkerError> {
+    pub fn new(target: &str, sysroot: Option<&str>, linker: LinkerType) -> Result<Linker, LinkerError> {
         Ok(Linker {
             errors: Vec::default(),
             linker: match linker {
-                LinkerType::Internal => Box::new(resolve_internal_linker(target)?),
-                LinkerType::External(linker) => Box::new(resolve_external_linker(target, &linker)?),
+                LinkerType::Internal => Box::new(resolve_internal_linker(target, sysroot)?),
+                LinkerType::External(linker) => Box::new(resolve_external_linker(target, sysroot, &linker)?),
                 LinkerType::Test(linker) => Box::new(linker),
             },
         })
@@ -155,17 +155,17 @@ impl Linker {
 }
 
 /// Resolve the internal linker in this order: `cc` -> `clang` -> `ld.lld` -> `ld`.
-fn resolve_internal_linker(target: &str) -> Result<CcLinker, LinkerError> {
+fn resolve_internal_linker(target: &str, sysroot: Option<&str>) -> Result<CcLinker, LinkerError> {
     log::debug!("Resolving internal linker for target `{target}`");
 
     // Prefer compiler drivers for correct default platform setup.
     if which("cc").is_ok() {
         log::trace!("Candidate linker available: cc");
-        return resolve_driver_linker("cc", target).or_else(|err| {
+        return resolve_driver_linker("cc", target, sysroot).or_else(|err| {
             log::debug!("cc rejected for target `{target}`: {err:?}");
             if which("clang").is_ok() {
                 log::trace!("Falling back to clang");
-                resolve_driver_linker("clang", target).or_else(|err| {
+                resolve_driver_linker("clang", target, sysroot).or_else(|err| {
                     log::debug!("clang rejected for target `{target}`: {err:?}");
                     resolve_direct_linker_fallback()
                 })
@@ -178,7 +178,7 @@ fn resolve_internal_linker(target: &str) -> Result<CcLinker, LinkerError> {
 
     if which("clang").is_ok() {
         log::trace!("cc unavailable, trying clang");
-        return resolve_driver_linker("clang", target).or_else(|err| {
+        return resolve_driver_linker("clang", target, sysroot).or_else(|err| {
             log::debug!("clang rejected for target `{target}`: {err:?}");
             resolve_direct_linker_fallback()
         });
@@ -192,11 +192,15 @@ fn resolve_internal_linker(target: &str) -> Result<CcLinker, LinkerError> {
 ///
 /// Driver-like linkers (e.g. `cc`, `clang`, `gcc`) get driver semantics,
 /// all others are treated as direct linkers.
-fn resolve_external_linker(target: &str, linker: &str) -> Result<CcLinker, LinkerError> {
+fn resolve_external_linker(
+    target: &str,
+    sysroot: Option<&str>,
+    linker: &str,
+) -> Result<CcLinker, LinkerError> {
     log::debug!("Resolving external linker `{linker}` for target `{target}`");
     if is_driver_linker(linker) {
         log::trace!("External linker `{linker}` detected as compiler-driver linker");
-        resolve_driver_linker(linker, target)
+        resolve_driver_linker(linker, target, sysroot)
     } else {
         log::trace!("External linker `{linker}` treated as direct linker");
         Ok(CcLinker::new(linker))
@@ -231,7 +235,7 @@ fn is_driver_linker(linker: &str) -> bool {
 }
 
 /// Resolve a compiler-driver linker and compute default pre-arguments.
-fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerError> {
+fn resolve_driver_linker(linker: &str, target: &str, sysroot: Option<&str>) -> Result<CcLinker, LinkerError> {
     if which(linker).is_err() {
         log::debug!("Requested driver linker `{linker}` is not available on PATH");
         return Err(LinkerError::Link(format!("Linker not found: {linker}")));
@@ -241,7 +245,7 @@ fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerE
     let cross_target = !target_matches_host(target);
     log::trace!("Driver linker `{linker}` cross-target={cross_target} target=`{target}`");
 
-    if supports_target_flag(linker, target, &pre_args) {
+    if supports_target_flag(linker, target, sysroot, &pre_args) {
         pre_args.push(format!("--target={target}"));
         log::trace!("Driver linker `{linker}` supports --target; added target flag");
     } else if cross_target {
@@ -269,6 +273,27 @@ fn default_driver_pre_args() -> Vec<String> {
     args
 }
 
+/// Assemble the argument list for the driver-support probe.
+///
+/// The probe must carry the flags of the real link that decide whether the target's
+/// crt files and libc resolve — most importantly the sysroot: a cross link (e.g.
+/// Windows host, `linux-gnu` target) can never succeed without it, and omitting it
+/// would reject a perfectly usable driver.
+///
+/// `output` must likewise be a path the linker can actually create. The null device is
+/// *not* usable: on Windows `ld.lld` treats `-o NUL` as a regular file and fails with
+/// "failed to write output 'NUL': permission denied", which would again reject an
+/// otherwise-capable driver.
+fn probe_args(target: &str, sysroot: Option<&str>, pre_args: &[String], output: &str) -> Vec<String> {
+    let mut args = vec![format!("--target={target}")];
+    if let Some(sysroot) = sysroot {
+        args.push(format!("--sysroot={sysroot}"));
+    }
+    args.extend(pre_args.iter().cloned());
+    args.extend(["-x", "c", "-o", output, "-"].map(String::from));
+    args
+}
+
 /// Probe whether a driver linker can actually compile **and link** for `target`.
 ///
 /// The probe includes `pre_args` (e.g. `-fuse-ld=lld`) so that it tests the same
@@ -276,17 +301,25 @@ fn default_driver_pre_args() -> Vec<String> {
 /// program *without* `-nostdlib` so the probe also verifies that the target's
 /// sysroot (crt files, libc, etc.) is available — matching what a real link will
 /// need.
-fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool {
+fn supports_target_flag(linker: &str, target: &str, sysroot: Option<&str>, pre_args: &[String]) -> bool {
     use std::time::{Duration, Instant};
 
-    let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
     let probe_src = "int main(){return 0;}";
     let timeout = Duration::from_secs(10);
 
+    // The probe must link to a real, writable path — see `probe_args`.
+    let probe_dir = match tempfile::tempdir() {
+        Ok(dir) => dir,
+        Err(err) => {
+            log::debug!("supports_target_flag: could not create probe directory: {err}");
+            return false;
+        }
+    };
+    let probe_out = probe_dir.path().join("plc-linker-probe.out");
+    let probe_out = probe_out.to_string_lossy().to_string();
+
     let supported = Command::new(linker)
-        .arg(format!("--target={target}"))
-        .args(pre_args)
-        .args(["-x", "c", "-o", null_output, "-"])
+        .args(probe_args(target, sysroot, pre_args, &probe_out))
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -318,7 +351,7 @@ fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool
         .unwrap_or(false);
 
     log::trace!(
-        "supports_target_flag(linker=`{linker}`, target=`{target}`, pre_args={pre_args:?}) => {supported}"
+        "supports_target_flag(linker=`{linker}`, target=`{target}`, sysroot={sysroot:?}, pre_args={pre_args:?}) => {supported}"
     );
     supported
 }
@@ -476,7 +509,7 @@ impl LinkerInterface for CcLinker {
         // file must outlive the spawned linker, so bind it in the function
         // scope.
         let response_file = if should_use_response_file(&linker_location, &args) {
-            match write_response_file(&args) {
+            match write_response_file(&args, ResponseFileStyle::for_linker(self.driver_mode)) {
                 Ok(f) => {
                     log::debug!(
                         "Linker command line is {} bytes across {} args; routing through response file: {}",
@@ -718,12 +751,14 @@ fn should_use_response_file(linker: &Path, args: &[String]) -> bool {
 /// line, args containing whitespace are double-quoted and have backslashes and
 /// embedded quotes escaped. Accepted by `lld`/`ld.lld`/`ld.bfd`/`gold`/`gcc`/
 /// `clang` (and by `lld-link`/MSVC `link.exe`, which use the same convention).
-fn write_response_file(args: &[String]) -> std::io::Result<NamedTempFile> {
+///
+/// `style` must match the command being spawned — see [`ResponseFileStyle`].
+fn write_response_file(args: &[String], style: ResponseFileStyle) -> std::io::Result<NamedTempFile> {
     let mut file = NamedTempFile::new()?;
     let arg_bytes: usize = args.iter().map(String::len).sum();
     let mut buf = String::with_capacity(arg_bytes + args.len());
     for arg in args {
-        buf.push_str(&quote_response_file_arg(arg));
+        buf.push_str(&quote_response_file_arg(arg, style));
         buf.push('\n');
     }
     file.write_all(buf.as_bytes())?;
@@ -731,35 +766,70 @@ fn write_response_file(args: &[String]) -> std::io::Result<NamedTempFile> {
     Ok(file)
 }
 
-/// Quote a single argument for a GNU-format response file. Args without
-/// whitespace or embedded quotes are emitted unchanged so Windows paths like
-/// `C:\foo` survive unescaped (an unquoted backslash is literal in this
-/// format). When quoting is required, backslashes are doubled inside the
-/// quoted region so the file parses identically under `lld` and binutils-style
-/// linkers.
-fn quote_response_file_arg(arg: &str) -> String {
+/// How the linker consuming a response file tokenizes backslashes.
+///
+/// The two families disagree, and a Windows path is destroyed if the wrong one is
+/// assumed, so the style must follow the command actually being spawned.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum ResponseFileStyle {
+    /// `lld`, `ld.bfd`, `gold`: an unquoted backslash is literal, so `C:\foo\bar.o`
+    /// is passed through as written.
+    LiteralBackslash,
+    /// Compiler drivers (`clang`, `cc`, `gcc`): a backslash escapes the following
+    /// character, so every backslash must be doubled. A bare `C:\foo\bar.o` reaches
+    /// the driver as `C:foobar.o`.
+    EscapedBackslash,
+}
+
+impl ResponseFileStyle {
+    /// Driver linkers hand the response file to the compiler driver's own tokenizer;
+    /// direct linkers parse it themselves.
+    fn for_linker(driver_mode: bool) -> Self {
+        if driver_mode {
+            ResponseFileStyle::EscapedBackslash
+        } else {
+            ResponseFileStyle::LiteralBackslash
+        }
+    }
+}
+
+/// Quote a single argument for a GNU-format response file.
+///
+/// An argument carrying whitespace or an embedded quote is wrapped in double quotes.
+/// Backslash handling additionally depends on `style`; see [`ResponseFileStyle`].
+fn quote_response_file_arg(arg: &str, style: ResponseFileStyle) -> String {
     if arg.is_empty() {
         return "\"\"".to_string();
     }
+
     let needs_quoting = arg.chars().any(|c| c == ' ' || c == '\t' || c == '\n' || c == '"');
-    if !needs_quoting {
+    // Inside a quoted region backslashes are always doubled, so the file parses
+    // identically under both families.
+    let escape_backslash = needs_quoting || style == ResponseFileStyle::EscapedBackslash;
+
+    if !needs_quoting && !escape_backslash {
         return arg.to_string();
     }
+
     let mut out = String::with_capacity(arg.len() + 2);
-    out.push('"');
+    if needs_quoting {
+        out.push('"');
+    }
     for c in arg.chars() {
-        if c == '"' || c == '\\' {
+        if c == '"' || (c == '\\' && escape_backslash) {
             out.push('\\');
         }
         out.push(c);
     }
-    out.push('"');
+    if needs_quoting {
+        out.push('"');
+    }
     out
 }
 
 #[cfg(test)]
 mod test {
-    use crate::linker::{CcLinker, Linker, LinkerInterface, LinkerType};
+    use crate::linker::{probe_args, resolve_external_linker, CcLinker, Linker, LinkerInterface, LinkerType};
 
     #[test]
     fn windows_target_triple_should_result_in_ok() {
@@ -777,7 +847,7 @@ mod test {
             "i686-windows-gnu",
             "i686-win32-gnu",
         ] {
-            assert!(Linker::new(target, LinkerType::Internal).is_ok());
+            assert!(Linker::new(target, None, LinkerType::Internal).is_ok());
         }
     }
 
@@ -786,7 +856,7 @@ mod test {
         for target in
             &["x86_64-linux-gnu", "x86_64-pc-linux-gnu", "x86_64-unknown-linux-gnu", "aarch64-apple-darwin"]
         {
-            assert!(Linker::new(target, LinkerType::Internal).is_ok());
+            assert!(Linker::new(target, None, LinkerType::Internal).is_ok());
         }
     }
 
@@ -830,6 +900,128 @@ mod test {
         let mut linker = CcLinker::new("ld.lld");
         linker.add_lib(":libfoo.so.1");
         assert_eq!(linker.command_args(), vec!["-l:libfoo.so.1"]);
+    }
+
+    #[test]
+    fn probe_args_include_sysroot_when_present() {
+        let args = probe_args(
+            "x86_64-linux-gnu",
+            Some("/sysroots/amd64"),
+            &["-fuse-ld=lld".to_string()],
+            "/tmp/p.out",
+        );
+        assert_eq!(args[0], "--target=x86_64-linux-gnu");
+        assert_eq!(args[1], "--sysroot=/sysroots/amd64");
+        assert_eq!(args[2], "-fuse-ld=lld");
+    }
+
+    /// The probe's `-o` operand must be the caller-supplied path, never a null device.
+    /// See `probe_does_not_link_to_the_null_device` for the behavioural counterpart.
+    #[test]
+    fn probe_args_never_target_the_null_device() {
+        let args = probe_args("x86_64-linux-gnu", Some("/sysroots/amd64"), &[], "/tmp/probe.out");
+
+        let output_idx = args.iter().position(|it| it == "-o").expect("probe must pass -o") + 1;
+        assert_eq!(args[output_idx], "/tmp/probe.out");
+        assert!(!args.iter().any(|it| it == "NUL" || it == "/dev/null"));
+    }
+
+    #[test]
+    fn probe_args_omit_sysroot_when_absent() {
+        let args = probe_args("x86_64-linux-gnu", None, &[], "/tmp/p.out");
+        assert_eq!(args[0], "--target=x86_64-linux-gnu");
+        assert!(!args.iter().any(|it| it.starts_with("--sysroot")));
+    }
+
+    /// What a stand-in compiler driver accepts, so a probe can be steered from a test.
+    enum FakeDriver {
+        /// Exits 0 only when the probe passes a `--sysroot=`.
+        RequiresSysroot,
+        /// Exits 0 only when the probe's output path is *not* a null device.
+        RejectsNullOutput,
+    }
+
+    /// Write a stand-in compiler driver and return its path.
+    ///
+    /// The file name contains `clang` so `is_driver_linker` classifies it as a compiler
+    /// driver. Both host families are covered: a POSIX shell script on unix, a batch file
+    /// on Windows — the Windows variant matters most here, since the null-device defect
+    /// this guards against is Windows-specific.
+    fn write_fake_driver(dir: &Path, behaviour: FakeDriver) -> String {
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+
+            let body = match behaviour {
+                FakeDriver::RequiresSysroot => {
+                    "for arg in \"$@\"; do\n  case \"$arg\" in --sysroot=*) exit 0 ;; esac\ndone\nexit 1\n"
+                }
+                FakeDriver::RejectsNullOutput => {
+                    "prev=\"\"\nfor arg in \"$@\"; do\n  if [ \"$prev\" = \"-o\" ]; then\n    case \"$arg\" in /dev/null|NUL) exit 1 ;; esac\n  fi\n  prev=\"$arg\"\ndone\nexit 0\n"
+                }
+            };
+
+            let script = dir.join("fake-clang");
+            std::fs::write(&script, format!("#!/bin/sh\n{body}")).unwrap();
+            std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+            script.to_string_lossy().into_owned()
+        }
+
+        #[cfg(windows)]
+        {
+            // `findstr` sets errorlevel 1 when the pattern is absent.
+            let body = match behaviour {
+                FakeDriver::RequiresSysroot => {
+                    "echo %* | findstr /C:\"--sysroot=\" >nul\r\nif errorlevel 1 exit /b 1\r\nexit /b 0\r\n"
+                }
+                FakeDriver::RejectsNullOutput => {
+                    "echo %* | findstr /C:\"-o NUL\" /C:\"-o /dev/null\" >nul\r\nif errorlevel 1 exit /b 0\r\nexit /b 1\r\n"
+                }
+            };
+
+            let script = dir.join("fake-clang.bat");
+            std::fs::write(&script, format!("@echo off\r\n{body}")).unwrap();
+            script.to_string_lossy().into_owned()
+        }
+    }
+
+    /// Cross-compilation resolution: a driver that can only link the target when given a
+    /// sysroot (the Windows-host/linux-target case) must be selected when the build supplies
+    /// one, and rejected when it does not.
+    #[test]
+    fn cross_target_driver_resolution_depends_on_sysroot_in_probe() {
+        let dir = tempfile::tempdir().unwrap();
+        let driver = write_fake_driver(dir.path(), FakeDriver::RequiresSysroot);
+
+        // The target arch never matches the host, so resolution must go through the probe.
+        let target = "imaginary-arch-linux-gnu";
+
+        // With a sysroot the probe passes and the driver is selected with the target flag.
+        let linker = resolve_external_linker(target, Some("/sysroots/amd64"), &driver)
+            .expect("driver must be accepted when the probe carries the sysroot");
+        assert!(linker.command_args().contains(&format!("--target={target}")));
+
+        // Without a sysroot the probe link fails and the cross-target driver is rejected.
+        assert!(resolve_external_linker(target, None, &driver).is_err());
+    }
+
+    /// Regression: the probe must link to a real, writable path.
+    ///
+    /// It previously linked to the null device (`NUL` on Windows, `/dev/null` elsewhere).
+    /// `ld.lld` treats `-o NUL` as an ordinary file and fails with "failed to write output
+    /// 'NUL': permission denied", so on a Windows host the probe rejected every otherwise
+    /// capable driver and resolution silently fell back to a direct linker — which carries
+    /// no default libraries and left `libc` symbols undefined.
+    #[test]
+    fn probe_does_not_link_to_the_null_device() {
+        let dir = tempfile::tempdir().unwrap();
+        let driver = write_fake_driver(dir.path(), FakeDriver::RejectsNullOutput);
+
+        let target = "imaginary-arch-linux-gnu";
+
+        let linker = resolve_external_linker(target, Some("/sysroots/amd64"), &driver)
+            .expect("probe must not use the null device as its output path");
+        assert!(linker.command_args().contains(&format!("--target={target}")));
     }
 
     use crate::linker::{diagnose_spawn_error, LinkerError};
@@ -901,33 +1093,67 @@ mod test {
     };
     use serial_test::serial;
 
+    use crate::linker::ResponseFileStyle;
+
+    const LITERAL: ResponseFileStyle = ResponseFileStyle::LiteralBackslash;
+    const ESCAPED: ResponseFileStyle = ResponseFileStyle::EscapedBackslash;
+
     #[test]
     fn response_file_quoting_leaves_plain_args_alone() {
-        assert_eq!(quote_response_file_arg("-O2"), "-O2");
-        assert_eq!(quote_response_file_arg("--target=x86_64-linux-gnu"), "--target=x86_64-linux-gnu");
-        assert_eq!(quote_response_file_arg("/tmp/libfoo.so.1"), "/tmp/libfoo.so.1");
-        // Backslashes without whitespace stay unescaped — unquoted backslash is
-        // literal in the GNU response-file format.
-        assert_eq!(quote_response_file_arg(r"C:\foo\bar.o"), r"C:\foo\bar.o");
+        assert_eq!(quote_response_file_arg("-O2", LITERAL), "-O2");
+        assert_eq!(
+            quote_response_file_arg("--target=x86_64-linux-gnu", LITERAL),
+            "--target=x86_64-linux-gnu"
+        );
+        assert_eq!(quote_response_file_arg("/tmp/libfoo.so.1", LITERAL), "/tmp/libfoo.so.1");
+        // A direct linker takes an unquoted backslash literally, so the path is
+        // emitted as written.
+        assert_eq!(quote_response_file_arg(r"C:\foo\bar.o", LITERAL), r"C:\foo\bar.o");
+    }
+
+    /// Regression: a compiler driver treats a backslash as an escape, so an unescaped
+    /// Windows path reaches it as `C:foobar.o` and the link fails with "no such file
+    /// or directory" for every object.
+    #[test]
+    fn response_file_quoting_escapes_backslashes_for_driver_linkers() {
+        assert_eq!(quote_response_file_arg(r"C:\foo\bar.o", ESCAPED), r"C:\\foo\\bar.o");
+        // Flags and forward-slash paths are unaffected.
+        assert_eq!(quote_response_file_arg("-O2", ESCAPED), "-O2");
+        assert_eq!(quote_response_file_arg("/tmp/libfoo.so.1", ESCAPED), "/tmp/libfoo.so.1");
+    }
+
+    #[test]
+    fn response_file_style_follows_the_linker_family() {
+        assert_eq!(ResponseFileStyle::for_linker(true), ESCAPED);
+        assert_eq!(ResponseFileStyle::for_linker(false), LITERAL);
     }
 
     #[test]
     fn response_file_quoting_escapes_args_with_whitespace() {
-        // Whitespace forces quoting; backslashes inside the quoted region are
-        // doubled so the file parses identically under lld and binutils.
-        assert_eq!(quote_response_file_arg(r"C:\Program Files\foo.o"), r#""C:\\Program Files\\foo.o""#);
-        assert_eq!(quote_response_file_arg("a b"), r#""a b""#);
-        assert_eq!(quote_response_file_arg("with\ttab"), "\"with\ttab\"");
+        // Whitespace forces quoting; backslashes inside the quoted region are doubled
+        // under either style, so the file parses identically for both families.
+        for style in [LITERAL, ESCAPED] {
+            assert_eq!(
+                quote_response_file_arg(r"C:\Program Files\foo.o", style),
+                r#""C:\\Program Files\\foo.o""#
+            );
+            assert_eq!(quote_response_file_arg("a b", style), r#""a b""#);
+            assert_eq!(quote_response_file_arg("with\ttab", style), "\"with\ttab\"");
+        }
     }
 
     #[test]
     fn response_file_quoting_escapes_embedded_quotes() {
-        assert_eq!(quote_response_file_arg(r#"say "hi""#), r#""say \"hi\"""#);
+        for style in [LITERAL, ESCAPED] {
+            assert_eq!(quote_response_file_arg(r#"say "hi""#, style), r#""say \"hi\"""#);
+        }
     }
 
     #[test]
     fn response_file_quoting_emits_empty_arg_as_quoted_empty() {
-        assert_eq!(quote_response_file_arg(""), "\"\"");
+        for style in [LITERAL, ESCAPED] {
+            assert_eq!(quote_response_file_arg("", style), "\"\"");
+        }
     }
 
     #[test]
@@ -1011,7 +1237,7 @@ mod test {
             r"C:\Program Files\foo.o".to_string(),
             "/tmp/libbar.so.1".to_string(),
         ];
-        let file = write_response_file(&args).expect("write response file");
+        let file = write_response_file(&args, LITERAL).expect("write response file");
         let contents = std::fs::read_to_string(file.path()).expect("read response file back");
         assert_eq!(
             contents,
@@ -1020,5 +1246,78 @@ mod test {
              \"C:\\\\Program Files\\\\foo.o\"\n\
              /tmp/libbar.so.1\n",
         );
+    }
+
+    /// Regression: object paths written for a driver linker must survive the driver's
+    /// tokenizer. Before this, every backslash was dropped and the link failed with
+    /// "no such file or directory" for each object.
+    #[test]
+    fn write_response_file_escapes_object_paths_for_driver_linkers() {
+        let args = vec![
+            r"C:\build\tmp\obj\mainProg.st.o".to_string(),
+            r"C:\build\tmp\obj\taskRun.st.o".to_string(),
+            "-o".to_string(),
+            r"C:\build\prog.so".to_string(),
+        ];
+        let file = write_response_file(&args, ESCAPED).expect("write response file");
+        let contents = std::fs::read_to_string(file.path()).expect("read response file back");
+        assert_eq!(
+            contents,
+            "C:\\\\build\\\\tmp\\\\obj\\\\mainProg.st.o\n\
+             C:\\\\build\\\\tmp\\\\obj\\\\taskRun.st.o\n\
+             -o\n\
+             C:\\\\build\\\\prog.so\n",
+        );
+
+        // Every emitted line must unescape back to the original argument.
+        for (written, original) in contents.lines().zip(&args) {
+            assert_eq!(written.replace("\\\\", "\\"), *original);
+        }
+    }
+
+    /// The response file a driver linker actually receives round-trips its arguments.
+    /// Exercised through `CcLinker` so the style is picked the way `finalize` picks it,
+    /// rather than being asserted against a hand-passed constant.
+    #[test]
+    fn driver_linker_response_file_round_trips_windows_paths() {
+        let obj = r"C:\tmp\a b\obj\mainProg.st.o";
+
+        let mut driver = CcLinker::new_driver("clang", vec!["-fuse-ld=lld".to_string()]);
+        driver.add_obj(obj);
+        let driver_args = driver.command_args();
+
+        for (linker, style) in [(&driver, ESCAPED), (&CcLinker::new("ld.lld"), LITERAL)] {
+            let _ = linker;
+            let file = write_response_file(&driver_args, style).expect("write response file");
+            let contents = std::fs::read_to_string(file.path()).expect("read response file back");
+            assert!(
+                contents.lines().any(|line| unescape_response_arg(line, style) == obj),
+                "object path did not round-trip for {style:?}: {contents}"
+            );
+        }
+    }
+
+    /// Minimal inverse of `quote_response_file_arg`, mirroring how each linker family
+    /// tokenizes the file.
+    fn unescape_response_arg(line: &str, style: ResponseFileStyle) -> String {
+        let quoted = line.starts_with('"') && line.ends_with('"') && line.len() >= 2;
+        let body = if quoted { &line[1..line.len() - 1] } else { line };
+
+        if !quoted && style == LITERAL {
+            return body.to_string();
+        }
+
+        let mut out = String::with_capacity(body.len());
+        let mut chars = body.chars();
+        while let Some(c) = chars.next() {
+            if c == '\\' {
+                if let Some(next) = chars.next() {
+                    out.push(next);
+                }
+            } else {
+                out.push(c);
+            }
+        }
+        out
     }
 }

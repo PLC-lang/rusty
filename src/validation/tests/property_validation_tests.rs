@@ -1333,6 +1333,12 @@ fn property_reference_type_mismatch_is_rejected() {
     11 │             PROPERTY_SET myINTProp: REFERENCE TO LINT
        │                                     ----------------- see also
 
+    error[E037]: Parameter myINTProp is passed by reference, it requires an argument of type LINT but got INT
+       ┌─ <internal>:26:35
+       │
+    26 │             instance.myINTProp := refY;
+       │                                   ^^^^ Parameter myINTProp is passed by reference, it requires an argument of type LINT but got INT
+
     error[E037]: Invalid assignment: cannot assign 'INT' to 'LINT'
        ┌─ <internal>:12:17
        │

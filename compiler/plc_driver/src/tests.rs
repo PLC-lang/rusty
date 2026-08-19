@@ -20,6 +20,58 @@ mod external_files;
 mod header_generator;
 mod multi_files;
 
+/// `--target` and `--sysroot` are parsed as independent parameters; these cover the merge
+/// that puts the sysroot onto the target so it reaches the linker probe and the real link.
+mod target_resolution {
+    use crate::{cli::CompileParameters, resolve_target};
+
+    fn params(args: &[&str]) -> CompileParameters {
+        CompileParameters::parse(args).unwrap()
+    }
+
+    #[test]
+    fn sysroot_is_merged_into_the_target() {
+        let params =
+            params(&["plc", "alpha.st", "--target", "x86_64-linux-gnu", "--sysroot", "/sysroots/amd64"]);
+
+        let target = resolve_target(Some(&params));
+
+        assert_eq!(target.try_get_name(), Some("x86_64-linux-gnu"));
+        assert_eq!(target.get_sysroot(), Some("/sysroots/amd64"));
+    }
+
+    #[test]
+    fn target_without_sysroot_carries_none() {
+        let params = params(&["plc", "alpha.st", "--target", "x86_64-linux-gnu"]);
+
+        let target = resolve_target(Some(&params));
+
+        assert_eq!(target.try_get_name(), Some("x86_64-linux-gnu"));
+        assert_eq!(target.get_sysroot(), None);
+    }
+
+    /// A sysroot is only carried by `Target::Param`, so without `--target` the default
+    /// `Target::System` keeps none. That is correct for a native build, where the host
+    /// toolchain supplies its own defaults.
+    #[test]
+    fn sysroot_without_target_is_dropped() {
+        let params = params(&["plc", "alpha.st", "--sysroot", "/sysroots/amd64"]);
+
+        let target = resolve_target(Some(&params));
+
+        assert_eq!(target.try_get_name(), None);
+        assert_eq!(target.get_sysroot(), None);
+    }
+
+    #[test]
+    fn absent_parameters_resolve_to_the_default_target() {
+        let target = resolve_target(None);
+
+        assert_eq!(target.try_get_name(), None);
+        assert_eq!(target.get_sysroot(), None);
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(bound(deserialize = "'de: 'static"))]
 pub struct ParsedProjectWrapper {

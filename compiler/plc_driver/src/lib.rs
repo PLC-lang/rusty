@@ -24,7 +24,7 @@ use plc::{
     codegen::CodegenContext,
     linker::LinkerType,
     output::{FormatOption, RelocationPreference},
-    DebugLevel, ErrorFormat, OnlineChange, OptimizationLevel,
+    DebugLevel, ErrorFormat, OnlineChange, OptimizationLevel, Target,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};
@@ -185,12 +185,28 @@ pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     compile_with_pipeline(pipeline)
 }
 
+/// Resolve the build target, folding the separately-parsed `--sysroot` into it.
+///
+/// `--target` and `--sysroot` are independent CLI parameters, and `FromStr for Target`
+/// can only produce a target with no sysroot. Without this merge `Target::get_sysroot()`
+/// is always `None`, so the sysroot reaches neither the driver-linker support probe nor
+/// the real link.
+///
+/// Note that a sysroot is only carried by [`Target::Param`]: with no `--target` the
+/// default [`Target::System`] keeps no sysroot, which is correct for a native build.
+fn resolve_target(params: Option<&CompileParameters>) -> Target {
+    params
+        .and_then(|it| it.target.clone())
+        .unwrap_or_default()
+        .with_sysroot(params.and_then(|it| it.sysroot.clone()))
+}
+
 pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
     mut pipeline: BuildPipeline<T>,
 ) -> Result<()> {
     //register participants
     pipeline.register_default_mut_participants();
-    let target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
+    let target = resolve_target(pipeline.compile_parameters.as_ref());
     let codegen_participant = CodegenParticipant {
         compile_options: pipeline.get_compile_options().unwrap(),
         link_options: pipeline.get_link_options().unwrap(),
