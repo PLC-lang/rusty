@@ -38,7 +38,8 @@
 
 use plc_ast::{
     ast::{
-        AccessModifier, AstFactory, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration, Variable,
+        AccessModifier, AstFactory, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration,
+        LinkageType, UserTypeDeclaration, Variable,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -71,13 +72,19 @@ struct RetainLowerer {
 #[derive(Debug, Default)]
 struct Context {
     container_name: Option<String>,
+    container_linkage: Option<LinkageType>,
     in_program: bool,
     retain_variables: Vec<Variable>,
+    pointer_types: Vec<UserTypeDeclaration>,
 }
 
 impl AstVisitorMut for RetainLowerer {
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
         unit.walk(self);
+
+        // Register the pointer types synthesized for extracted program retain variables.
+        unit.user_types.append(&mut self.context.pointer_types);
+
         // After visiting the compilation unit, add all retain variables to the global vars
         if !self.context.retain_variables.is_empty() {
             // Find an existing retain global variable block or create a new one if it doesn't exist
@@ -104,9 +111,11 @@ impl AstVisitorMut for RetainLowerer {
     fn visit_pou(&mut self, pou: &mut plc_ast::ast::Pou) {
         self.context.in_program = matches!(pou.kind, plc_ast::ast::PouType::Program);
         self.context.container_name = Some(pou.name.clone());
+        self.context.container_linkage = Some(pou.linkage);
         pou.walk(self);
         self.context.in_program = false;
         self.context.container_name = None;
+        self.context.container_linkage = None;
     }
 
     fn visit_variable_block(&mut self, block: &mut plc_ast::ast::VariableBlock) {
@@ -154,7 +163,7 @@ impl RetainLowerer {
             self.context.container_name.as_deref().unwrap_or_default(),
             variable.get_name()
         );
-        // Create a global variable called __<pou_name>_<var_name> and move the initializer and datatype to the global variable
+        // Create a global variable called __<pou_name>_<var_name>__retain and move the initializer and datatype to the global variable
         let new_var = Variable {
             name: new_name,
             data_type_declaration: variable.data_type_declaration.clone(),
@@ -162,17 +171,35 @@ impl RetainLowerer {
             location: variable.location.clone(),
             address: None,
         };
-        variable.data_type_declaration = DataTypeDeclaration::Definition {
-            data_type: Box::new(DataType::PointerType {
-                name: None,
-                referenced_type: Box::new(variable.data_type_declaration.clone()),
+
+        // Register the auto-deref pointer type under its own name. An inline definition would be
+        // extracted by the pre-processor as `__<pou>_<var>`, which clashes with the type of the
+        // same name the pre-processor already created when the variable's type was declared
+        // inline (e.g. an array).
+        let pointer_type_name = format!("{}_ptr", new_var.get_name());
+        let location = variable.data_type_declaration.get_location();
+        let referenced_type = std::mem::replace(
+            &mut variable.data_type_declaration,
+            DataTypeDeclaration::Reference {
+                referenced_type: pointer_type_name.clone(),
+                location: location.clone(),
+            },
+        );
+        self.context.pointer_types.push(UserTypeDeclaration {
+            data_type: DataType::PointerType {
+                name: Some(pointer_type_name),
+                referenced_type: Box::new(referenced_type),
                 auto_deref: Some(AutoDerefType::Alias),
                 type_safe: true,
                 is_function: false,
-            }),
-            location: variable.data_type_declaration.get_location(),
+            },
+            initializer: None,
+            location,
             scope: self.context.container_name.clone(),
-        };
+            linkage: self.context.container_linkage.unwrap_or(LinkageType::Internal),
+        });
+
+        // Initialize the program variable with a reference to the global retain variable.
         variable.initializer = Some(AstFactory::create_member_reference(
             AstFactory::create_identifier(&new_var.name, variable.location.clone(), self.ids.next_id()),
             None,
@@ -246,7 +273,7 @@ mod tests {
         // The program's variable should be replaced with an auto-deref pointer
         let pou_var = find_pou_variable(unit, "Test", "x");
         // The type should now reference the generated pointer type, not INT directly
-        assert_eq!(referenced_type_name(&pou_var.data_type_declaration), "__Test_x");
+        assert_eq!(referenced_type_name(&pou_var.data_type_declaration), "__Test_x__retain_ptr");
         assert!(pou_var.initializer.is_some(), "program variable should have a reference initializer");
 
         // The program's variable block should no longer be marked retain
@@ -294,8 +321,54 @@ mod tests {
 
         // The program's variable should be replaced with an auto-deref pointer to the retain global
         let pou_var = find_pou_variable(unit, "Test", "x");
-        assert_eq!(referenced_type_name(&pou_var.data_type_declaration), "__Test_x");
+        assert_eq!(referenced_type_name(&pou_var.data_type_declaration), "__Test_x__retain_ptr");
         assert!(pou_var.initializer.is_some(), "program variable should have a reference initializer");
+    }
+
+    #[test]
+    fn test_retain_lowering_on_program_with_inline_types() {
+        let source: SourceCode = r#"
+        PROGRAM Test
+        VAR RETAIN
+            arr : ARRAY[0..2] OF DINT := [1, 2, 3];
+            sub : DINT(0..100) := 50;
+            str : STRING[20] := 'start';
+            col : (RED, GREEN, BLUE) := GREEN;
+            mat : ARRAY[0..1, 0..2] OF DINT;
+            nst : ARRAY[0..1] OF ARRAY[0..2] OF DINT;
+            rec : STRUCT a : DINT; b : DINT; END_STRUCT
+        END_VAR
+        END_PROGRAM
+        "#
+        .into();
+
+        let (_, project) =
+            parse_and_annotate("test", vec![source]).expect("Failed to parse compilation unit");
+        let unit = project.units[0].get_unit();
+
+        // The extracted inline types and the generated retain pointer types must not clash
+        let mut type_names: Vec<&str> =
+            unit.user_types.iter().filter_map(|it| it.data_type.get_name()).collect();
+        type_names.sort_unstable();
+        let duplicates: Vec<&str> =
+            type_names.windows(2).filter(|pair| pair[0] == pair[1]).map(|pair| pair[0]).collect();
+        assert!(duplicates.is_empty(), "duplicate user types after retain lowering: {duplicates:?}");
+
+        // Every member is extracted into the global retain block
+        let retain_block = find_retain_block(unit);
+        let variable_names: Vec<&str> = retain_block.variables.iter().map(|v| v.get_name()).collect();
+        assert_eq!(
+            variable_names,
+            vec![
+                "__Test_arr__retain",
+                "__Test_sub__retain",
+                "__Test_str__retain",
+                "__Test_col__retain",
+                "__Test_mat__retain",
+                "__Test_nst__retain",
+                "__Test_rec__retain",
+            ]
+        );
     }
 
     #[test]
