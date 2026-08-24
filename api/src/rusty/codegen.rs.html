@@ -128,7 +128,7 @@
 <a href=#128 id=128 data-nosnippet>128</a>                <span class="kw-2">&amp;</span>triple,
 <a href=#129 id=129 data-nosnippet>129</a>                <span class="string">"generic"</span>, <span class="comment">// CPU features - generic for portability
 <a href=#130 id=130 data-nosnippet>130</a>                </span><span class="string">""</span>,        <span class="comment">// CPU features - empty string for default
-<a href=#131 id=131 data-nosnippet>131</a>                </span>optimization_level.into(),
+<a href=#131 id=131 data-nosnippet>131</a>                </span>optimization_level.codegen_level(),
 <a href=#132 id=132 data-nosnippet>132</a>                inkwell::targets::RelocMode::Default,
 <a href=#133 id=133 data-nosnippet>133</a>                inkwell::targets::CodeModel::Default,
 <a href=#134 id=134 data-nosnippet>134</a>            )
@@ -564,7 +564,7 @@
 <a href=#564 id=564 data-nosnippet>564</a>                <span class="comment">//TODO : Add cpu features as optionals
 <a href=#565 id=565 data-nosnippet>565</a>                </span><span class="string">"generic"</span>, <span class="comment">//TargetMachine::get_host_cpu_name().to_string().as_str(),
 <a href=#566 id=566 data-nosnippet>566</a>                </span><span class="string">""</span>,        <span class="comment">//TargetMachine::get_host_cpu_features().to_string().as_str(),
-<a href=#567 id=567 data-nosnippet>567</a>                </span>optimization_level.into(),
+<a href=#567 id=567 data-nosnippet>567</a>                </span>optimization_level.codegen_level(),
 <a href=#568 id=568 data-nosnippet>568</a>                reloc,
 <a href=#569 id=569 data-nosnippet>569</a>                CodeModel::Default,
 <a href=#570 id=570 data-nosnippet>570</a>            )

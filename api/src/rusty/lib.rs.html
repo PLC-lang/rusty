@@ -228,13 +228,25 @@
 <a href=#228 id=228 data-nosnippet>228</a>    <span class="kw">fn </span>is_optimized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
 <a href=#229 id=229 data-nosnippet>229</a>        !<span class="macro">matches!</span>(<span class="self">self</span>, OptimizationLevel::None)
 <a href=#230 id=230 data-nosnippet>230</a>    }
-<a href=#231 id=231 data-nosnippet>231</a>}
-<a href=#232 id=232 data-nosnippet>232</a>
-<a href=#233 id=233 data-nosnippet>233</a><span class="attr">#[macro_use]
-<a href=#234 id=234 data-nosnippet>234</a>#[cfg(test)]
-<a href=#235 id=235 data-nosnippet>235</a></span><span class="kw">extern crate </span>pretty_assertions;
-<a href=#236 id=236 data-nosnippet>236</a><span class="attr">#[cfg(test)]
-<a href=#237 id=237 data-nosnippet>237</a></span><span class="kw">mod </span>tests {
-<a href=#238 id=238 data-nosnippet>238</a>    <span class="kw">mod </span>adr;
-<a href=#239 id=239 data-nosnippet>239</a>}
+<a href=#231 id=231 data-nosnippet>231</a>
+<a href=#232 id=232 data-nosnippet>232</a>    <span class="doccomment">/// The backend (`TargetMachine`) level backing this optimization level. `None` keeps
+<a href=#233 id=233 data-nosnippet>233</a>    /// the IR pipeline at O0 (see `opt_params` — no inlining, unrolling or other
+<a href=#234 id=234 data-nosnippet>234</a>    /// debug-hostile IR transforms) but raises the codegen level to `Less` so the
+<a href=#235 id=235 data-nosnippet>235</a>    /// machine pipeline runs; most importantly LLVM's stack coloring, which merges the
+<a href=#236 id=236 data-nosnippet>236</a>    /// lifetime-bracketed call temporaries and keeps string-heavy POU frames bounded.
+<a href=#237 id=237 data-nosnippet>237</a>    </span><span class="kw">fn </span>codegen_level(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; inkwell::OptimizationLevel {
+<a href=#238 id=238 data-nosnippet>238</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#239 id=239 data-nosnippet>239</a>            OptimizationLevel::None =&gt; inkwell::OptimizationLevel::Less,
+<a href=#240 id=240 data-nosnippet>240</a>            <span class="kw">_ </span>=&gt; (<span class="kw-2">*</span><span class="self">self</span>).into(),
+<a href=#241 id=241 data-nosnippet>241</a>        }
+<a href=#242 id=242 data-nosnippet>242</a>    }
+<a href=#243 id=243 data-nosnippet>243</a>}
+<a href=#244 id=244 data-nosnippet>244</a>
+<a href=#245 id=245 data-nosnippet>245</a><span class="attr">#[macro_use]
+<a href=#246 id=246 data-nosnippet>246</a>#[cfg(test)]
+<a href=#247 id=247 data-nosnippet>247</a></span><span class="kw">extern crate </span>pretty_assertions;
+<a href=#248 id=248 data-nosnippet>248</a><span class="attr">#[cfg(test)]
+<a href=#249 id=249 data-nosnippet>249</a></span><span class="kw">mod </span>tests {
+<a href=#250 id=250 data-nosnippet>250</a>    <span class="kw">mod </span>adr;
+<a href=#251 id=251 data-nosnippet>251</a>}
 </code></pre></div></section></main></body></html>
