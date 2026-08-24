@@ -39,9 +39,10 @@ fn ctu<T>(params: &mut CTUParams<T>)
 where
     T: Integer + Copy + Bounded,
 {
+    let cu_r_edge = params.r_edge();
     if params.r {
         params.reset();
-    } else if params.r_edge() & (params.cv < T::max_value()) {
+    } else if cu_r_edge & (params.cv < T::max_value()) {
         params.inc();
     }
     params.update_q();
@@ -138,9 +139,10 @@ fn ctd<T>(params: &mut CTDParams<T>)
 where
     T: Integer + Copy + Bounded,
 {
+    let cd_r_edge = params.r_edge();
     if params.ld {
         params.load();
-    } else if params.r_edge() & (params.cv > T::min_value()) {
+    } else if cd_r_edge & (params.cv > T::min_value()) {
         params.dec();
     }
     params.update_q();

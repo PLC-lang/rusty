@@ -16,6 +16,51 @@ struct CTUType<T> {
     cv: T,
 }
 
+#[repr(C)]
+#[derive(Default, Debug)]
+struct CTUResetType {
+    fb: CTUParams<i16>,
+    step: i16,
+    q: bool,
+    cv: i16,
+}
+
+#[test]
+fn ctu_reset_tracks_cu_edge() {
+    let prog = r#"
+        PROGRAM main
+        VAR
+            ctu_inst : CTU;
+            step : INT;
+            Q_res : BOOL;
+            CV_res : INT;
+        END_VAR
+            CASE step OF
+                0: ctu_inst(CU := TRUE, R := FALSE, PV := INT#3, Q => Q_res, CV => CV_res);
+                1: ctu_inst(CU := FALSE, R := FALSE, PV := INT#3, Q => Q_res, CV => CV_res);
+                2: ctu_inst(CU := TRUE, R := TRUE, PV := INT#3, Q => Q_res, CV => CV_res);
+                3: ctu_inst(CU := TRUE, R := FALSE, PV := INT#3, Q => Q_res, CV => CV_res);
+            END_CASE
+            step := step + 1;
+        END_PROGRAM
+    "#;
+
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
+    let context = CodegenContext::create();
+    let module = compile_and_load(&context, source, includes);
+    let mut main_inst = CTUResetType::default();
+
+    module.run::<_, ()>("main", &mut main_inst);
+    assert_eq!(main_inst.cv, 1);
+    module.run::<_, ()>("main", &mut main_inst);
+    assert_eq!(main_inst.cv, 1);
+    module.run::<_, ()>("main", &mut main_inst);
+    assert_eq!(main_inst.cv, 0);
+    module.run::<_, ()>("main", &mut main_inst);
+    assert_eq!(main_inst.cv, 0);
+}
+
 #[test]
 fn ctu() {
     let prog = r#"
@@ -309,6 +354,10 @@ fn ctd() {
     let context = CodegenContext::create();
     let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<i16> { load: true, ..CTDType::default() };
+    // load without counting down
+    module.run::<_, ()>("main", &mut main_inst);
+    assert!(!main_inst.q);
+    assert_eq!(main_inst.cv, 3);
     // count down
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
@@ -321,10 +370,6 @@ fn ctd() {
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
-    // count down
-    module.run::<_, ()>("main", &mut main_inst);
-    assert!(main_inst.q);
-    assert_eq!(main_inst.cv, -1);
 }
 
 #[test]
@@ -353,6 +398,10 @@ fn ctd_int() {
     let context = CodegenContext::create();
     let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<i16> { load: true, ..CTDType::default() };
+    // load without counting down
+    module.run::<_, ()>("main", &mut main_inst);
+    assert!(!main_inst.q);
+    assert_eq!(main_inst.cv, 3);
     // count down
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
@@ -365,10 +414,6 @@ fn ctd_int() {
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
-    // count down
-    module.run::<_, ()>("main", &mut main_inst);
-    assert!(main_inst.q);
-    assert_eq!(main_inst.cv, -1);
 }
 
 #[test]
@@ -397,6 +442,10 @@ fn ctd_dint() {
     let context = CodegenContext::create();
     let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<i32> { load: true, ..CTDType::default() };
+    // load without counting down
+    module.run::<_, ()>("main", &mut main_inst);
+    assert!(!main_inst.q);
+    assert_eq!(main_inst.cv, 3);
     // count down
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
@@ -409,10 +458,6 @@ fn ctd_dint() {
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
-    // count down
-    module.run::<_, ()>("main", &mut main_inst);
-    assert!(main_inst.q);
-    assert_eq!(main_inst.cv, -1);
 }
 
 #[test]
@@ -441,6 +486,10 @@ fn ctd_udint() {
     let context = CodegenContext::create();
     let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<u32> { load: true, ..CTDType::default() };
+    // load without counting down
+    module.run::<_, ()>("main", &mut main_inst);
+    assert!(!main_inst.q);
+    assert_eq!(main_inst.cv, 3);
     // count down
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
@@ -449,10 +498,6 @@ fn ctd_udint() {
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
-    // count down
-    module.run::<_, ()>("main", &mut main_inst);
-    assert!(main_inst.q);
-    assert_eq!(main_inst.cv, 0);
     // count down
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
@@ -485,6 +530,10 @@ fn ctd_lint() {
     let context = CodegenContext::create();
     let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<i64> { load: true, ..CTDType::default() };
+    // load without counting down
+    module.run::<_, ()>("main", &mut main_inst);
+    assert!(!main_inst.q);
+    assert_eq!(main_inst.cv, 3);
     // count down
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
@@ -497,10 +546,6 @@ fn ctd_lint() {
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
     assert_eq!(main_inst.cv, 0);
-    // count down
-    module.run::<_, ()>("main", &mut main_inst);
-    assert!(main_inst.q);
-    assert_eq!(main_inst.cv, -1);
 }
 
 #[test]
@@ -529,6 +574,10 @@ fn ctd_ulint() {
     let context = CodegenContext::create();
     let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<u64> { load: true, ..CTDType::default() };
+    // load without counting down
+    module.run::<_, ()>("main", &mut main_inst);
+    assert!(!main_inst.q);
+    assert_eq!(main_inst.cv, 3);
     // count down
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
@@ -537,10 +586,6 @@ fn ctd_ulint() {
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.q);
     assert_eq!(main_inst.cv, 1);
-    // count down
-    module.run::<_, ()>("main", &mut main_inst);
-    assert!(main_inst.q);
-    assert_eq!(main_inst.cv, 0);
     // count down
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.q);
