@@ -1814,16 +1814,13 @@ mod tests {
 
     #[test]
     fn display_variable_block_type() {
-        assert_eq!(VariableBlockType::Local.to_string(), "Local");
-        assert_eq!(VariableBlockType::Temp.to_string(), "Temp");
-        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), "Input");
-        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), "Input");
-        assert_eq!(VariableBlockType::Output.to_string(), "Output");
+        assert_eq!(VariableBlockType::Local.to_string(), "local");
+        assert_eq!(VariableBlockType::Temp.to_string(), "temp");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), "input");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), "input");
+        assert_eq!(VariableBlockType::Output.to_string(), "output");
         assert_eq!(VariableBlockType::Global.to_string(), "global");
-        assert_eq!(VariableBlockType::Global.to_string(), "global");
-        assert_eq!(VariableBlockType::Global.to_string(), "global");
-        assert_eq!(VariableBlockType::Global.to_string(), "global");
-        assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
+        assert_eq!(VariableBlockType::InOut.to_string(), "inout");
     }
 }
 
