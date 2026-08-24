@@ -417,6 +417,90 @@ mod xml_gen_tests {
     }
 
     #[test]
+    fn test_generate_pous_external_blocks() {
+        let params = GenerationParameters::new();
+        let mut template = get_omron_template();
+        let mut order: HashSet<(String, usize)> = HashSet::new();
+
+        let temp_dir = std::env::temp_dir();
+        let st_path = temp_dir.join("test_external_source.st");
+        let program_body = "IF reset THEN reset := FALSE; END_IF;";
+        std::fs::write(&st_path, program_body).unwrap();
+
+        let st_path_str: &'static str = Box::leak(st_path.to_string_lossy().into_owned().into_boxed_str());
+
+        let body_len = program_body.len();
+        let impl_location = SourceLocation {
+            span: CodeSpan::Range(TextLocation::new(0, 0, 0)..TextLocation::new(0, body_len, body_len)),
+            file: FileMarker::File(st_path_str),
+        };
+
+        let mut unit = make_unit("test_external_source.st");
+
+        let mut constant_external_block = VariableBlock::default()
+            .with_block_type(VariableBlockType::External)
+            .with_variables(vec![make_variable("MAX_SPEED", "INT")]);
+        constant_external_block.constant = true;
+
+        unit.pous.push(Pou {
+            id: 1,
+            name: String::from("ExternalProg"),
+            kind: PouType::Program,
+            variable_blocks: vec![
+                VariableBlock::default()
+                    .with_block_type(VariableBlockType::External)
+                    .with_variables(vec![
+                        make_variable("currentState", "State"),
+                        make_variable("reset", "BOOL"),
+                    ]),
+                constant_external_block,
+            ],
+            return_type: None,
+            location: SourceLocation::internal(),
+            name_location: SourceLocation::internal(),
+            poly_mode: None,
+            generics: vec![],
+            linkage: LinkageType::Internal,
+            super_class: None,
+            is_const: false,
+            interfaces: vec![],
+            properties: vec![],
+        });
+
+        unit.implementations.push(Implementation {
+            name: String::from("ExternalProg"),
+            type_name: String::from("ExternalProg"),
+            linkage: LinkageType::Internal,
+            pou_type: PouType::Program,
+            statements: vec![],
+            location: impl_location,
+            name_location: SourceLocation::internal(),
+            end_location: SourceLocation::internal(),
+            overriding: false,
+            generic: false,
+            access: None,
+        });
+
+        let result = generate_pous(&params, &unit, OMRON_SCHEMA, &mut order, &mut template);
+        assert!(result.is_ok());
+
+        let output_path = temp_dir.join("test_generate_pous_external_output.xml");
+        write_xml_file(&output_path, template).unwrap();
+
+        let contents = std::fs::read_to_string(&output_path).unwrap();
+        assert!(contents.contains("ExternalVars"));
+        assert!(contents.contains("ExternalProg"));
+        assert!(contents.contains("currentState"));
+        assert!(contents.contains("State"));
+        assert!(contents.contains("reset"));
+        assert!(contents.contains("MAX_SPEED"));
+        assert!(contents.contains("<ExternalVars constant=\"true\">"));
+
+        let _ = std::fs::remove_file(&output_path);
+        let _ = std::fs::remove_file(&st_path);
+    }
+
+    #[test]
     fn test_write_xml_file_creates_file() {
         let temp_dir = std::env::temp_dir();
         let output_path = temp_dir.join("test_write_xml_output.xml");
