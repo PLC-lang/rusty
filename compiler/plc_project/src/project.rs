@@ -311,6 +311,7 @@ impl<S: SourceContainer> Project<S> {
                 FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC => format!("{input}.so"),
                 FormatOption::Bitcode => format!("{input}.bc"),
                 FormatOption::IR => format!("{input}.ll"),
+                FormatOption::XML => format!("{input}.xml")
             }
         })
     }

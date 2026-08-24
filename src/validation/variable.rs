@@ -118,7 +118,7 @@ pub fn visit_variable_block<T: AnnotationMap>(
     validator: &mut Validator,
     pou: Option<&Pou>,
     block: &VariableBlock,
-    context: &ValidationContext<T>,
+    context: &ValidationContext<T>
 ) {
     validate_variable_block(validator, block);
 
@@ -161,14 +161,6 @@ fn validate_template_address(validator: &mut Validator, pou: Option<&Pou>, varia
 }
 
 fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
-    if matches!(block.kind, VariableBlockType::External) {
-        validator.push_diagnostic(
-            Diagnostic::new("VAR_EXTERNAL blocks have no effect")
-                .with_error_code("E106")
-                .with_location(&block.location),
-        );
-    }
-
     if block.constant
         && !matches!(
             block.kind,

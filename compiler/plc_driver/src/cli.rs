@@ -4,6 +4,7 @@ use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use log::LevelFilter;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
+use plc_xmlgen::xml_gen::GenerationParameters;
 use plc_header_generator::GenerateLanguage;
 use std::{
     env,
@@ -56,6 +57,14 @@ impl From<LogLevel> for LevelFilter {
 #[clap(subcommand_negates_reqs = true)]
 #[clap(subcommand_precedence_over_arg = true)]
 pub struct CompileParameters {
+    #[clap(
+        long = "xml-omron",
+        group = "format",
+        global = true,
+        help = "Emit IEC 61131-10 open XML exchange format for Omron Sysmac Studio"
+    )]
+    pub output_xml_omron: bool,
+
     #[clap(short, long, global = true, name = "output-file", help = "Write output to <output-file>")]
     pub output: Option<String>,
 
@@ -638,6 +647,12 @@ fn parse_debug_compilation_dir(value: &str) -> Result<PathBuf, String> {
 }
 
 impl CompileParameters {
+    pub fn to_gen_parameters(&self) -> GenerationParameters {
+        GenerationParameters { 
+            output_xml_omron: self.output_xml_omron
+        }
+    }
+
     pub fn parse<T: AsRef<OsStr> + AsRef<str>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
         CompileParameters::try_parse_from(args)
     }
@@ -702,7 +717,9 @@ impl CompileParameters {
         } else if self.output_obj_code {
             Some(FormatOption::Static)
         } else if self.output_reloc_code {
-            Some(FormatOption::Relocatable)
+            Some(FormatOption::Relocatable)        
+        } else if self.output_xml_omron {
+            Some(FormatOption::XML)
         } else {
             //Keep the parameter default as static
             None

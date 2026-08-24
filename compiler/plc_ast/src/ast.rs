@@ -538,7 +538,15 @@ pub enum VariableBlockType {
     Output,
     Global,
     InOut,
-    External,
+    External
+}
+
+#[derive(Debug, Copy, PartialEq, Eq, Clone, Serialize)]
+pub enum NetworkPublishMode {
+    DoNotPublish,
+    PublishOnly,
+    Input,
+    Output
 }
 impl VariableBlockType {
     pub fn is_temp(&self) -> bool {
@@ -561,13 +569,24 @@ impl VariableBlockType {
 impl Display for VariableBlockType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            VariableBlockType::Local => write!(f, "Local"),
-            VariableBlockType::Temp => write!(f, "Temp"),
-            VariableBlockType::Input(_) => write!(f, "Input"),
-            VariableBlockType::Output => write!(f, "Output"),
-            VariableBlockType::Global => write!(f, "Global"),
-            VariableBlockType::InOut => write!(f, "InOut"),
-            VariableBlockType::External => write!(f, "External"),
+            VariableBlockType::Local => write!(f, "local"),
+            VariableBlockType::Temp => write!(f, "temp"),
+            VariableBlockType::Input(_) => write!(f, "input"),
+            VariableBlockType::Output => write!(f, "output"),
+            VariableBlockType::Global => write!(f, "{}", "global"),
+            VariableBlockType::InOut => write!(f, "inout"),
+            VariableBlockType::External => write!(f, "external")
+        }
+    }
+}
+
+impl Display for NetworkPublishMode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NetworkPublishMode::DoNotPublish => write!(f, "DoNotPublish"),
+            NetworkPublishMode::PublishOnly => write!(f, "PublishOnly"),
+            NetworkPublishMode::Input => write!(f, "Input"),
+            NetworkPublishMode::Output => write!(f, "Output")
         }
     }
 }
@@ -708,7 +727,7 @@ impl Variable {
 #[serde(bound(deserialize = "'de: 'static"))]
 pub enum DataTypeDeclaration {
     Reference { referenced_type: String, location: SourceLocation },
-    Definition { data_type: Box<DataType>, location: SourceLocation, scope: Option<String> },
+    Definition { data_type: Box<DataType>, location: SourceLocation, scope: Option<String>, linkage: LinkageType },
     Aggregate { referenced_type: String, location: SourceLocation },
 }
 
@@ -811,7 +830,7 @@ pub struct UserTypeDeclaration {
     pub location: SourceLocation,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
-    pub linkage: LinkageType,
+    pub linkage: LinkageType
 }
 
 impl Debug for UserTypeDeclaration {
@@ -1532,7 +1551,7 @@ impl AstNode {
         AstNode::new(
             AstStatement::Literal(AstLiteral::String(StringValue { value: value.into(), is_wide })),
             id,
-            location,
+            location
         )
     }
 
@@ -1800,7 +1819,10 @@ mod tests {
         assert_eq!(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), "Input");
         assert_eq!(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), "Input");
         assert_eq!(VariableBlockType::Output.to_string(), "Output");
-        assert_eq!(VariableBlockType::Global.to_string(), "Global");
+        assert_eq!(VariableBlockType::Global.to_string(), "global");
+        assert_eq!(VariableBlockType::Global.to_string(), "global");
+        assert_eq!(VariableBlockType::Global.to_string(), "global");
+        assert_eq!(VariableBlockType::Global.to_string(), "global");
         assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
     }
 }
@@ -1815,7 +1837,7 @@ impl AstFactory {
     pub fn create_return_statement(
         condition: Option<AstNode>,
         location: SourceLocation,
-        id: AstId,
+        id: AstId
     ) -> AstNode {
         let condition = condition.map(Box::new);
         AstNode::new(AstStatement::ReturnStatement(ReturnStatement { condition }), id, location)
@@ -1851,7 +1873,7 @@ impl AstFactory {
         AstNode::new(
             AstStatement::HardwareAccess(HardwareAccess { access, direction, address }),
             id,
-            location,
+            location
         )
     }
 
@@ -1896,6 +1918,7 @@ impl AstFactory {
     pub fn create_or_expression(left: AstNode, right: AstNode) -> AstNode {
         let id = left.get_id();
         let location = left.get_location().span(&right.get_location());
+
         AstNode::new(
             AstStatement::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
@@ -1903,7 +1926,7 @@ impl AstFactory {
                 operator: Operator::Or,
             }),
             id,
-            location,
+            location
         )
     }
 
@@ -1915,7 +1938,7 @@ impl AstFactory {
                 operator: Operator::Not,
             }),
             id,
-            location,
+            location
         )
     }
 
@@ -1946,30 +1969,32 @@ impl AstFactory {
         operator: Operator,
         value: AstNode,
         location: SourceLocation,
-        id: AstId,
+        id: AstId
     ) -> AstNode {
         AstNode::new(
             AstStatement::UnaryExpression(UnaryExpression { operator, value: Box::new(value) }),
             id,
-            location,
+            location
         )
     }
 
     pub fn create_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
+
         AstNode::new(
             AstStatement::Assignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
-            location,
+            location
         )
     }
 
     pub fn create_output_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
+
         AstNode::new(
             AstStatement::OutputAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
-            location,
+            location
         )
     }
 
@@ -1979,10 +2004,11 @@ impl AstFactory {
     //       and then fn create_assignment(kind: AssignmentKind, ...)
     pub fn create_ref_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
+
         AstNode::new(
             AstStatement::RefAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
-            location,
+            location
         )
     }
 
@@ -1997,11 +2023,11 @@ impl AstFactory {
                 base: base.map(Box::new),
             }),
             id,
-            location,
+            location
         )
     }
 
-    pub fn create_global_reference(id: AstId, member: AstNode, location: SourceLocation) -> AstNode {
+    pub fn create_global_reference(member: AstNode, location: SourceLocation, id: AstId) -> AstNode {
         AstNode {
             stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Global(Box::new(member)),
@@ -2009,7 +2035,7 @@ impl AstFactory {
             }),
             id,
             location,
-            metadata: None,
+            metadata: None
         }
     }
 
@@ -2025,7 +2051,7 @@ impl AstFactory {
                 base: base.map(Box::new),
             }),
             id,
-            location,
+            location
         )
     }
 
@@ -2036,7 +2062,7 @@ impl AstFactory {
                 base: Some(Box::new(base)),
             }),
             id,
-            location,
+            location
         )
     }
 

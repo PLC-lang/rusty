@@ -211,6 +211,9 @@ impl AstVisitor for Initializer {
                 return;
             }
         }
+        if matches!(block.kind, VariableBlockType::External) {
+            return;
+        }
         self.context.enter_variable_block(block);
         block.walk(self);
         self.context.exit_variable_block();
@@ -365,7 +368,12 @@ impl AstVisitor for Initializer {
             return;
         }
 
-        let constructor_body = self.constructor_body_for_linkage(user_type.linkage);
+        let is_standalone_declaration =
+            !user_type.location.is_internal() && user_type.scope.is_none();
+        let constructor_body = match user_type.linkage {
+            LinkageType::External if is_standalone_declaration => Body::Internal(vec![]),
+            linkage => self.constructor_body_for_linkage(linkage),
+        };
         self.constructors.insert(name.to_string(), constructor_body);
 
         // For alias types (typedefs), call the parent type's constructor first
@@ -1693,9 +1701,8 @@ mod tests {
         insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"
         MyExtStruct__ctor(internalVar)
         ");
-        // Check that no constructor is generated for MyExtStruct
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @r"
-        extern:
+        intern:
         self.a := 5
         self.b := TRUE
         ");

@@ -86,7 +86,9 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                         location: SourceLocation::internal(), //return_type.get_location(),
                     };
                     let datatype = std::mem::replace(referenced_type, Box::new(type_ref));
-                    if let DataTypeDeclaration::Definition { mut data_type, location, scope } = *datatype {
+                    if let DataTypeDeclaration::Definition { mut data_type, location, scope, linkage } =
+                        *datatype
+                    {
                         data_type.set_name(type_name);
                         add_nested_datatypes(name, &mut data_type, &mut new_types, &location, dt.linkage);
                         let data_type = UserTypeDeclaration {
@@ -94,7 +96,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                             initializer: None,
                             location,
                             scope,
-                            linkage: dt.linkage,
+                            linkage: linkage,
                         };
                         new_types.push(data_type);
                     }
@@ -133,6 +135,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                                 build_enum_initializer(&last_name, &location, &mut id_provider, enum_name)
                             });
                             last_name = Some(element_name.to_string());
+
                             AstFactory::create_assignment(
                                 AstFactory::create_member_reference(
                                     AstFactory::create_identifier(
@@ -487,7 +490,6 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
 }
 
 fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
-    let linkage = pou.linkage;
     if let Some(return_type) = &pou.return_type {
         if should_generate_implicit(return_type) {
             let type_name = format!("__{}_return", &pou.name); // TODO: Naming convention (see plc_util/src/convention.rs)
@@ -496,7 +498,9 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                 location: return_type.get_location(),
             };
             let datatype = pou.return_type.replace(type_ref);
-            if let Some(DataTypeDeclaration::Definition { mut data_type, location, scope }) = datatype {
+            if let Some(DataTypeDeclaration::Definition { mut data_type, location, scope, linkage }) =
+                datatype
+            {
                 data_type.set_name(type_name);
                 add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location, linkage);
                 let data_type = UserTypeDeclaration {
@@ -550,7 +554,7 @@ fn process_property(
                 location: implementation.datatype.get_location(),
             };
             let datatype = std::mem::replace(&mut implementation.datatype, type_ref);
-            if let DataTypeDeclaration::Definition { mut data_type, location, scope } = datatype {
+            if let DataTypeDeclaration::Definition { mut data_type, location, scope, linkage } = datatype {
                 data_type.set_name(type_name);
                 add_nested_datatypes(
                     property_container_name.as_str(),
@@ -615,7 +619,7 @@ fn rewrite_inline_data_type(
             location: original_location,
         },
     );
-    if let DataTypeDeclaration::Definition { mut data_type, location, scope } = original {
+    if let DataTypeDeclaration::Definition { mut data_type, location, scope, .. } = original {
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location, linkage);
         data_type.set_name(new_type_name);
         types.push(UserTypeDeclaration {
@@ -643,7 +647,7 @@ fn add_nested_datatypes(
     // (with trailing underscore but no suffix) when the inner pointer type should be processed.
     // We need to distinguish between pointer references (which should be processed) and other references
     // (which should return None) to properly handle nested pointer structures.
-    if let Some(DataTypeDeclaration::Definition { mut data_type, location: inner_location, scope }) =
+    if let Some(DataTypeDeclaration::Definition { mut data_type, location: inner_location, scope, .. }) =
         datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
     {
         data_type.set_name(new_type_name.clone());

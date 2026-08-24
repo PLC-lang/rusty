@@ -77,7 +77,7 @@
             },
             "program": "target/debug/plc",
             "args": [
-                "libs/stdlib/iec61131-st/*.st"
+                "../stickle/source/*.st -c -i ../stickle/externals/stdlib_externals.st -i ../stickle/externals/omron_externals.st -l iec61131std -l libNX1P2 -l ws2_32 -l ntdll -l userenv -o ../stickle/compiled/lib_structured_text.o"
             ],
             "cwd": "${workspaceFolder}",
             "env": {

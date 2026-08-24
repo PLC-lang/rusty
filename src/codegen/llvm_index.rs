@@ -161,7 +161,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
     ) -> Result<(), CodegenError> {
         let name = callable_name.to_lowercase();
 
-        log::trace!("registered `{name}` as implementation type `{}`", function_value.print_to_string());
         self.implementations.insert(name, function_value);
 
         Ok(())

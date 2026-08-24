@@ -12,6 +12,7 @@ use anyhow::{anyhow, Result};
 use pipelines::{
     participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
 };
+use plc_xmlgen::xml_gen::GenerationParameters;
 use std::{
     ffi::OsStr,
     fmt::{Debug, Display},
@@ -61,6 +62,7 @@ pub struct CompileOptions {
     pub debug_compilation_dir: Option<PathBuf>,
     pub single_module: bool,
     pub online_change: OnlineChange,
+    pub generation: GenerationParameters,
     pub constructors_only: bool,
     /// Producer string embedded in the compiled module's `llvm.ident` named
     /// metadata. Surfaces in the ELF `.comment` section post-link. `None`
@@ -83,6 +85,7 @@ impl Default for CompileOptions {
             debug_compilation_dir: None,
             single_module: false,
             online_change: OnlineChange::Disabled,
+            generation: GenerationParameters::new(),
             constructors_only: false,
             build_info: None,
         }
@@ -400,6 +403,7 @@ fn generate_to_string_internal<T: SourceContainer>(
         cli::CompileParameters::parse(&["plc", "--ir", "--single-module", "-O", "none", "--fno-ident"])
             .map_err(|e| Diagnostic::new(e.to_string()))?;
     params.generate_debug = debug;
+
     let mut pipeline = BuildPipeline {
         context,
         project,

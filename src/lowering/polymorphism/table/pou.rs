@@ -146,6 +146,7 @@ impl VirtualTableGenerator {
                         }),
                         location: location.clone(),
                         scope: None,
+                        linkage: LinkageType::Internal
                     },
                     initializer: None,
                     address: None,
@@ -179,6 +180,7 @@ impl VirtualTableGenerator {
                     )),
                     location: location.clone(),
                     scope: None,
+                    linkage: LinkageType::Internal
                 },
                 initializer: Some(self.generate_initalizer(pou.name.as_str())),
                 address: None,
@@ -199,6 +201,7 @@ impl VirtualTableGenerator {
                     )),
                     location: location.clone(),
                     scope: None,
+                    linkage: LinkageType::Internal                    
                 },
                 initializer: Some(self.generate_initalizer(method.get_name())),
                 address: None,
@@ -208,12 +211,18 @@ impl VirtualTableGenerator {
             members.push(member);
         }
 
+        let linkage = if super::is_internal_instance(pou.linkage, self.generate_external_constructors) {
+            LinkageType::Internal
+        } else {
+            pou.linkage
+        };
+
         UserTypeDeclaration {
             data_type: DataType::StructType { name: Some(helper::get_vtable_name(pou)), variables: members },
             initializer: None,
             location: location.clone(),
             scope: None,
-            linkage: pou.linkage,
+            linkage,
         }
     }
 

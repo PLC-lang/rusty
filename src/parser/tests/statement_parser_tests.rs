@@ -136,10 +136,11 @@ fn inline_enum_declaration_can_be_parsed() {
                     vec![ref_to("red"), ref_to("yellow"), ref_to("green")],
                     SourceLocation::internal(),
                     0,
-                ),
+                ),                
             }),
             location: SourceLocation::internal(),
             scope: None,
+            linkage: plc_ast::ast::LinkageType::Internal
         },
         initializer: None,
         address: None,

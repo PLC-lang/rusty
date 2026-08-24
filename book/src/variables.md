@@ -2,7 +2,7 @@
 
 # Constants
 
-Variable declaration blocks can be delcared as CONSTANT.
+Variable declaration blocks can be declared as CONSTANT.
 All variables of a constant declaration block become constants.
 Constant variables can not be changed and need to be initialized.
 

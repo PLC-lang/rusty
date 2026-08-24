@@ -816,6 +816,7 @@ mod helper {
                 }),
                 location: location.clone(),
                 scope: None,
+                linkage: LinkageType::Internal,
             },
             initializer: None,
             address: None,

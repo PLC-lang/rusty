@@ -8,7 +8,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use crate::{
     expect_token,
     lexer::Token::*,
-    parser::{parse_any_in_region, parse_body_in_region},
+    parser::{parse_body_in_region, parse_any_in_region},
 };
 
 use super::ParseSession;
@@ -144,7 +144,7 @@ fn parse_while_statement(lexer: &mut ParseSession) -> AstNode {
     )
 }
 
-fn parse_repeat_statement(lexer: &mut ParseSession) -> AstNode {
+fn parse_repeat_statement(lexer: &mut ParseSession, ) -> AstNode {
     let start = lexer.range().start;
     lexer.advance(); //REPEAT
 

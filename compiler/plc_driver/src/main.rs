@@ -1,8 +1,8 @@
+use plc_driver::cli::CompileParameters;
 use std::env;
 
-use plc_driver::cli::CompileParameters;
-
 fn main() {
+    //Initialize the logging
     let args: Vec<String> = env::args().collect();
 
     // Parse CLI first to extract log level, then initialize the logger.
