@@ -146,7 +146,7 @@ impl VirtualTableGenerator {
                         }),
                         location: location.clone(),
                         scope: None,
-                        linkage: LinkageType::Internal
+                        linkage: LinkageType::Internal,
                     },
                     initializer: None,
                     address: None,
@@ -180,7 +180,7 @@ impl VirtualTableGenerator {
                     )),
                     location: location.clone(),
                     scope: None,
-                    linkage: LinkageType::Internal
+                    linkage: LinkageType::Internal,
                 },
                 initializer: Some(self.generate_initalizer(pou.name.as_str())),
                 address: None,
@@ -201,7 +201,7 @@ impl VirtualTableGenerator {
                     )),
                     location: location.clone(),
                     scope: None,
-                    linkage: LinkageType::Internal                    
+                    linkage: LinkageType::Internal,
                 },
                 initializer: Some(self.generate_initalizer(method.get_name())),
                 address: None,

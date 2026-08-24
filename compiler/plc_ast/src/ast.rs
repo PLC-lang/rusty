@@ -538,7 +538,7 @@ pub enum VariableBlockType {
     Output,
     Global,
     InOut,
-    External
+    External,
 }
 
 #[derive(Debug, Copy, PartialEq, Eq, Clone, Serialize)]
@@ -546,7 +546,7 @@ pub enum NetworkPublishMode {
     DoNotPublish,
     PublishOnly,
     Input,
-    Output
+    Output,
 }
 impl VariableBlockType {
     pub fn is_temp(&self) -> bool {
@@ -573,9 +573,9 @@ impl Display for VariableBlockType {
             VariableBlockType::Temp => write!(f, "temp"),
             VariableBlockType::Input(_) => write!(f, "input"),
             VariableBlockType::Output => write!(f, "output"),
-            VariableBlockType::Global => write!(f, "{}", "global"),
+            VariableBlockType::Global => write!(f, "global"),
             VariableBlockType::InOut => write!(f, "inout"),
-            VariableBlockType::External => write!(f, "external")
+            VariableBlockType::External => write!(f, "external"),
         }
     }
 }
@@ -586,7 +586,7 @@ impl Display for NetworkPublishMode {
             NetworkPublishMode::DoNotPublish => write!(f, "DoNotPublish"),
             NetworkPublishMode::PublishOnly => write!(f, "PublishOnly"),
             NetworkPublishMode::Input => write!(f, "Input"),
-            NetworkPublishMode::Output => write!(f, "Output")
+            NetworkPublishMode::Output => write!(f, "Output"),
         }
     }
 }
@@ -726,9 +726,20 @@ impl Variable {
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(bound(deserialize = "'de: 'static"))]
 pub enum DataTypeDeclaration {
-    Reference { referenced_type: String, location: SourceLocation },
-    Definition { data_type: Box<DataType>, location: SourceLocation, scope: Option<String>, linkage: LinkageType },
-    Aggregate { referenced_type: String, location: SourceLocation },
+    Reference {
+        referenced_type: String,
+        location: SourceLocation,
+    },
+    Definition {
+        data_type: Box<DataType>,
+        location: SourceLocation,
+        scope: Option<String>,
+        linkage: LinkageType,
+    },
+    Aggregate {
+        referenced_type: String,
+        location: SourceLocation,
+    },
 }
 
 impl Debug for DataTypeDeclaration {
@@ -830,7 +841,7 @@ pub struct UserTypeDeclaration {
     pub location: SourceLocation,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
-    pub linkage: LinkageType
+    pub linkage: LinkageType,
 }
 
 impl Debug for UserTypeDeclaration {
@@ -1128,7 +1139,7 @@ impl Debug for AstNode {
         match &self.stmt {
             AstStatement::EmptyStatement(..) => f.debug_struct("EmptyStatement").finish(),
             AstStatement::DefaultValue(..) => f.debug_struct("DefaultValue").finish(),
-            AstStatement::Literal(literal) => literal.fmt(f),
+            AstStatement::Literal(literal) => Debug::fmt(literal, f),
             AstStatement::Identifier(name) => f.debug_struct("Identifier").field("name", name).finish(),
             AstStatement::Super(Some(_)) => f.debug_struct("Super(derefed)").finish(),
             AstStatement::Super(_) => f.debug_struct("Super").finish(),
@@ -1551,7 +1562,7 @@ impl AstNode {
         AstNode::new(
             AstStatement::Literal(AstLiteral::String(StringValue { value: value.into(), is_wide })),
             id,
-            location
+            location,
         )
     }
 
@@ -1834,7 +1845,7 @@ impl AstFactory {
     pub fn create_return_statement(
         condition: Option<AstNode>,
         location: SourceLocation,
-        id: AstId
+        id: AstId,
     ) -> AstNode {
         let condition = condition.map(Box::new);
         AstNode::new(AstStatement::ReturnStatement(ReturnStatement { condition }), id, location)
@@ -1870,7 +1881,7 @@ impl AstFactory {
         AstNode::new(
             AstStatement::HardwareAccess(HardwareAccess { access, direction, address }),
             id,
-            location
+            location,
         )
     }
 
@@ -1923,7 +1934,7 @@ impl AstFactory {
                 operator: Operator::Or,
             }),
             id,
-            location
+            location,
         )
     }
 
@@ -1935,7 +1946,7 @@ impl AstFactory {
                 operator: Operator::Not,
             }),
             id,
-            location
+            location,
         )
     }
 
@@ -1966,12 +1977,12 @@ impl AstFactory {
         operator: Operator,
         value: AstNode,
         location: SourceLocation,
-        id: AstId
+        id: AstId,
     ) -> AstNode {
         AstNode::new(
             AstStatement::UnaryExpression(UnaryExpression { operator, value: Box::new(value) }),
             id,
-            location
+            location,
         )
     }
 
@@ -1981,7 +1992,7 @@ impl AstFactory {
         AstNode::new(
             AstStatement::Assignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
-            location
+            location,
         )
     }
 
@@ -1991,7 +2002,7 @@ impl AstFactory {
         AstNode::new(
             AstStatement::OutputAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
-            location
+            location,
         )
     }
 
@@ -2005,7 +2016,7 @@ impl AstFactory {
         AstNode::new(
             AstStatement::RefAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
-            location
+            location,
         )
     }
 
@@ -2020,7 +2031,7 @@ impl AstFactory {
                 base: base.map(Box::new),
             }),
             id,
-            location
+            location,
         )
     }
 
@@ -2032,7 +2043,7 @@ impl AstFactory {
             }),
             id,
             location,
-            metadata: None
+            metadata: None,
         }
     }
 
@@ -2048,7 +2059,7 @@ impl AstFactory {
                 base: base.map(Box::new),
             }),
             id,
-            location
+            location,
         )
     }
 
@@ -2059,7 +2070,7 @@ impl AstFactory {
                 base: Some(Box::new(base)),
             }),
             id,
-            location
+            location,
         )
     }
 

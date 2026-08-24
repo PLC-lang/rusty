@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
@@ -125,9 +125,13 @@ impl DateAndTime {
     }
 }
 
-impl ToString for DateAndTime {
-    fn to_string(&self) -> String {
-        format!("DATE_AND_TIME#{}-{}-{}-{}:{}:{}", self.year, self.month, self.day, self.hour, self.min, self.sec)
+impl Display for DateAndTime {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "DATE_AND_TIME#{}-{}-{}-{}:{}:{}",
+            self.year, self.month, self.day, self.hour, self.min, self.sec
+        )
     }
 }
 
@@ -153,9 +157,13 @@ impl Time {
     }
 }
 
-impl ToString for Time {
-    fn to_string(&self) -> String {
-        format!("LTIME#{}D{}H{}M{}S{}MS{}US{}NS", self.day, self.hour, self.min, self.sec, self.milli, self.micro, self.nano)
+impl Display for Time {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "LTIME#{}D{}H{}M{}S{}MS{}US{}NS",
+            self.day, self.hour, self.min, self.sec, self.milli, self.micro, self.nano
+        )
     }
 }
 
@@ -166,9 +174,9 @@ impl TimeOfDay {
     }
 }
 
-impl ToString for TimeOfDay {
-    fn to_string(&self) -> String {
-        format!("TIME_OF_DAY#{}:{}:{}", self.hour, self.min, self.sec) //nano not supported? https://infosys.beckhoff.com/english.php?content=../content/1033/tcplccontrol/925615243.html&id=
+impl Display for TimeOfDay {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TIME_OF_DAY#{}:{}:{}", self.hour, self.min, self.sec) //nano not supported? https://infosys.beckhoff.com/english.php?content=../content/1033/tcplccontrol/925615243.html&id=
     }
 }
 
@@ -180,9 +188,9 @@ impl Date {
     }
 }
 
-impl ToString for Date {
-    fn to_string(&self) -> String {
-        format!("LDATE#{}-{}-{}", self.year, self.month, self.day)
+impl Display for Date {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "LDATE#{}-{}-{}", self.year, self.month, self.day)
     }
 }
 
@@ -235,21 +243,21 @@ impl Array {
     }
 }
 
-impl ToString for Array {
-    fn to_string(&self) -> String {
-        let reduced = self.elements.iter()
+impl Display for Array {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let reduced = self
+            .elements
+            .iter()
             .filter(|a| matches!(&a.stmt, AstStatement::Literal(_)))
-            .map(|b| {
-                match &b.stmt {
-                    AstStatement::Literal(item) => item.to_string(),
-                    _ => panic!("only literals should be taken!")
-                }
+            .map(|b| match &b.stmt {
+                AstStatement::Literal(item) => item.to_string(),
+                _ => panic!("only literals should be taken!"),
             })
             .reduce(|c, d| format!("{}, {}", c, d));
-            
+
         match reduced {
-            Some(item) => format!("[{}]", item),
-            None => String::from("[]"),
+            Some(item) => write!(f, "[{}]", item),
+            None => write!(f, "[]"),
         }
     }
 }
@@ -434,19 +442,19 @@ impl Debug for AstLiteral {
     }
 }
 
-impl ToString for AstLiteral {
-    fn to_string(&self) -> String {
+impl Display for AstLiteral {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            AstLiteral::Null => String::new(),
-            AstLiteral::Integer(int_value) => int_value.to_string(),
-            AstLiteral::Date(date) => date.to_string(),
-            AstLiteral::DateAndTime(date_and_time) => date_and_time.to_string(),
-            AstLiteral::TimeOfDay(time_of_day) => time_of_day.to_string(),
-            AstLiteral::Time(time) => time.to_string(),
-            AstLiteral::Real(real_value) => real_value.to_owned(),
-            AstLiteral::Bool(bool_value) => bool_value.to_string(),
-            AstLiteral::String(string_value) => string_value.value.to_owned(),
-            AstLiteral::Array(array) => array.to_string(),
+            AstLiteral::Null => Ok(()),
+            AstLiteral::Integer(int_value) => write!(f, "{}", int_value),
+            AstLiteral::Date(date) => write!(f, "{}", date),
+            AstLiteral::DateAndTime(date_and_time) => write!(f, "{}", date_and_time),
+            AstLiteral::TimeOfDay(time_of_day) => write!(f, "{}", time_of_day),
+            AstLiteral::Time(time) => write!(f, "{}", time),
+            AstLiteral::Real(real_value) => write!(f, "{}", real_value),
+            AstLiteral::Bool(bool_value) => write!(f, "{}", bool_value),
+            AstLiteral::String(string_value) => write!(f, "{}", string_value.value),
+            AstLiteral::Array(array) => write!(f, "{}", array),
         }
     }
 }

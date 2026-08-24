@@ -96,7 +96,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                             initializer: None,
                             location,
                             scope,
-                            linkage: linkage,
+                            linkage,
                         };
                         new_types.push(data_type);
                     }

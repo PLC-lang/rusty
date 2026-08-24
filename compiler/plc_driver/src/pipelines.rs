@@ -49,7 +49,7 @@ use plc_lowering::{
     control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, loops::LoopDesugarer,
     reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
 };
-use plc_xmlgen::xml_gen::{copy_xmlfile_to_output};
+use plc_xmlgen::xml_gen::copy_xmlfile_to_output;
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -80,7 +80,12 @@ pub trait Pipeline {
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic>;
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
-    fn generate(&mut self, context: &CodegenContext, project: AnnotatedProject, compile_options: &CompileOptions) -> Result<(), Diagnostic>;
+    fn generate(
+        &mut self,
+        context: &CodegenContext,
+        project: AnnotatedProject,
+        compile_options: &CompileOptions,
+    ) -> Result<(), Diagnostic>;
     fn generate_headers(&mut self, project: AnnotatedProject) -> Result<(), Diagnostic>;
 }
 
@@ -543,7 +548,12 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         Ok(annotated_project)
     }
 
-    fn generate(&mut self, _context: &CodegenContext, project: AnnotatedProject, compile_options: &CompileOptions) -> Result<(), Diagnostic> {
+    fn generate(
+        &mut self,
+        _context: &CodegenContext,
+        project: AnnotatedProject,
+        compile_options: &CompileOptions,
+    ) -> Result<(), Diagnostic> {
         self.participants.iter_mut().try_fold((), |_, participant| participant.pre_generate(&project))?;
 
         let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
@@ -557,9 +567,11 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             log::info!("Using single module mode");
             let context = CodegenContext::create();
             project
-                .generate_single_module(&context, &compile_options, target)?
+                .generate_single_module(&context, compile_options, target)?
                 .map(|module| {
-                    self.participants.iter_mut().try_fold((), |_, participant| participant.generate(&module, &project, &compile_options))
+                    self.participants.iter_mut().try_fold((), |_, participant| {
+                        participant.generate(&module, &project, compile_options)
+                    })
                 })
                 .unwrap_or(Ok(()))?;
         } else {
@@ -570,14 +582,16 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                     let context = CodegenContext::create();
                     let module = project.generate_module(
                         &context,
-                        &compile_options,
+                        compile_options,
                         unit,
                         dependencies,
                         literals,
                         &got_layout,
                         target,
                     )?;
-                    self.participants.iter().try_fold((), |_, participant| participant.generate(&module, &project, &compile_options))
+                    self.participants.iter().try_fold((), |_, participant| {
+                        participant.generate(&module, &project, compile_options)
+                    })
                 })
                 .collect::<Result<Vec<_>, Diagnostic>>()?;
         }
@@ -863,7 +877,7 @@ impl AnnotatedProject {
     pub fn validate(
         &self,
         ctxt: &GlobalContext,
-        diagnostician: &mut Diagnostician
+        diagnostician: &mut Diagnostician,
     ) -> Result<(), Diagnostic> {
         let mut severity = diagnostician.handle(&self.diagnostics);
 
@@ -1031,7 +1045,7 @@ impl AnnotatedProject {
                     target,
                     compile_options.optimization,
                     units,
-                    &compile_options.generation
+                    &compile_options.generation,
                 )
                 .map(Into::into)?;
 
@@ -1288,7 +1302,7 @@ impl GeneratedProject {
                             Ok(path) => Ok(path),
                             Err(error) => Err(Diagnostic::new(error.to_string())),
                         }
-                    },
+                    }
                     _ => unreachable!("Already handled in previous match"),
                 }
             }

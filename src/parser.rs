@@ -234,7 +234,8 @@ fn parse_interface(lexer: &mut ParseSession, linkage: LinkageType) -> (Interface
             }
 
             KeywordPropertyGet | KeywordPropertySet => {
-                if let Some((ident, property_implementation)) = parse_property(lexer, &[KeywordEndInterface], &linkage)
+                if let Some((ident, property_implementation)) =
+                    parse_property(lexer, &[KeywordEndInterface], &linkage)
                 {
                     if !property_implementation.body.is_empty() {
                         lexer.accept_diagnostic(
@@ -999,7 +1000,7 @@ fn parse_action(
 
         let implementation = parse_implementation(
             lexer,
-            linkage2.clone(),
+            *linkage2,
             PouType::Action,
             &call_name,
             &container,
@@ -1040,7 +1041,7 @@ fn parse_type(lexer: &mut ParseSession, linkage: &LinkageType) -> Vec<UserTypeDe
                     initializer,
                     location: name_location,
                     scope: lexer.scope.clone(),
-                    linkage: linkage.clone(),
+                    linkage: *linkage,
                 });
             }
         }
@@ -1064,7 +1065,7 @@ fn parse_full_data_type_definition(
                     data_type: Box::new(DataType::VarArgs { referenced_type: None, sized }),
                     location: lexer.last_location(),
                     scope: lexer.scope.clone(),
-                    linkage: linkage.clone(),
+                    linkage: *linkage,
                 },
                 None,
             ))
@@ -1079,7 +1080,7 @@ fn parse_full_data_type_definition(
                             }),
                             location: lexer.last_location(),
                             scope: lexer.scope.clone(),
-                            linkage: linkage.clone(),
+                            linkage: *linkage,
                         },
                         None,
                     )
@@ -1114,7 +1115,7 @@ fn parse_data_type_definition(
                 data_type: Box::new(DataType::StructType { name, variables }),
                 location: start.span(&lexer.location()),
                 scope: lexer.scope.clone(),
-                linkage: linkage.clone(),
+                linkage: *linkage,
             },
             None,
         ))
@@ -1147,7 +1148,7 @@ fn parse_data_type_definition(
             Some(AutoDerefType::Reference),
             true,
             false,
-            linkage
+            linkage,
         )
     } else if lexer.try_consume(KeywordParensOpen) {
         parse_enum_type_definition(lexer, name, linkage)
@@ -1188,7 +1189,7 @@ fn parse_pointer_definition(
                 // FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
-                linkage: linkage.clone(),
+                linkage: *linkage,
             },
             initializer,
         )
@@ -1244,7 +1245,7 @@ fn parse_type_reference_type_definition(
                     }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
-                    linkage: linkage.clone(),
+                    linkage: *linkage,
                 }
             }
             Some(AstNode {
@@ -1260,7 +1261,7 @@ fn parse_type_reference_type_definition(
                     }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
-                    linkage: linkage.clone(),
+                    linkage: *linkage,
                 }
             }
             _ => DataTypeDeclaration::Definition {
@@ -1273,7 +1274,7 @@ fn parse_type_reference_type_definition(
                 }),
                 location: lexer.source_range_factory.create_range(start..end),
                 scope: lexer.scope.clone(),
-                linkage: linkage.clone(),
+                linkage: *linkage,
             },
         };
         Some((data_type, initial_value))
@@ -1351,14 +1352,14 @@ fn parse_string_type_definition(
                 data_type: Box::new(DataType::EnumType { name, numeric_type: text, elements: size }),
                 location,
                 scope: lexer.scope.clone(),
-                linkage: linkage.clone(),
+                linkage: *linkage,
             })
         }
         (Some(size), _, false) => Some(DataTypeDeclaration::Definition {
             data_type: Box::new(DataType::StringType { name, is_wide, size: Some(size) }),
             location,
             scope: lexer.scope.clone(),
-            linkage: linkage.clone(),
+            linkage: *linkage,
         }),
         (None, Some(name), _) => Some(DataTypeDeclaration::Definition {
             data_type: Box::new(DataType::SubRangeType {
@@ -1375,7 +1376,7 @@ fn parse_string_type_definition(
             }),
             location,
             scope: lexer.scope.clone(),
-            linkage: linkage.clone(),
+            linkage: *linkage,
         }),
         _ => Some(DataTypeDeclaration::Reference { referenced_type: text, location }),
     }
@@ -1403,7 +1404,7 @@ fn parse_enum_type_definition(
             data_type: Box::new(DataType::EnumType { name, elements, numeric_type }),
             location: start.span(&lexer.last_location()),
             scope: lexer.scope.clone(),
-            linkage: linkage.clone(),
+            linkage: *linkage,
         },
         initializer,
     ))
@@ -1525,7 +1526,7 @@ fn parse_array_type_definition(
                 }),
                 location,
                 scope: lexer.scope.clone(),
-                linkage: linkage.clone(),
+                linkage: *linkage,
             },
             initializer,
         )
@@ -1661,8 +1662,9 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
         }
         _ => "a variable name",
     };
-    let mut variables =
-        parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| parse_variable_list(lexer, slot_label, &linkage));
+    let mut variables = parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| {
+        parse_variable_list(lexer, slot_label, &linkage)
+    });
 
     if constant && !matches!(variable_block_type, VariableBlockType::External) {
         // sneak in the DefaultValue-Statements if no initializers were defined
@@ -1671,15 +1673,7 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
         });
     }
 
-    VariableBlock {
-        access,
-        constant,
-        retain,
-        variables,
-        kind: variable_block_type,
-        location,
-        linkage: linkage.clone(),
-    }
+    VariableBlock { access, constant, retain, variables, kind: variable_block_type, location, linkage }
 }
 
 /// Consumes a var-block modifier, but only if the following token is not a
@@ -1696,7 +1690,11 @@ fn try_consume_var_modifier(lexer: &mut ParseSession, modifier: Token) -> bool {
     true
 }
 
-fn parse_variable_list(lexer: &mut ParseSession, slot_label: &'static str, linkage: &LinkageType) -> Vec<Variable> {
+fn parse_variable_list(
+    lexer: &mut ParseSession,
+    slot_label: &'static str,
+    linkage: &LinkageType,
+) -> Vec<Variable> {
     let mut variables = vec![];
     while is_name_slot_candidate(lexer) {
         let mut line_vars = parse_variable_line(lexer, slot_label, linkage);
@@ -1811,7 +1809,11 @@ fn parse_aliasing(
     None
 }
 
-fn parse_variable_line(lexer: &mut ParseSession, slot_label: &'static str, linkage: &LinkageType) -> Vec<Variable> {
+fn parse_variable_line(
+    lexer: &mut ParseSession,
+    slot_label: &'static str,
+    linkage: &LinkageType,
+) -> Vec<Variable> {
     // read in a comma separated list of variable names
     let mut var_names: Vec<(String, Range<usize>)> = vec![];
     while is_name_slot_candidate(lexer) {

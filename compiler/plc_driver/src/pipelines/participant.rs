@@ -55,7 +55,12 @@ pub trait PipelineParticipant: Sync + Send {
     }
     /// Implement this to get access to the module generation section of the codegen
     /// This is useful if generating multiple modules to hook into single module generation
-    fn generate(&self, _generated_module: &GeneratedModule, _annotated_project: &AnnotatedProject, _compile_options: &CompileOptions) -> Result<(), Diagnostic> {
+    fn generate(
+        &self,
+        _generated_module: &GeneratedModule,
+        _annotated_project: &AnnotatedProject,
+        _compile_options: &CompileOptions,
+    ) -> Result<(), Diagnostic> {
         Ok(())
     }
     /// Implement this to access the project after it got generated
@@ -158,7 +163,12 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
         Ok(())
     }
 
-    fn generate(&self, module: &GeneratedModule, _annotated_project: &AnnotatedProject, _compile_options: &CompileOptions) -> Result<(), Diagnostic> {
+    fn generate(
+        &self,
+        module: &GeneratedModule,
+        _annotated_project: &AnnotatedProject,
+        _compile_options: &CompileOptions,
+    ) -> Result<(), Diagnostic> {
         let current_dir = env::current_dir()?;
         let current_dir = self.compile_options.root.as_deref().unwrap_or(&current_dir);
         let unit_location = module.get_unit_location();
@@ -185,7 +195,8 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 
         let target = &self.target;
         let compile_directory = self.compile_dirs.get(target).expect("Required dir");
-        let units: Vec<&CompilationUnit> = _annotated_project.units.iter().map(|current| &current.unit).collect();
+        let units: Vec<&CompilationUnit> =
+            _annotated_project.units.iter().map(|current| &current.unit).collect();
 
         let object = module
             .persist(
@@ -196,7 +207,7 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
                 target,
                 self.compile_options.optimization,
                 &units,
-                &_compile_options.generation
+                &_compile_options.generation,
             )
             .map(Into::into)
             .map(|it: Object| it.with_target(target))?;

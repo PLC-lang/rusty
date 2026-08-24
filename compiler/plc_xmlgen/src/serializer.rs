@@ -46,7 +46,7 @@ impl Node {
 
     pub fn attribute_str(self, key: &'static str, value: &'static str) -> Self {
         Self::attribute(self, key.to_string(), value.to_string())
-    }    
+    }
 
     pub fn child(mut self, node: &dyn IntoNode) -> Self {
         self.children.push(node.inner());
@@ -135,7 +135,7 @@ macro_rules! newtype_impl {
 
             pub fn attribute_str(self, key: &'static str, value: &'static str) -> Self {
                 Self(self.inner().attribute_str(key, value))
-            }            
+            }
 
             pub fn maybe_attribute(self, key: String, value: Option<String>) -> Self {
                 match value {
@@ -211,12 +211,10 @@ newtype_impl!(SFileHeader, FILE_HEADER, false);
 newtype_impl!(SContentHeader, CONTENT_HEADER, false);
 newtype_impl!(STypes, TYPES, false);
 
-pub const FILE_HEADER: &'static str = "FileHeader";
-pub const CONTENT_HEADER: &'static str = "ContentHeader";
+pub const FILE_HEADER: &str = "FileHeader";
+pub const CONTENT_HEADER: &str = "ContentHeader";
 
-pub trait SizedVariable: IntoNode + Sized {
-
-}
+pub trait SizedVariable: IntoNode + Sized {}
 
 impl SInVariable {
     pub fn connect(mut self, ref_local_id: i32) -> Self {
@@ -241,16 +239,20 @@ impl SOutVariable {
     }
 
     pub fn connect_name(mut self, ref_local_id: i32, name: String) -> Self {
-        self =
-            self.child(&SConnectionPointIn::new().child(
-                &SConnection::new().with_ref_id(ref_local_id).attribute("formalParameter".to_string(), name).close(),
-            ));
+        self = self.child(
+            &SConnectionPointIn::new().child(
+                &SConnection::new()
+                    .with_ref_id(ref_local_id)
+                    .attribute("formalParameter".to_string(), name)
+                    .close(),
+            ),
+        );
         self
     }
 
     pub fn connect_name_str(self, ref_local_id: i32, name: &'static str) -> Self {
         self.connect_name(ref_local_id, name.to_string())
-    }    
+    }
 
     pub fn with_expression(self, expression: String) -> Self {
         self.child(&SExpression::expression(expression))
@@ -268,7 +270,7 @@ impl SInOutVariable {
 
     pub fn with_expression_str(self, expression: &'static str) -> Self {
         self.with_expression(expression.to_string())
-    }    
+    }
 }
 
 impl SReturn {
@@ -281,9 +283,9 @@ impl SReturn {
     }
 
     pub fn negate(self, value: bool) -> Self {
-        self.child(&SAddData::new().child(&SData::new().child(
-            &SNegate::new().attribute(String::from("value"), value.to_string()).close(),
-        )))
+        self.child(&SAddData::new().child(
+            &SData::new().child(&SNegate::new().attribute(String::from("value"), value.to_string()).close()),
+        ))
     }
 }
 
@@ -335,7 +337,7 @@ impl SBlock {
 
     pub fn init_str(name: &'static str, local_id: i32, execution_order_id: i32) -> Self {
         Self::init(name.to_string(), local_id, execution_order_id)
-    }    
+    }
 
     pub fn with_name(self, name: String) -> Self {
         self.attribute("typeName".to_string(), name)
@@ -343,7 +345,7 @@ impl SBlock {
 
     pub fn with_name_str(self, name: &'static str) -> Self {
         self.attribute("typeName".to_string(), name.to_string())
-    }    
+    }
 
     pub fn with_input(self, variables: Vec<Box<dyn IntoNode>>) -> Self {
         self.child(&SInputVariables::new().children(variables))
@@ -413,7 +415,7 @@ impl SConnector {
 
     pub fn with_name_str(self, name: &'static str) -> Self {
         self.with_name(name.to_string())
-    }    
+    }
 
     pub fn connect(self, ref_local_id: i32) -> Self {
         self.child(&SConnectionPointIn::new().child(&SConnection::new().with_ref_id(ref_local_id).close()))
@@ -427,7 +429,7 @@ impl SContinuation {
 
     pub fn with_name_str(self, name: &'static str) -> Self {
         self.with_name(name.to_string())
-    }    
+    }
 
     pub fn connect_out(self, ref_local_id: i32) -> Self {
         self.child(&SConnectionPointOut::new().child(&SConnection::new().with_ref_id(ref_local_id).close()))
@@ -451,7 +453,7 @@ impl SJump {
 
     pub fn with_name_str(self, name: &'static str) -> Self {
         self.with_name(name.to_string())
-    }    
+    }
 
     pub fn connect(self, ref_local_id: i32) -> Self {
         self.child(&SConnectionPointIn::new().child(&SConnection::new().with_ref_id(ref_local_id).close()))
@@ -459,7 +461,10 @@ impl SJump {
 
     pub fn negate(self) -> Self {
         self.child(
-            &SAddData::new().child(&SData::new().child(&SNegate::new().attribute(String::from("value"), String::from("true")).close())),
+            &SAddData::new().child(
+                &SData::new()
+                    .child(&SNegate::new().attribute(String::from("value"), String::from("true")).close()),
+            ),
         )
     }
 }
@@ -471,7 +476,7 @@ impl SAction {
 
     pub fn name_str(name: &'static str) -> Self {
         Self::name(name.to_string())
-    }    
+    }
 
     pub fn with_fbd(self, children: Vec<Box<dyn IntoNode>>) -> Self {
         self.child(&SBody::new().child(&YFbd::new().children(children)))
@@ -521,8 +526,8 @@ newtype_impl!(SInoutVars, "InoutVars", false);
 newtype_impl!(SOutputVars, "OutputVars", false);
 newtype_impl!(SAddress, "Address", false);
 
-pub const GLOBAL_NAMESPACE: &'static str = "GlobalNamespace";
-pub const INSTANCES: &'static str = "Instances";
-pub const CONFIGURATION: &'static str = "Configuration";
-pub const RESOURCE: &'static str = "Resource";
-pub const TYPES: &'static str = "Types";
+pub const GLOBAL_NAMESPACE: &str = "GlobalNamespace";
+pub const INSTANCES: &str = "Instances";
+pub const CONFIGURATION: &str = "Configuration";
+pub const RESOURCE: &str = "Resource";
+pub const TYPES: &str = "Types";

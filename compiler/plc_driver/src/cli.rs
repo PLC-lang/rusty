@@ -4,8 +4,8 @@ use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use log::LevelFilter;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
-use plc_xmlgen::xml_gen::GenerationParameters;
 use plc_header_generator::GenerateLanguage;
+use plc_xmlgen::xml_gen::GenerationParameters;
 use std::{
     env,
     ffi::OsStr,
@@ -648,9 +648,7 @@ fn parse_debug_compilation_dir(value: &str) -> Result<PathBuf, String> {
 
 impl CompileParameters {
     pub fn to_gen_parameters(&self) -> GenerationParameters {
-        GenerationParameters { 
-            output_xml_omron: self.output_xml_omron
-        }
+        GenerationParameters { output_xml_omron: self.output_xml_omron }
     }
 
     pub fn parse<T: AsRef<OsStr> + AsRef<str>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
@@ -717,7 +715,7 @@ impl CompileParameters {
         } else if self.output_obj_code {
             Some(FormatOption::Static)
         } else if self.output_reloc_code {
-            Some(FormatOption::Relocatable)        
+            Some(FormatOption::Relocatable)
         } else if self.output_xml_omron {
             Some(FormatOption::XML)
         } else {

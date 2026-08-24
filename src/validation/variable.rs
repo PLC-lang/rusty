@@ -118,7 +118,7 @@ pub fn visit_variable_block<T: AnnotationMap>(
     validator: &mut Validator,
     pou: Option<&Pou>,
     block: &VariableBlock,
-    context: &ValidationContext<T>
+    context: &ValidationContext<T>,
 ) {
     validate_variable_block(validator, block);
 

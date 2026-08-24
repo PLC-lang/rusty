@@ -479,6 +479,7 @@ impl<'ink> GeneratedModule<'ink> {
 
     /// Persists the module into the disk based on output and target requirments
     /// If an object file should be generated, all optimizations will be executed on the object
+    #[allow(clippy::too_many_arguments)]
     pub fn persist(
         &self,
         output_dir: Option<&Path>,
@@ -572,9 +573,7 @@ impl<'ink> GeneratedModule<'ink> {
             template,
         ) {
             Ok(_) => Ok(output),
-            Err(error) => {
-                return Err(CodegenError::GenericError(error.to_string(), SourceLocation::default()));
-            }
+            Err(error) => Err(CodegenError::GenericError(error.to_string(), SourceLocation::default())),
         }
     }
 

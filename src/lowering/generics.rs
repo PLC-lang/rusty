@@ -98,7 +98,7 @@ fn substitute_type_decl(
                 data_type: Box::new(substitute_data_type(index, data_type, subst)),
                 location: location.clone(),
                 scope: scope.clone(),
-                linkage: linkage.clone(),
+                linkage: *linkage,
             }
         }
     }

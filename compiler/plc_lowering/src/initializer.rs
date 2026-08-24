@@ -368,8 +368,7 @@ impl AstVisitor for Initializer {
             return;
         }
 
-        let is_standalone_declaration =
-            !user_type.location.is_internal() && user_type.scope.is_none();
+        let is_standalone_declaration = !user_type.location.is_internal() && user_type.scope.is_none();
         let constructor_body = match user_type.linkage {
             LinkageType::External if is_standalone_declaration => Body::Internal(vec![]),
             linkage => self.constructor_body_for_linkage(linkage),

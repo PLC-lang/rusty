@@ -1861,7 +1861,7 @@ impl Index {
     }
 
     /// Computes the struct GEP index for a member variable.
-    /// VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the POU struct but they are allowed to have a member index. 
+    /// VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the POU struct but they are allowed to have a member index.
     /// (they are stack-allocated or reference external storage), so they are excluded
     /// when computing the index.
     /// Returns None if the variable is not part of the struct (temp/return).
