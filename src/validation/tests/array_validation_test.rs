@@ -921,3 +921,80 @@ fn oversized_array_warning() {
       │             ^^^^ Array `huge` has 837_501_496_650 elements which exceeds the maximum supported array size of UDINT#4_294_967_295 elements.
     ");
 }
+
+/// Nested struct initializers are lowered into a constructor before validation runs, so this
+/// case only reproduces through the driver-backed helper; `parse_and_validate_buffered` above
+/// validates the raw AST and never sees the lowered form.
+#[test]
+fn nested_struct_array_initializers_are_accepted_after_lowering() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r#"
+        TYPE
+        InnerStruct : STRUCT
+            value : DWORD;
+        END_STRUCT;
+
+        StructArray : STRUCT
+            arr : ARRAY[0..2] OF InnerStruct;
+        END_STRUCT;
+        END_TYPE
+
+        FUNCTION main
+        VAR
+            varArr : ARRAY[0..2] OF StructArray := [
+                (arr := [(value := 1000), (value := 3000), (value := 7000)]),
+                (arr := [(value := 2000), (value := 4000), (value := 8000)]),
+                (arr := [(value := 3000), (value := 5000), (value := 9000)])
+            ];
+        END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn nested_struct_array_initializers_without_parens_are_reported_after_lowering() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r#"
+        TYPE
+        InnerStruct : STRUCT
+            value : DWORD;
+        END_STRUCT;
+
+        StructArray : STRUCT
+            arr : ARRAY[0..2] OF InnerStruct;
+        END_STRUCT;
+        END_TYPE
+
+        FUNCTION main
+        VAR
+            varArr : ARRAY[0..2] OF StructArray := [
+                (arr := [value := 1000, value := 3000, value := 7000])
+            ];
+        END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E043]: Struct initializers within arrays have to be wrapped by `()`
+       ┌─ <internal>:15:26
+       │
+    15 │                 (arr := [value := 1000, value := 3000, value := 7000])
+       │                          ^^^^^^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
+
+    error[E043]: Struct initializers within arrays have to be wrapped by `()`
+       ┌─ <internal>:15:41
+       │
+    15 │                 (arr := [value := 1000, value := 3000, value := 7000])
+       │                                         ^^^^^^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
+
+    error[E043]: Struct initializers within arrays have to be wrapped by `()`
+       ┌─ <internal>:15:56
+       │
+    15 │                 (arr := [value := 1000, value := 3000, value := 7000])
+       │                                                        ^^^^^^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
+    ");
+}
