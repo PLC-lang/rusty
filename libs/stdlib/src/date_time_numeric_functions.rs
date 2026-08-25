@@ -816,7 +816,7 @@ fn mul_time_with_f64(in1: i64, in2: f64) -> i64 {
 
 /// .
 /// Divide TIME by REAL
-/// Panics on division by zero; a NaN divisor yields zero, overflow saturates
+/// A zero divisor saturates at the TIME range, a NaN divisor or result yields zero, overflow saturates
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -826,7 +826,7 @@ pub extern "C-unwind" fn DIV__TIME__REAL(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Divide TIME by REAL
-/// Panics on division by zero; a NaN divisor yields zero, overflow saturates
+/// A zero divisor saturates at the TIME range, a NaN divisor or result yields zero, overflow saturates
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -836,7 +836,7 @@ pub extern "C-unwind" fn DIV_TIME__REAL(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Divide LTIME by REAL
-/// Panics on division by zero; a NaN divisor yields zero, overflow saturates
+/// A zero divisor saturates at the TIME range, a NaN divisor or result yields zero, overflow saturates
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -845,16 +845,14 @@ pub extern "C-unwind" fn DIV_LTIME__REAL(in1: i64, in2: f32) -> i64 {
 }
 
 fn div_time_by_f32(in1: i64, in2: f32) -> i64 {
-    if in2 == 0.0 {
-        panic!("division by zero in TIME division");
-    }
-    if in2.is_nan() {
-        return 0;
-    }
     let negative = in1.is_negative() ^ in2.is_sign_negative();
     let magnitude = std::time::Duration::from_nanos(in1.unsigned_abs());
-    // pre-check in f64 so the Duration math below can never panic on overflow
+    // pre-check in f64 so the Duration math below can never panic on overflow;
+    // a NaN result here covers both a NaN divisor and zero divided by zero
     let approx_nanos = magnitude.as_secs_f64() / f64::from(in2.abs()) * 1e9;
+    if approx_nanos.is_nan() {
+        return 0;
+    }
     let res: i64 = if approx_nanos >= i64::MAX as f64 {
         i64::MAX
     } else {
@@ -869,7 +867,7 @@ fn div_time_by_f32(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Divide TIME by LREAL
-/// Panics on division by zero; a NaN divisor yields zero, overflow saturates
+/// A zero divisor saturates at the TIME range, a NaN divisor or result yields zero, overflow saturates
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1059,7 +1057,7 @@ pub extern "C-unwind" fn DIV__LTIME__ULINT(in1: i64, in2: u64) -> i64 {
 
 /// .
 /// Compatibility alias for dividing LTIME by REAL.
-/// Panics on division by zero; a NaN divisor yields zero, overflow saturates
+/// A zero divisor saturates at the TIME range, a NaN divisor or result yields zero, overflow saturates
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1069,7 +1067,7 @@ pub extern "C-unwind" fn DIV__LTIME__REAL(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Compatibility alias for dividing LTIME by LREAL.
-/// Panics on division by zero; a NaN divisor yields zero, overflow saturates
+/// A zero divisor saturates at the TIME range, a NaN divisor or result yields zero, overflow saturates
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1229,7 +1227,7 @@ pub extern "C-unwind" fn SUB__LTIME_OF_DAY__LTIME_OF_DAY(in1: i64, in2: i64) -> 
 
 /// .
 /// Divide TIME by LREAL
-/// Panics on division by zero; a NaN divisor yields zero, overflow saturates
+/// A zero divisor saturates at the TIME range, a NaN divisor or result yields zero, overflow saturates
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1239,7 +1237,7 @@ pub extern "C-unwind" fn DIV_TIME__LREAL(in1: i64, in2: f64) -> i64 {
 
 /// .
 /// Divide LTIME by LREAL
-/// Panics on division by zero; a NaN divisor yields zero, overflow saturates
+/// A zero divisor saturates at the TIME range, a NaN divisor or result yields zero, overflow saturates
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1248,16 +1246,14 @@ pub extern "C-unwind" fn DIV_LTIME__LREAL(in1: i64, in2: f64) -> i64 {
 }
 
 fn div_time_by_f64(in1: i64, in2: f64) -> i64 {
-    if in2 == 0.0 {
-        panic!("division by zero in TIME division");
-    }
-    if in2.is_nan() {
-        return 0;
-    }
     let negative = in1.is_negative() ^ in2.is_sign_negative();
     let magnitude = std::time::Duration::from_nanos(in1.unsigned_abs());
-    // pre-check in f64 so the Duration math below can never panic on overflow
+    // pre-check in f64 so the Duration math below can never panic on overflow;
+    // a NaN result here covers both a NaN divisor and zero divided by zero
     let approx_nanos = magnitude.as_secs_f64() / in2.abs() * 1e9;
+    if approx_nanos.is_nan() {
+        return 0;
+    }
     let res: i64 = if approx_nanos >= i64::MAX as f64 {
         i64::MAX
     } else {

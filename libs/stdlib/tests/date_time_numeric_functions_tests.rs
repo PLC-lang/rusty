@@ -1376,6 +1376,26 @@ fn div_time_by_tiny_float_saturates() {
     assert_eq!(dtf::DIV__TIME__LREAL(i64::MAX, -0.5), -i64::MAX);
 }
 
+#[test]
+fn div_time_by_zero_float_saturates() {
+    assert_eq!(dtf::DIV__TIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_TIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_LTIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__LTIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_TIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_LTIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__LTIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__REAL(-1, 0.0), -i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(1, -0.0), -i64::MAX);
+}
+
+#[test]
+fn div_zero_time_by_zero_float_yields_zero() {
+    assert_eq!(dtf::DIV__TIME__REAL(0, 0.0), 0);
+    assert_eq!(dtf::DIV__TIME__LREAL(0, 0.0), 0);
+}
+
 macro_rules! panic_i64_i8_div_zero_tests {
     ($(($name:ident, $func:path)),+ $(,)?) => {
         $(
@@ -1472,30 +1492,6 @@ macro_rules! panic_i64_u64_div_zero_tests {
     };
 }
 
-macro_rules! panic_i64_f32_div_zero_tests {
-    ($(($name:ident, $func:path)),+ $(,)?) => {
-        $(
-            #[test]
-            #[should_panic]
-            fn $name() {
-                let _ = $func(1, 0.0_f32);
-            }
-        )+
-    };
-}
-
-macro_rules! panic_i64_f64_div_zero_tests {
-    ($(($name:ident, $func:path)),+ $(,)?) => {
-        $(
-            #[test]
-            #[should_panic]
-            fn $name() {
-                let _ = $func(1, 0.0_f64);
-            }
-        )+
-    };
-}
-
 panic_i64_i8_div_zero_tests!(
     (div_time_sint_panics_on_zero, dtf::DIV__TIME__SINT),
     (div_time_sint_alias_panics_on_zero, dtf::DIV_TIME__SINT),
@@ -1550,18 +1546,4 @@ panic_i64_u64_div_zero_tests!(
     (div_time_ulint_alias_panics_on_zero, dtf::DIV_TIME__ULINT),
     (div_ltime_ulint_panics_on_zero, dtf::DIV_LTIME__ULINT),
     (div_alias_ltime_ulint_panics_on_zero, dtf::DIV__LTIME__ULINT)
-);
-
-panic_i64_f32_div_zero_tests!(
-    (div_time_real_panics_on_zero, dtf::DIV__TIME__REAL),
-    (div_time_real_alias_panics_on_zero, dtf::DIV_TIME__REAL),
-    (div_ltime_real_panics_on_zero, dtf::DIV_LTIME__REAL),
-    (div_alias_ltime_real_panics_on_zero, dtf::DIV__LTIME__REAL)
-);
-
-panic_i64_f64_div_zero_tests!(
-    (div_time_lreal_panics_on_zero, dtf::DIV__TIME__LREAL),
-    (div_time_lreal_alias_panics_on_zero, dtf::DIV_TIME__LREAL),
-    (div_ltime_lreal_panics_on_zero, dtf::DIV_LTIME__LREAL),
-    (div_alias_ltime_lreal_panics_on_zero, dtf::DIV__LTIME__LREAL)
 );

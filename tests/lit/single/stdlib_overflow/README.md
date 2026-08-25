@@ -27,18 +27,18 @@ The stdlib ADD/SUB/MUL date and time functions wrap on overflow, exactly like th
 
 ### Float Factors (saturating)
 
-MUL and DIV with a REAL/LREAL factor cannot wrap meaningfully; oversized results saturate at the TIME range and a NaN factor yields zero:
+MUL and DIV with a REAL/LREAL factor cannot wrap meaningfully; the functions follow float semantics mapped to the TIME range. Oversized and infinite results (including division by zero) saturate at the TIME range, and a NaN factor or NaN result (zero divided by zero) yields zero:
 
 - `mul_time_real_overflow.st` - Multiplying TIME by an oversized or NaN REAL
 - `mul_time_lreal_overflow.st` - Multiplying TIME by an oversized or NaN LREAL
+- `div_time_by_real_zero.st` - Dividing TIME by zero (REAL)
+- `div_time_by_lreal_zero.st` - Dividing TIME by zero (LREAL)
 
 ### Panic Conditions (`XFAIL: *`)
 
-The remaining conditions panic at runtime by design (division by zero is treated as a programming error). Their tests carry `XFAIL: *`, so a non-zero exit code is treated as success:
+The remaining conditions panic at runtime by design (integer division by zero is treated as a programming error). Their tests carry `XFAIL: *`, so a non-zero exit code is treated as success:
 
 - `div_time_by_zero.st` - Dividing TIME by zero (LINT)
-- `div_time_by_real_zero.st` - Dividing TIME by zero (REAL)
-- `div_time_by_lreal_zero.st` - Dividing TIME by zero (LREAL)
 - `right_string_substring_too_long.st` / `right_wstring_substring_too_long.st` - RIGHT with a length above the string length
 
 ## Running the Tests
