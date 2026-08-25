@@ -1122,6 +1122,49 @@ mod tests {
         }
 
         #[test]
+        fn enable_generic() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/enable_generic").unwrap(), @r"
+            PROGRAM enable_generic
+            VAR
+                trigger : BOOL;
+                x : DINT;
+                y : DINT;
+                result : DINT;
+            END_VAR
+            VAR
+                __out_myGenAdd_7 : DINT;
+            END_VAR
+                IF trigger THEN
+                    __out_myGenAdd_7 := myGenAdd(a := x, b := y)
+                END_IF;
+                result := __out_myGenAdd_7;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn enable_from_function() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/enable_from_function").unwrap(), @r"
+            PROGRAM enable_from_function
+            VAR
+                a : DINT := 20;
+                b : DINT := 4;
+                result : DINT;
+            END_VAR
+            VAR
+                __out_isNonZero_3 : BOOL;
+                __out_safeDiv_7 : DINT;
+            END_VAR
+                __out_isNonZero_3 := isNonZero(val := b);
+                IF __out_isNonZero_3 THEN
+                    __out_safeDiv_7 := safeDiv(dividend := a, divisor := b)
+                END_IF;
+                result := __out_safeDiv_7;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
         fn eno_chain() {
             insta::assert_snapshot!(transpile_project("execution_control/valid/eno_chain").unwrap(), @r"
             PROGRAM eno_chain

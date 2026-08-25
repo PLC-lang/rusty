@@ -1191,6 +1191,51 @@ mod tests {
             result := b.out
             done := trigger");
         }
+
+        #[test]
+        fn enable_generic() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_generic"), @r"
+            IF trigger THEN __out_myGenAdd_7 := myGenAdd(a := x, b := y)
+            result := __out_myGenAdd_7");
+        }
+
+        #[test]
+        fn enable_from_function() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_from_function"), @r"
+            __out_isNonZero_3 := isNonZero(val := b)
+            IF __out_isNonZero_3 THEN __out_safeDiv_7 := safeDiv(dividend := a, divisor := b)
+            result := __out_safeDiv_7");
+        }
+
+        #[test]
+        fn enable_independent() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_independent"), @r"
+            IF t1 THEN a(in := seed)
+            IF t2 THEN b(in := a.out)
+            result := b.out");
+        }
+
+        #[test]
+        fn connector_routing() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/connector_routing"), @r"
+            IF trigger THEN inst(in := localIn)
+            localOut := inst.out
+            done := trigger");
+        }
+
+        #[test]
+        fn eno_storage() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/eno_storage"), @r"
+            IF trigger THEN inst(in := localIn)
+            IF trigger THEN latch := TRUE");
+        }
+
+        #[test]
+        fn enable_variadic() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_variadic"), @r"
+            IF trigger THEN __out_ADD_1 := ADD(x, y)
+            r := __out_ADD_1");
+        }
     }
 
     mod validations {

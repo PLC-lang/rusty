@@ -104,6 +104,7 @@ use plc_ast::ast::{
     flatten_expression_list, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration,
     UnaryExpression, Variable,
 };
+use plc_ast::control_statements::AstControlStatement;
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 
@@ -129,7 +130,7 @@ pub fn infer_temporary_types(unit: &mut CompilationUnit, index: &mut Index, ids:
 
     // Harvest the concrete type each open temporary's capture resolved to.
     let mut resolved = HashMap::new();
-    for statement in unit.implementations.iter().flat_map(|implementation| &implementation.statements) {
+    for statement in statements(unit) {
         let Some((call_node, call, return_capture)) = captured_call(statement) else { continue };
 
         // The capture takes its annotated node's concrete type, once the
@@ -274,7 +275,7 @@ fn concrete_type(data_type: Option<&DataType>, index: &Index) -> Option<String> 
 
 // The callee whose return or output is captured into the given temporary.
 fn producer<'unit>(unit: &'unit CompilationUnit, temporary: &str) -> Option<&'unit str> {
-    unit.implementations.iter().flat_map(|implementation| &implementation.statements).find_map(|statement| {
+    statements(unit).into_iter().find_map(|statement| {
         let (_, call, return_capture) = captured_call(statement)?;
 
         let captures = return_capture == Some(temporary)
@@ -285,6 +286,30 @@ fn producer<'unit>(unit: &'unit CompilationUnit, temporary: &str) -> Option<&'un
 
         captures.then(|| call.operator.get_flat_reference_name()).flatten()
     })
+}
+
+// The statements a unit executes, seeing through the IF guards the transpiler
+// wraps around enabled calls and latched stores.
+fn statements(unit: &CompilationUnit) -> Vec<&AstNode> {
+    fn collect<'unit>(nodes: &'unit [AstNode], flat: &mut Vec<&'unit AstNode>) {
+        for node in nodes {
+            match node.get_stmt() {
+                AstStatement::ControlStatement(AstControlStatement::If(inner)) => {
+                    for block in &inner.blocks {
+                        collect(&block.body, flat);
+                    }
+                    collect(&inner.else_block, flat);
+                }
+                _ => flat.push(node),
+            }
+        }
+    }
+
+    let mut flat = Vec::new();
+    for implementation in &unit.implementations {
+        collect(&implementation.statements, &mut flat);
+    }
+    flat
 }
 
 // `callee(...)`, bare or behind `temporary := callee(...)`: the call node, the
