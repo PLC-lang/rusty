@@ -1,0 +1,1 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK main.st

@@ -1,0 +1,9 @@
+FUNCTION_BLOCK counter
+VAR_INPUT
+    in : DINT;
+END_VAR
+VAR_OUTPUT
+    out : DINT;
+END_VAR
+    out := out + in;
+END_FUNCTION_BLOCK

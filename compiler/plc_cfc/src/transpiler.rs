@@ -78,7 +78,7 @@ impl Transpiler {
             Statement::Label { name, location } => {
                 AstFactory::create_label_statement(name, location, self.ids.next_id())
             }
-            Statement::Call { target, arguments, capture, location } => {
+            Statement::Call { target, arguments, capture, enable, location } => {
                 let operator = self.reference(&target, &location);
 
                 let mut parameters = Vec::new();
@@ -101,11 +101,18 @@ impl Transpiler {
                 );
 
                 // A captured call assigns the return value to its temporary.
-                match capture {
+                let call = match capture {
                     Some(temporary) => {
                         let temporary = self.reference(&temporary, &location);
                         AstFactory::create_assignment(temporary, call, self.ids.next_id())
                     }
+                    None => call,
+                };
+
+                // The EN guard wraps the whole call, capture included, so a
+                // skipped call leaves the captured temporary untouched.
+                match enable {
+                    Some(condition) => self.guard(condition, call, location),
                     None => call,
                 }
             }
@@ -1065,6 +1072,77 @@ mod tests {
             __out_addInto_1 := addInto(delta := 5, acc := );
             result := __out_addInto_1;
         END_PROGRAM");
+        }
+    }
+
+    mod execution_control {
+        use crate::test_utils::transpile_project;
+
+        #[test]
+        fn enable_fb() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/enable_fb").unwrap(), @r"
+            PROGRAM enable_fb
+            VAR
+                inst : counter;
+                trigger : BOOL;
+                localIn : DINT := 5;
+                localOut : DINT;
+                done : BOOL;
+            END_VAR
+                IF trigger THEN
+                    inst(in := localIn)
+                END_IF;
+                localOut := inst.out;
+                done := trigger;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn enable_function() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/enable_function").unwrap(), @r"
+            PROGRAM enable_function
+            VAR
+                trigger : BOOL;
+                a : DINT := 3;
+                b : DINT := 4;
+                sum : DINT;
+                done : BOOL;
+            END_VAR
+            VAR
+                __out_myAdd_7 : DINT;
+            END_VAR
+                IF trigger THEN
+                    __out_myAdd_7 := myAdd(in1 := a, in2 := b, myAddDoubled => )
+                END_IF;
+                sum := __out_myAdd_7;
+                done := trigger;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn eno_chain() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/eno_chain").unwrap(), @r"
+            PROGRAM eno_chain
+            VAR
+                a : counter;
+                b : counter;
+                trigger : BOOL;
+                seed : DINT;
+                result : DINT;
+                done : BOOL;
+            END_VAR
+                IF trigger THEN
+                    a(in := seed)
+                END_IF;
+                IF trigger THEN
+                    b(in := a.out)
+                END_IF;
+                result := b.out;
+                done := trigger;
+            END_PROGRAM
+            ");
         }
     }
 

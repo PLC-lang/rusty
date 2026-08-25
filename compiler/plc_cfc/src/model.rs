@@ -62,6 +62,9 @@ pub struct Data {
 
     #[serde(rename = "StorageMode")]
     pub storage_mode: Option<StorageMode>,
+
+    #[serde(rename = "ExecutionControl")]
+    pub execution_control: Option<ExecutionControl>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -99,6 +102,34 @@ pub struct StorageMode {
 pub enum Storage {
     Set,
     Reset,
+}
+
+// The EN/ENO pins guarding a block's execution: the value wired into EN
+// decides whether the block runs, and ENO mirrors that value for consumers.
+// TODO: Best-effort shape; the IDE does not export execution control yet, so
+// this format is not final.
+#[derive(Debug, Deserialize)]
+pub struct ExecutionControl {
+    #[serde(rename = "En")]
+    pub en: En,
+
+    #[serde(rename = "Eno")]
+    pub eno: Option<Eno>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct En {
+    #[serde(rename = "@negated", default)]
+    pub negated: bool,
+
+    #[serde(rename = "ConnectionPointIn")]
+    pub connection_in: Option<ConnectionPointIn>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Eno {
+    #[serde(rename = "ConnectionPointOut")]
+    pub connection_out: Option<ConnectionPointOut>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -245,6 +276,18 @@ impl PouContent {
     }
 }
 
+impl En {
+    pub fn source_pin(&self) -> Option<usize> {
+        self.connection_in.as_ref()?.source_pin()
+    }
+}
+
+impl Eno {
+    pub fn output_pin(&self) -> Option<usize> {
+        self.connection_out.as_ref().map(|out| out.id)
+    }
+}
+
 impl Network {
     pub fn elements(&self) -> impl Iterator<Item = &FbdObject> {
         self.nodes.iter().map(|node| match node {
@@ -296,6 +339,14 @@ impl FbdObject {
 
     pub fn storage(&self) -> Option<Storage> {
         self.data(|data| data.storage_mode.as_ref()).map(|storage| storage.mode)
+    }
+
+    pub fn execution_control(&self) -> Option<&ExecutionControl> {
+        self.data(|data| data.execution_control.as_ref())
+    }
+
+    pub fn eno_pin(&self) -> Option<usize> {
+        self.execution_control()?.eno.as_ref()?.output_pin()
     }
 
     // `AddData` interleaves its payloads across several `Data` entries.
