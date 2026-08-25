@@ -8,16 +8,19 @@
 
 use crate::string_functions::ptr_to_slice;
 use num::PrimInt;
+use plc_ast::{
+    ast::{AstNode, AstStatement},
+    literals::AstLiteral,
+    provider::IdProvider,
+};
+use plc_lexer::{lex_with_ids, ParseSession, Token};
+use plc_parser::{
+    parse_literal_date, parse_literal_date_and_time, parse_literal_time, parse_literal_time_of_day,
+};
+use plc_source::source_location::SourceLocationFactory;
 
-const MILLIS_PER_SECOND: u32 = 1_000;
-const MILLIS_PER_MINUTE: u32 = 60 * MILLIS_PER_SECOND;
-const MILLIS_PER_HOUR: u32 = 60 * MILLIS_PER_MINUTE;
-const NANOS_PER_MICROSECOND: f64 = 1_000.0;
 const NANOS_PER_MILLISECOND: f64 = 1_000_000.0;
 const NANOS_PER_SECOND: f64 = 1_000_000_000.0;
-const NANOS_PER_MINUTE: f64 = 60.0 * NANOS_PER_SECOND;
-const NANOS_PER_HOUR: f64 = 60.0 * NANOS_PER_MINUTE;
-const NANOS_PER_DAY: f64 = 24.0 * NANOS_PER_HOUR;
 
 // --------- shared helpers
 
@@ -34,21 +37,85 @@ unsafe fn trimmed_str<'a>(src: *const u8) -> &'a str {
     }
 }
 
-/// Strips one of `prefixes` from `s`, matching case-insensitively. Returns `None` if none match.
-fn strip_prefix_ci<'a>(s: &'a str, prefixes: &[&str]) -> Option<&'a str> {
-    let upper: String = s.chars().map(|c| c.to_ascii_uppercase()).collect();
-    prefixes.iter().find(|p| upper.starts_with(*p)).map(|p| &s[p.len()..])
+fn parse_single_statement<'a>(input: &'a str) -> ParseSession<'a> {
+    lex_with_ids(input, IdProvider::default(), SourceLocationFactory::internal(input))
+}
+
+fn parse_literal(
+    input: &str,
+    expected: Token,
+    parser: fn(&mut ParseSession) -> Option<AstNode>,
+) -> Option<AstLiteral> {
+    let mut session = parse_single_statement(input);
+    if session.token != expected {
+        return None;
+    }
+    let node = parser(&mut session)?;
+    if !session.is_end_of_stream() || !session.diagnostics.is_empty() {
+        return None;
+    }
+    match node.get_stmt() {
+        AstStatement::Literal(literal) => Some(literal.clone()),
+        _ => None,
+    }
+}
+
+fn parse_prefixed_literal(
+    input: &str,
+    prefix: &str,
+    expected: Token,
+    parser: fn(&mut ParseSession) -> Option<AstNode>,
+) -> Option<AstLiteral> {
+    let source = if input.contains('#') {
+        input.to_owned()
+    } else {
+        format!("{prefix}{}", input.replacen('T', "-", 1))
+    };
+    parse_literal(&source, expected, parser)
+}
+
+fn parse_time_literal(input: &str, prefixes: &[&str]) -> Option<AstLiteral> {
+    prefixes
+        .iter()
+        .find(|prefix| input.len() >= prefix.len() && input[..prefix.len()].eq_ignore_ascii_case(prefix))?;
+    let normalized: String =
+        input.replace(',', ".").chars().filter(|character| !character.is_ascii_whitespace()).collect();
+    parse_literal(&normalized, Token::LiteralTime, parse_literal_time)
+}
+
+fn date_seconds(literal: AstLiteral) -> Option<u32> {
+    let value = match literal {
+        AstLiteral::Date(date) => date.value().ok()?,
+        _ => return None,
+    };
+    u32::try_from(value / NANOS_PER_SECOND as i64).ok()
+}
+
+fn date_time_seconds(literal: AstLiteral) -> Option<u32> {
+    let value = match literal {
+        AstLiteral::DateAndTime(date_time) => date_time.value().ok()?,
+        _ => return None,
+    };
+    u32::try_from(value / NANOS_PER_SECOND as i64).ok()
+}
+
+fn time_of_day_millis(literal: AstLiteral) -> Option<u32> {
+    let value = match literal {
+        AstLiteral::TimeOfDay(time) => time.value().ok()?,
+        _ => return None,
+    };
+    u32::try_from(value / NANOS_PER_MILLISECOND as i64).ok()
+}
+
+fn duration_nanos(literal: AstLiteral) -> Option<i64> {
+    match literal {
+        AstLiteral::Time(time) if !time.is_negative() => Some(time.value()),
+        _ => None,
+    }
 }
 
 fn all_ascii_digits(s: &str) -> bool {
     !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit())
-}
-
-fn parse_plain_u32(s: &str) -> Option<u32> {
-    if !all_ascii_digits(s) {
-        return None;
-    }
-    s.parse().ok()
 }
 
 // --------- BOOL
@@ -126,80 +193,14 @@ string_to_int_fn!(STRING_TO_ULINT, u64);
 /// Parses the body after the `T#`/`TIME#`/`LT#`/`LTIME#` prefix has been stripped, returning the
 /// duration in (fractional) nanoseconds. Rejects negative durations, out-of-order or duplicate
 /// unit segments, and unknown units.
-fn parse_duration_body_nanos(body: &str) -> Option<f64> {
-    if body.is_empty() || body.contains('-') {
-        return None;
-    }
-
-    let normalized = body.replace(',', ".");
-    let bytes = normalized.as_bytes();
-    let mut i = 0;
-    let mut total_nanos = 0.0_f64;
-    let mut last_rank: i32 = -1;
-    let mut seen_any = false;
-
-    while i < bytes.len() {
-        while i < bytes.len() && (bytes[i] as char).is_whitespace() {
-            i += 1;
-        }
-        if i >= bytes.len() {
-            break;
-        }
-
-        let num_start = i;
-        let mut seen_dot = false;
-        while i < bytes.len() && (bytes[i].is_ascii_digit() || (bytes[i] == b'.' && !seen_dot)) {
-            seen_dot |= bytes[i] == b'.';
-            i += 1;
-        }
-        if i == num_start {
-            return None;
-        }
-        let number: f64 = normalized[num_start..i].parse().ok()?;
-
-        let unit_start = i;
-        while i < bytes.len() && bytes[i].is_ascii_alphabetic() {
-            i += 1;
-        }
-        if i == unit_start {
-            return None;
-        }
-        let unit = normalized[unit_start..i].to_ascii_lowercase();
-
-        let (rank, nanos_per_unit) = match unit.as_str() {
-            "d" => (0, NANOS_PER_DAY),
-            "h" => (1, NANOS_PER_HOUR),
-            "m" => (2, NANOS_PER_MINUTE),
-            "s" => (3, NANOS_PER_SECOND),
-            "ms" => (4, NANOS_PER_MILLISECOND),
-            "us" => (5, NANOS_PER_MICROSECOND),
-            "ns" => (6, 1.0),
-            _ => return None,
-        };
-        // segments must appear in d-h-m-s-ms-us-ns order and each unit at most once
-        if rank <= last_rank {
-            return None;
-        }
-        last_rank = rank;
-
-        total_nanos += number * nanos_per_unit;
-        seen_any = true;
-    }
-
-    seen_any.then_some(total_nanos)
-}
-
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_TIME(src: *const u8) -> u32 {
     let s = trimmed_str(src);
-    let Some(body) = strip_prefix_ci(s, &["TIME#", "T#"]) else {
-        return 0;
-    };
-    match parse_duration_body_nanos(body) {
-        Some(nanos) => (nanos / NANOS_PER_MILLISECOND).trunc().clamp(0.0, u32::MAX as f64) as u32,
+    match parse_time_literal(s, &["TIME#", "T#"]).and_then(duration_nanos) {
+        Some(nanos) => (nanos as f64 / NANOS_PER_MILLISECOND).trunc() as u32,
         None => 0,
     }
 }
@@ -210,90 +211,13 @@ pub unsafe extern "C" fn STRING_TO_TIME(src: *const u8) -> u32 {
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_LTIME(src: *const u8) -> i64 {
     let s = trimmed_str(src);
-    let Some(body) = strip_prefix_ci(s, &["LTIME#", "LT#"]) else {
-        return 0;
-    };
-    match parse_duration_body_nanos(body) {
-        Some(nanos) => nanos.trunc().clamp(0.0, i64::MAX as f64) as i64,
+    match parse_time_literal(s, &["LTIME#", "LT#"]).and_then(duration_nanos) {
+        Some(nanos) => nanos,
         None => 0,
     }
 }
 
 // --------- dates and times of day (DATE / DT / TOD)
-
-/// Splits `yyyy-mm-dd[-T]hh:mm:ss[.fff]` at the date/time boundary: either an `'T'`/`'t'`
-/// separator, or the third `'-'` (the first two belong to the date itself).
-fn split_date_time(body: &str) -> Option<(&str, &str)> {
-    let mut dash_count = 0;
-    for (idx, ch) in body.char_indices() {
-        if ch == 'T' || ch == 't' {
-            return Some((&body[..idx], &body[idx + ch.len_utf8()..]));
-        }
-        if ch == '-' {
-            dash_count += 1;
-            if dash_count == 3 {
-                return Some((&body[..idx], &body[idx + 1..]));
-            }
-        }
-    }
-    None
-}
-
-fn parse_ymd(body: &str) -> Option<chrono::NaiveDate> {
-    let mut it = body.split('-');
-    let year_str = it.next()?;
-    let month_str = it.next()?;
-    let day_str = it.next()?;
-    if it.next().is_some() || !all_ascii_digits(year_str) {
-        return None;
-    }
-    let year: i32 = year_str.parse().ok()?;
-    let month = parse_plain_u32(month_str)?;
-    let day = parse_plain_u32(day_str)?;
-    chrono::NaiveDate::from_ymd_opt(year, month, day)
-}
-
-/// Parses `hh:mm:ss[.fff]`, returning `(hour, minute, second, nanosecond)`. Rejects out-of-range
-/// components (hour > 23, minute/second > 59).
-fn parse_hms(body: &str) -> Option<(u32, u32, u32, u32)> {
-    let mut it = body.split(':');
-    let hour = parse_plain_u32(it.next()?)?;
-    let min = parse_plain_u32(it.next()?)?;
-    let sec_str = it.next()?;
-    if it.next().is_some() {
-        return None;
-    }
-
-    let (sec_str, frac_str) = match sec_str.split_once('.') {
-        Some((a, b)) => (a, Some(b)),
-        None => (sec_str, None),
-    };
-    let sec = parse_plain_u32(sec_str)?;
-    let nanos = match frac_str {
-        Some(f) if all_ascii_digits(f) => {
-            let mut digits = f.to_string();
-            digits.truncate(9);
-            while digits.len() < 9 {
-                digits.push('0');
-            }
-            digits.parse::<u32>().ok()?
-        }
-        Some(_) => return None,
-        None => 0,
-    };
-
-    if hour > 23 || min > 59 || sec > 59 {
-        return None;
-    }
-    Some((hour, min, sec, nanos))
-}
-
-/// Converts a `NaiveDate`'s midnight into the DATE/DT epoch-seconds representation, rejecting
-/// anything outside the representable window (1970-01-01 to 2106-02-07).
-fn date_time_to_epoch_seconds(date: chrono::NaiveDate, hour: u32, min: u32, sec: u32) -> Option<u32> {
-    let seconds = date.and_hms_opt(hour, min, sec)?.and_utc().timestamp();
-    u32::try_from(seconds).ok()
-}
 
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
@@ -301,9 +225,11 @@ fn date_time_to_epoch_seconds(date: chrono::NaiveDate, hour: u32, min: u32, sec:
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_DATE(src: *const u8) -> u32 {
     let s = trimmed_str(src);
-    let body = strip_prefix_ci(s, &["DATE#", "D#"]).unwrap_or(s);
-    let result = parse_ymd(body).and_then(|date| date_time_to_epoch_seconds(date, 0, 0, 0));
-    result.unwrap_or(0)
+    date_seconds(
+        parse_prefixed_literal(s, "D#", Token::LiteralDate, parse_literal_date)
+            .unwrap_or(AstLiteral::Integer(0)),
+    )
+    .unwrap_or(0)
 }
 
 /// # Safety
@@ -312,13 +238,11 @@ pub unsafe extern "C" fn STRING_TO_DATE(src: *const u8) -> u32 {
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_DT(src: *const u8) -> u32 {
     let s = trimmed_str(src);
-    let body = strip_prefix_ci(s, &["DATE_AND_TIME#", "DT#"]).unwrap_or(s);
-    let result = split_date_time(body).and_then(|(date_part, time_part)| {
-        let date = parse_ymd(date_part)?;
-        let (hour, min, sec, _nanos) = parse_hms(time_part)?;
-        date_time_to_epoch_seconds(date, hour, min, sec)
-    });
-    result.unwrap_or(0)
+    date_time_seconds(
+        parse_prefixed_literal(s, "DT#", Token::LiteralDateAndTime, parse_literal_date_and_time)
+            .unwrap_or(AstLiteral::Integer(0)),
+    )
+    .unwrap_or(0)
 }
 
 /// # Safety
@@ -327,16 +251,11 @@ pub unsafe extern "C" fn STRING_TO_DT(src: *const u8) -> u32 {
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_TOD(src: *const u8) -> u32 {
     let s = trimmed_str(src);
-    let body = strip_prefix_ci(s, &["TIME_OF_DAY#", "TOD#"]).unwrap_or(s);
-    match parse_hms(body) {
-        Some((hour, min, sec, nanos)) => {
-            hour * MILLIS_PER_HOUR
-                + min * MILLIS_PER_MINUTE
-                + sec * MILLIS_PER_SECOND
-                + nanos / NANOS_PER_MILLISECOND as u32
-        }
-        None => 0,
-    }
+    time_of_day_millis(
+        parse_prefixed_literal(s, "TOD#", Token::LiteralTimeOfDay, parse_literal_time_of_day)
+            .unwrap_or(AstLiteral::Integer(0)),
+    )
+    .unwrap_or(0)
 }
 
 #[cfg(test)]

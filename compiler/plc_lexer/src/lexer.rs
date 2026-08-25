@@ -9,7 +9,6 @@ pub use tokens::{Token, TokenClass};
 
 #[cfg(test)]
 mod tests;
-#[path = "lexer/tokens.rs"]
 mod tokens;
 
 pub struct ParseSession<'a> {
