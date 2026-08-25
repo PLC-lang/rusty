@@ -39,6 +39,7 @@ cargo fmt --all && cargo clippy --workspace
 ## Git
 
 - Use conventional commits: `<type>(<scope>): <description>`. Keep titles under 72 characters.
+- To create a PR, use the `create-pr` skill (`.agents/skills/create-pr/SKILL.md`). It decides whether the change should be split into stacked PRs and requires explicit user consent before any split.
 - PR descriptions are for humans. They orient the reviewer: after reading, the reviewer must know the problem and the solution before they open the diff. Keep each part to 1-3 sentences and use:
     ```
     Problem: <what breaks or is missing, with the observable effect>
