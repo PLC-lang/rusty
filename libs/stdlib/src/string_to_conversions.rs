@@ -7,7 +7,7 @@
 //! - A rejected input returns the type's zero value.
 
 use crate::string_functions::ptr_to_slice;
-use num::PrimInt;
+use num::NumCast;
 use plc_ast::{
     ast::{AstNode, AstStatement},
     literals::AstLiteral,
@@ -15,7 +15,8 @@ use plc_ast::{
 };
 use plc_lexer::{lex_with_ids, ParseSession, Token};
 use plc_parser::{
-    parse_literal_date, parse_literal_date_and_time, parse_literal_time, parse_literal_time_of_day,
+    parse_bool, parse_integer, parse_literal_date, parse_literal_date_and_time, parse_literal_time,
+    parse_literal_time_of_day,
 };
 use plc_source::source_location::SourceLocationFactory;
 
@@ -114,10 +115,6 @@ fn duration_nanos(literal: AstLiteral) -> Option<i64> {
     }
 }
 
-fn all_ascii_digits(s: &str) -> bool {
-    !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit())
-}
-
 // --------- BOOL
 
 /// # Safety
@@ -125,46 +122,13 @@ fn all_ascii_digits(s: &str) -> bool {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_BOOL(src: *const u8) -> bool {
-    match trimmed_str(src) {
-        "1" => true,
-        "0" => false,
-        s if s.eq_ignore_ascii_case("TRUE") => true,
-        _ => false,
-    }
+    parse_bool(trimmed_str(src)).unwrap_or_default()
 }
 
 // --------- integer / bit-string widths
 
 /// One radix-prefix + full-consumption parse rule shared by every integer width, so widening a
 /// variable never changes the parsed value.
-fn parse_int_strict<T: PrimInt>(s: &str) -> T {
-    let (radix, rest) = match s.as_bytes() {
-        [b'1', b'6', b'#', ..] => (16, &s[3..]),
-        [b'0', b'x', ..] | [b'0', b'X', ..] => (16, &s[2..]),
-        [b'8', b'#', ..] => (8, &s[2..]),
-        [b'2', b'#', ..] | [b'0', b'b', ..] | [b'0', b'B', ..] => (2, &s[2..]),
-        _ => (10, s),
-    };
-
-    if radix != 10 {
-        return T::from_str_radix(rest, radix).unwrap_or_else(|_| T::zero());
-    }
-
-    // decimal: a fractional part is allowed and truncated toward zero, everything else must
-    // consume the whole (trimmed) string.
-    let (int_part, frac_part) = match rest.split_once('.') {
-        Some((a, b)) => (a, Some(b)),
-        None => (rest, None),
-    };
-    if let Some(frac) = frac_part {
-        if !all_ascii_digits(frac) {
-            return T::zero();
-        }
-    }
-
-    T::from_str_radix(int_part, 10).unwrap_or_else(|_| T::zero())
-}
-
 macro_rules! string_to_int_fn {
     ($name:ident, $ty:ty) => {
         /// # Safety
@@ -172,7 +136,7 @@ macro_rules! string_to_int_fn {
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $name(src: *const u8) -> $ty {
-            parse_int_strict(trimmed_str(src))
+            parse_integer(trimmed_str(src)).and_then(NumCast::from).unwrap_or_default()
         }
     };
 }
@@ -211,10 +175,7 @@ pub unsafe extern "C" fn STRING_TO_TIME(src: *const u8) -> u32 {
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_LTIME(src: *const u8) -> i64 {
     let s = trimmed_str(src);
-    match parse_time_literal(s, &["LTIME#", "LT#"]).and_then(duration_nanos) {
-        Some(nanos) => nanos,
-        None => 0,
-    }
+    parse_time_literal(s, &["LTIME#", "LT#"]).and_then(duration_nanos).unwrap_or_default()
 }
 
 // --------- dates and times of day (DATE / DT / TOD)
