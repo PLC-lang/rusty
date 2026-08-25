@@ -1,4 +1,5 @@
 use common::{compile_and_run, get_includes};
+use iec61131std::date_time_extra_functions as dtef;
 
 // Import common functionality into the integration tests
 mod common;
@@ -1085,4 +1086,37 @@ fn day_of_week() {
     assert_eq!(maintype.a, 2);
     assert_eq!(maintype.b, 0);
     assert_eq!(maintype.c, 6);
+}
+
+// Unrepresentable constructor inputs yield 0 (epoch / midnight) instead of panicking;
+// dates outside the representable range clamp to the nearest bound.
+#[test]
+fn concat_date_with_invalid_fields_yields_epoch() {
+    assert_eq!(dtef::concat_date(2024, 13, 45), 0);
+    assert_eq!(dtef::concat_date(2023, 2, 29), 0);
+    assert_eq!(dtef::CONCAT_DATE__INT(2024, -1, 1), 0);
+}
+
+#[test]
+fn concat_date_clamps_to_date_range() {
+    assert_eq!(dtef::concat_date(1969, 6, 1), 0);
+    assert_eq!(dtef::concat_date(2200, 1, 1), u32::MAX);
+}
+
+#[test]
+fn concat_date_with_valid_fields_is_unchanged() {
+    assert_eq!(dtef::concat_date(2024, 2, 29), 1_709_164_800);
+}
+
+#[test]
+fn concat_tod_with_invalid_fields_yields_midnight() {
+    assert_eq!(dtef::concat_tod(25, 0, 0, 0), 0);
+    assert_eq!(dtef::concat_tod(0, 60, 0, 0), 0);
+    assert_eq!(dtef::CONCAT_TOD__SINT(-1, 0, 0, 0), 0);
+}
+
+#[test]
+fn concat_ldt_with_invalid_fields_yields_epoch_defaults() {
+    assert_eq!(dtef::CONCAT_LDT__INT(2024, 13, 1, 0, 0, 0, 0), 0);
+    assert_eq!(dtef::concat_ldt(1969, 6, 1, 1, 0, 0, 0), 3_600_000_000_000);
 }
