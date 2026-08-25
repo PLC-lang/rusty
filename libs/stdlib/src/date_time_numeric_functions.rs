@@ -573,9 +573,6 @@ pub extern "C-unwind" fn DIV_LTIME__LINT(in1: i64, in2: i64) -> i64 {
 /// Panics on division by zero
 ///
 fn div_time_by_signed_int(in1: i64, in2: i64) -> i64 {
-    if in2 == 0 {
-        panic!("division by zero in TIME division");
-    }
     in1.wrapping_div(in2)
 }
 
@@ -704,9 +701,6 @@ pub extern "C-unwind" fn DIV_LTIME__ULINT(in1: i64, in2: u64) -> i64 {
 /// Panics on division by zero
 ///
 fn div_time_by_unsigned_int(in1: i64, in2: u64) -> i64 {
-    if in2 == 0 {
-        panic!("division by zero in TIME division");
-    }
     // a divisor above the signed range always exceeds the dividend magnitude
     match i64::try_from(in2) {
         Ok(divisor) => in1.wrapping_div(divisor),
