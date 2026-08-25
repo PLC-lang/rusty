@@ -1310,28 +1310,90 @@ wrapping_tests!(
     (mul_time_ulint_wraps_when_factor_exceeds_lint, dtf::MUL__TIME__ULINT, 1, u64::MAX, -1),
 );
 
-macro_rules! panic_i64_f32_mul_tests {
-    ($(($name:ident, $func:path)),+ $(,)?) => {
-        $(
-            #[test]
-            #[should_panic]
-            fn $name() {
-                let _ = $func(i64::MAX, 2.0_f32);
-            }
-        )+
-    };
+// Integer division panics only on a zero divisor (see the panic_*_div_zero suites);
+// every other input is total: i64::MIN / -1 wraps and a u64 divisor above the
+// signed range always exceeds the dividend magnitude, so the quotient is zero.
+#[test]
+fn div_time_min_by_minus_one_wraps() {
+    assert_eq!(dtf::DIV__TIME__LINT(i64::MIN, -1), i64::MIN);
+    assert_eq!(dtf::DIV_LTIME__LINT(i64::MIN, -1), i64::MIN);
 }
 
-macro_rules! panic_i64_f64_mul_tests {
-    ($(($name:ident, $func:path)),+ $(,)?) => {
-        $(
-            #[test]
-            #[should_panic]
-            fn $name() {
-                let _ = $func(i64::MAX, 2.0_f64);
-            }
-        )+
-    };
+#[test]
+fn div_time_by_unsigned_divisor_above_lint_range_yields_zero() {
+    assert_eq!(dtf::DIV__TIME__ULINT(i64::MAX, u64::MAX), 0);
+    assert_eq!(dtf::DIV_LTIME__ULINT(i64::MIN, u64::MAX), 0);
+}
+
+// Float factors: a NaN yields zero and oversized results saturate at the TIME range
+// (sign-aware), instead of panicking inside std::time::Duration.
+#[test]
+fn mul_time_with_nan_factor_yields_zero() {
+    assert_eq!(dtf::MUL__TIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::MUL_TIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::MUL_LTIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::MUL__LTIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::MUL__TIME__LREAL(1_000, f64::NAN), 0);
+    assert_eq!(dtf::MUL_TIME__LREAL(1_000, f64::NAN), 0);
+    assert_eq!(dtf::MUL_LTIME__LREAL(1_000, f64::NAN), 0);
+    assert_eq!(dtf::MUL__LTIME__LREAL(1_000, f64::NAN), 0);
+}
+
+#[test]
+fn mul_time_with_oversized_float_factor_saturates() {
+    assert_eq!(dtf::MUL__TIME__REAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_TIME__REAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_LTIME__REAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL__LTIME__REAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL__TIME__LREAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_TIME__LREAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_LTIME__LREAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL__LTIME__LREAL(i64::MAX, 2.0), i64::MAX);
+}
+
+#[test]
+fn mul_time_with_oversized_float_factor_saturates_negative() {
+    assert_eq!(dtf::MUL__TIME__REAL(i64::MAX, -2.0), -i64::MAX);
+    assert_eq!(dtf::MUL__TIME__LREAL(i64::MIN, 2.0), -i64::MAX);
+}
+
+#[test]
+fn mul_zero_time_with_infinite_factor_yields_zero() {
+    assert_eq!(dtf::MUL__TIME__REAL(0, f32::INFINITY), 0);
+    assert_eq!(dtf::MUL__TIME__LREAL(0, f64::INFINITY), 0);
+}
+
+#[test]
+fn div_time_by_nan_yields_zero() {
+    assert_eq!(dtf::DIV__TIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::DIV__TIME__LREAL(1_000, f64::NAN), 0);
+}
+
+#[test]
+fn div_time_by_tiny_float_saturates() {
+    assert_eq!(dtf::DIV__TIME__REAL(i64::MAX, 0.5), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(i64::MAX, 0.5), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(i64::MAX, -0.5), -i64::MAX);
+}
+
+#[test]
+fn div_time_by_zero_float_saturates() {
+    assert_eq!(dtf::DIV__TIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_TIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_LTIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__LTIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_TIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_LTIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__LTIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__REAL(-1, 0.0), -i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(1, -0.0), -i64::MAX);
+}
+
+#[test]
+fn div_zero_time_by_zero_float_yields_zero() {
+    assert_eq!(dtf::DIV__TIME__REAL(0, 0.0), 0);
+    assert_eq!(dtf::DIV__TIME__LREAL(0, 0.0), 0);
 }
 
 macro_rules! panic_i64_i8_div_zero_tests {
@@ -1430,44 +1492,6 @@ macro_rules! panic_i64_u64_div_zero_tests {
     };
 }
 
-macro_rules! panic_i64_f32_div_zero_tests {
-    ($(($name:ident, $func:path)),+ $(,)?) => {
-        $(
-            #[test]
-            #[should_panic]
-            fn $name() {
-                let _ = $func(1, 0.0_f32);
-            }
-        )+
-    };
-}
-
-macro_rules! panic_i64_f64_div_zero_tests {
-    ($(($name:ident, $func:path)),+ $(,)?) => {
-        $(
-            #[test]
-            #[should_panic]
-            fn $name() {
-                let _ = $func(1, 0.0_f64);
-            }
-        )+
-    };
-}
-
-panic_i64_f32_mul_tests!(
-    (mul_time_real_panics_on_overflow, dtf::MUL__TIME__REAL),
-    (mul_time_real_alias_panics_on_overflow, dtf::MUL_TIME__REAL),
-    (mul_ltime_real_panics_on_overflow, dtf::MUL_LTIME__REAL),
-    (mul_alias_ltime_real_panics_on_overflow, dtf::MUL__LTIME__REAL)
-);
-
-panic_i64_f64_mul_tests!(
-    (mul_time_lreal_panics_on_overflow, dtf::MUL__TIME__LREAL),
-    (mul_time_lreal_alias_panics_on_overflow, dtf::MUL_TIME__LREAL),
-    (mul_ltime_lreal_panics_on_overflow, dtf::MUL_LTIME__LREAL),
-    (mul_alias_ltime_lreal_panics_on_overflow, dtf::MUL__LTIME__LREAL)
-);
-
 panic_i64_i8_div_zero_tests!(
     (div_time_sint_panics_on_zero, dtf::DIV__TIME__SINT),
     (div_time_sint_alias_panics_on_zero, dtf::DIV_TIME__SINT),
@@ -1522,18 +1546,4 @@ panic_i64_u64_div_zero_tests!(
     (div_time_ulint_alias_panics_on_zero, dtf::DIV_TIME__ULINT),
     (div_ltime_ulint_panics_on_zero, dtf::DIV_LTIME__ULINT),
     (div_alias_ltime_ulint_panics_on_zero, dtf::DIV__LTIME__ULINT)
-);
-
-panic_i64_f32_div_zero_tests!(
-    (div_time_real_panics_on_zero, dtf::DIV__TIME__REAL),
-    (div_time_real_alias_panics_on_zero, dtf::DIV_TIME__REAL),
-    (div_ltime_real_panics_on_zero, dtf::DIV_LTIME__REAL),
-    (div_alias_ltime_real_panics_on_zero, dtf::DIV__LTIME__REAL)
-);
-
-panic_i64_f64_div_zero_tests!(
-    (div_time_lreal_panics_on_zero, dtf::DIV__TIME__LREAL),
-    (div_time_lreal_alias_panics_on_zero, dtf::DIV_TIME__LREAL),
-    (div_ltime_lreal_panics_on_zero, dtf::DIV_LTIME__LREAL),
-    (div_alias_ltime_lreal_panics_on_zero, dtf::DIV__LTIME__LREAL)
 );
