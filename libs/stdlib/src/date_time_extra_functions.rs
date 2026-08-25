@@ -37,7 +37,7 @@ fn split_ldt_fields(nanos: i64) -> (i32, u32, u32, u32, u32, u32, u32) {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn CONCAT_DATE_TOD(in1: u32, in2: u32) -> u32 {
-    in1 + in2 / MILLIS_PER_SECOND
+    in1.wrapping_add(in2 / MILLIS_PER_SECOND)
 }
 
 /// .
