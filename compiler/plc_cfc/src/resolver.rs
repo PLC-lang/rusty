@@ -1389,6 +1389,12 @@ mod tests {
         }
 
         #[test]
+        #[should_panic(expected = "ambiguous `ENO` pin")]
+        fn ambiguous_eno() {
+            resolve_project("execution_control/invalid/ambiguous_eno");
+        }
+
+        #[test]
         fn function_stale_output() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_stale_output").unwrap_err(), @r"
             error[E147]: Output `oldDoubled` is not declared by `myAdd`
