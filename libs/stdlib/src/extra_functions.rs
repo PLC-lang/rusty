@@ -20,7 +20,8 @@ const NANOS_PER_SECOND: i64 = 1_000 * NANOS_PER_MILLISECOND;
 // --------- x_TO_STRING
 
 /// Formats `args` into `dest` and appends the null terminator the IEC string layout
-/// requires. Returns the number of content bytes written (excluding the terminator).
+/// requires. Output that does not fit is truncated to `capacity - 1` content bytes.
+/// Returns the number of content bytes written (excluding the terminator).
 /// Writers must not rely on the destination being zero-initialized; the buffer may
 /// hold arbitrary bytes.
 ///
@@ -29,7 +30,8 @@ const NANOS_PER_SECOND: i64 = 1_000 * NANOS_PER_MILLISECOND;
 unsafe fn write_terminated(dest: *mut u8, capacity: usize, args: std::fmt::Arguments) -> usize {
     let content = core::slice::from_raw_parts_mut(dest, capacity - 1);
     let mut cursor = std::io::Cursor::new(content);
-    cursor.write_fmt(args).unwrap();
+    // an Err here means the output was cut off at the end of the buffer
+    let _ = cursor.write_fmt(args);
     let written = cursor.position() as usize;
     *dest.add(written) = 0;
     written
@@ -70,8 +72,10 @@ pub unsafe extern "C" fn LINT_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    // double: 52 bits are used for the mantissa (about 16 decimal digits)
-    if input.floor() < 1e14 {
+    // double: 52 bits are used for the mantissa (about 16 decimal digits);
+    // the magnitude decides the notation, so huge negative values take the
+    // scientific path instead of overflowing the buffer with plain digits
+    if input.abs() < 1e14 {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
     } else {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
@@ -85,10 +89,9 @@ pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    // float: 23 bits are used for the mantissa (about 7 decimal digits)
-
-    // TODO: discuss when scientific notation should be displayed
-    if input.floor() < 1e6 {
+    // float: 23 bits are used for the mantissa (about 7 decimal digits);
+    // the magnitude decides the notation, consistent with LREAL_TO_STRING_EXT
+    if input.abs() < 1e6 {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
     } else {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
@@ -451,6 +454,56 @@ mod test {
             std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
 
         assert_eq!(format!("{e_notation:.6e}"), res_scientific.trim_end_matches('\0'));
+    }
+
+    #[test]
+    fn lreal_to_string_uses_scientific_notation_for_huge_negative_values() {
+        let mut dest = [0xAA_u8; 81];
+        let dest_ptr = dest.as_mut_ptr();
+
+        let _ = unsafe { LREAL_TO_STRING_EXT(-1.0e300, dest_ptr) };
+        assert_eq!("-1.000000e300", terminated_str(&dest));
+
+        // negative values below the threshold keep the plain notation
+        dest.fill(0xAA);
+        let _ = unsafe { LREAL_TO_STRING_EXT(-99_999_999_999_999.25, dest_ptr) };
+        assert_eq!("-99999999999999.250000", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        let _ = unsafe { LREAL_TO_STRING_EXT(f64::NEG_INFINITY, dest_ptr) };
+        assert_eq!("-inf", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        let _ = unsafe { LREAL_TO_STRING_EXT(f64::NAN, dest_ptr) };
+        assert_eq!("NaN", terminated_str(&dest));
+    }
+
+    #[test]
+    fn real_to_string_uses_scientific_notation_by_magnitude() {
+        let mut dest = [0xAA_u8; 81];
+        let dest_ptr = dest.as_mut_ptr();
+
+        let _ = unsafe { REAL_TO_STRING_EXT(-1.5e7, dest_ptr) };
+        assert_eq!("-1.500000e7", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        let _ = unsafe { REAL_TO_STRING_EXT(1.5e7, dest_ptr) };
+        assert_eq!("1.500000e7", terminated_str(&dest));
+
+        // negative values below the threshold keep the plain notation
+        dest.fill(0xAA);
+        let _ = unsafe { REAL_TO_STRING_EXT(-999_999.25, dest_ptr) };
+        assert_eq!("-999999.250000", terminated_str(&dest));
+    }
+
+    #[test]
+    fn write_terminated_truncates_overlong_output() {
+        let mut dest = [0xAA_u8; 16];
+
+        let written = unsafe { write_terminated(dest.as_mut_ptr(), 16, format_args!("{:x<30}", "abc")) };
+
+        assert_eq!(15, written);
+        assert_eq!("abcxxxxxxxxxxxx", terminated_str(&dest));
     }
 
     #[test]
