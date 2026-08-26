@@ -1,13 +1,21 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// Test that MUL with TIME and LREAL overflow causes a panic
+// Test that MUL with TIME and an oversized LREAL factor saturates at the TIME range
+// and a NaN factor yields zero
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
     a : TIME;
+    b : TIME;
+    lr : LREAL;
 END_VAR
-    // Multiplying TIME by large LREAL value should overflow and panic
-    a := MUL(TIME#-2s700ms, LREAL#3.40282347e38);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    a := MUL(TIME#1000d, LREAL#1.7e308);
+    // CHECK: 4294967295
+    printf('%u$N', a);
+
+    lr := 0.0;
+    b := MUL(TIME#1s, lr / lr);
+    // CHECK: 0
+    printf('%u$N', b);
+
+    main := 0;
+END_FUNCTION
