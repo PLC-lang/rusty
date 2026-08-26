@@ -3,85 +3,85 @@
 
 FUNCTION main
     // Never faults and rejected input returns zero-value defaults.
-    IF STRING_TO_UDINT('') = UDINT#0 THEN printf('udint_empty_zero_ok$N'); END_IF                     // CHECK: udint_empty_zero_ok
-    IF STRING_TO_DATE('not a date') = DATE#1970-01-01 THEN printf('date_garbage_zero_ok$N'); END_IF  // CHECK: date_garbage_zero_ok
-    IF STRING_TO_DT('$00') = DT#1970-01-01-00:00:00 THEN printf('dt_garbage_zero_ok$N'); END_IF       // CHECK: dt_garbage_zero_ok
-    IF STRING_TO_TOD('bad') = TOD#00:00:00 THEN printf('tod_garbage_zero_ok$N'); END_IF               // CHECK: tod_garbage_zero_ok
-    IF STRING_TO_LTIME('!!!') = LTIME#0s THEN printf('ltime_garbage_zero_ok$N'); END_IF               // CHECK: ltime_garbage_zero_ok
-    IF STRING_TO_BOOL('garbage') = FALSE THEN printf('bool_garbage_false_ok$N'); END_IF               // CHECK: bool_garbage_false_ok
+    printf('udint_empty=%d$N', STRING_TO_UDINT(''));                                      // CHECK: udint_empty=0
+    printf('date_garbage=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('not a date'))));       // CHECK-NEXT: date_garbage=1970-01-01
+    printf('dt_garbage=%s$N', REF(DT_TO_STRING(STRING_TO_DT('$00'))));                    // CHECK-NEXT: dt_garbage=1970-01-01-00:00:00
+    printf('tod_garbage=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('bad'))));                 // CHECK-NEXT: tod_garbage=00:00:00
+    printf('ltime_garbage=%s$N', REF(LTIME_TO_STRING(STRING_TO_LTIME('!!!'))));           // CHECK-NEXT: ltime_garbage=
+    printf('bool_garbage=%d$N', STRING_TO_BOOL('garbage'));                                // CHECK-NEXT: bool_garbage=0
 
     // BOOL behavior (D3).
-    IF STRING_TO_BOOL('1') THEN printf('bool_1_true_ok$N'); END_IF                                     // CHECK: bool_1_true_ok
-    IF STRING_TO_BOOL('TRUE') THEN printf('bool_TRUE_true_ok$N'); END_IF                               // CHECK: bool_TRUE_true_ok
-    IF STRING_TO_BOOL('true') THEN printf('bool_true_true_ok$N'); END_IF                               // CHECK: bool_true_true_ok
-    IF STRING_TO_BOOL('  true  ') THEN printf('bool_trimmed_true_ok$N'); END_IF                        // CHECK: bool_trimmed_true_ok
-    IF NOT STRING_TO_BOOL('0') THEN printf('bool_0_false_ok$N'); END_IF                                // CHECK: bool_0_false_ok
-    IF NOT STRING_TO_BOOL('TRUEX') THEN printf('bool_suffix_reject_ok$N'); END_IF                      // CHECK: bool_suffix_reject_ok
+    printf('bool_1=%d$N', STRING_TO_BOOL('1'));                                           // CHECK-NEXT: bool_1=1
+    printf('bool_TRUE=%d$N', STRING_TO_BOOL('TRUE'));                                     // CHECK-NEXT: bool_TRUE=1
+    printf('bool_true=%d$N', STRING_TO_BOOL('true'));                                     // CHECK-NEXT: bool_true=1
+    printf('bool_trimmed=%d$N', STRING_TO_BOOL('  true  '));                              // CHECK-NEXT: bool_trimmed=1
+    printf('bool_0=%d$N', STRING_TO_BOOL('0'));                                           // CHECK-NEXT: bool_0=0
+    printf('bool_suffix=%d$N', STRING_TO_BOOL('TRUEX'));                                  // CHECK-NEXT: bool_suffix=0
 
     // One parse rule across integer widths (D2), including all requested widths.
-    IF STRING_TO_BYTE('16#FF') = BYTE#16#FF THEN printf('byte_hex_ok$N'); END_IF                       // CHECK: byte_hex_ok
-    IF STRING_TO_WORD('16#FF') = WORD#16#00FF THEN printf('word_hex_ok$N'); END_IF                     // CHECK: word_hex_ok
-    IF STRING_TO_DWORD('16#FF') = DWORD#16#000000FF THEN printf('dword_hex_ok$N'); END_IF              // CHECK: dword_hex_ok
-    IF STRING_TO_LWORD('16#FF') = LWORD#16#00000000000000FF THEN printf('lword_hex_ok$N'); END_IF      // CHECK: lword_hex_ok
-    IF STRING_TO_SINT('-1') = SINT#-1 THEN printf('sint_neg_ok$N'); END_IF                              // CHECK: sint_neg_ok
-    IF STRING_TO_USINT('12abc') = USINT#0 THEN printf('usint_partial_reject_ok$N'); END_IF             // CHECK: usint_partial_reject_ok
-    IF STRING_TO_INT('-1') = INT#-1 THEN printf('int_neg_ok$N'); END_IF                                 // CHECK: int_neg_ok
-    IF STRING_TO_UINT('12abc') = UINT#0 THEN printf('uint_partial_reject_ok$N'); END_IF                // CHECK: uint_partial_reject_ok
-    IF STRING_TO_UDINT('12abc') = UDINT#0 THEN printf('udint_partial_reject_ok$N'); END_IF             // CHECK: udint_partial_reject_ok
-    IF STRING_TO_ULINT('12abc') = ULINT#0 THEN printf('ulint_partial_reject_ok$N'); END_IF             // CHECK: ulint_partial_reject_ok
-    IF STRING_TO_UDINT('1.9') = UDINT#1 THEN printf('udint_fraction_trunc_ok$N'); END_IF               // CHECK: udint_fraction_trunc_ok
-    IF STRING_TO_ULINT('1.9') = ULINT#1 THEN printf('ulint_fraction_trunc_ok$N'); END_IF               // CHECK: ulint_fraction_trunc_ok
-    IF STRING_TO_UDINT('  12  ') = UDINT#12 THEN printf('udint_trim_ok$N'); END_IF                     // CHECK: udint_trim_ok
-    IF STRING_TO_ULINT('  12  ') = ULINT#12 THEN printf('ulint_trim_ok$N'); END_IF                     // CHECK: ulint_trim_ok
-    IF STRING_TO_BYTE('-1') = BYTE#0 THEN printf('byte_negative_reject_ok$N'); END_IF                  // CHECK: byte_negative_reject_ok
+    printf('byte_hex=%d$N', STRING_TO_BYTE('16#FF'));                                      // CHECK-NEXT: byte_hex=255
+    printf('word_hex=%d$N', STRING_TO_WORD('16#FF'));                                      // CHECK-NEXT: word_hex=255
+    printf('dword_hex=%d$N', STRING_TO_DWORD('16#FF'));                                   // CHECK-NEXT: dword_hex=255
+    printf('lword_hex=%d$N', STRING_TO_LWORD('16#FF'));                                   // CHECK-NEXT: lword_hex=255
+    printf('sint_neg=%d$N', STRING_TO_SINT('-1'));                                        // CHECK-NEXT: sint_neg=-1
+    printf('usint_partial=%d$N', STRING_TO_USINT('12abc'));                               // CHECK-NEXT: usint_partial=0
+    printf('int_neg=%d$N', STRING_TO_INT('-1'));                                          // CHECK-NEXT: int_neg=-1
+    printf('uint_partial=%d$N', STRING_TO_UINT('12abc'));                                 // CHECK-NEXT: uint_partial=0
+    printf('udint_partial=%d$N', STRING_TO_UDINT('12abc'));                               // CHECK-NEXT: udint_partial=0
+    printf('ulint_partial=%d$N', STRING_TO_ULINT('12abc'));                               // CHECK-NEXT: ulint_partial=0
+    printf('udint_fraction=%d$N', STRING_TO_UDINT('1.9'));                                // CHECK-NEXT: udint_fraction=1
+    printf('ulint_fraction=%d$N', STRING_TO_ULINT('1.9'));                                // CHECK-NEXT: ulint_fraction=1
+    printf('udint_trim=%d$N', STRING_TO_UDINT('  12  '));                                 // CHECK-NEXT: udint_trim=12
+    printf('ulint_trim=%d$N', STRING_TO_ULINT('  12  '));                                 // CHECK-NEXT: ulint_trim=12
+    printf('byte_negative=%d$N', STRING_TO_BYTE('-1'));                                   // CHECK-NEXT: byte_negative=0
 
     // Fractional durations (D4), negative duration rejection (D5), and 67ms fallback removal (D6).
-    IF STRING_TO_TIME('T#1.5s') = TIME#1s500ms THEN printf('time_fraction_1_5s_ok$N'); END_IF         // CHECK: time_fraction_1_5s_ok
-    IF STRING_TO_TIME('T#0.5s') = TIME#500ms THEN printf('time_fraction_0_5s_ok$N'); END_IF            // CHECK: time_fraction_0_5s_ok
-    IF STRING_TO_TIME('T#2.75s') = TIME#2s750ms THEN printf('time_fraction_2_75s_ok$N'); END_IF        // CHECK: time_fraction_2_75s_ok
-    IF STRING_TO_TIME('T#1,5s') = TIME#1s500ms THEN printf('time_fraction_comma_ok$N'); END_IF         // CHECK: time_fraction_comma_ok
-    IF STRING_TO_TIME('T#1.0004ms') = TIME#1ms THEN printf('time_fraction_resolution_ok$N'); END_IF    // CHECK: time_fraction_resolution_ok
-    IF STRING_TO_LTIME('LTIME#1.5s') = LTIME#1s500ms THEN printf('ltime_fraction_ok$N'); END_IF        // CHECK: ltime_fraction_ok
-    IF STRING_TO_TIME('T#-1s') = TIME#0s THEN printf('time_negative_reject_ok$N'); END_IF              // CHECK: time_negative_reject_ok
-    IF STRING_TO_LTIME('LTIME#-1s') = LTIME#0s THEN printf('ltime_negative_reject_ok$N'); END_IF       // CHECK: ltime_negative_reject_ok
-    IF STRING_TO_TIME('') = TIME#0s THEN printf('time_empty_zero_ok$N'); END_IF                         // CHECK: time_empty_zero_ok
-    IF STRING_TO_TIME('abc') = TIME#0s THEN printf('time_garbage_zero_ok$N'); END_IF                    // CHECK: time_garbage_zero_ok
-    IF STRING_TO_TIME('1s') = TIME#0s THEN printf('time_missing_prefix_zero_ok$N'); END_IF              // CHECK: time_missing_prefix_zero_ok
-    IF STRING_TO_TIME('LTIME#1s') = TIME#0s THEN printf('time_wrong_prefix_zero_ok$N'); END_IF          // CHECK: time_wrong_prefix_zero_ok
-    IF STRING_TO_TIME('TOD#12:45:00') = TIME#0s THEN printf('time_wrong_formatter_reject_ok$N'); END_IF // CHECK: time_wrong_formatter_reject_ok
-    IF STRING_TO_TIME('T#67ms') = TIME#67ms THEN printf('time_67ms_explicit_ok$N'); END_IF              // CHECK: time_67ms_explicit_ok
-    IF STRING_TO_LTIME('T#1s') = LTIME#0s THEN printf('ltime_wrong_formatter_reject_ok$N'); END_IF       // CHECK: ltime_wrong_formatter_reject_ok
+    printf('time_fraction_1_5s=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('T#1.5s'))));       // CHECK-NEXT: time_fraction_1_5s=1s500ms
+    printf('time_fraction_0_5s=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('T#0.5s'))));       // CHECK-NEXT: time_fraction_0_5s=500ms
+    printf('time_fraction_2_75s=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('T#2.75s'))));     // CHECK-NEXT: time_fraction_2_75s=2s750ms
+    printf('time_fraction_comma=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('T#1,5s'))));      // CHECK-NEXT: time_fraction_comma=1s500ms
+    printf('time_fraction_resolution=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('T#1.0004ms')))); // CHECK-NEXT: time_fraction_resolution=1ms
+    printf('ltime_fraction=%s$N', REF(LTIME_TO_STRING(STRING_TO_LTIME('LTIME#1.5s'))));     // CHECK-NEXT: ltime_fraction=1s500ms
+    printf('time_negative=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('T#-1s'))));             // CHECK-NEXT: time_negative=
+    printf('ltime_negative=%s$N', REF(LTIME_TO_STRING(STRING_TO_LTIME('LTIME#-1s'))));      // CHECK-NEXT: ltime_negative=
+    printf('time_empty=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME(''))));                     // CHECK-NEXT: time_empty=
+    printf('time_garbage=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('abc'))));                // CHECK-NEXT: time_garbage=
+    printf('time_missing_prefix=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('1s'))));          // CHECK-NEXT: time_missing_prefix=
+    printf('time_wrong_prefix=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('LTIME#1s'))));      // CHECK-NEXT: time_wrong_prefix=
+    printf('time_wrong_formatter=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('TOD#12:45:00')))); // CHECK-NEXT: time_wrong_formatter=
+    printf('time_67ms=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('T#67ms'))));                // CHECK-NEXT: time_67ms=67ms
+    printf('ltime_wrong_formatter=%s$N', REF(LTIME_TO_STRING(STRING_TO_LTIME('T#1s'))));   // CHECK-NEXT: ltime_wrong_formatter=
 
     // Date/time validity and range behavior (D7, D8).
-    IF STRING_TO_DATE('D#2024-02-30') = DATE#1970-01-01 THEN printf('date_impossible_reject_ok$N'); END_IF      // CHECK: date_impossible_reject_ok
-    IF STRING_TO_DATE('D#2024-13-01') = DATE#1970-01-01 THEN printf('date_month_reject_ok$N'); END_IF           // CHECK: date_month_reject_ok
-    IF STRING_TO_DATE('D#2023-02-29') = DATE#1970-01-01 THEN printf('date_nonleap_reject_ok$N'); END_IF         // CHECK: date_nonleap_reject_ok
-    IF STRING_TO_DATE('D#2024-02-29') = DATE#2024-02-29 THEN printf('date_leap_accept_ok$N'); END_IF            // CHECK: date_leap_accept_ok
-    IF STRING_TO_DATE('TOD#12:45:00') = DATE#1970-01-01 THEN printf('date_wrong_formatter_reject_ok$N'); END_IF // CHECK: date_wrong_formatter_reject_ok
-    IF STRING_TO_DT('DT#2024-01-01-25:00:00') = DT#1970-01-01-00:00:00 THEN printf('dt_hour_reject_ok$N'); END_IF // CHECK: dt_hour_reject_ok
-    IF STRING_TO_DT('TOD#12:45:00') = DT#1970-01-01-00:00:00 THEN printf('dt_wrong_formatter_reject_ok$N'); END_IF // CHECK: dt_wrong_formatter_reject_ok
-    IF STRING_TO_TOD('TOD#12:60:00') = TOD#00:00:00 THEN printf('tod_minute_reject_ok$N'); END_IF               // CHECK: tod_minute_reject_ok
-    IF STRING_TO_TOD('TOD#25:00:00') = TOD#00:00:00 THEN printf('tod_hour_reject_ok$N'); END_IF                 // CHECK: tod_hour_reject_ok
-    IF STRING_TO_TOD('D#2024-01-01') = TOD#00:00:00 THEN printf('tod_wrong_formatter_reject_ok$N'); END_IF    // CHECK: tod_wrong_formatter_reject_ok
+    printf('date_impossible=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2024-02-30'))));              // CHECK-NEXT: date_impossible=1970-01-01
+    printf('date_month=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2024-13-01'))));                    // CHECK-NEXT: date_month=1970-01-01
+    printf('date_nonleap=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2023-02-29'))));                  // CHECK-NEXT: date_nonleap=1970-01-01
+    printf('date_leap=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2024-02-29'))));                     // CHECK-NEXT: date_leap=2024-02-29
+    printf('date_wrong_formatter=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('TOD#12:45:00'))));          // CHECK-NEXT: date_wrong_formatter=1970-01-01
+    printf('dt_hour=%s$N', REF(DT_TO_STRING(STRING_TO_DT('DT#2024-01-01-25:00:00'))));                 // CHECK-NEXT: dt_hour=1970-01-01-00:00:00
+    printf('dt_wrong_formatter=%s$N', REF(DT_TO_STRING(STRING_TO_DT('TOD#12:45:00'))));                // CHECK-NEXT: dt_wrong_formatter=1970-01-01-00:00:00
+    printf('tod_minute=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('TOD#12:60:00'))));                      // CHECK-NEXT: tod_minute=00:00:00
+    printf('tod_hour=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('TOD#25:00:00'))));                        // CHECK-NEXT: tod_hour=00:00:00
+    printf('tod_wrong_formatter=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('D#2024-01-01'))));             // CHECK-NEXT: tod_wrong_formatter=00:00:00
 
-    IF STRING_TO_DATE('D#1969-12-31') = DATE#1970-01-01 THEN printf('date_low_range_reject_ok$N'); END_IF       // CHECK: date_low_range_reject_ok
-    IF STRING_TO_DATE('D#2106-02-08') = DATE#1970-01-01 THEN printf('date_high_range_reject_ok$N'); END_IF      // CHECK: date_high_range_reject_ok
-    IF STRING_TO_DATE('D#2106-02-07') = DATE#2106-02-07 THEN printf('date_high_range_accept_ok$N'); END_IF      // CHECK: date_high_range_accept_ok
-    IF STRING_TO_DT('DT#1969-12-31-23:59:59') = DT#1970-01-01-00:00:00 THEN printf('dt_low_range_reject_ok$N'); END_IF // CHECK: dt_low_range_reject_ok
+    printf('date_low_range=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#1969-12-31'))));                // CHECK-NEXT: date_low_range=1970-01-01
+    printf('date_high_range=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2106-02-08'))));               // CHECK-NEXT: date_high_range=1970-01-01
+    printf('date_high_range_accept=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2106-02-07'))));        // CHECK-NEXT: date_high_range_accept=2106-02-07
+    printf('dt_low_range=%s$N', REF(DT_TO_STRING(STRING_TO_DT('DT#1969-12-31-23:59:59'))));            // CHECK-NEXT: dt_low_range=1970-01-01-00:00:00
 
     // Unprefixed ISO acceptance (D9).
-    IF STRING_TO_DATE('2024-01-01') = STRING_TO_DATE('D#2024-01-01') THEN printf('date_unprefixed_ok$N'); END_IF              // CHECK: date_unprefixed_ok
-    IF STRING_TO_TOD('12:00:00') = TOD#12:00:00 THEN printf('tod_unprefixed_ok$N'); END_IF                                    // CHECK: tod_unprefixed_ok
-    IF STRING_TO_TOD('12:00:00.500') = TOD#12:00:00.500 THEN printf('tod_unprefixed_fraction_ok$N'); END_IF                   // CHECK: tod_unprefixed_fraction_ok
-    IF STRING_TO_DT('2024-01-01-12:00:00') = DT#2024-01-01-12:00:00 THEN printf('dt_unprefixed_dash_ok$N'); END_IF            // CHECK: dt_unprefixed_dash_ok
-    IF STRING_TO_DT('2024-01-01T12:00:00') = DT#2024-01-01-12:00:00 THEN printf('dt_unprefixed_t_ok$N'); END_IF               // CHECK: dt_unprefixed_t_ok
+    printf('date_unprefixed=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('2024-01-01'))));                 // CHECK-NEXT: date_unprefixed=2024-01-01
+    printf('tod_unprefixed=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('12:00:00'))));                      // CHECK-NEXT: tod_unprefixed=12:00:00
+    printf('tod_unprefixed_fraction=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('12:00:00.500'))));         // CHECK-NEXT: tod_unprefixed_fraction=12:00:00.500
+    printf('dt_unprefixed_dash=%s$N', REF(DT_TO_STRING(STRING_TO_DT('2024-01-01-12:00:00'))));         // CHECK-NEXT: dt_unprefixed_dash=2024-01-01-12:00:00
+    printf('dt_unprefixed_t=%s$N', REF(DT_TO_STRING(STRING_TO_DT('2024-01-01T12:00:00'))));            // CHECK-NEXT: dt_unprefixed_t=2024-01-01-12:00:00
 
     // Whitespace handling parity (D12).
-    IF STRING_TO_DATE('D#2024-01-01 ') = DATE#2024-01-01 THEN printf('date_trailing_space_ok$N'); END_IF                      // CHECK: date_trailing_space_ok
-    IF STRING_TO_DATE('D#2024-01-01$R$N') = DATE#2024-01-01 THEN printf('date_trailing_crlf_ok$N'); END_IF                    // CHECK: date_trailing_crlf_ok
-    IF STRING_TO_INT('$N12') = INT#12 THEN printf('int_leading_lf_ok$N'); END_IF                                               // CHECK: int_leading_lf_ok
-    IF STRING_TO_ULINT('12 ') = ULINT#12 THEN printf('ulint_trailing_space_ok$N'); END_IF                                      // CHECK: ulint_trailing_space_ok
-    IF STRING_TO_TOD('TOD#12:00:00$T') = TOD#12:00:00 THEN printf('tod_trailing_tab_ok$N'); END_IF                            // CHECK: tod_trailing_tab_ok
-    IF STRING_TO_TIME('T#1h 30m') = TIME#1h30m THEN printf('time_internal_space_ok$N'); END_IF                                 // CHECK: time_internal_space_ok
-    IF STRING_TO_DATE('D# 2024-01-01') = DATE#1970-01-01 THEN printf('date_internal_space_reject_ok$N'); END_IF               // CHECK: date_internal_space_reject_ok
+    printf('date_trailing_space=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2024-01-01 '))));           // CHECK-NEXT: date_trailing_space=2024-01-01
+    printf('date_trailing_crlf=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2024-01-01$R$N'))));          // CHECK-NEXT: date_trailing_crlf=2024-01-01
+    printf('int_leading_lf=%d$N', STRING_TO_INT('$N12'));                                               // CHECK-NEXT: int_leading_lf=12
+    printf('ulint_trailing_space=%d$N', STRING_TO_ULINT('12 '));                                       // CHECK-NEXT: ulint_trailing_space=12
+    printf('tod_trailing_tab=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('TOD#12:00:00$T'))));               // CHECK-NEXT: tod_trailing_tab=12:00:00
+    printf('time_internal_space=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('T#1h 30m'))));                // CHECK-NEXT: time_internal_space=1h30m
+    printf('date_internal_space=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D# 2024-01-01'))));           // CHECK-NEXT: date_internal_space=1970-01-01
 END_FUNCTION

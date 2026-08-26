@@ -1,4 +1,4 @@
-//! Legacy parser helpers extracted from the crate root.
+//! Parser helpers extracted from the crate root.
 //!
 //! This module contains functionality that was moved out of `lib.rs` to keep the
 //! expression parsing logic isolated in its own file.
