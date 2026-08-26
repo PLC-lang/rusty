@@ -18,28 +18,28 @@ define void @prg(ptr %0) {
 entry:
   %vTrue = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %vFalse = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 0)
-  %call1 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 1)
-  %call2 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 1)
-  %call3 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 0)
-  %call4 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 0)
-  %call5 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 1)
+  %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 0, ptr null)
+  %call1 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 1, ptr null)
+  %call2 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 1, ptr null)
+  %call3 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 0, ptr null)
+  %call4 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 0, ptr null)
+  %call5 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 1, ptr null)
   %load_vFalse = load i8, ptr %vFalse, align [filtered]
   %1 = zext i8 %load_vFalse to i32
-  %call6 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %1)
+  %call6 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %1, ptr null)
   %load_vTrue = load i8, ptr %vTrue, align [filtered]
   %2 = zext i8 %load_vTrue to i32
-  %call7 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %2)
+  %call7 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %2, ptr null)
   %load_vFalse8 = load i8, ptr %vFalse, align [filtered]
   %3 = icmp ne i8 %load_vFalse8, 0
   %tmpVar = xor i1 %3, true
   %4 = zext i1 %tmpVar to i32
-  %call9 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %4)
+  %call9 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %4, ptr null)
   %load_vTrue10 = load i8, ptr %vTrue, align [filtered]
   %5 = icmp ne i8 %load_vTrue10, 0
   %tmpVar11 = xor i1 %5, true
   %6 = zext i1 %tmpVar11 to i32
-  %call12 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %6)
+  %call12 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %6, ptr null)
   %load_vTrue13 = load i8, ptr %vTrue, align [filtered]
   %7 = icmp ne i8 %load_vTrue13, 0
   %load_vFalse14 = load i8, ptr %vFalse, align [filtered]
@@ -47,6 +47,6 @@ entry:
   %9 = and i1 %7, %8
   %tmpVar15 = xor i1 %9, true
   %10 = zext i1 %tmpVar15 to i32
-  %call16 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %10)
+  %call16 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %10, ptr null)
   ret void
 }
