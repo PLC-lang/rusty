@@ -315,15 +315,11 @@ impl FbdObject {
     }
 
     pub fn en_pin(&self) -> Option<&Pin> {
-        self.has_execution_control()
-            .then(|| self.input_pins().iter().find(|pin| pin.parameter_name == "EN"))
-            .flatten()
+        self.has_execution_control().then(|| control_pin(self.input_pins(), "EN")).flatten()
     }
 
     pub fn eno_pin(&self) -> Option<&Pin> {
-        self.has_execution_control()
-            .then(|| self.output_pins().iter().find(|pin| pin.parameter_name == "ENO"))
-            .flatten()
+        self.has_execution_control().then(|| control_pin(self.output_pins(), "ENO")).flatten()
     }
 
     // `AddData` interleaves its payloads across several `Data` entries.
@@ -347,4 +343,19 @@ impl ConnectionPointIn {
     pub fn source_pin(&self) -> Option<usize> {
         self.connections.first().map(|connection| connection.ref_out_id)
     }
+}
+
+// The execution control pin among a block's pins. A callee declaring an own
+// `EN`/`ENO` parameter is indistinguishable from the control pin in the
+// current export format; panic until the format defines the disambiguation.
+fn control_pin<'model>(pins: &'model [Pin], name: &str) -> Option<&'model Pin> {
+    let mut candidates = pins.iter().filter(|pin| pin.parameter_name == name);
+    let pin = candidates.next();
+
+    assert!(
+        candidates.next().is_none(),
+        "ambiguous `{name}` pin: the callee declares an own `{name}` parameter next to the execution control pin"
+    );
+
+    pin
 }

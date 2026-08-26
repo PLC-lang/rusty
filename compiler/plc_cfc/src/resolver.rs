@@ -1381,6 +1381,13 @@ mod tests {
             ");
         }
 
+        // Not yet defined by the export format; a loud stop beats a silent guess.
+        #[test]
+        #[should_panic(expected = "ambiguous `EN` pin")]
+        fn ambiguous_en() {
+            resolve_project("execution_control/invalid/ambiguous_en");
+        }
+
         #[test]
         fn function_stale_output() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_stale_output").unwrap_err(), @r"
