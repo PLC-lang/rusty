@@ -1,17 +1,16 @@
-use chrono::{TimeZone, Timelike};
+const NANOS_PER_SECOND: i64 = 1_000 * 1_000 * 1_000;
+const SECONDS_PER_DAY: i64 = 60 * 60 * 24;
+const NANOS_PER_DAY: i64 = NANOS_PER_SECOND * SECONDS_PER_DAY;
 
 /// .
 /// Converts DT/LDT to DATE
+/// The midnight of the first representable day lies below the DATE range and
+/// saturates to the range minimum
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn DATE_AND_TIME_TO_DATE(input: i64) -> i64 {
-    let date_time = chrono::Utc.timestamp_nanos(input);
-
-    let new_date_time =
-        date_time.date_naive().and_hms_opt(0, 0, 0).expect("Cannot create date time from date");
-
-    new_date_time.and_utc().timestamp_nanos_opt().expect("Out of range, cannot create DATE")
+    input.div_euclid(NANOS_PER_DAY).checked_mul(NANOS_PER_DAY).unwrap_or(i64::MIN)
 }
 
 /// .
@@ -20,15 +19,5 @@ pub extern "C" fn DATE_AND_TIME_TO_DATE(input: i64) -> i64 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn DATE_AND_TIME_TO_TIME_OF_DAY(input: i64) -> i64 {
-    let date_time = chrono::Utc.timestamp_nanos(input);
-    let hour = date_time.hour();
-    let min = date_time.minute();
-    let sec = date_time.second();
-    let nano = date_time.timestamp_subsec_nanos();
-
-    let new_date_time = chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
-        .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
-        .expect("Cannot create date time from given parameters");
-
-    new_date_time.and_utc().timestamp_nanos_opt().expect("Out of range, cannot create TOD")
+    input.rem_euclid(NANOS_PER_DAY)
 }
