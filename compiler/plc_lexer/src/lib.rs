@@ -2,4 +2,4 @@
 
 pub mod lexer;
 
-pub use lexer::{lex, lex_with_ids, ParseSession, Token, TokenClass};
+pub use lexer::{lex_with_ids, ParseSession, Token, TokenClass};

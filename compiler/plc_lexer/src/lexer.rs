@@ -335,6 +335,7 @@ fn parse_hardware_access_type(lexer: &mut Lexer<Token>) -> Option<(HardwareAcces
     Some((hardware_type, access))
 }
 
+#[cfg(test)]
 pub fn lex(source: &str) -> ParseSession<'_> {
     ParseSession::new(Token::lexer(source), IdProvider::default(), SourceLocationFactory::internal(source))
 }
