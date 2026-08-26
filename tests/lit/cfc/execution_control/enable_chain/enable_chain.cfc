@@ -45,20 +45,19 @@ END_VAR</bmx:TextDeclaration>
                             <EvaluationPriority priorityInNetwork="0"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <bmx:ExecutionControl>
-                                <bmx:En negated="false">
-                                    <ppx:ConnectionPointIn>
-                                        <ppx:RelPosition x="0" y="10"/>
-                                        <ppx:Connection refConnectionPointOutId="23"/>
-                                    </ppx:ConnectionPointIn>
-                                </bmx:En>
-                            </bmx:ExecutionControl>
+                            <bmx:ExecutionControl>true</bmx:ExecutionControl>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="250" y="140"/>
                     <ppx:Size x="110" y="60"/>
                     <ppx:InOutVariables/>
                     <ppx:InputVariables>
+                        <ppx:InputVariable parameterName="EN" negated="false">
+                            <ppx:ConnectionPointIn>
+<ppx:RelPosition x="0" y="30"/>
+<ppx:Connection refConnectionPointOutId="23"/>
+                            </ppx:ConnectionPointIn>
+                        </ppx:InputVariable>
                         <ppx:InputVariable parameterName="in" negated="false">
                             <ppx:ConnectionPointIn>
 <ppx:RelPosition x="0" y="50"/>
@@ -105,20 +104,19 @@ END_VAR</bmx:TextDeclaration>
                             <EvaluationPriority priorityInNetwork="2"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <bmx:ExecutionControl>
-                                <bmx:En negated="false">
-                                    <ppx:ConnectionPointIn>
-                                        <ppx:RelPosition x="0" y="10"/>
-                                        <ppx:Connection refConnectionPointOutId="25"/>
-                                    </ppx:ConnectionPointIn>
-                                </bmx:En>
-                            </bmx:ExecutionControl>
+                            <bmx:ExecutionControl>true</bmx:ExecutionControl>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="590" y="140"/>
                     <ppx:Size x="110" y="60"/>
                     <ppx:InOutVariables/>
                     <ppx:InputVariables>
+                        <ppx:InputVariable parameterName="EN" negated="false">
+                            <ppx:ConnectionPointIn>
+<ppx:RelPosition x="0" y="30"/>
+<ppx:Connection refConnectionPointOutId="25"/>
+                            </ppx:ConnectionPointIn>
+                        </ppx:InputVariable>
                         <ppx:InputVariable parameterName="in" negated="false">
                             <ppx:ConnectionPointIn>
 <ppx:RelPosition x="0" y="50"/>

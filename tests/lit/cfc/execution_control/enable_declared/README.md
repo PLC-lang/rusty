@@ -1,5 +1,5 @@
 What: EN and ENO are not reserved words. The caller declares ordinary BOOL
-variables named `EN` and `ENO` and wires them into the extension pins like any
+variables named `EN` and `ENO` and wires them into the EN/ENO pins like any
 other variable; the program compiles and behaves like a normal guarded call.
 
 Illustrated:

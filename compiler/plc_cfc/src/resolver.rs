@@ -216,6 +216,11 @@ impl<'index> Resolver<'index> {
                     // Consumed outputs are captured into temporaries
                     let mut capture = None;
                     for pin in object.output_pins() {
+                        // ENO is not a data output; consumers read the EN source.
+                        if object.eno_pin().is_some_and(|eno| std::ptr::eq(eno, pin)) {
+                            continue;
+                        }
+
                         let read = pin.output_pin().is_some_and(|id| consumed.contains(&id));
                         let name = read.then(|| block::temp_name(object, pin));
 
@@ -374,18 +379,18 @@ impl<'index> Resolver<'index> {
                     }
                 }
 
-                // A block exposes one pin per output parameter, plus the ENO
-                // pin, which resolves to the EN source instead of a member read.
+                // A block exposes one pin per output parameter; the ENO pin
+                // resolves to the EN source instead of a member read.
                 Role::Block => {
+                    let eno = object.eno_pin().and_then(|pin| pin.output_pin());
                     for pin in object.output_pins() {
                         if let Some(id) = pin.output_pin() {
                             by_pin.insert(id, object);
-                            block_output.insert(id, pin);
-                        }
-                    }
 
-                    if let Some(id) = object.eno_pin() {
-                        by_pin.insert(id, object);
+                            if Some(id) != eno {
+                                block_output.insert(id, pin);
+                            }
+                        }
                     }
                 }
 
@@ -460,9 +465,9 @@ impl<'index> Resolver<'index> {
         self.negate_if(node, location, consumer.in_negated())
     }
 
-    // The EN guard for a block that declares execution control, negated by the
-    // pin's inversion bubble; `None` without the extension. An unwired EN has
-    // no decidable guard and is rejected.
+    // The EN guard for a block with execution control, negated by the pin's
+    // inversion bubble; `None` without the flag. A missing or unwired EN pin
+    // has no decidable guard and is rejected.
     fn enable<'model>(
         &mut self,
         object: &'model FbdObject,
@@ -470,12 +475,15 @@ impl<'index> Resolver<'index> {
         broken: &mut Vec<Broken<'model>>,
         location: &SourceLocation,
     ) -> Option<AstNode> {
-        let control = object.execution_control()?;
+        if !object.has_execution_control() {
+            return None;
+        }
 
-        match trace(control.en.source_pin(), survey) {
+        let en = object.en_pin();
+        match trace(en.and_then(|pin| pin.source_pin()), survey) {
             Trace::Reached(source) => {
                 let value = self.value(&source, location);
-                Some(self.negate_if(value, location, control.en.negated))
+                Some(self.negate_if(value, location, en.is_some_and(|pin| pin.negated)))
             }
 
             // A consumed chain that never reached a source; reported below.
@@ -571,19 +579,20 @@ fn trace<'model>(start: Option<usize>, survey: &Survey<'model>) -> Trace<'model>
 
             pin = wire;
             element = producer;
-        } else if element.eno_pin() == Some(pin) {
-            // An ENO pin mirrors its block's post-negation EN value; step onto
-            // the EN wire. A block revisited on the way is a cycle.
+        } else if let Some(eno) = element.eno_pin().filter(|eno| eno.output_pin() == Some(pin)) {
+            // An ENO pin mirrors its block's post-negation EN value, negated
+            // once more by its own bubble; step onto the EN wire. A block
+            // revisited on the way is a cycle.
             if !visited_blocks.insert(element.global_id) {
                 return Trace::DeadEnd(Broken { element, reason: Reason::EnoCycle });
             }
 
-            let Some(control) = element.execution_control() else { return Trace::Unwired };
-            negated ^= control.en.negated;
+            // A missing or unwired EN behind the pin is the block's own error
+            // (E152); the consumer drops silently like any unwired wire.
+            let Some(en) = element.en_pin() else { return Trace::Unwired };
+            negated ^= eno.negated ^ en.negated;
 
-            // An unwired EN behind the pin is the block's own error (E152);
-            // the consumer drops silently like any unwired wire.
-            let Some(wire) = control.en.source_pin() else { return Trace::Unwired };
+            let Some(wire) = en.source_pin() else { return Trace::Unwired };
             let Some(producer) = survey.by_pin.get(&wire).copied() else { return Trace::Unwired };
 
             pin = wire;
@@ -632,8 +641,14 @@ mod block {
         format!("__out_{}_{}", pin.parameter_name, block.global_id)
     }
 
+    // Every data input; the EN pin guards the call and never passes as an argument.
     pub(super) fn inputs(block: &FbdObject) -> impl Iterator<Item = &Pin> {
-        block.input_pins().iter().chain(block.inout_pins())
+        let en = block.en_pin();
+        block
+            .input_pins()
+            .iter()
+            .chain(block.inout_pins())
+            .filter(move |pin| !en.is_some_and(|en| std::ptr::eq(en, *pin)))
     }
 
     // The captured temporary (stateless) or instance member (stateful).
@@ -700,8 +715,8 @@ fn consumed(network: &model::Network, survey: &Survey) -> HashSet<usize> {
                 for pin in block::inputs(object) {
                     record(pin.source_pin());
                 }
-                if let Some(control) = object.execution_control() {
-                    record(control.en.source_pin());
+                if let Some(en) = object.en_pin() {
+                    record(en.source_pin());
                 }
             }
             _ => {}
@@ -1165,6 +1180,14 @@ mod tests {
             IF NOT trigger THEN inst(in := localIn)
             localOut := inst.out
             done := NOT trigger");
+        }
+
+        #[test]
+        fn eno_negated() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/eno_negated"), @r"
+            IF NOT trigger THEN inst(in := localIn)
+            localOut := inst.out
+            done := trigger");
         }
 
         #[test]

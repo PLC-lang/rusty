@@ -50,25 +50,19 @@ END_VAR</bmx:TextDeclaration>
                             <EvaluationPriority priorityInNetwork="0"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <bmx:ExecutionControl>
-                                <bmx:En negated="false">
-                                    <ppx:ConnectionPointIn>
-                                        <ppx:RelPosition x="0" y="10"/>
-                                        <ppx:Connection refConnectionPointOutId="5"/>
-                                    </ppx:ConnectionPointIn>
-                                </bmx:En>
-                                <bmx:Eno negated="false">
-                                    <ppx:ConnectionPointOut connectionPointOutId="9">
-                                        <ppx:RelPosition x="130" y="10"/>
-                                    </ppx:ConnectionPointOut>
-                                </bmx:Eno>
-                            </bmx:ExecutionControl>
+                            <bmx:ExecutionControl>true</bmx:ExecutionControl>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="520" y="120"/>
                     <ppx:Size x="130" y="60"/>
                     <ppx:InOutVariables/>
                     <ppx:InputVariables>
+                        <ppx:InputVariable parameterName="EN" negated="false">
+                            <ppx:ConnectionPointIn>
+<ppx:RelPosition x="0" y="30"/>
+<ppx:Connection refConnectionPointOutId="5"/>
+                            </ppx:ConnectionPointIn>
+                        </ppx:InputVariable>
                         <ppx:InputVariable parameterName="in" negated="false">
                             <ppx:ConnectionPointIn>
 <ppx:RelPosition x="0" y="50"/>
@@ -77,6 +71,11 @@ END_VAR</bmx:TextDeclaration>
                         </ppx:InputVariable>
                     </ppx:InputVariables>
                     <ppx:OutputVariables>
+                        <ppx:OutputVariable parameterName="ENO" negated="false">
+                            <ppx:ConnectionPointOut connectionPointOutId="9">
+<ppx:RelPosition x="90" y="30"/>
+                            </ppx:ConnectionPointOut>
+                        </ppx:OutputVariable>
                         <ppx:OutputVariable parameterName="out" negated="false">
                             <ppx:ConnectionPointOut connectionPointOutId="10">
 <ppx:RelPosition x="130" y="50"/>
