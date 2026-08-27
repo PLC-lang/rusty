@@ -51,11 +51,12 @@ pub extern "C" fn CONCAT_DATE_TOD(in1: u32, in2: u32) -> u32 {
 
 /// .
 /// Concatenates DATE and LTOD to LDT
+/// Wraps on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn CONCAT_DATE_LTOD(in1: u32, in2: i64) -> i64 {
-    (in1 as i64) * NANOS_PER_SECOND + in2
+    (in1 as i64).wrapping_mul(NANOS_PER_SECOND).wrapping_add(in2)
 }
 
 /// .

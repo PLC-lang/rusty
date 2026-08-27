@@ -1120,3 +1120,9 @@ fn concat_ldt_with_invalid_fields_yields_epoch_defaults() {
     assert_eq!(dtef::CONCAT_LDT__INT(2024, 13, 1, 0, 0, 0, 0), 0);
     assert_eq!(dtef::concat_ldt(1969, 6, 1, 1, 0, 0, 0), 3_600_000_000_000);
 }
+
+#[test]
+fn concat_date_ltod_wraps_on_overflow() {
+    assert_eq!(dtef::CONCAT_DATE_LTOD(86_400, 3_600_000_000_000), 90_000_000_000_000);
+    assert_eq!(dtef::CONCAT_DATE_LTOD(u32::MAX, i64::MAX), -4_928_404_741_854_775_809);
+}

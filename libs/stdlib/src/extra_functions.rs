@@ -106,10 +106,12 @@ where
 {
     let slice = ptr_to_slice(src);
     let (string, radix) = match slice {
-        [b'1', b'6', b'#', ..] => (std::str::from_utf8(&slice[3..]), 16),
-        [b'0', b'x', ..] | [b'0', b'X', ..] => (std::str::from_utf8(&slice[2..]), 16),
-        [b'8', b'#', ..] => (std::str::from_utf8(&slice[2..]), 8), // support c-style octal prefixes? e.g. 010 -> 10 octal
-        [b'2', b'#', ..] | [b'0', b'b', ..] | [b'0', b'B', ..] => (std::str::from_utf8(&slice[2..]), 2),
+        [b'1', b'6', b'#', rest @ ..] => (std::str::from_utf8(rest), 16),
+        [b'0', b'x', rest @ ..] | [b'0', b'X', rest @ ..] => (std::str::from_utf8(rest), 16),
+        [b'8', b'#', rest @ ..] => (std::str::from_utf8(rest), 8), // support c-style octal prefixes? e.g. 010 -> 10 octal
+        [b'2', b'#', rest @ ..] | [b'0', b'b', rest @ ..] | [b'0', b'B', rest @ ..] => {
+            (std::str::from_utf8(rest), 2)
+        }
         _ => (std::str::from_utf8(slice), 10),
     };
 
@@ -126,10 +128,9 @@ where
 fn parse_longest_prefix<T: num::Zero>(s: &str, parse: impl Fn(&str) -> Option<T>) -> T {
     let mut end = s.len();
     while end > 0 {
-        if s.is_char_boundary(end) {
-            if let Some(number) = parse(&s[..end]) {
-                return number;
-            }
+        // `get` returns None between char boundaries
+        if let Some(number) = s.get(..end).and_then(&parse) {
+            return number;
         }
         end -= 1;
     }
