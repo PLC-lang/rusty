@@ -48,11 +48,12 @@ use plc::{
         create_ref_assignment_with_index, extract_ref_call_argument, get_unit_name, new_constructor,
         new_unit_constructor,
     },
+    typesystem::DataTypeInformation,
 };
 use plc_ast::{
     ast::{
         AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration,
-        LinkageType, Operator, PouType, RangeStatement, Variable, VariableBlockType,
+        LinkageType, Operator, PouType, Variable, VariableBlockType,
     },
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
@@ -389,9 +390,8 @@ impl AstVisitor for Initializer {
     /// For array types, generates a loop calling the element type's constructor on every
     /// element so that defaults, vtable pointers, and `FB_INIT` reach each array element.
     fn visit_data_type(&mut self, data_type: &plc_ast::ast::DataType) {
-        if let plc_ast::ast::DataType::ArrayType {
-            bounds, referenced_type, is_variable_length: false, ..
-        } = data_type
+        if let plc_ast::ast::DataType::ArrayType { referenced_type, is_variable_length: false, .. } =
+            data_type
         {
             let index = self.index.as_ref().expect("index is set at this stage");
 
@@ -406,7 +406,7 @@ impl AstVisitor for Initializer {
             }
 
             let Some(array_type) = self.context.current_datatype.clone() else { return };
-            if let Some(ctor_loop) = self.create_element_ctor_loop(&array_type, element_type, bounds) {
+            if let Some(ctor_loop) = self.create_element_ctor_loop(&array_type, element_type) {
                 self.add_to_current_constructor(ctor_loop);
             }
         }
@@ -806,21 +806,41 @@ impl Initializer {
     /// ```
     /// The loops are emitted in the canonical `WHILE TRUE` form directly because the
     /// `LoopDesugarer` pass has already run by the time constructors are generated.
-    /// Returns `None` when the bounds are not ranges (invalid declarations are left
-    /// to validation).
-    fn create_element_ctor_loop(
-        &mut self,
-        array_type: &str,
-        element_type: &str,
-        bounds: &AstNode,
-    ) -> Option<Vec<AstNode>> {
-        // One range and one counter per dimension. The counter names carry the array type
-        // name: allocation scopes are resolved by name across implementations, so they must
-        // be unique per constructor.
-        let dimensions: Vec<&AstNode> = match bounds.get_stmt() {
-            AstStatement::ExpressionList(expressions) => expressions.iter().collect(),
-            _ => vec![bounds],
+    /// Returns `None` when the bounds cannot be resolved to constants (invalid declarations
+    /// are left to validation).
+    fn create_element_ctor_loop(&mut self, array_type: &str, element_type: &str) -> Option<Vec<AstNode>> {
+        // The bounds come from the index rather than from the declaration, because the
+        // declaration may name a constant of the declaring POU (`ARRAY[1..five]`). The
+        // constructor is a POU of its own, so such a name does not resolve inside it, and
+        // copying the expression here left a comparison against an unresolvable operand.
+        // The index holds the bounds already const-evaluated, so literals can be emitted.
+        let dimensions: Vec<(i64, i64)> = {
+            let index = self.index.as_ref()?;
+            let DataTypeInformation::Array { dimensions, .. } =
+                index.find_effective_type_by_name(array_type)?.get_type_information()
+            else {
+                return None;
+            };
+
+            dimensions
+                .iter()
+                .map(|dimension| {
+                    // `as_int_value` reports an undetermined bound as the pointer size, which
+                    // would silently produce a loop over the wrong range.
+                    if dimension.is_undetermined() {
+                        return None;
+                    }
+                    Some((
+                        dimension.start_offset.as_int_value(index).ok()?,
+                        dimension.end_offset.as_int_value(index).ok()?,
+                    ))
+                })
+                .collect::<Option<Vec<_>>>()?
         };
+
+        // One counter per dimension. The counter names carry the array type name: allocation
+        // scopes are resolved by name across implementations, so they must be unique per
+        // constructor.
         let counters: Vec<(AstNode, AstNode)> = (0..dimensions.len())
             .map(|dim| {
                 loop_helper::create_alloca(&mut self.id_provider, "DINT", format!("{array_type}__idx{dim}"))
@@ -855,18 +875,14 @@ impl Initializer {
 
         // Wrap the call in one loop per dimension, innermost dimension first.
         let mut statements = vec![call];
-        for ((alloca, counter), dimension) in counters.into_iter().zip(dimensions.iter()).rev() {
-            let AstStatement::RangeStatement(RangeStatement { start, end }) = dimension.get_stmt() else {
-                return None;
-            };
-
+        for ((alloca, counter), (start, end)) in counters.into_iter().zip(dimensions.iter()).rev() {
             // IF __idx > <hi> THEN EXIT; END_IF
             let bound_guard = loop_helper::create_if_then_exit(
                 self.id_provider.clone(),
                 loop_helper::create_internal_binary_expression(
                     counter.clone(),
                     Operator::Greater,
-                    end.as_ref().clone(),
+                    loop_helper::create_literal_integer(&mut self.id_provider, *end as i128),
                     &mut self.id_provider,
                 ),
             );
@@ -891,7 +907,7 @@ impl Initializer {
                 alloca,
                 loop_helper::create_internal_assignment(
                     counter,
-                    start.as_ref().clone(),
+                    loop_helper::create_literal_integer(&mut self.id_provider, *start as i128),
                     &mut self.id_provider,
                 ),
                 loop_helper::create_while_true_loop(&mut self.id_provider, body),
