@@ -28,6 +28,8 @@ use plc_lowering::{
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
+use crate::artifacts;
+
 use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, ParsedProject};
 
 /// A Build particitpant for different steps in the pipeline
@@ -114,14 +116,34 @@ impl<T: SourceContainer> CodegenParticipant<T> {
             let tempdir = tempfile::tempdir().expect("Could not create tempdir");
             tempdir.keep()
         });
-        if let Some(name) = self.target.try_get_name() {
-            let dir = compile_directory.join(name);
-            fs::create_dir_all(&dir)?;
-            self.compile_dirs.insert(self.target.clone(), dir);
-        } else {
-            self.compile_dirs.insert(self.target.clone(), compile_directory);
-        }
+        let dir = super::target_compile_dir(&compile_directory, &self.target);
+        fs::create_dir_all(&dir)?;
+        self.compile_dirs.insert(self.target.clone(), dir);
         Ok(())
+    }
+
+    /// Identifies a compiled unit for the naming of its artifact. Units inside the project
+    /// are identified by their path relative to the project, so that the name of the
+    /// artifact does not change with the location of the project.
+    fn unit_key(&self, unit_location: &Path) -> Result<PathBuf, Diagnostic> {
+        let unit_location = if unit_location.exists() {
+            fs::canonicalize(unit_location)?
+        } else {
+            unit_location.to_path_buf()
+        };
+
+        let root = match self.compile_options.root.clone() {
+            Some(root) => root,
+            None => env::current_dir()?,
+        };
+        // The unit location is canonical, so the root has to be canonical as well for the
+        // comparison to hold.
+        let root = fs::canonicalize(&root).unwrap_or(root);
+
+        match unit_location.strip_prefix(&root) {
+            Ok(relative) => Ok(relative.to_path_buf()),
+            Err(_) => Ok(unit_location),
+        }
     }
     pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
         let path = Path::new(location);
@@ -157,28 +179,13 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
     }
 
     fn generate(&self, module: &GeneratedModule) -> Result<(), Diagnostic> {
-        let current_dir = env::current_dir()?;
-        let current_dir = self.compile_options.root.as_deref().unwrap_or(&current_dir);
-        let unit_location = module.get_unit_location();
-        let unit_location =
-            if unit_location.exists() { fs::canonicalize(unit_location)? } else { unit_location.into() };
-        let output_name = if unit_location.starts_with(current_dir) {
-            unit_location.strip_prefix(current_dir).map_err(|it| {
-                Diagnostic::new(format!("Could not strip prefix for {}", current_dir.to_string_lossy()))
-                    .with_internal_error(it.into())
-            })?
-        } else if unit_location.has_root() {
-            let root = unit_location.ancestors().last().expect("Should exist?");
-            unit_location.strip_prefix(root).expect("The root directory should exist")
-        } else {
-            unit_location.as_path()
+        let unit_key = self.unit_key(module.get_unit_location())?;
+        let extension = match self.compile_options.output_format {
+            FormatOption::IR => "ll",
+            FormatOption::Bitcode => "bc",
+            _ => "o",
         };
-
-        let output_name = match self.compile_options.output_format {
-            FormatOption::IR => format!("{}.ll", output_name.to_string_lossy()),
-            FormatOption::Bitcode => format!("{}.bc", output_name.to_string_lossy()),
-            _ => format!("{}.o", output_name.to_string_lossy()),
-        };
+        let output_name = artifacts::file_name(&unit_key, extension);
 
         let target = &self.target;
         let compile_directory = self.compile_dirs.get(target).expect("Required dir");
