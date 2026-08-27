@@ -143,7 +143,7 @@ lazy_static! {
         E039,   Warning,    include_str!("./error_codes/E039.md"),
         E040,   Warning,    include_str!("./error_codes/E040.md"),
         E041,   Error,      include_str!("./error_codes/E041.md"),
-        E042,   Warning,    include_str!("./error_codes/E042.md"), // Assignment to reference
+        E042,   Warning,    include_str!("./error_codes/E042.md"), // TODO: Use me, I'm free
         E043,   Error,      include_str!("./error_codes/E043.md"),
         E044,   Error,      include_str!("./error_codes/E044.md"),
         E045,   Error,      include_str!("./error_codes/E045.md"),
