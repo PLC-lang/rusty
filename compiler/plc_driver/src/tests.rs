@@ -15,6 +15,7 @@ use crate::{
     CompileOptions,
 };
 
+mod artifact_names;
 mod debug_paths;
 mod external_files;
 mod header_generator;
