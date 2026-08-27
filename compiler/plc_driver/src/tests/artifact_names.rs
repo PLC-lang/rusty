@@ -172,6 +172,12 @@ mod linux {
     }
 }
 
+// The scenarios below have no mirror in `linux`, and the reason is the same for all of
+// them: they are about what the host reads as a path prefix. Linux does not split on
+// `\`, so every one of these keys is a single file name there, which
+// `a_windows_key_is_sanitized_into_a_single_name` already covers. The two scenarios that
+// are not about a prefix, the reserved device name and the casing, say in their own
+// comment why they belong to this platform.
 #[cfg(windows)]
 mod windows {
     use super::{artifacts, Path};
@@ -199,5 +205,64 @@ mod windows {
         let name = artifacts::file_name(Path::new("C:string.st"), "o");
 
         assert!(name.starts_with("string.st-"), "{name}");
+    }
+
+    /// A UNC path names a host and a share instead of a drive, and neither may reach the
+    /// name of the artifact.
+    #[test]
+    fn a_unc_key_keeps_only_the_file_name() {
+        let name = artifacts::file_name(Path::new(r"\\server\share\lib\util.st"), "o");
+
+        assert!(name.starts_with("util.st-"), "{name}");
+    }
+
+    /// `fs::canonicalize` returns the verbatim form of a UNC path, which carries the
+    /// `UNC` literal on top of the prefix.
+    #[test]
+    fn a_verbatim_unc_key_keeps_only_the_file_name() {
+        let name = artifacts::file_name(Path::new(r"\\?\UNC\server\share\lib\util.st"), "o");
+
+        assert!(name.starts_with("util.st-"), "{name}");
+    }
+
+    /// A drive that a share is mapped to is a drive like any other for the naming.
+    #[test]
+    fn a_key_on_a_mapped_drive_keeps_only_the_file_name() {
+        let name = artifacts::file_name(Path::new(r"Z:\lib\util.st"), "o");
+
+        assert!(name.starts_with("util.st-"), "{name}");
+    }
+
+    /// A source named like one of the device names this platform reserves (`con`, `nul`,
+    /// `aux`, ...); no other platform reserves them, so the scenario has no mirror. What
+    /// the system resolves to a device is the bare name, so the readable part keeps the
+    /// file name of the source, and the digest and the extension that follow leave an
+    /// ordinary file name. `a_source_named_like_a_reserved_device_builds` in the
+    /// integration tests confirms that against a real file system.
+    #[test]
+    fn a_key_named_like_a_reserved_device_gets_a_name_that_is_not_a_device() {
+        for device in ["con", "nul", "aux", "prn", "com1", "lpt1"] {
+            let name = artifacts::file_name(Path::new(&format!(r"C:\lib\{device}.st")), "o");
+
+            // The device name is followed by the extension of the source, the digest and
+            // the extension of the artifact, so the name is not a bare device name.
+            assert!(name.starts_with(&format!("{device}.st-")), "{name}");
+            assert!(name.ends_with(".o"), "{name}");
+        }
+    }
+
+    /// Paths are case insensitive on this platform, so two spellings of one path name one
+    /// unit, and the scenario has no mirror on a platform where they name two. The digest
+    /// is taken over the characters of the key and tells the spellings apart; what keeps
+    /// the unit at one artifact is the canonicalization of the key before it arrives here,
+    /// which normalizes the casing to the one on the file system.
+    /// `a_source_referenced_with_another_casing_keeps_its_artifact` in the integration
+    /// tests covers that end to end.
+    #[test]
+    fn the_digest_does_not_normalize_the_casing_by_itself() {
+        let lower = artifacts::file_name(Path::new(r"src\main.st"), "o");
+        let upper = artifacts::file_name(Path::new(r"SRC\MAIN.ST"), "o");
+
+        assert_ne!(lower, upper);
     }
 }
