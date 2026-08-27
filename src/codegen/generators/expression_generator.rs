@@ -1439,7 +1439,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // after generic instantiation, so promoting their scalar arguments would break the ABI.
             let needs_c_promotion = matches!(var_args, VarArgs::Unsized(None));
 
-            let generated_params = variadic_params
+            let mut generated_params = variadic_params
                 .iter()
                 .map(|param_statement| {
                     self.get_type_hint_for(param_statement).map(|it| it.get_name()).and_then(|type_name| {
@@ -1535,6 +1535,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                 Ok(vec![size_param.into(), arr_storage])
             } else {
+                // Untyped C-style variadics carry no argument count, so the callee finds the end of
+                // the list from its own contract: a format string, a count parameter or a terminator.
+                // A trailing null pointer serves the terminator contract and stays invisible to the
+                // other two, which read only as many arguments as they expect.
+                if matches!(var_args, VarArgs::Unsized(None)) {
+                    generated_params.push(self.llvm.create_null_ptr()?);
+                }
+
                 Ok(generated_params)
             }
         } else {
