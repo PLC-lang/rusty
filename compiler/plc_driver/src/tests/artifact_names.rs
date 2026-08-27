@@ -132,6 +132,22 @@ fn units_whose_file_name_is_cut_stay_apart() {
     assert_ne!(first, second);
 }
 
+/// A library is pulled in with one glob per extension, `include/*.st` and
+/// `include/*.pli` for the standard library, so two units can share a stem and differ
+/// only in their extension. Once the stem is long enough to be cut at the limit, the
+/// readable part of both names is the same and the digest is all that is left to tell
+/// the two artifacts apart.
+#[test]
+fn units_cut_at_the_limit_that_differ_only_in_their_extension_stay_apart() {
+    let structured_text = artifacts::file_name(Path::new("include/endianness_conversion_functions.st"), "o");
+    let interface = artifacts::file_name(Path::new("include/endianness_conversion_functions.pli"), "o");
+
+    // The cut falls on the dot of the source extension, so neither name keeps it.
+    assert!(structured_text.starts_with("endianness_conversion_functions.-"), "{structured_text}");
+    assert!(interface.starts_with("endianness_conversion_functions.-"), "{interface}");
+    assert_ne!(structured_text, interface);
+}
+
 #[test]
 fn a_key_without_a_file_name_gets_a_fallback_name() {
     let name = artifacts::file_name(Path::new(""), "o");
