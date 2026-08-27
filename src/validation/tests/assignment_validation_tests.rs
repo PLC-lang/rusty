@@ -897,9 +897,9 @@ fn implicit_action_downcasts_are_validated() {
 }
 
 #[test]
-fn assigning_to_input_by_ref_should_deliver_improvment_suggestion() {
+fn assigning_to_input_by_ref_does_not_warn() {
     let diagnostics = parse_and_validate_buffered(
-            "
+        "
             FUNCTION fn : DINT
                 VAR_INPUT
                     a : DINT;
@@ -915,8 +915,8 @@ fn assigning_to_input_by_ref_should_deliver_improvment_suggestion() {
                 END_VAR
 
                 a := 1;
-                b := 1.0;   // This should trigger an improvment suggestion, because we are assigning a value
-                c;          // This should NOT trigger an improvment suggestion, because we are NOT assigning a value
+                b := 1.0;
+                c;
                 d := 1.0;
             END_FUNCTION
 
@@ -931,9 +931,9 @@ fn assigning_to_input_by_ref_should_deliver_improvment_suggestion() {
                 fn(a, b, c, d);
             END_FUNCTION
             ",
-        );
+    );
 
-    assert_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
