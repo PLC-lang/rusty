@@ -11,7 +11,7 @@ use plc_source::SourceCode;
 
 use plc::index::Index;
 
-use crate::model::{self, FbdObject, Pin};
+use crate::model::{self, FbdObject, Pin, Storage};
 use crate::network::{Argument, Network, Statement, Temporary};
 use crate::st;
 
@@ -96,6 +96,16 @@ impl<'index> Resolver<'index> {
 
             match Role::from(object) {
                 Role::Sink => match trace(consumes(object), &survey) {
+                    // An address has no inverse; a bubble anywhere on a
+                    // reference assignment's wire is rejected.
+                    Trace::Reached(source)
+                        if matches!(object.storage(), Some(Storage::Reference))
+                            && negated(object, &source) =>
+                    {
+                        let name = object.identifier().unwrap_or_default();
+                        self.diagnostics.push(Diagnostic::negated_reference_assignment(name, location));
+                    }
+
                     // The traced source becomes the sink's assigned value,
                     // negated once more by the sink's own inversion bubble.
                     Trace::Reached(source) => {
@@ -730,6 +740,17 @@ fn consumes(consumer: &FbdObject) -> Option<usize> {
     consumer.connection_in.as_ref()?.source_pin()
 }
 
+// Any inversion bubble between a producer and its consumer: the producer's,
+// the consumer's, or one synthesized by an EN hop on the way.
+fn negated(consumer: &FbdObject, source: &Source) -> bool {
+    let negated = match source {
+        Source::Variable { object, negated } => object.out_negated() || *negated,
+        Source::Output { pin, negated, .. } => pin.negated || *negated,
+    };
+
+    negated || consumer.in_negated()
+}
+
 #[cfg(test)]
 mod tests {
     use plc_ast::provider::IdProvider;
@@ -761,15 +782,13 @@ mod tests {
                     format!("{} := {}", AstSerializer::format(sink), AstSerializer::format(source))
                 }
                 Statement::Assignment { sink, source, storage: Some(storage) } => {
-                    let value = match storage {
-                        Storage::Set => "TRUE",
-                        Storage::Reset => "FALSE",
-                    };
-                    format!(
-                        "IF {} THEN {} := {value}",
-                        AstSerializer::format(source),
-                        AstSerializer::format(sink)
-                    )
+                    let sink = AstSerializer::format(sink);
+                    let source = AstSerializer::format(source);
+                    match storage {
+                        Storage::Set => format!("IF {source} THEN {sink} := TRUE"),
+                        Storage::Reset => format!("IF {source} THEN {sink} := FALSE"),
+                        Storage::Reference => format!("{sink} REF= {source}"),
+                    }
                 }
                 Statement::Return { condition, .. } => {
                     format!("RETURN {}", AstSerializer::format(condition))
@@ -875,6 +894,11 @@ mod tests {
             IF NOT a THEN b := TRUE
             IF NOT a THEN b := FALSE
             IF NOT NOT a THEN b := TRUE");
+        }
+
+        #[test]
+        fn storage_reference() {
+            insta::assert_snapshot!(resolve_project("variables/valid/storage_reference"), @"b REF= a");
         }
 
         #[test]
@@ -1399,6 +1423,17 @@ mod tests {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_stale_output").unwrap_err(), @r"
             error[E147]: Output `oldDoubled` is not declared by `myAdd`
              = function_stale_output.cfc: Block 5
+            ");
+        }
+
+        #[test]
+        fn storage_reference_negated() {
+            insta::assert_snapshot!(transpile_project("variables/invalid/storage_reference_negated").unwrap_err(), @r"
+            error[E154]: Reference assignment to `b` cannot be negated
+             = storage_reference_negated.cfc: Block 3
+
+            error[E154]: Reference assignment to `b` cannot be negated
+             = storage_reference_negated.cfc: Block 6
             ");
         }
     }
