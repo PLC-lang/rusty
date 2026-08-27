@@ -78,7 +78,7 @@ fn parse_prefixed_literal(
 fn parse_time_literal(input: &str, prefixes: &[&str]) -> Option<AstLiteral> {
     prefixes
         .iter()
-        .find(|prefix| input.len() >= prefix.len() && input[..prefix.len()].eq_ignore_ascii_case(prefix))?;
+        .find(|prefix| input.get(..prefix.len()).is_some_and(|start| start.eq_ignore_ascii_case(prefix)))?;
     let normalized: String =
         input.replace(',', ".").chars().filter(|character| !character.is_ascii_whitespace()).collect();
     parse_literal(&normalized, Token::LiteralTime, parse_literal_time)
@@ -246,6 +246,7 @@ mod tests {
     fn never_faults_on_garbage() {
         unsafe {
             assert_eq!(call_u32(STRING_TO_UDINT, ""), 0);
+            assert_eq!(call_u32(STRING_TO_TIME, "\u{1F980}"), 0);
             assert_eq!(call_u32(STRING_TO_DATE, "not a date"), 0);
             assert_eq!(call_u32(STRING_TO_DT, "\u{0}"), 0);
             assert_eq!(call_u32(STRING_TO_TOD, "🦀"), 0);
