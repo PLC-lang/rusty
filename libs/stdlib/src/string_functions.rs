@@ -9,7 +9,7 @@ use num::PrimInt;
 /// user-facing string builtins write into.
 /// Excess input is truncated on a character boundary instead.
 /// Keep this in sync with the `.st` declarations.
-const STRING_RESULT_LEN: usize = 2048;
+pub(crate) const STRING_RESULT_LEN: usize = 2048;
 
 /// # Helper function
 ///
@@ -44,12 +44,47 @@ pub unsafe fn ptr_to_slice<'a, T: PrimInt>(src: *const T) -> &'a [T] {
 }
 
 type Utf16Iterator<'a> = std::char::DecodeUtf16<std::iter::Copied<std::slice::Iter<'a, u16>>>;
-type Utf8Iterator<'a> = core::str::Chars<'a>;
+type Utf8Iterator<'a> = Utf8LossyChars<'a>;
+
+/// Lossy UTF-8 character iterator: each maximal invalid subpart decodes to one
+/// U+FFFD instead of failing, so buffers holding raw non-UTF-8 bytes (pointer
+/// writes, communication payloads) pass through every string function safely.
+pub struct Utf8LossyChars<'a> {
+    chunks: std::str::Utf8Chunks<'a>,
+    valid: core::str::Chars<'a>,
+    pending_replacement: bool,
+}
+
+impl<'a> Utf8LossyChars<'a> {
+    fn new(slice: &'a [u8]) -> Self {
+        Self { chunks: slice.utf8_chunks(), valid: "".chars(), pending_replacement: false }
+    }
+}
+
+impl Iterator for Utf8LossyChars<'_> {
+    type Item = char;
+
+    fn next(&mut self) -> Option<char> {
+        loop {
+            if let Some(c) = self.valid.next() {
+                return Some(c);
+            }
+            if self.pending_replacement {
+                self.pending_replacement = false;
+                return Some(char::REPLACEMENT_CHARACTER);
+            }
+            let chunk = self.chunks.next()?;
+            self.valid = chunk.valid().chars();
+            self.pending_replacement = !chunk.invalid().is_empty();
+        }
+    }
+}
 
 pub trait CharsDecoder<T: PrimInt> {
     type IteratorType: Iterator;
     /// Decodes raw UTF-8 or UTF-16 codepoints into a character iterator. Does not account
-    /// for grapheme clusters.
+    /// for grapheme clusters. Invalid input never aborts: invalid UTF-8 decodes to U+FFFD
+    /// replacements, invalid UTF-16 yields `Err` items that encoders resolve to U+FFFD.
     ///
     /// # Safety
     ///
@@ -58,21 +93,12 @@ pub trait CharsDecoder<T: PrimInt> {
 }
 
 pub trait CharsEncoder<T: PrimInt>: Iterator {
-    /// Encodes UTF-8 or UTF-16 character iterator. Its raw codepoints are written
-    /// into given destination buffer address.
-    ///
-    /// # Safety
-    ///
-    /// Works on raw pointers, inherently unsafe. Does not ensure that the buffer at the
-    /// given address large enough. It will continue to write unchecked until all characters
-    /// have been processed and can therefore result in UB.
-    unsafe fn encode(self, dest: &mut *mut T);
-
-    /// Like [`CharsEncoder::encode`], but writes at most `max_elements` code units of
-    /// content (bytes for UTF-8, `u16` code units for UTF-16), always followed by a
-    /// null terminator. Truncation happens on a character boundary, so the written
-    /// string stays valid. Returns the number of content code units written (excluding
-    /// the terminator), allowing callers to keep a running budget across several inputs.
+    /// Encodes a character iterator into the given destination buffer address,
+    /// writing at most `max_elements` code units of content (bytes for UTF-8,
+    /// `u16` code units for UTF-16), always followed by a null terminator.
+    /// Truncation happens on a character boundary, so the written string stays
+    /// valid. Returns the number of content code units written (excluding the
+    /// terminator), allowing callers to keep a running budget across several inputs.
     ///
     /// # Safety
     ///
@@ -97,16 +123,11 @@ impl<T: Iterator> Iterator for EncodedCharsIter<T> {
 impl<'a> CharsDecoder<u8> for EncodedCharsIter<Utf8Iterator<'a>> {
     type IteratorType = Utf8Iterator<'a>;
     unsafe fn decode(src: *const u8) -> Self {
-        let slice = ptr_to_slice(src);
-        Self { iter: std::str::from_utf8(slice).unwrap().chars() }
+        Self { iter: Utf8LossyChars::new(ptr_to_slice(src)) }
     }
 }
 
 impl<I: Iterator<Item = char>> CharsEncoder<u8> for I {
-    unsafe fn encode(self, dest: &mut *mut u8) {
-        self.encode_bounded(dest, usize::MAX);
-    }
-
     unsafe fn encode_bounded(self, dest: &mut *mut u8, max_elements: usize) -> usize {
         let mut remaining = max_elements;
         let mut written = 0;
@@ -132,15 +153,11 @@ impl<I: Iterator<Item = char>> CharsEncoder<u8> for I {
 }
 
 impl<I: Iterator<Item = Result<char, DecodeUtf16Error>>> CharsEncoder<u16> for I {
-    unsafe fn encode(self, dest: &mut *mut u16) {
-        self.encode_bounded(dest, usize::MAX);
-    }
-
     unsafe fn encode_bounded(self, dest: &mut *mut u16, max_elements: usize) -> usize {
         let mut remaining = max_elements;
         let mut written = 0;
         for c in self {
-            let c = c.unwrap();
+            let c = c.unwrap_or(char::REPLACEMENT_CHARACTER);
             let len = c.len_utf16();
             // Stop before we would exceed the budget; never truncate mid-character.
             if len > remaining {
@@ -220,7 +237,7 @@ pub unsafe extern "C" fn FIND__STRING(src1: *const u8, src2: *const u8) -> i32 {
 
     if let Some(idx) = haystack.windows(needle.len()).position(|window| window == needle) {
         // get chars until byte index
-        let char_index = core::str::from_utf8(std::slice::from_raw_parts(src1, idx)).unwrap().chars().count();
+        let char_index = Utf8LossyChars::new(std::slice::from_raw_parts(src1, idx)).count();
         // correct for ST indexing
         char_index as i32 + 1
     } else {
@@ -271,7 +288,7 @@ pub unsafe extern "C-unwind" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32
     let nchars = EncodedCharsIter::decode(src).count();
     let substr_len = (substr_len.max(0) as usize).min(nchars);
     let chars = EncodedCharsIter::decode(src).take(substr_len);
-    chars.encode(&mut dest);
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -292,7 +309,7 @@ pub unsafe extern "C-unwind" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i
     let nchars = EncodedCharsIter::decode(src).count();
     let substr_len = (substr_len.max(0) as usize).min(nchars);
     let chars = EncodedCharsIter::decode(src).take(substr_len);
-    chars.encode(&mut dest);
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -313,7 +330,7 @@ pub unsafe extern "C-unwind" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i3
     let nchars = EncodedCharsIter::decode(src).count();
     let substr_len = (substr_len.max(0) as usize).min(nchars);
     let chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
-    chars.encode(&mut dest);
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -334,7 +351,7 @@ pub unsafe extern "C-unwind" fn RIGHT_EXT__WSTRING(src: *const u16, substr_len: 
     let nchars = EncodedCharsIter::decode(src).count();
     let substr_len = (substr_len.max(0) as usize).min(nchars);
     let chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
-    chars.encode(&mut dest);
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
     0
 }
 
@@ -366,7 +383,7 @@ pub unsafe extern "C-unwind" fn MID_EXT__STRING(
     let start_index = start_index as usize - 1;
     let substr_len = (substr_len.max(0) as usize).min(nchars - start_index);
     let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
-    chars.encode(&mut dest);
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -399,7 +416,7 @@ pub unsafe extern "C-unwind" fn MID_EXT__WSTRING(
     let start_index = start_index as usize - 1;
     let substr_len = (substr_len.max(0) as usize).min(nchars - start_index);
     let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
-    chars.encode(&mut dest);
+    chars.encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -498,7 +515,7 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__STRING(
     let nchars = EncodedCharsIter::decode(src).count();
     if pos < 1 || pos > nchars as i32 || num_chars_to_delete < 0 {
         // out-of-range positions and negative counts return the string unchanged
-        EncodedCharsIter::decode(src).encode(&mut dest);
+        EncodedCharsIter::decode(src).encode_bounded(&mut dest, STRING_RESULT_LEN);
         return 0;
     }
     // correct for 0-indexing
@@ -508,7 +525,7 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__STRING(
     EncodedCharsIter::decode(src)
         .take(pos)
         .chain(EncodedCharsIter::decode(src).skip(ndel + pos))
-        .encode(&mut dest);
+        .encode_bounded(&mut dest, STRING_RESULT_LEN);
     0
 }
 
@@ -534,7 +551,7 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__WSTRING(
     let nchars = EncodedCharsIter::decode(src).count();
     if pos < 1 || pos > nchars as i32 || num_chars_to_delete < 0 {
         // out-of-range positions and negative counts return the string unchanged
-        EncodedCharsIter::decode(src).encode(&mut dest);
+        EncodedCharsIter::decode(src).encode_bounded(&mut dest, STRING_RESULT_LEN);
         return 0;
     }
     // correct for 0-indexing
@@ -544,7 +561,7 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__WSTRING(
     EncodedCharsIter::decode(src)
         .take(pos)
         .chain(EncodedCharsIter::decode(src).skip(pos + ndel))
-        .encode(&mut dest);
+        .encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -633,17 +650,40 @@ pub unsafe extern "C-unwind" fn REPLACE_EXT__WSTRING(
     0
 }
 
+/// Helper function for the variadic CONCAT functions. Copies the raw code units
+/// of each input, so payloads that are not valid UTF-8/UTF-16 survive unchanged.
+/// Output is truncated at the result-buffer capacity (see [`STRING_RESULT_LEN`]);
+/// the cut can split a multi-code-unit character, which every consumer tolerates.
+unsafe fn concat_transparent<T: PrimInt>(mut dest: *mut T, argc: i32, argv: *const *const T) -> i32 {
+    debug_assert!(!dest.is_null() && !argv.is_null(), "the compiler always passes valid pointers");
+    if dest.is_null() {
+        return 0;
+    }
+    let mut remaining = STRING_RESULT_LEN;
+    if !argv.is_null() {
+        for &arg in std::slice::from_raw_parts(argv, argc.max(0) as usize) {
+            let src = ptr_to_slice(arg);
+            let ncopy = src.len().min(remaining);
+            std::ptr::copy_nonoverlapping(src.as_ptr(), dest, ncopy);
+            dest = dest.add(ncopy);
+            remaining -= ncopy;
+        }
+    }
+    *dest = T::zero();
+
+    0
+}
+
 /// Concatenates all given strings in the order in which they are given.
 /// Strings are passed as pointer of pointer to u8, where each pointer represents
 /// the starting address of each string. The amount of strings must be passed as
 /// argument.
-/// Encoding: UTF-8
+/// Encoding: UTF-8. Bytes are copied unchanged, so invalid sequences survive.
 ///
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
+/// Output is truncated at the result-buffer capacity.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn CONCAT__STRING(dest: *mut u8, argc: i32, argv: *const *const u8) {
@@ -654,44 +694,28 @@ pub unsafe extern "C" fn CONCAT__STRING(dest: *mut u8, argc: i32, argv: *const *
 /// Strings are passed as pointer of pointer to u8, where each pointer represents
 /// the starting address of each string. The amount of strings must be passed as
 /// argument.
-/// Encoding: UTF-8
+/// Encoding: UTF-8. Bytes are copied unchanged, so invalid sequences survive.
 ///
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
+/// Output is truncated at the result-buffer capacity.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn CONCAT_EXT__STRING(dest: *mut u8, argc: i32, argv: *const *const u8) -> i32 {
-    if argv.is_null() || dest.is_null() {
-        panic!("Received null-pointer.")
-    }
-    let mut dest = dest;
-    let mut argv = argv;
-    // Truncate at the result-buffer capacity so we never overflow the caller's
-    // `STRING[2048]` destination (see `STRING_RESULT_LEN`).
-    let mut remaining = STRING_RESULT_LEN;
-    for _ in 0..argc {
-        let written = EncodedCharsIter::decode(*argv).encode_bounded(&mut dest, remaining);
-        remaining -= written;
-        argv = argv.add(1);
-    }
-
-    0
+    concat_transparent(dest, argc, argv)
 }
 
 /// Concatenates all given strings in the order in which they are given.
-/// Strings are passed as pointer of pointer to u8, where each pointer represents
+/// Strings are passed as pointer of pointer to u16, where each pointer represents
 /// the starting address of each string. The amount of strings must be passed as
 /// argument.
-/// Encoding: UTF-16
+/// Encoding: UTF-16. Code units are copied unchanged, so invalid sequences survive.
 ///
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
+/// Output is truncated at the result-buffer capacity.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn CONCAT__WSTRING(dest: *mut u16, argc: i32, argv: *const *const u16) {
@@ -699,16 +723,15 @@ pub unsafe extern "C" fn CONCAT__WSTRING(dest: *mut u16, argc: i32, argv: *const
 }
 
 /// Concatenates all given strings in the order in which they are given.
-/// Strings are passed as pointer of pointer to u8, where each pointer represents
+/// Strings are passed as pointer of pointer to u16, where each pointer represents
 /// the starting address of each string. The amount of strings must be passed as
 /// argument.
-/// Encoding: UTF-16
+/// Encoding: UTF-16. Code units are copied unchanged, so invalid sequences survive.
 ///
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
+/// Output is truncated at the result-buffer capacity.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn CONCAT_EXT__WSTRING(
@@ -716,21 +739,7 @@ pub unsafe extern "C-unwind" fn CONCAT_EXT__WSTRING(
     argc: i32,
     argv: *const *const u16,
 ) -> i32 {
-    if argv.is_null() || dest.is_null() {
-        panic!("Received null-pointer.")
-    }
-    let mut dest = dest;
-    let mut argv = argv;
-    // Truncate at the result-buffer capacity so we never overflow the caller's
-    // `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
-    let mut remaining = STRING_RESULT_LEN;
-    for _ in 0..argc {
-        let written = EncodedCharsIter::decode(*argv).encode_bounded(&mut dest, remaining);
-        remaining -= written;
-        argv = argv.add(1);
-    }
-
-    0
+    concat_transparent(dest, argc, argv)
 }
 
 /// Helper function for generic, variadic string equality functions.
@@ -738,8 +747,9 @@ fn compare<T>(argc: i32, argv: *const *const T, predicate_func: fn(Ordering) -> 
 where
     T: Ord + PrimInt,
 {
+    debug_assert!(argc >= 2, "the compiler always passes at least two arguments");
     if argc < 2 {
-        panic!("Too few arguments for function call.")
+        return false;
     }
     let mut argv = argv;
     unsafe {
@@ -1277,6 +1287,99 @@ mod test {
             assert_eq!("", string)
         }
     }
+    // -----------------------------------lossy decoding and result capacity
+    #[test]
+    fn len_counts_one_replacement_char_per_maximal_invalid_subpart() {
+        unsafe {
+            // standalone junk bytes count individually
+            assert_eq!(LEN__STRING(b"a\xFFbc\0".as_ptr()), 4);
+            assert_eq!(LEN__STRING(b"\xFF\xFF\0".as_ptr()), 2);
+            // a truncated multi-byte sequence collapses into one replacement char
+            assert_eq!(LEN__STRING(b"\xE2\x82\0".as_ptr()), 1);
+            assert_eq!(LEN__STRING(b"\xE2\x82a\0".as_ptr()), 2);
+        }
+    }
+
+    #[test]
+    fn find_counts_prefix_chars_of_invalid_utf8() {
+        unsafe {
+            // finding 'b' in 'a<0xFF>b': the prefix counts as 'a' + U+FFFD, so position 3
+            assert_eq!(FIND__STRING(b"a\xFFb\0".as_ptr(), b"b\0".as_ptr()), 3);
+        }
+    }
+
+    #[test]
+    fn left_replaces_invalid_bytes_and_truncates_at_capacity() {
+        // 1000 junk bytes decode to 1000 replacement chars of 3 bytes each; the
+        // 3000-byte result must truncate at the capacity on a character boundary
+        let mut src = [0xFF_u8; 1001];
+        src[1000] = 0;
+        let mut dest = [0xAA_u8; 4096];
+        unsafe {
+            LEFT_EXT__STRING(src.as_ptr(), 1000, dest.as_mut_ptr());
+            let written = ptr_to_slice(dest.as_ptr());
+            assert_eq!(written.len(), 682 * 3);
+            assert!(written.chunks(3).all(|chunk| chunk == [0xEF, 0xBF, 0xBD]));
+        }
+    }
+
+    #[test]
+    fn concat_preserves_raw_bytes() {
+        let argv = [b"a\xFF\0".as_ptr(), b"b\0".as_ptr()];
+        let mut dest = [0xAA_u8; DEFAULT_STRING_SIZE];
+        unsafe {
+            CONCAT_EXT__STRING(dest.as_mut_ptr(), argv.len() as i32, argv.as_ptr());
+
+            // 'a<0xFF>' + 'b' keeps the raw 0xFF byte; CONCAT must not rewrite it to U+FFFD
+            assert_eq!(ptr_to_slice(dest.as_ptr()), b"a\xFFb");
+        }
+    }
+
+    #[test]
+    fn concat_truncates_at_capacity() {
+        let mut first = [b'a'; 1501];
+        first[1500] = 0;
+        let mut second = [b'b'; 1501];
+        second[1500] = 0;
+        let argv = [first.as_ptr(), second.as_ptr()];
+        let mut dest = [0xAA_u8; 4096];
+        unsafe {
+            CONCAT_EXT__STRING(dest.as_mut_ptr(), argv.len() as i32, argv.as_ptr());
+            let written = ptr_to_slice(dest.as_ptr());
+
+            // 1500 'a's + 1500 'b's cap at the 2048-byte capacity, so only 548 'b's survive
+            assert_eq!(written.len(), 2048);
+            assert!(written[..1500].iter().all(|&byte| byte == b'a'));
+            assert!(written[1500..].iter().all(|&byte| byte == b'b'));
+        }
+    }
+
+    #[test]
+    fn wstring_left_replaces_unpaired_surrogate() {
+        let src: [u16; 4] = [0x61, 0xD800, 0x62, 0];
+        let mut dest = [0xAAAA_u16; DEFAULT_STRING_SIZE];
+        unsafe {
+            LEFT_EXT__WSTRING(src.as_ptr(), 3, dest.as_mut_ptr());
+
+            // 0xD800 is an unpaired high surrogate; rebuilding the string yields U+FFFD
+            assert_eq!(ptr_to_slice(dest.as_ptr()), [0x61, 0xFFFD, 0x62]);
+        }
+    }
+
+    #[test]
+    fn concat_wstring_preserves_unpaired_surrogates() {
+        let first: [u16; 3] = [0x61, 0xD800, 0];
+        let second: [u16; 2] = [0x62, 0];
+        let argv = [first.as_ptr(), second.as_ptr()];
+        let mut dest = [0xAAAA_u16; DEFAULT_STRING_SIZE];
+        unsafe {
+            CONCAT_EXT__WSTRING(dest.as_mut_ptr(), argv.len() as i32, argv.as_ptr());
+
+            // 'a<0xD800>' + 'b' keeps the raw surrogate word; CONCAT must not rewrite it
+            assert_eq!(ptr_to_slice(dest.as_ptr()), [0x61, 0xD800, 0x62]);
+        }
+    }
+
     #[test]
     fn test_greater_than_string_is_false_for_equal_strings() {
         let argv = ["hællø wørlÞ\0".as_ptr(), "hællø wørlÞ\0".as_ptr()];
