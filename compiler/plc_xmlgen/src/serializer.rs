@@ -509,8 +509,6 @@ newtype_impl!(SUserDefinedTypeSpec, "UserDefinedTypeSpec", false);
 newtype_impl!(SMember, "Member", false);
 newtype_impl!(SEnumerator, "Enumerator", false);
 newtype_impl!(SBaseType, "BaseType", false);
-newtype_impl!(SDimensionSpec, "DimensionSpec", false);
-newtype_impl!(SIndexRange, "IndexRange", false);
 newtype_impl!(SST, "ST", false);
 newtype_impl!(SBodyContent, "BodyContent", false);
 newtype_impl!(SMainBody, "MainBody", false);

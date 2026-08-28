@@ -67,10 +67,12 @@ pub const OMRON_SCHEMA: &str = "https://www.ia.omron.com/Smc IEC61131_10_Ed1_0_S
 
 pub const STRUCT_TYPE_SPEC: &str = "StructTypeSpec";
 pub const ENUM_TYPE_SPEC: &str = "EnumTypeWithNamedValueSpec";
-pub const ARRAY_TYPE_SPEC: &str = "ArrayTypeSpec";
 
 pub const POINTER_UNSUPPORTED_BY_OMRON: &str =
     "Sysmac Studio has no pointer type, so POINTER TO cannot be exported with --xml-omron";
+
+pub const WSTRING_UNSUPPORTED_BY_OMRON: &str =
+    "Sysmac Studio has no wide string type, so WSTRING cannot be exported with --xml-omron";
 
 pub fn find_unsupported_omron_type(
     units: &[&CompilationUnit],
@@ -91,8 +93,12 @@ pub fn find_unsupported_omron_type(
                 continue;
             }
 
-            let DataType::PointerType { name, .. } = &current_usertype.data_type else {
-                continue;
+            let (reason, name) = match &current_usertype.data_type {
+                DataType::PointerType { name, .. } => (POINTER_UNSUPPORTED_BY_OMRON, name),
+                DataType::StringType { name, is_wide: true, .. } => (WSTRING_UNSUPPORTED_BY_OMRON, name),
+                _ => {
+                    continue;
+                }
             };
 
             let reported = match name {
@@ -100,9 +106,21 @@ pub fn find_unsupported_omron_type(
                 None => String::from("<anonymous>"),
             };
 
+            return Some((format!("{reason}: `{reported}`"), current_usertype.location.clone()));
+        }
+
+        for current_variable in collect_declared_variables(current_unit) {
+            if current_variable.location.span == CodeSpan::None {
+                continue;
+            }
+
+            let Some(reason) = unsupported_reason(&current_variable.data_type_declaration) else {
+                continue;
+            };
+
             return Some((
-                format!("{POINTER_UNSUPPORTED_BY_OMRON}: `{reported}`"),
-                current_usertype.location.clone(),
+                format!("{reason}: `{}`", current_variable.name),
+                current_variable.location.clone(),
             ));
         }
     }
@@ -110,10 +128,57 @@ pub fn find_unsupported_omron_type(
     None
 }
 
+fn collect_declared_variables(current_unit: &CompilationUnit) -> Vec<&Variable> {
+    let mut collected: Vec<&Variable> = Vec::new();
+
+    for current_block in &current_unit.global_vars {
+        if current_block.linkage == LinkageType::External {
+            continue;
+        }
+
+        collected.extend(current_block.variables.iter());
+    }
+
+    for current_pou in &current_unit.pous {
+        if current_pou.linkage == LinkageType::External {
+            continue;
+        }
+
+        for current_block in &current_pou.variable_blocks {
+            collected.extend(current_block.variables.iter());
+        }
+    }
+
+    for current_usertype in &current_unit.user_types {
+        if let DataType::StructType { variables, .. } = &current_usertype.data_type {
+            collected.extend(variables.iter());
+        }
+    }
+
+    collected
+}
+
+fn unsupported_reason(declaration: &DataTypeDeclaration) -> Option<&'static str> {
+    match declaration {
+        DataTypeDeclaration::Definition { data_type, .. } => match data_type.as_ref() {
+            DataType::PointerType { .. } => Some(POINTER_UNSUPPORTED_BY_OMRON),
+            DataType::StringType { is_wide: true, .. } => Some(WSTRING_UNSUPPORTED_BY_OMRON),
+            _ => None,
+        },
+        _ => {
+            let declared = declaration.get_name()?;
+
+            declared.eq_ignore_ascii_case("WSTRING").then_some(WSTRING_UNSUPPORTED_BY_OMRON)
+        }
+    }
+}
+
 pub type TypeNameMap = std::collections::HashMap<String, String>;
 
+type TypeSources<'a> = std::collections::HashMap<&'a str, &'a DataType>;
+
 pub fn build_type_name_map(units: &[&CompilationUnit]) -> TypeNameMap {
-    let mut direct = TypeNameMap::default();
+    let mut sources = TypeSources::default();
 
     for &current_unit in units {
         for current_usertype in &current_unit.user_types {
@@ -121,46 +186,79 @@ pub fn build_type_name_map(units: &[&CompilationUnit]) -> TypeNameMap {
                 continue;
             };
 
-            let replacement = match &current_usertype.data_type {
-                DataType::StringType { is_wide, size, .. } => format_string_type(*is_wide, size.as_ref()),
-                DataType::SubRangeType { referenced_type, bounds: None, .. } => referenced_type.clone(),
-                _ => {
-                    continue;
-                }
-            };
-
-            direct.insert(String::from(type_name), replacement);
+            sources.insert(type_name, &current_usertype.data_type);
         }
     }
 
-    let mut flattened = TypeNameMap::default();
+    let mut resolved = TypeNameMap::default();
 
-    for key in direct.keys() {
-        let mut current = key.clone();
-        let mut hops = 0;
+    for (type_name, data_type) in &sources {
+        if let Some(rendered) = render_data_type(data_type, &sources, 0) {
+            resolved.insert(String::from(*type_name), rendered);
+        }
+    }
 
-        while let Some(next) = direct.get(&current) {
-            if next == &current || hops >= MAX_ALIAS_HOPS {
-                break;
+    resolved
+}
+
+fn render_data_type(data_type: &DataType, sources: &TypeSources, depth: usize) -> Option<String> {
+    if depth > MAX_ALIAS_HOPS {
+        return None;
+    }
+
+    match data_type {
+        DataType::StringType { is_wide, size, .. } => Some(format_string_type(*is_wide, size.as_ref())),
+        DataType::SubRangeType { referenced_type, bounds: None, .. } => {
+            Some(render_named_type(referenced_type, sources, depth + 1))
+        }
+        DataType::ArrayType { bounds, referenced_type, .. } => {
+            let dimensions = extract_dimensions(bounds);
+
+            if dimensions.is_empty() {
+                return None;
             }
-            current = next.clone();
-            hops += 1;
+
+            let ranges: Vec<String> =
+                dimensions.iter().map(|(lower, upper)| format!("{lower}..{upper}")).collect();
+
+            let base = render_declared_type(referenced_type, sources, depth + 1)?;
+
+            Some(format!("ARRAY[{}] OF {}", ranges.join(", "), base))
         }
-
-        flattened.insert(key.clone(), current);
+        _ => None,
     }
+}
 
-    flattened
+fn render_named_type(type_name: &str, sources: &TypeSources, depth: usize) -> String {
+    match sources.get(type_name) {
+        Some(inner) => render_data_type(inner, sources, depth).unwrap_or_else(|| String::from(type_name)),
+        None => String::from(type_name),
+    }
+}
+
+fn render_declared_type(
+    declaration: &DataTypeDeclaration,
+    sources: &TypeSources,
+    depth: usize,
+) -> Option<String> {
+    match declaration {
+        DataTypeDeclaration::Definition { data_type, .. } => {
+            render_data_type(data_type, sources, depth).or_else(|| data_type.get_name().map(String::from))
+        }
+        _ => declaration.get_name().map(|a| render_named_type(a, sources, depth)),
+    }
 }
 
 const MAX_ALIAS_HOPS: usize = 16;
+
+pub const DEFAULT_OMRON_STRING_LEN: u32 = 80;
 
 fn format_string_type(is_wide: bool, size: Option<&AstNode>) -> String {
     let base = if is_wide { "WString" } else { "String" };
 
     match size.and_then(extract_literal) {
         Some(length) => format!("{base}[{length}]"),
-        None => String::from(base),
+        None => format!("{base}[{DEFAULT_OMRON_STRING_LEN}]"),
     }
 }
 
@@ -416,47 +514,6 @@ pub(crate) fn generate_custom_types(
 
                 Some(decl_node2)
             }
-            DataType::ArrayType { name, bounds, referenced_type, .. } => {
-                let unwrapped_name = match name {
-                    Some(a) => a.clone(),
-                    None => {
-                        continue;
-                    }
-                };
-
-                let inner_name = match referenced_type.get_name() {
-                    Some(a) => String::from(a),
-                    None => {
-                        continue;
-                    }
-                };
-
-                let dimensions = extract_dimensions(bounds);
-
-                if dimensions.is_empty() {
-                    continue;
-                }
-
-                let base_node = SBaseType::new().child(&STypeName::new().content(inner_name));
-
-                let mut spec_node =
-                    SUserDefinedTypeSpec::new().attribute_str("xsi:type", ARRAY_TYPE_SPEC).child(&base_node);
-
-                for (index, (lower, upper)) in dimensions.into_iter().enumerate() {
-                    let range_node = SIndexRange::new()
-                        .attribute(String::from("lower"), lower)
-                        .attribute(String::from("upper"), upper)
-                        .close();
-
-                    let dimension_node = SDimensionSpec::new()
-                        .attribute(String::from("dimensionNumber"), (index + 1).to_string())
-                        .child(&range_node);
-
-                    spec_node = spec_node.child(&dimension_node);
-                }
-
-                Some(SDataTypeDecl::new().attribute(String::from("name"), unwrapped_name).child(&spec_node))
-            }
             _ => None,
         };
 
@@ -476,10 +533,19 @@ fn resolve_type_name(declaration: &DataTypeDeclaration, type_names: &TypeNameMap
 
     let declared = declaration.get_name()?;
 
-    match type_names.get(declared) {
-        Some(replacement) => Some(replacement.clone()),
-        None => Some(String::from(declared)),
+    if let Some(replacement) = type_names.get(declared) {
+        return Some(replacement.clone());
     }
+
+    if declared.eq_ignore_ascii_case("STRING") {
+        return Some(format_string_type(false, None));
+    }
+
+    if declared.eq_ignore_ascii_case("WSTRING") {
+        return Some(format_string_type(true, None));
+    }
+
+    Some(String::from(declared))
 }
 
 fn extract_literal(input: &AstNode) -> Option<String> {

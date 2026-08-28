@@ -805,87 +805,108 @@ mod xml_gen_tests {
         template.serialize(0)
     }
 
-    #[test]
-    fn test_array_type_emits_base_type_before_dimension_spec() {
-        let contents = render_custom_type(
-            &GenerationParameters::new(),
-            DataType::ArrayType {
-                name: Some(String::from("MyArray")),
-                bounds: make_range(0, 3),
-                referenced_type: Box::new(make_reference("INT")),
-                is_variable_length: false,
-            },
-        );
-
-        assert!(contents.contains("MyArray"));
-        assert!(contents.contains("ArrayTypeSpec"));
-        assert!(contents.contains("<DimensionSpec"));
-        assert!(contents.contains("dimensionNumber=\"1\""));
-        assert!(contents.contains("<IndexRange"));
-        assert!(contents.contains("lower=\"0\""));
-        assert!(contents.contains("upper=\"3\""));
-
-        let base_at = contents.find("<BaseType").expect("BaseType present");
-        let dimension_at = contents.find("<DimensionSpec").expect("DimensionSpec present");
-        assert!(base_at < dimension_at);
+    fn make_array_type(name: &str, bounds: AstNode, base: &str) -> DataType {
+        DataType::ArrayType {
+            name: Some(String::from(name)),
+            bounds,
+            referenced_type: Box::new(make_reference(base)),
+            is_variable_length: false,
+        }
     }
 
     #[test]
-    fn test_multidimensional_array_numbers_each_dimension() {
+    fn test_array_emits_no_declaration() {
+        let contents = render_custom_type(
+            &GenerationParameters::new(),
+            make_array_type("MyArray", make_range(0, 3), "INT"),
+        );
+
+        assert!(!contents.contains("DataTypeDecl"));
+        assert!(!contents.contains("ArrayTypeSpec"));
+    }
+
+    #[test]
+    fn test_array_resolves_to_inline_text_at_use_site() {
+        let contents =
+            render_global_with_user_type(make_array_type("MyArray", make_range(0, 3), "INT"), "MyArray");
+
+        assert!(contents.contains("ARRAY[0..3] OF INT"));
+        assert!(!contents.contains("MyArray"));
+    }
+
+    #[test]
+    fn test_multidimensional_array_lists_every_range() {
         let bounds = AstFactory::create_expression_list(
             vec![make_range(0, 1), make_range(2, 5)],
             SourceLocation::internal(),
             0,
         );
 
-        let contents = render_custom_type(
-            &GenerationParameters::new(),
-            DataType::ArrayType {
-                name: Some(String::from("Grid")),
-                bounds,
-                referenced_type: Box::new(make_reference("BOOL")),
-                is_variable_length: false,
-            },
-        );
+        let contents = render_global_with_user_type(make_array_type("Grid", bounds, "BOOL"), "Grid");
 
-        assert_eq!(contents.matches("<DimensionSpec").count(), 2);
-        assert!(contents.contains("dimensionNumber=\"1\""));
-        assert!(contents.contains("dimensionNumber=\"2\""));
-        assert!(contents.contains("upper=\"1\""));
-        assert!(contents.contains("lower=\"2\""));
-        assert!(contents.contains("upper=\"5\""));
+        assert!(contents.contains("ARRAY[0..1, 2..5] OF BOOL"));
     }
 
     #[test]
-    fn test_array_type_is_emitted_for_omron() {
-        let params = GenerationParameters { output_xml_omron: true };
-        let contents = render_custom_type(
-            &params,
-            DataType::ArrayType {
-                name: Some(String::from("OmronArray")),
-                bounds: make_range(1, 9),
-                referenced_type: Box::new(make_reference("INT")),
-                is_variable_length: false,
-            },
-        );
+    fn test_array_of_alias_resolves_through_to_the_final_type() {
+        let mut unit = make_unit("nested.st");
 
-        assert!(contents.contains("OmronArray"));
-        assert!(contents.contains("ArrayTypeSpec"));
+        unit.user_types.push(make_user_type(DataType::SubRangeType {
+            name: Some(String::from("Count")),
+            referenced_type: String::from("DINT"),
+            referenced_type_location: SourceLocation::internal(),
+            bounds: None,
+        }));
+        unit.user_types.push(make_user_type(make_array_type("Counts", make_range(1, 4), "Count")));
+
+        let map = build_type_name_map(&[&unit]);
+
+        assert_eq!(map.get("Counts").map(String::as_str), Some("ARRAY[1..4] OF DINT"));
     }
 
     #[test]
-    fn test_unnamed_array_is_skipped() {
-        let contents = render_custom_type(
-            &GenerationParameters::new(),
-            DataType::ArrayType {
-                name: None,
-                bounds: make_range(0, 3),
-                referenced_type: Box::new(make_reference("INT")),
-                is_variable_length: false,
-            },
-        );
+    fn test_array_of_string_resolves_the_element_type() {
+        let mut unit = make_unit("nested.st");
 
-        assert!(!contents.contains("ArrayTypeSpec"));
+        unit.user_types.push(make_user_type(DataType::StringType {
+            name: Some(String::from("__Label")),
+            is_wide: false,
+            size: Some(make_integer(12)),
+        }));
+        unit.user_types.push(make_user_type(make_array_type("Labels", make_range(0, 2), "__Label")));
+
+        let map = build_type_name_map(&[&unit]);
+
+        assert_eq!(map.get("Labels").map(String::as_str), Some("ARRAY[0..2] OF String[12]"));
+    }
+
+    #[test]
+    fn test_array_of_struct_keeps_the_struct_name() {
+        let mut unit = make_unit("nested.st");
+
+        unit.user_types.push(make_user_type(DataType::StructType {
+            name: Some(String::from("Motor")),
+            variables: vec![make_variable("speed", "INT")],
+        }));
+        unit.user_types.push(make_user_type(make_array_type("Motors", make_range(0, 1), "Motor")));
+
+        let map = build_type_name_map(&[&unit]);
+
+        assert_eq!(map.get("Motors").map(String::as_str), Some("ARRAY[0..1] OF Motor"));
+    }
+
+    #[test]
+    fn test_unbounded_array_is_not_resolved() {
+        let mut unit = make_unit("nested.st");
+
+        unit.user_types.push(make_user_type(DataType::ArrayType {
+            name: Some(String::from("Vla")),
+            bounds: AstFactory::create_expression_list(vec![], SourceLocation::internal(), 0),
+            referenced_type: Box::new(make_reference("INT")),
+            is_variable_length: true,
+        }));
+
+        assert!(build_type_name_map(&[&unit]).get("Vla").is_none());
     }
 
     #[test]
@@ -960,6 +981,35 @@ mod xml_gen_tests {
         assert!(message.contains(POINTER_UNSUPPORTED_BY_OMRON));
         assert!(message.contains("MyPtr"));
         assert_ne!(location.span, CodeSpan::None);
+    }
+
+    #[test]
+    fn test_wstring_is_reported_as_unsupported_for_omron() {
+        let mut unit = make_unit("wide.st");
+
+        unit.user_types.push(make_user_type(DataType::StringType {
+            name: Some(String::from("__main_wide")),
+            is_wide: true,
+            size: Some(make_integer(16)),
+        }));
+
+        let (message, _) = find_unsupported_omron_type(&[&unit]).expect("wstring is rejected");
+
+        assert!(message.contains(WSTRING_UNSUPPORTED_BY_OMRON));
+        assert!(message.contains("__main_wide"));
+    }
+
+    #[test]
+    fn test_narrow_string_is_not_reported_for_omron() {
+        let mut unit = make_unit("narrow.st");
+
+        unit.user_types.push(make_user_type(DataType::StringType {
+            name: Some(String::from("__main_narrow")),
+            is_wide: false,
+            size: Some(make_integer(16)),
+        }));
+
+        assert!(find_unsupported_omron_type(&[&unit]).is_none());
     }
 
     #[test]
@@ -1120,12 +1170,11 @@ mod xml_gen_tests {
     }
 
     #[test]
-    fn test_unsized_string_resolves_without_brackets() {
+    fn test_unsized_string_resolves_to_the_default_length() {
         let contents = render_global(make_inline_string("__global_plain", false, None), "plain");
 
-        assert!(contents.contains("String"));
+        assert!(contents.contains(&format!("String[{DEFAULT_OMRON_STRING_LEN}]")));
         assert!(!contents.contains("__global_plain"));
-        assert!(!contents.contains("String["));
     }
 
     #[test]
