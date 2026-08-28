@@ -844,7 +844,7 @@ mod xml_gen_tests {
 
         let contents = render_global_with_user_type(make_array_type("Grid", bounds, "BOOL"), "Grid");
 
-        assert!(contents.contains("ARRAY[0..1, 2..5] OF BOOL"));
+        assert!(contents.contains("ARRAY[0..1,2..5] OF BOOL"));
     }
 
     #[test]
@@ -906,7 +906,7 @@ mod xml_gen_tests {
             is_variable_length: true,
         }));
 
-        assert!(build_type_name_map(&[&unit]).get("Vla").is_none());
+        assert!(!build_type_name_map(&[&unit]).contains_key("Vla"));
     }
 
     #[test]

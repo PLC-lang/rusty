@@ -223,7 +223,7 @@ fn render_data_type(data_type: &DataType, sources: &TypeSources, depth: usize) -
 
             let base = render_declared_type(referenced_type, sources, depth + 1)?;
 
-            Some(format!("ARRAY[{}] OF {}", ranges.join(", "), base))
+            Some(format!("ARRAY[{}] OF {}", ranges.join(","), base))
         }
         _ => None,
     }
