@@ -407,7 +407,10 @@ fn evaluate_with_target_hint(
 
                 let inner_elements = AstNode::get_as_list(elements)
                     .iter()
-                    .map(|e| evaluate_with_target_hint(e, scope, index, tt, lhs))
+                    .map(|e| {
+                        evaluate_with_target_hint(e, scope, index, tt, lhs)
+                            .map(|folded| folded.map(|it| restore_element_parens(e, it)))
+                    })
                     .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
                     .into_iter()
                     .collect::<Option<Vec<AstNode>>>();
@@ -680,6 +683,17 @@ fn evaluate_with_target_hint(
         _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {initial:#?}"))),
     };
     Ok(literal)
+}
+
+/// Folding drops parentheses, but inside an array literal they mark an element as a struct
+/// initializer, e.g. `[(a := 1, b := 2)]` against `[a, b]`. Restores the wrapper on every
+/// element that was declared with one.
+fn restore_element_parens(raw: &AstNode, folded: AstNode) -> AstNode {
+    if raw.is_paren() && !folded.is_paren() {
+        return AstFactory::create_paren_expression(folded, raw.get_location(), raw.get_id());
+    }
+
+    folded
 }
 
 /// attempts to resolve the inital value of this reference's target

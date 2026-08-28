@@ -1,6 +1,8 @@
 use plc_ast::ast::AstNode;
 use plc_source::source_location::SourceLocation;
 
+use crate::model::Storage;
+
 pub struct Network {
     pub statements: Vec<Statement>,
     pub temporaries: Vec<Temporary>,
@@ -19,7 +21,7 @@ pub enum Argument {
 }
 
 pub enum Statement {
-    Assignment { sink: AstNode, source: AstNode },
+    Assignment { sink: AstNode, source: AstNode, storage: Option<Storage> },
     Return { condition: AstNode, location: SourceLocation },
     Jump { condition: Option<AstNode>, target: String, location: SourceLocation },
     Label { name: String, location: SourceLocation },

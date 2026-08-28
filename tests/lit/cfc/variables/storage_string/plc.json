@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_storage_string",
+	"files" : [
+		"storage_string.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
