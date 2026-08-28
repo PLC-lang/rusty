@@ -84,7 +84,7 @@ fn substitute_type_decl(
                 .unwrap_or_else(|| referenced_type.clone()),
             location: location.clone(),
         },
-        DataTypeDeclaration::Definition { data_type, location, scope, linkage } => {
+        DataTypeDeclaration::Definition { data_type, location, scope } => {
             // A bare generic placeholder collapses to a plain reference to its concrete type.
             if let DataType::GenericType { generic_symbol, .. } = data_type.as_ref() {
                 if let Some(concrete) = subst.get(generic_symbol) {
@@ -98,7 +98,6 @@ fn substitute_type_decl(
                 data_type: Box::new(substitute_data_type(index, data_type, subst)),
                 location: location.clone(),
                 scope: scope.clone(),
-                linkage: *linkage,
             }
         }
     }
@@ -527,7 +526,6 @@ mod tests {
             }),
             location: SourceLocation::internal(),
             scope: None,
-            linkage: LinkageType::Internal,
         };
         let DataTypeDeclaration::Definition { data_type, .. } =
             substitute_type_decl(&Index::default(), &decl, &subst(&[("T", "STRING")]))

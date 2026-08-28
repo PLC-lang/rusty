@@ -163,7 +163,6 @@ impl UserTypeIndexer<'_, '_> {
                         }),
                         location: SourceLocation::internal(),
                         scope: None,
-                        linkage: LinkageType::Internal,
                     },
                     DataTypeDeclaration::Definition {
                         data_type: Box::new(DataType::ArrayType {
@@ -199,7 +198,6 @@ impl UserTypeIndexer<'_, '_> {
                         }),
                         location: SourceLocation::internal(),
                         scope: None,
-                        linkage: LinkageType::Internal,
                     },
                 )
             };

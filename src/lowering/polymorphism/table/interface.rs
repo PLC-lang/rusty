@@ -125,7 +125,6 @@ impl InterfaceTableGenerator {
                         )),
                         location: location.clone(),
                         scope: None,
-                        linkage: LinkageType::Internal,
                     },
                     initializer: None,
                     address: None,
@@ -333,7 +332,7 @@ impl InterfaceTableGenerator {
 /// Internal helper functions for itable name generation, method deduplication, and interface
 /// obligation collection.
 pub mod helper {
-    use plc_ast::ast::{DataType, DataTypeDeclaration, LinkageType, Variable};
+    use plc_ast::ast::{DataType, DataTypeDeclaration, Variable};
     use plc_source::source_location::SourceLocation;
     use rustc_hash::FxHashSet;
 
@@ -387,7 +386,6 @@ pub mod helper {
                 }),
                 location: location.clone(),
                 scope: None,
-                linkage: LinkageType::Internal,
             },
             initializer: None,
             address: None,

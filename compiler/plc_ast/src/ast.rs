@@ -730,12 +730,7 @@ pub enum DataTypeDeclaration {
         referenced_type: String,
         location: SourceLocation,
     },
-    Definition {
-        data_type: Box<DataType>,
-        location: SourceLocation,
-        scope: Option<String>,
-        linkage: LinkageType,
-    },
+    Definition { data_type: Box<DataType>, location: SourceLocation, scope: Option<String> },
     Aggregate {
         referenced_type: String,
         location: SourceLocation,

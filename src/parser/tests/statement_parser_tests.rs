@@ -140,7 +140,6 @@ fn inline_enum_declaration_can_be_parsed() {
             }),
             location: SourceLocation::internal(),
             scope: None,
-            linkage: plc_ast::ast::LinkageType::Internal,
         },
         initializer: None,
         address: None,

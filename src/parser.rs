@@ -1065,7 +1065,6 @@ fn parse_full_data_type_definition(
                     data_type: Box::new(DataType::VarArgs { referenced_type: None, sized }),
                     location: lexer.last_location(),
                     scope: lexer.scope.clone(),
-                    linkage: *linkage,
                 },
                 None,
             ))
@@ -1080,7 +1079,6 @@ fn parse_full_data_type_definition(
                             }),
                             location: lexer.last_location(),
                             scope: lexer.scope.clone(),
-                            linkage: *linkage,
                         },
                         None,
                     )
@@ -1115,7 +1113,6 @@ fn parse_data_type_definition(
                 data_type: Box::new(DataType::StructType { name, variables }),
                 location: start.span(&lexer.location()),
                 scope: lexer.scope.clone(),
-                linkage: *linkage,
             },
             None,
         ))
@@ -1151,11 +1148,11 @@ fn parse_data_type_definition(
             linkage,
         )
     } else if lexer.try_consume(KeywordParensOpen) {
-        parse_enum_type_definition(lexer, name, linkage)
+        parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
-        parse_string_type_definition(lexer, name, linkage)
+        parse_string_type_definition(lexer, name)
     } else if lexer.token == Identifier {
-        parse_type_reference_type_definition(lexer, name, linkage)
+        parse_type_reference_type_definition(lexer, name)
     } else {
         //no datatype?
         lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
@@ -1189,7 +1186,6 @@ fn parse_pointer_definition(
                 // FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
-                linkage: *linkage,
             },
             initializer,
         )
@@ -1199,7 +1195,6 @@ fn parse_pointer_definition(
 fn parse_type_reference_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
-    linkage: &LinkageType,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let start = lexer.range().start;
 
@@ -1245,7 +1240,6 @@ fn parse_type_reference_type_definition(
                     }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
-                    linkage: *linkage,
                 }
             }
             Some(AstNode {
@@ -1261,7 +1255,6 @@ fn parse_type_reference_type_definition(
                     }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
-                    linkage: *linkage,
                 }
             }
             _ => DataTypeDeclaration::Definition {
@@ -1274,7 +1267,6 @@ fn parse_type_reference_type_definition(
                 }),
                 location: lexer.source_range_factory.create_range(start..end),
                 scope: lexer.scope.clone(),
-                linkage: *linkage,
             },
         };
         Some((data_type, initial_value))
@@ -1330,7 +1322,6 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
 fn parse_string_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
-    linkage: &LinkageType,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let text = lexer.slice().to_string();
     let start = lexer.range().start;
@@ -1352,14 +1343,12 @@ fn parse_string_type_definition(
                 data_type: Box::new(DataType::EnumType { name, numeric_type: text, elements: size }),
                 location,
                 scope: lexer.scope.clone(),
-                linkage: *linkage,
             })
         }
         (Some(size), _, false) => Some(DataTypeDeclaration::Definition {
             data_type: Box::new(DataType::StringType { name, is_wide, size: Some(size) }),
             location,
             scope: lexer.scope.clone(),
-            linkage: *linkage,
         }),
         (None, Some(name), _) => Some(DataTypeDeclaration::Definition {
             data_type: Box::new(DataType::SubRangeType {
@@ -1376,7 +1365,6 @@ fn parse_string_type_definition(
             }),
             location,
             scope: lexer.scope.clone(),
-            linkage: *linkage,
         }),
         _ => Some(DataTypeDeclaration::Reference { referenced_type: text, location }),
     }
@@ -1389,7 +1377,6 @@ fn parse_string_type_definition(
 fn parse_enum_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
-    linkage: &LinkageType,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let start = lexer.last_location();
 
@@ -1404,7 +1391,6 @@ fn parse_enum_type_definition(
             data_type: Box::new(DataType::EnumType { name, elements, numeric_type }),
             location: start.span(&lexer.last_location()),
             scope: lexer.scope.clone(),
-            linkage: *linkage,
         },
         initializer,
     ))
@@ -1526,7 +1512,6 @@ fn parse_array_type_definition(
                 }),
                 location,
                 scope: lexer.scope.clone(),
-                linkage: *linkage,
             },
             initializer,
         )
