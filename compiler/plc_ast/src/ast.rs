@@ -541,13 +541,6 @@ pub enum VariableBlockType {
     External,
 }
 
-#[derive(Debug, Copy, PartialEq, Eq, Clone, Serialize)]
-pub enum NetworkPublishMode {
-    DoNotPublish,
-    PublishOnly,
-    Input,
-    Output,
-}
 impl VariableBlockType {
     pub fn is_temp(&self) -> bool {
         matches!(self, VariableBlockType::Temp)
@@ -576,17 +569,6 @@ impl Display for VariableBlockType {
             VariableBlockType::Global => write!(f, "global"),
             VariableBlockType::InOut => write!(f, "inout"),
             VariableBlockType::External => write!(f, "external"),
-        }
-    }
-}
-
-impl Display for NetworkPublishMode {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            NetworkPublishMode::DoNotPublish => write!(f, "DoNotPublish"),
-            NetworkPublishMode::PublishOnly => write!(f, "PublishOnly"),
-            NetworkPublishMode::Input => write!(f, "Input"),
-            NetworkPublishMode::Output => write!(f, "Output"),
         }
     }
 }
