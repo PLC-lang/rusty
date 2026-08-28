@@ -662,7 +662,7 @@ pub(crate) fn generate_pous(
         let extended_supported =
             matches!(current_impl.pou_type, PouType::Class | PouType::Method { .. } | PouType::Action);
 
-        if !omron_supported && !(extended_supported && !generation_parameters.output_xml_omron) {
+        if !omron_supported && (!extended_supported || generation_parameters.output_xml_omron) {
             continue;
         }
 
