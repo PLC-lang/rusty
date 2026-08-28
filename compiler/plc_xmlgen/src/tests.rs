@@ -205,7 +205,15 @@ mod xml_gen_tests {
         retain_block.retain = true;
         unit.global_vars.push(retain_block);
 
-        let result = generate_globals(&params, &unit, "globals.st", OMRON_SCHEMA, &mut order, &mut template);
+        let result = generate_globals(
+            &params,
+            &unit,
+            "globals.st",
+            OMRON_SCHEMA,
+            &build_type_name_map(&[&unit]),
+            &mut order,
+            &mut template,
+        );
         assert!(result.is_ok());
 
         // Write the tree to verify the structure
@@ -269,7 +277,7 @@ mod xml_gen_tests {
             linkage: LinkageType::Internal,
         });
 
-        let result = generate_custom_types(&params, &unit, &mut template);
+        let result = generate_custom_types(&params, &unit, &build_type_name_map(&[&unit]), &mut template);
         assert!(result.is_ok());
 
         // Write and verify
@@ -356,7 +364,14 @@ mod xml_gen_tests {
             access: None,
         });
 
-        let result = generate_pous(&params, &unit, OMRON_SCHEMA, &mut order, &mut template);
+        let result = generate_pous(
+            &params,
+            &unit,
+            OMRON_SCHEMA,
+            &build_type_name_map(&[&unit]),
+            &mut order,
+            &mut template,
+        );
         assert!(result.is_ok());
 
         // Write and verify
@@ -437,7 +452,14 @@ mod xml_gen_tests {
             access: None,
         });
 
-        let result = generate_pous(&params, &unit, OMRON_SCHEMA, &mut order, &mut template);
+        let result = generate_pous(
+            &params,
+            &unit,
+            OMRON_SCHEMA,
+            &build_type_name_map(&[&unit]),
+            &mut order,
+            &mut template,
+        );
         assert!(result.is_ok());
 
         let output_path = temp_dir.join("test_generate_pous_external_output.xml");
@@ -749,7 +771,6 @@ mod xml_gen_tests {
         assert_eq!(result.len(), 3);
     }
 
-    /// Helper: Wrap a DataType as a user type declaration with a visible source location.
     fn make_user_type(data_type: DataType) -> UserTypeDeclaration {
         UserTypeDeclaration {
             data_type,
@@ -760,70 +781,31 @@ mod xml_gen_tests {
         }
     }
 
-    /// Helper: Build an integer literal AST node.
     fn make_integer(value: i128) -> AstNode {
         AstFactory::create_literal(AstLiteral::Integer(value), SourceLocation::internal(), 0)
     }
 
-    /// Helper: Build a `lower..upper` range AST node.
     fn make_range(lower: i128, upper: i128) -> AstNode {
         AstFactory::create_range_statement(make_integer(lower), make_integer(upper), 0)
     }
 
-    /// Helper: Build a type reference declaration.
     fn make_reference(type_name: &str) -> DataTypeDeclaration {
         DataTypeDeclaration::reference(String::from(type_name), SourceLocation::internal())
     }
 
-    /// Helper: Run generate_custom_types over one user type and return the serialized XML.
     fn render_custom_type(params: &GenerationParameters, data_type: DataType) -> String {
         let mut template = get_omron_template();
         let mut unit = make_unit("test_types.st");
         unit.user_types.push(make_user_type(data_type));
 
-        let result = generate_custom_types(params, &unit, &mut template);
+        let result = generate_custom_types(params, &unit, &build_type_name_map(&[&unit]), &mut template);
         assert!(result.is_ok());
 
         template.serialize(0)
     }
 
     #[test]
-    fn test_alias_type_emits_derived_type_spec() {
-        let contents = render_custom_type(
-            &GenerationParameters::new(),
-            DataType::SubRangeType {
-                name: Some(String::from("MyAlias")),
-                referenced_type: String::from("INT"),
-                referenced_type_location: SourceLocation::internal(),
-                bounds: None,
-            },
-        );
-
-        assert!(contents.contains("DataTypeDecl"));
-        assert!(contents.contains("MyAlias"));
-        assert!(contents.contains("DerivedTypeSpec"));
-        assert!(contents.contains("<BaseType>INT</BaseType>"));
-    }
-
-    #[test]
-    fn test_alias_type_is_emitted_for_omron() {
-        let params = GenerationParameters { output_xml_omron: true };
-        let contents = render_custom_type(
-            &params,
-            DataType::SubRangeType {
-                name: Some(String::from("OmronAlias")),
-                referenced_type: String::from("DINT"),
-                referenced_type_location: SourceLocation::internal(),
-                bounds: None,
-            },
-        );
-
-        assert!(contents.contains("OmronAlias"));
-        assert!(contents.contains("DerivedTypeSpec"));
-    }
-
-    #[test]
-    fn test_array_type_emits_array_type_spec_with_dimension() {
+    fn test_array_type_emits_base_type_before_dimension_spec() {
         let contents = render_custom_type(
             &GenerationParameters::new(),
             DataType::ArrayType {
@@ -836,13 +818,19 @@ mod xml_gen_tests {
 
         assert!(contents.contains("MyArray"));
         assert!(contents.contains("ArrayTypeSpec"));
-        assert!(contents.contains("lowerBound=\"0\""));
-        assert!(contents.contains("upperBound=\"3\""));
-        assert!(contents.contains("<BaseType>INT</BaseType>"));
+        assert!(contents.contains("<DimensionSpec"));
+        assert!(contents.contains("dimensionNumber=\"1\""));
+        assert!(contents.contains("<IndexRange"));
+        assert!(contents.contains("lower=\"0\""));
+        assert!(contents.contains("upper=\"3\""));
+
+        let base_at = contents.find("<BaseType").expect("BaseType present");
+        let dimension_at = contents.find("<DimensionSpec").expect("DimensionSpec present");
+        assert!(base_at < dimension_at);
     }
 
     #[test]
-    fn test_multidimensional_array_emits_one_dimension_per_axis() {
+    fn test_multidimensional_array_numbers_each_dimension() {
         let bounds = AstFactory::create_expression_list(
             vec![make_range(0, 1), make_range(2, 5)],
             SourceLocation::internal(),
@@ -859,10 +847,12 @@ mod xml_gen_tests {
             },
         );
 
-        assert_eq!(contents.matches("<Dimension").count(), 2);
-        assert!(contents.contains("upperBound=\"1\""));
-        assert!(contents.contains("lowerBound=\"2\""));
-        assert!(contents.contains("upperBound=\"5\""));
+        assert_eq!(contents.matches("<DimensionSpec").count(), 2);
+        assert!(contents.contains("dimensionNumber=\"1\""));
+        assert!(contents.contains("dimensionNumber=\"2\""));
+        assert!(contents.contains("upper=\"1\""));
+        assert!(contents.contains("lower=\"2\""));
+        assert!(contents.contains("upper=\"5\""));
     }
 
     #[test]
@@ -883,141 +873,7 @@ mod xml_gen_tests {
     }
 
     #[test]
-    fn test_pointer_type_emits_ref_type_spec() {
-        let contents = render_custom_type(
-            &GenerationParameters::new(),
-            DataType::PointerType {
-                name: Some(String::from("MyPtr")),
-                referenced_type: Box::new(make_reference("INT")),
-                auto_deref: None,
-                type_safe: true,
-                is_function: false,
-            },
-        );
-
-        assert!(contents.contains("MyPtr"));
-        assert!(contents.contains("RefTypeSpec"));
-        assert!(contents.contains("<BaseType>INT</BaseType>"));
-    }
-
-    #[test]
-    fn test_pointer_type_is_emitted_for_omron() {
-        let params = GenerationParameters { output_xml_omron: true };
-        let contents = render_custom_type(
-            &params,
-            DataType::PointerType {
-                name: Some(String::from("OmronPtr")),
-                referenced_type: Box::new(make_reference("BOOL")),
-                auto_deref: None,
-                type_safe: true,
-                is_function: false,
-            },
-        );
-
-        assert!(contents.contains("OmronPtr"));
-        assert!(contents.contains("RefTypeSpec"));
-    }
-
-    #[test]
-    fn test_string_type_emits_string_type_spec_with_max_length() {
-        let contents = render_custom_type(
-            &GenerationParameters::new(),
-            DataType::StringType {
-                name: Some(String::from("MyString")),
-                is_wide: false,
-                size: Some(make_integer(32)),
-            },
-        );
-
-        assert!(contents.contains("MyString"));
-        assert!(contents.contains("StringTypeSpec"));
-        assert!(contents.contains("maxLength=\"32\""));
-        assert!(contents.contains("<BaseType>STRING</BaseType>"));
-    }
-
-    #[test]
-    fn test_wide_string_type_emits_wstring_base_type() {
-        let contents = render_custom_type(
-            &GenerationParameters::new(),
-            DataType::StringType {
-                name: Some(String::from("MyWString")),
-                is_wide: true,
-                size: Some(make_integer(8)),
-            },
-        );
-
-        assert!(contents.contains("MyWString"));
-        assert!(contents.contains("<BaseType>WSTRING</BaseType>"));
-    }
-
-    #[test]
-    fn test_string_type_without_size_omits_max_length() {
-        let contents = render_custom_type(
-            &GenerationParameters::new(),
-            DataType::StringType { name: Some(String::from("Unsized")), is_wide: false, size: None },
-        );
-
-        assert!(contents.contains("Unsized"));
-        assert!(contents.contains("StringTypeSpec"));
-        assert!(!contents.contains("maxLength"));
-    }
-
-    #[test]
-    fn test_string_type_is_emitted_for_omron() {
-        let params = GenerationParameters { output_xml_omron: true };
-        let contents = render_custom_type(
-            &params,
-            DataType::StringType {
-                name: Some(String::from("OmronString")),
-                is_wide: false,
-                size: Some(make_integer(16)),
-            },
-        );
-
-        assert!(contents.contains("OmronString"));
-        assert!(contents.contains("StringTypeSpec"));
-        assert!(contents.contains("maxLength=\"16\""));
-    }
-
-    #[test]
-    fn test_subrange_type_emits_subrange_type_spec_when_not_omron() {
-        let contents = render_custom_type(
-            &GenerationParameters::new(),
-            DataType::SubRangeType {
-                name: Some(String::from("MySub")),
-                referenced_type: String::from("INT"),
-                referenced_type_location: SourceLocation::internal(),
-                bounds: Some(make_range(0, 100)),
-            },
-        );
-
-        assert!(contents.contains("MySub"));
-        assert!(contents.contains("SubrangeTypeSpec"));
-        assert!(contents.contains("<Range"));
-        assert!(contents.contains("lowerBound=\"0\""));
-        assert!(contents.contains("upperBound=\"100\""));
-        assert!(contents.contains("<BaseType>INT</BaseType>"));
-    }
-
-    #[test]
-    fn test_subrange_type_is_dropped_for_omron() {
-        let params = GenerationParameters { output_xml_omron: true };
-        let contents = render_custom_type(
-            &params,
-            DataType::SubRangeType {
-                name: Some(String::from("MySub")),
-                referenced_type: String::from("INT"),
-                referenced_type_location: SourceLocation::internal(),
-                bounds: Some(make_range(0, 100)),
-            },
-        );
-
-        assert!(!contents.contains("MySub"));
-        assert!(!contents.contains("SubrangeTypeSpec"));
-    }
-
-    #[test]
-    fn test_unnamed_types_are_skipped() {
+    fn test_unnamed_array_is_skipped() {
         let contents = render_custom_type(
             &GenerationParameters::new(),
             DataType::ArrayType {
@@ -1031,8 +887,246 @@ mod xml_gen_tests {
         assert!(!contents.contains("ArrayTypeSpec"));
     }
 
-    /// Helper: Run generate_pous over one POU kind, returning the serialized XML.
-    /// Actions carry no entry in unit.pous, matching what the parser produces.
+    #[test]
+    fn test_alias_emits_no_declaration() {
+        let contents = render_custom_type(
+            &GenerationParameters::new(),
+            DataType::SubRangeType {
+                name: Some(String::from("MyAlias")),
+                referenced_type: String::from("INT"),
+                referenced_type_location: SourceLocation::internal(),
+                bounds: None,
+            },
+        );
+
+        assert!(!contents.contains("MyAlias"));
+        assert!(!contents.contains("DataTypeDecl"));
+    }
+
+    #[test]
+    fn test_subrange_emits_no_declaration() {
+        let contents = render_custom_type(
+            &GenerationParameters::new(),
+            DataType::SubRangeType {
+                name: Some(String::from("MySub")),
+                referenced_type: String::from("INT"),
+                referenced_type_location: SourceLocation::internal(),
+                bounds: Some(make_range(0, 100)),
+            },
+        );
+
+        assert!(!contents.contains("MySub"));
+        assert!(!contents.contains("DataTypeDecl"));
+    }
+
+    #[test]
+    fn test_pointer_emits_no_declaration() {
+        let contents = render_custom_type(
+            &GenerationParameters::new(),
+            DataType::PointerType {
+                name: Some(String::from("MyPtr")),
+                referenced_type: Box::new(make_reference("INT")),
+                auto_deref: None,
+                type_safe: true,
+                is_function: false,
+            },
+        );
+
+        assert!(!contents.contains("MyPtr"));
+        assert!(!contents.contains("DataTypeDecl"));
+    }
+
+    #[test]
+    fn test_string_emits_no_declaration() {
+        let contents = render_custom_type(
+            &GenerationParameters::new(),
+            DataType::StringType {
+                name: Some(String::from("__prog_myString")),
+                is_wide: false,
+                size: Some(make_integer(32)),
+            },
+        );
+
+        assert!(!contents.contains("__prog_myString"));
+        assert!(!contents.contains("DataTypeDecl"));
+    }
+
+    fn make_inline_string(internal_name: &str, is_wide: bool, size: Option<i128>) -> DataTypeDeclaration {
+        DataTypeDeclaration::Definition {
+            data_type: Box::new(DataType::StringType {
+                name: Some(String::from(internal_name)),
+                is_wide,
+                size: size.map(make_integer),
+            }),
+            location: SourceLocation::internal(),
+            scope: None,
+        }
+    }
+
+    fn render_global(declaration: DataTypeDeclaration, name: &str) -> String {
+        let mut template = get_omron_template();
+        let mut order: HashSet<(String, usize)> = HashSet::new();
+        let params = GenerationParameters::new();
+
+        let variable = Variable {
+            name: String::from(name),
+            data_type_declaration: declaration,
+            initializer: None,
+            address: None,
+            location: make_source_location(),
+        };
+
+        let mut unit = make_unit("strings.st");
+        unit.global_vars.push(VariableBlock::global().with_variables(vec![variable]));
+
+        let result = generate_globals(
+            &params,
+            &unit,
+            "strings.st",
+            OMRON_SCHEMA,
+            &build_type_name_map(&[&unit]),
+            &mut order,
+            &mut template,
+        );
+        assert!(result.is_ok());
+
+        template.serialize(0)
+    }
+
+    #[test]
+    fn test_sized_string_resolves_to_inline_type_name() {
+        let contents = render_global(make_inline_string("__global_gName", false, Some(32)), "gName");
+
+        assert!(contents.contains("String[32]"));
+        assert!(!contents.contains("__global_gName"));
+    }
+
+    #[test]
+    fn test_sized_wstring_resolves_to_inline_type_name() {
+        let contents = render_global(make_inline_string("__global_wide", true, Some(8)), "wide");
+
+        assert!(contents.contains("WString[8]"));
+        assert!(!contents.contains("__global_wide"));
+    }
+
+    #[test]
+    fn test_unsized_string_resolves_without_brackets() {
+        let contents = render_global(make_inline_string("__global_plain", false, None), "plain");
+
+        assert!(contents.contains("String"));
+        assert!(!contents.contains("__global_plain"));
+        assert!(!contents.contains("String["));
+    }
+
+    #[test]
+    fn test_string_resolution_is_keyed_on_type_not_variable_name() {
+        let contents = render_global(make_reference("INT"), "myStringLikeName");
+
+        assert!(contents.contains("INT"));
+        assert!(!contents.contains("String[1986]"));
+    }
+
+    #[test]
+    fn test_non_string_reference_keeps_its_name() {
+        let contents = render_global(make_reference("MyStruct"), "s");
+
+        assert!(contents.contains("MyStruct"));
+    }
+
+    fn render_global_with_user_type(user_type: DataType, reference: &str) -> String {
+        let mut template = get_omron_template();
+        let mut order: HashSet<(String, usize)> = HashSet::new();
+        let params = GenerationParameters::new();
+
+        let mut unit = make_unit("aliases.st");
+        unit.user_types.push(make_user_type(user_type));
+        unit.global_vars
+            .push(VariableBlock::global().with_variables(vec![make_variable("target", reference)]));
+
+        let result = generate_globals(
+            &params,
+            &unit,
+            "aliases.st",
+            OMRON_SCHEMA,
+            &build_type_name_map(&[&unit]),
+            &mut order,
+            &mut template,
+        );
+        assert!(result.is_ok());
+
+        template.serialize(0)
+    }
+
+    #[test]
+    fn test_hoisted_alias_resolves_to_underlying_type_at_use_site() {
+        let contents = render_global_with_user_type(
+            DataType::SubRangeType {
+                name: Some(String::from("MyAlias")),
+                referenced_type: String::from("INT"),
+                referenced_type_location: SourceLocation::internal(),
+                bounds: None,
+            },
+            "MyAlias",
+        );
+
+        assert!(contents.contains("INT"));
+        assert!(!contents.contains("MyAlias"));
+    }
+
+    #[test]
+    fn test_hoisted_string_resolves_to_sized_name_at_use_site() {
+        let contents = render_global_with_user_type(
+            DataType::StringType {
+                name: Some(String::from("__global_target")),
+                is_wide: false,
+                size: Some(make_integer(64)),
+            },
+            "__global_target",
+        );
+
+        assert!(contents.contains("String[64]"));
+        assert!(!contents.contains("__global_target"));
+    }
+
+    #[test]
+    fn test_alias_chain_flattens_to_the_final_type() {
+        let mut unit = make_unit("chain.st");
+
+        unit.user_types.push(make_user_type(DataType::SubRangeType {
+            name: Some(String::from("Inner")),
+            referenced_type: String::from("DINT"),
+            referenced_type_location: SourceLocation::internal(),
+            bounds: None,
+        }));
+        unit.user_types.push(make_user_type(DataType::SubRangeType {
+            name: Some(String::from("Outer")),
+            referenced_type: String::from("Inner"),
+            referenced_type_location: SourceLocation::internal(),
+            bounds: None,
+        }));
+
+        let map = build_type_name_map(&[&unit]);
+
+        assert_eq!(map.get("Outer").map(String::as_str), Some("DINT"));
+        assert_eq!(map.get("Inner").map(String::as_str), Some("DINT"));
+    }
+
+    #[test]
+    fn test_self_referential_alias_does_not_hang() {
+        let mut unit = make_unit("cycle.st");
+
+        unit.user_types.push(make_user_type(DataType::SubRangeType {
+            name: Some(String::from("Loop")),
+            referenced_type: String::from("Loop"),
+            referenced_type_location: SourceLocation::internal(),
+            bounds: None,
+        }));
+
+        let map = build_type_name_map(&[&unit]);
+
+        assert_eq!(map.get("Loop").map(String::as_str), Some("Loop"));
+    }
+
     fn render_pou(
         params: &GenerationParameters,
         name: &str,
@@ -1094,7 +1188,14 @@ mod xml_gen_tests {
             access: None,
         });
 
-        let result = generate_pous(params, &unit, OMRON_SCHEMA, &mut order, &mut template);
+        let result = generate_pous(
+            params,
+            &unit,
+            OMRON_SCHEMA,
+            &build_type_name_map(&[&unit]),
+            &mut order,
+            &mut template,
+        );
         assert!(result.is_ok());
 
         let _ = std::fs::remove_file(&st_path);
