@@ -52,8 +52,8 @@ use plc::{
 };
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration,
-        LinkageType, Operator, PouType, Variable, VariableBlockType,
+        AstFactory, AstNode, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration, LinkageType,
+        Operator, PouType, Variable, VariableBlockType,
     },
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
