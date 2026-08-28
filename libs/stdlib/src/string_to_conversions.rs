@@ -19,6 +19,7 @@ use plc_parser::{
     parse_literal_time_of_day,
 };
 use plc_source::source_location::SourceLocationFactory;
+use std::borrow::Cow;
 
 const NANOS_PER_MILLISECOND: f64 = 1_000_000.0;
 const NANOS_PER_SECOND: f64 = 1_000_000_000.0;
@@ -127,6 +128,16 @@ pub unsafe extern "C" fn STRING_TO_BOOL(src: *const u8) -> bool {
 
 // --------- integer / bit-string widths
 
+fn normalize_integer_literal(input: &str) -> Cow<'_, str> {
+    if let Some(digits) = input.strip_prefix("0b").or_else(|| input.strip_prefix("0B")) {
+        Cow::Owned(format!("2#{digits}"))
+    } else if let Some(digits) = input.strip_prefix("0x").or_else(|| input.strip_prefix("0X")) {
+        Cow::Owned(format!("16#{digits}"))
+    } else {
+        Cow::Borrowed(input)
+    }
+}
+
 /// One radix-prefix + full-consumption parse rule shared by every integer width, so widening a
 /// variable never changes the parsed value.
 macro_rules! string_to_int_fn {
@@ -136,7 +147,8 @@ macro_rules! string_to_int_fn {
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $name(src: *const u8) -> $ty {
-            parse_integer(trimmed_str(src)).and_then(NumCast::from).unwrap_or_default()
+            let input = normalize_integer_literal(trimmed_str(src));
+            parse_integer(&input).and_then(NumCast::from).unwrap_or_default()
         }
     };
 }
@@ -144,7 +156,9 @@ macro_rules! string_to_int_fn {
 string_to_int_fn!(STRING_TO_BYTE, u8);
 string_to_int_fn!(STRING_TO_WORD, u16);
 string_to_int_fn!(STRING_TO_DWORD, u32);
+string_to_int_fn!(STRING_TO_DINT, i32);
 string_to_int_fn!(STRING_TO_LWORD, u64);
+string_to_int_fn!(STRING_TO_LINT, i64);
 string_to_int_fn!(STRING_TO_SINT, i8);
 string_to_int_fn!(STRING_TO_USINT, u8);
 string_to_int_fn!(STRING_TO_INT, i16);
@@ -199,8 +213,13 @@ pub unsafe extern "C" fn STRING_TO_DATE(src: *const u8) -> u32 {
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_DT(src: *const u8) -> u32 {
     let s = trimmed_str(src);
+    let source = if !s.contains('#') && !s.contains('T') && !s.contains('t') && s.matches('-').count() == 2 {
+        format!("DT#{s}-00:00:00")
+    } else {
+        s.to_owned()
+    };
     date_time_seconds(
-        parse_prefixed_literal(s, "DT#", Token::LiteralDateAndTime, parse_literal_date_and_time)
+        parse_prefixed_literal(&source, "DT#", Token::LiteralDateAndTime, parse_literal_date_and_time)
             .unwrap_or(AstLiteral::Integer(0)),
     )
     .unwrap_or(0)
@@ -230,6 +249,9 @@ mod tests {
         f(format!("{s}\0").as_ptr())
     }
     unsafe fn call_u32(f: unsafe extern "C" fn(*const u8) -> u32, s: &str) -> u32 {
+        f(format!("{s}\0").as_ptr())
+    }
+    unsafe fn call_i32(f: unsafe extern "C" fn(*const u8) -> i32, s: &str) -> i32 {
         f(format!("{s}\0").as_ptr())
     }
     unsafe fn call_u64(f: unsafe extern "C" fn(*const u8) -> u64, s: &str) -> u64 {
@@ -279,7 +301,9 @@ mod tests {
     fn one_parse_rule_at_every_width() {
         unsafe {
             assert_eq!(call_u32(STRING_TO_UDINT, "12abc"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "12abc"), 0);
             assert_eq!(call_u64(STRING_TO_ULINT, "12abc"), 0);
+            assert_eq!(call_i64(STRING_TO_LINT, "12abc"), 0);
             assert_eq!(call_u32(STRING_TO_UDINT, "12 34"), 0);
             assert_eq!(call_u64(STRING_TO_ULINT, "12 34"), 0);
             assert_eq!(call_u32(STRING_TO_UDINT, "1e3"), 0);
@@ -287,9 +311,21 @@ mod tests {
             assert_eq!(call_u32(STRING_TO_UDINT, "8#19"), 0);
             assert_eq!(call_u64(STRING_TO_ULINT, "8#19"), 0);
             assert_eq!(call_u32(STRING_TO_UDINT, "  12  "), 12);
+            assert_eq!(call_i32(STRING_TO_DINT, "  12  "), 12);
             assert_eq!(call_u64(STRING_TO_ULINT, "  12  "), 12);
+            assert_eq!(call_i64(STRING_TO_LINT, "  12  "), 12);
             assert_eq!(call_u32(STRING_TO_UDINT, "16#FF"), 255);
             assert_eq!(call_u64(STRING_TO_ULINT, "16#FF"), 255);
+            assert_eq!(call_i32(STRING_TO_DINT, "2#1111"), 15);
+            assert_eq!(call_i64(STRING_TO_LINT, "2#1111"), 15);
+            assert_eq!(call_i32(STRING_TO_DINT, "8#77"), 63);
+            assert_eq!(call_i64(STRING_TO_LINT, "8#77"), 63);
+            assert_eq!(call_i32(STRING_TO_DINT, "16#FF"), 255);
+            assert_eq!(call_i64(STRING_TO_LINT, "16#FF"), 255);
+            assert_eq!(call_u32(STRING_TO_UDINT, "0b1010"), 10);
+            assert_eq!(call_i32(STRING_TO_DINT, "0B1010"), 10);
+            assert_eq!(call_u64(STRING_TO_ULINT, "0xFF"), 255);
+            assert_eq!(call_i64(STRING_TO_LINT, "0XFF"), 255);
             assert_eq!(call_u32(STRING_TO_UDINT, "1.9"), 1);
             assert_eq!(call_u64(STRING_TO_ULINT, "1.9"), 1);
             assert_eq!(call_i16(STRING_TO_INT, "-1"), -1);
@@ -368,6 +404,9 @@ mod tests {
 
             assert_eq!(call_u32(STRING_TO_TOD, "12:00:00"), 12 * 3_600_000);
             assert_eq!(call_u32(STRING_TO_TOD, "12:00:00.500"), 12 * 3_600_000 + 500);
+
+            let dt_date_only = call_u32(STRING_TO_DT, "2024-01-01");
+            assert_eq!(dt_date_only, d1);
 
             let dt1 = call_u32(STRING_TO_DT, "2024-01-01-12:00:00");
             let dt2 = call_u32(STRING_TO_DT, "2024-01-01T12:00:00");
