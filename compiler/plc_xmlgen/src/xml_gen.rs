@@ -65,6 +65,14 @@ pub fn get_omron_template() -> Node {
 
 pub const OMRON_SCHEMA: &str = "https://www.ia.omron.com/Smc IEC61131_10_Ed1_0_SmcExt1_0_Spc1_0.xsd";
 
+pub const STRUCT_TYPE_SPEC: &str = "StructTypeSpec";
+pub const ENUM_TYPE_SPEC: &str = "EnumTypeWithNamedValueSpec";
+pub const DERIVED_TYPE_SPEC: &str = "DerivedTypeSpec";
+pub const ARRAY_TYPE_SPEC: &str = "ArrayTypeSpec";
+pub const REF_TYPE_SPEC: &str = "RefTypeSpec";
+pub const STRING_TYPE_SPEC: &str = "StringTypeSpec";
+pub const SUBRANGE_TYPE_SPEC: &str = "SubrangeTypeSpec";
+
 pub fn parse_project_into_nodetree(
     generation_parameters: &GenerationParameters,
     units: &[&CompilationUnit],
@@ -230,7 +238,7 @@ pub(crate) fn generate_custom_types(
                     } //every structure must have a name
                 };
 
-                let mut spec_node = SUserDefinedTypeSpec::new().attribute_str("xsi:type", "StructTypeSpec");
+                let mut spec_node = SUserDefinedTypeSpec::new().attribute_str("xsi:type", STRUCT_TYPE_SPEC);
 
                 for current_variable in variables {
                     let maybe_typename = current_variable.data_type_declaration.get_name();
@@ -296,7 +304,7 @@ pub(crate) fn generate_custom_types(
                 let formatted = format_enum_initials(enumerators);
 
                 let spec_node = SUserDefinedTypeSpec::new()
-                    .attribute_str("xsi:type", "EnumTypeWithNamedValueSpec")
+                    .attribute_str("xsi:type", ENUM_TYPE_SPEC)
                     .children(formatted)
                     .child(&base_node); //<BaseType> element must be declared below all the <Member> elements, apparently
 
@@ -306,6 +314,141 @@ pub(crate) fn generate_custom_types(
 
                 Some(decl_node2)
             }
+            DataType::SubRangeType { name, referenced_type, bounds, .. } => {
+                let unwrapped_name = match name {
+                    Some(a) => a.clone(),
+                    None => {
+                        continue;
+                    }
+                };
+
+                let base_node = SBaseType::new().content(referenced_type.clone());
+
+                match bounds {
+                    None => {
+                        let spec_node = SUserDefinedTypeSpec::new()
+                            .attribute_str("xsi:type", DERIVED_TYPE_SPEC)
+                            .child(&base_node);
+
+                        Some(
+                            SDataTypeDecl::new()
+                                .attribute(String::from("name"), unwrapped_name)
+                                .child(&spec_node),
+                        )
+                    }
+                    Some(range) => {
+                        if generation_parameters.output_xml_omron {
+                            continue;
+                        }
+
+                        let (lower, upper) = match extract_bounds(range) {
+                            Some(a) => a,
+                            None => {
+                                continue;
+                            }
+                        };
+
+                        let range_node = SRange::new()
+                            .attribute(String::from("lowerBound"), lower)
+                            .attribute(String::from("upperBound"), upper)
+                            .close();
+
+                        let spec_node = SUserDefinedTypeSpec::new()
+                            .attribute_str("xsi:type", SUBRANGE_TYPE_SPEC)
+                            .child(&range_node)
+                            .child(&base_node);
+
+                        Some(
+                            SDataTypeDecl::new()
+                                .attribute(String::from("name"), unwrapped_name)
+                                .child(&spec_node),
+                        )
+                    }
+                }
+            }
+            DataType::ArrayType { name, bounds, referenced_type, .. } => {
+                let unwrapped_name = match name {
+                    Some(a) => a.clone(),
+                    None => {
+                        continue;
+                    }
+                };
+
+                let inner_name = match referenced_type.get_name() {
+                    Some(a) => String::from(a),
+                    None => {
+                        continue;
+                    }
+                };
+
+                let dimensions = extract_dimensions(bounds);
+
+                if dimensions.is_empty() {
+                    continue;
+                }
+
+                let mut spec_node = SUserDefinedTypeSpec::new().attribute_str("xsi:type", ARRAY_TYPE_SPEC);
+
+                for (lower, upper) in dimensions {
+                    let dimension_node = SDimension::new()
+                        .attribute(String::from("lowerBound"), lower)
+                        .attribute(String::from("upperBound"), upper)
+                        .close();
+
+                    spec_node = spec_node.child(&dimension_node);
+                }
+
+                let base_node = SBaseType::new().content(inner_name);
+
+                spec_node = spec_node.child(&base_node);
+
+                Some(SDataTypeDecl::new().attribute(String::from("name"), unwrapped_name).child(&spec_node))
+            }
+            DataType::PointerType { name, referenced_type, .. } => {
+                let unwrapped_name = match name {
+                    Some(a) => a.clone(),
+                    None => {
+                        continue;
+                    }
+                };
+
+                let inner_name = match referenced_type.get_name() {
+                    Some(a) => String::from(a),
+                    None => {
+                        continue;
+                    }
+                };
+
+                let base_node = SBaseType::new().content(inner_name);
+
+                let spec_node =
+                    SUserDefinedTypeSpec::new().attribute_str("xsi:type", REF_TYPE_SPEC).child(&base_node);
+
+                Some(SDataTypeDecl::new().attribute(String::from("name"), unwrapped_name).child(&spec_node))
+            }
+            DataType::StringType { name, is_wide, size } => {
+                let unwrapped_name = match name {
+                    Some(a) => a.clone(),
+                    None => {
+                        continue;
+                    }
+                };
+
+                let mut spec_node = SUserDefinedTypeSpec::new().attribute_str("xsi:type", STRING_TYPE_SPEC);
+
+                if let Some(size_node) = size
+                    && let Some(length) = extract_literal(size_node)
+                {
+                    spec_node = spec_node.attribute(String::from("maxLength"), length);
+                }
+
+                let base_node =
+                    SBaseType::new().content(String::from(if *is_wide { "WSTRING" } else { "STRING" }));
+
+                spec_node = spec_node.child(&base_node);
+
+                Some(SDataTypeDecl::new().attribute(String::from("name"), unwrapped_name).child(&spec_node))
+            }
             _ => None,
         };
 
@@ -314,6 +457,28 @@ pub(crate) fn generate_custom_types(
         }
     }
     Ok(())
+}
+
+fn extract_literal(input: &AstNode) -> Option<String> {
+    match &input.stmt {
+        AstStatement::Literal(literal) => Some(literal.to_string()),
+        _ => None,
+    }
+}
+
+fn extract_bounds(input: &AstNode) -> Option<(String, String)> {
+    let AstStatement::RangeStatement(range) = &input.stmt else {
+        return None;
+    };
+
+    Some((extract_literal(&range.start)?, extract_literal(&range.end)?))
+}
+
+fn extract_dimensions(input: &AstNode) -> Vec<(String, String)> {
+    match &input.stmt {
+        AstStatement::ExpressionList(nodes) => nodes.iter().filter_map(extract_bounds).collect(),
+        _ => extract_bounds(input).into_iter().collect(),
+    }
 }
 
 fn parse_enum_expression(input: &Assignment) -> NameAndInitialValue {
@@ -399,23 +564,34 @@ pub(crate) fn generate_pous(
 
     for a in 0..current_unit.implementations.len() {
         let current_impl = &current_unit.implementations[a];
-        let matching_metadata = current_unit
-            .pous
-            .iter()
-            .find(|a| a.name == current_impl.name)
-            .expect("pou metadata matching the current implementation");
 
-        if current_impl.pou_type != PouType::Program
-            && current_impl.pou_type != PouType::Function
-            && current_impl.pou_type != PouType::FunctionBlock
-        {
-            continue; //currently the only POUs that are supported for xml generation
+        let omron_supported = current_impl.pou_type == PouType::Program
+            || current_impl.pou_type == PouType::Function
+            || current_impl.pou_type == PouType::FunctionBlock;
+
+        let extended_supported =
+            matches!(current_impl.pou_type, PouType::Class | PouType::Method { .. } | PouType::Action);
+
+        if !omron_supported && !(extended_supported && !generation_parameters.output_xml_omron) {
+            continue; //Sysmac Studio only accepts Program, Function and FunctionBlock
         }
 
         if current_impl.linkage == LinkageType::External {
             //discard externally linked POUs since the receiving platform will have those implemented already
             continue;
         }
+
+        //actions carry no entry in unit.pous, they borrow the declarations of their container
+        let matching_metadata = current_unit.pous.iter().find(|b| b.name == current_impl.name);
+
+        if matching_metadata.is_none() && current_impl.pou_type != PouType::Action {
+            continue;
+        }
+
+        let owning_name: &str = match matching_metadata {
+            Some(metadata) => &metadata.name,
+            None => &current_impl.type_name,
+        };
 
         let procedure_text = match &current_impl.location.span {
             CodeSpan::Range(inner_range) => {
@@ -454,8 +630,11 @@ pub(crate) fn generate_pous(
 
         let mut typename_node = STypeName::new();
 
-        if (current_impl.pou_type == PouType::Function || current_impl.pou_type == PouType::FunctionBlock)
-            && let Some(result_type) = &matching_metadata.return_type
+        if (current_impl.pou_type == PouType::Function
+            || current_impl.pou_type == PouType::FunctionBlock
+            || matches!(current_impl.pou_type, PouType::Method { .. }))
+            && let Some(metadata) = matching_metadata
+            && let Some(result_type) = &metadata.return_type
             && let Some(type_name) = result_type.get_name()
         {
             typename_node = typename_node.content(String::from(type_name));
@@ -496,9 +675,12 @@ pub(crate) fn generate_pous(
         let mut constant_temp_vars = STempVars::new().attribute_str("constant", "true");
 
         //put all the variables in the right containers
-        for b in 0..matching_metadata.variable_blocks.len() {
-            let current_block = &matching_metadata.variable_blocks[b];
+        let variable_blocks: &[VariableBlock] = match matching_metadata {
+            Some(metadata) => &metadata.variable_blocks,
+            None => &[],
+        };
 
+        for current_block in variable_blocks {
             for c in 0..current_block.variables.len() {
                 let current_variable = &current_block.variables[c];
                 let use_order_attr = current_block.kind != VariableBlockType::Local
@@ -513,7 +695,7 @@ pub(crate) fn generate_pous(
                 let maybe_variablenode = generate_variable_element(
                     current_variable,
                     generation_parameters,
-                    &matching_metadata.name,
+                    owning_name,
                     schema_path,
                     network_publish,
                     param_order,
@@ -613,7 +795,28 @@ pub(crate) fn generate_pous(
                 .child(&constant_externals)
                 .child(&vars)
                 .child(&main_body),
-            _ => return Ok(()),
+            PouType::Class => &SClass::new()
+                .attribute(name_key, name_value)
+                .child(&adddata_node)
+                .child(&externals)
+                .child(&constant_externals)
+                .child(&vars)
+                .child(&constant_vars)
+                .child(&retain_vars)
+                .child(&constant_retain_vars)
+                .child(&main_body),
+            PouType::Method { .. } => &SMethod::new()
+                .attribute(name_key, name_value)
+                .child(&adddata_node)
+                .child(&resulttype_node)
+                .child(&parameters_node)
+                .child(&temp_vars)
+                .child(&constant_temp_vars)
+                .child(&main_body),
+            PouType::Action => {
+                &SOmronAction::new().attribute(name_key, name_value).child(&adddata_node).child(&main_body)
+            }
+            _ => continue,
         };
 
         global_root.child_borrowed(chosen_element);
