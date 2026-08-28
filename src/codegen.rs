@@ -556,6 +556,12 @@ impl<'ink> GeneratedModule<'ink> {
         let schema_path: &'static str;
 
         let template: Node = if compilation_options.output_xml_omron {
+            if let Some((message, location)) = find_unsupported_omron_type(annotated_project) {
+                return Err(CodegenError::DiagnosticError(
+                    Diagnostic::new(message).with_error_code("E152").with_location(location),
+                ));
+            }
+
             schema_path = OMRON_SCHEMA;
             get_omron_template()
         } else {

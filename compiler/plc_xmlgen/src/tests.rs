@@ -9,8 +9,9 @@ mod xml_gen_tests {
 
     use plc_ast::{
         ast::{
-            AstFactory, AstNode, DataType, DataTypeDeclaration, DeclarationKind, Implementation, LinkageType,
-            Pou, PouType, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+            AstFactory, AstNode, AutoDerefType, DataType, DataTypeDeclaration, DeclarationKind,
+            Implementation, LinkageType, Pou, PouType, UserTypeDeclaration, Variable, VariableBlock,
+            VariableBlockType,
         },
         literals::AstLiteral,
     };
@@ -934,6 +935,115 @@ mod xml_gen_tests {
 
         assert!(!contents.contains("MyPtr"));
         assert!(!contents.contains("DataTypeDecl"));
+    }
+
+    fn make_pointer_unit(file_name: &'static str, type_name: &str) -> CompilationUnit {
+        let mut unit = make_unit(file_name);
+
+        unit.user_types.push(make_user_type(DataType::PointerType {
+            name: Some(String::from(type_name)),
+            referenced_type: Box::new(make_reference("INT")),
+            auto_deref: None,
+            type_safe: true,
+            is_function: false,
+        }));
+
+        unit
+    }
+
+    #[test]
+    fn test_pointer_is_reported_as_unsupported_for_omron() {
+        let unit = make_pointer_unit("pointers.st", "MyPtr");
+
+        let (message, location) = find_unsupported_omron_type(&[&unit]).expect("pointer is rejected");
+
+        assert!(message.contains(POINTER_UNSUPPORTED_BY_OMRON));
+        assert!(message.contains("MyPtr"));
+        assert_ne!(location.span, CodeSpan::None);
+    }
+
+    #[test]
+    fn test_pointer_fails_compilation_for_omron() {
+        let unit = make_pointer_unit("pointers.st", "MyPtr");
+        let units: Vec<&CompilationUnit> = vec![&unit];
+        let params = GenerationParameters { output_xml_omron: true };
+
+        let output_path = std::env::temp_dir().join("test_pointer_rejected.xml");
+        let _ = std::fs::remove_file(&output_path);
+
+        let result =
+            parse_project_into_nodetree(&params, &units, OMRON_SCHEMA, &output_path, get_omron_template());
+
+        let error = result.expect_err("omron export rejects pointers");
+        assert!(error.to_string().contains(POINTER_UNSUPPORTED_BY_OMRON));
+        assert!(error.to_string().contains("MyPtr"));
+        assert!(!output_path.exists(), "no xml is written when the export is rejected");
+    }
+
+    #[test]
+    fn test_pointer_is_allowed_for_other_xml_pathways() {
+        let unit = make_pointer_unit("pointers.st", "MyPtr");
+        let units: Vec<&CompilationUnit> = vec![&unit];
+        let params = GenerationParameters::new();
+
+        let output_path = std::env::temp_dir().join("test_pointer_allowed.xml");
+
+        let result =
+            parse_project_into_nodetree(&params, &units, OMRON_SCHEMA, &output_path, get_omron_template());
+
+        assert!(result.is_ok());
+        assert!(output_path.exists());
+
+        let _ = std::fs::remove_file(&output_path);
+    }
+
+    #[test]
+    fn test_external_pointer_is_not_reported_for_omron() {
+        let mut unit = make_unit("pointers.st");
+
+        unit.user_types.push(UserTypeDeclaration {
+            data_type: DataType::PointerType {
+                name: Some(String::from("ExternalPtr")),
+                referenced_type: Box::new(make_reference("INT")),
+                auto_deref: None,
+                type_safe: true,
+                is_function: false,
+            },
+            initializer: None,
+            location: make_source_location(),
+            scope: None,
+            linkage: LinkageType::External,
+        });
+
+        assert!(find_unsupported_omron_type(&[&unit]).is_none());
+    }
+
+    #[test]
+    fn test_compiler_generated_pointer_is_not_reported_for_omron() {
+        let mut unit = make_unit("pointers.st");
+
+        unit.user_types.push(UserTypeDeclaration {
+            data_type: DataType::PointerType {
+                name: Some(String::from("__auto_deref")),
+                referenced_type: Box::new(make_reference("INT")),
+                auto_deref: Some(AutoDerefType::Default),
+                type_safe: true,
+                is_function: false,
+            },
+            initializer: None,
+            location: SourceLocation::internal(),
+            scope: None,
+            linkage: LinkageType::Internal,
+        });
+
+        assert!(find_unsupported_omron_type(&[&unit]).is_none());
+    }
+
+    #[test]
+    fn test_pointer_in_generated_unit_is_not_reported_for_omron() {
+        let unit = make_pointer_unit("__internal_generated", "MyPtr");
+
+        assert!(find_unsupported_omron_type(&[&unit]).is_none());
     }
 
     #[test]

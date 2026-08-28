@@ -69,6 +69,47 @@ pub const STRUCT_TYPE_SPEC: &str = "StructTypeSpec";
 pub const ENUM_TYPE_SPEC: &str = "EnumTypeWithNamedValueSpec";
 pub const ARRAY_TYPE_SPEC: &str = "ArrayTypeSpec";
 
+pub const POINTER_UNSUPPORTED_BY_OMRON: &str =
+    "Sysmac Studio has no pointer type, so POINTER TO cannot be exported with --xml-omron";
+
+pub fn find_unsupported_omron_type(
+    units: &[&CompilationUnit],
+) -> Option<(String, plc_source::source_location::SourceLocation)> {
+    for &current_unit in units {
+        let unit_name = current_unit.file.get_name().unwrap_or("");
+
+        if !unit_name.to_lowercase().ends_with(".st") {
+            continue;
+        }
+
+        for current_usertype in &current_unit.user_types {
+            if current_usertype.linkage == LinkageType::External {
+                continue;
+            }
+
+            if current_usertype.location.span == CodeSpan::None {
+                continue;
+            }
+
+            let DataType::PointerType { name, .. } = &current_usertype.data_type else {
+                continue;
+            };
+
+            let reported = match name {
+                Some(a) => a.clone(),
+                None => String::from("<anonymous>"),
+            };
+
+            return Some((
+                format!("{POINTER_UNSUPPORTED_BY_OMRON}: `{reported}`"),
+                current_usertype.location.clone(),
+            ));
+        }
+    }
+
+    None
+}
+
 pub type TypeNameMap = std::collections::HashMap<String, String>;
 
 pub fn build_type_name_map(units: &[&CompilationUnit]) -> TypeNameMap {
@@ -130,6 +171,12 @@ pub fn parse_project_into_nodetree(
     output_path: &PathBuf,
     mut output_root: Node,
 ) -> Result<(), Error> {
+    if generation_parameters.output_xml_omron
+        && let Some((message, _)) = find_unsupported_omron_type(units)
+    {
+        return Err(Error::other(message));
+    }
+
     let mut param_order: HashSet<(String, usize)> = HashSet::new(); //the unique combination of (ParameterName, orderWithinParamSet) for the entire generation.
     let borrowed_order = &mut param_order;
     let type_names = build_type_name_map(units);
