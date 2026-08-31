@@ -1,5 +1,5 @@
 // Malformed WSTRINGs must not crash the application; WSTRING_TO_* delegates to STRING_TO_* after a
-// WSTRING->STRING conversion and parses the longest valid prefix instead.
+// WSTRING->STRING conversion.
 
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 FUNCTION main
@@ -12,10 +12,10 @@ FUNCTION main
     printf('%f$N', WSTRING_TO_LREAL(""));            // CHECK: 0.000000
     printf('%f$N', WSTRING_TO_LREAL("1.2j3"));       // CHECK: 1.200000
 
-    // WSTRING_TO_DINT / WSTRING_TO_LINT: parse the valid prefix, default to 0
+    // WSTRING_TO_DINT / WSTRING_TO_LINT: reject malformed input, default to 0
     printf('%d$N', WSTRING_TO_DINT(""));             // CHECK: 0
     printf('%d$N', WSTRING_TO_DINT("asdf"));         // CHECK: 0
-    printf('%d$N', WSTRING_TO_DINT("12j3"));         // CHECK: 12
+    printf('%d$N', WSTRING_TO_DINT("12j3"));         // CHECK: 0
     printf('%d$N', WSTRING_TO_DINT("123.456"));      // CHECK: 123
-    printf('%d$N', WSTRING_TO_LINT("12j3"));         // CHECK: 12
+    printf('%d$N', WSTRING_TO_LINT("12j3"));         // CHECK: 0
 END_FUNCTION
