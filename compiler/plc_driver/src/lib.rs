@@ -201,14 +201,40 @@ fn resolve_target(params: Option<&CompileParameters>) -> Target {
         .with_sysroot(params.and_then(|it| it.sysroot.clone()))
 }
 
+/// Keeps LLVM's `BranchFolder` from tail-merging the identical suffixes of sibling
+/// branch bodies. Merging factors the shared instructions into one block, and because a
+/// block can only carry one source location LLVM attributes the result to line 0. Branch
+/// bodies then have no line-table row of their own and a debugger cannot place a
+/// breakpoint on them.
+///
+/// This only matters for an unoptimized debug build: `-Onone` still runs the machine
+/// pipeline (see `OptimizationLevel::codegen_level`), which is where the merging happens,
+/// while the higher levels lose the rows in the IR pipeline anyway and would only pay the
+/// code-size cost.
+fn suppress_tail_merging(compile_options: &CompileOptions) {
+    if matches!(compile_options.debug_level, DebugLevel::None)
+        || compile_options.optimization != OptimizationLevel::None
+    {
+        return;
+    }
+
+    if !plc_llvm::set_llvm_option("enable-tail-merge", "false") {
+        log::warn!(
+            "This LLVM does not accept `enable-tail-merge`; breakpoints on branch bodies may be skipped"
+        );
+    }
+}
+
 pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
     mut pipeline: BuildPipeline<T>,
 ) -> Result<()> {
     //register participants
     pipeline.register_default_mut_participants();
     let target = resolve_target(pipeline.compile_parameters.as_ref());
+    let compile_options = pipeline.get_compile_options().unwrap();
+    suppress_tail_merging(&compile_options);
     let codegen_participant = CodegenParticipant {
-        compile_options: pipeline.get_compile_options().unwrap(),
+        compile_options,
         link_options: pipeline.get_link_options().unwrap(),
         target: target.clone(),
         objects: Arc::new(RwLock::new(GeneratedProject {
