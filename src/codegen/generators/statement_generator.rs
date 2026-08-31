@@ -127,6 +127,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         mut llvm_index: LlvmTypedIndex<'b>,
         statement: &AstNode,
     ) -> Result<LlvmTypedIndex<'b>, CodegenError> {
+        // Anchor the statement's own location so instructions that carry none of their own
+        // are not attributed to the previously generated statement.
+        self.register_debug_location(statement);
+
         match statement.get_stmt() {
             AstStatement::EmptyStatement(..) => {
                 //nothing to generate

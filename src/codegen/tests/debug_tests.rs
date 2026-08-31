@@ -561,30 +561,30 @@ fn switch_case_debug_info() {
       %tmpVar = add i32 %0, 1, !dbg !22
       %1 = trunc i32 %tmpVar to i16, !dbg !22
       store i16 %1, ptr %x1, align [filtered], !dbg !22
-      %load_x13 = load i16, ptr %x1, align [filtered], !dbg !22
+      %load_x13 = load i16, ptr %x1, align [filtered], !dbg !23
       switch i16 %load_x13, label %else [
         i16 1, label %case
         i16 2, label %case4
         i16 3, label %case5
-      ], !dbg !23
+      ], !dbg !24
 
     case:                                             ; preds = %continue1
-      store i16 1, ptr %x2, align [filtered], !dbg !24
-      br label %continue2, !dbg !25
+      store i16 1, ptr %x2, align [filtered], !dbg !25
+      br label %continue2, !dbg !26
 
     case4:                                            ; preds = %continue1
-      store i16 2, ptr %x2, align [filtered], !dbg !26
-      br label %continue2, !dbg !25
+      store i16 2, ptr %x2, align [filtered], !dbg !27
+      br label %continue2, !dbg !26
 
     case5:                                            ; preds = %continue1
-      store i16 3, ptr %x2, align [filtered], !dbg !27
-      br label %continue2, !dbg !25
+      store i16 3, ptr %x2, align [filtered], !dbg !28
+      br label %continue2, !dbg !26
 
     else:                                             ; preds = %continue1
-      store i16 0, ptr %x1, align [filtered], !dbg !28
-      store i16 1, ptr %x2, align [filtered], !dbg !29
-      store i16 2, ptr %x3, align [filtered], !dbg !30
-      br label %continue2, !dbg !25
+      store i16 0, ptr %x1, align [filtered], !dbg !29
+      store i16 1, ptr %x2, align [filtered], !dbg !30
+      store i16 2, ptr %x3, align [filtered], !dbg !31
+      br label %continue2, !dbg !26
 
     continue2:                                        ; preds = %else, %case5, %case4, %case
       br label %while_body, !dbg !21
@@ -616,14 +616,15 @@ fn switch_case_debug_info() {
     !20 = !DILocation(line: 24, column: 8, scope: !4)
     !21 = !DILocation(line: 0, scope: !4)
     !22 = !DILocation(line: 10, column: 12, scope: !4)
-    !23 = !DILocation(line: 12, column: 17, scope: !4)
-    !24 = !DILocation(line: 13, column: 19, scope: !4)
-    !25 = !DILocation(line: 20, column: 12, scope: !4)
-    !26 = !DILocation(line: 14, column: 19, scope: !4)
-    !27 = !DILocation(line: 15, column: 19, scope: !4)
-    !28 = !DILocation(line: 17, column: 20, scope: !4)
-    !29 = !DILocation(line: 18, column: 20, scope: !4)
-    !30 = !DILocation(line: 19, column: 20, scope: !4)
+    !23 = !DILocation(line: 12, column: 12, scope: !4)
+    !24 = !DILocation(line: 12, column: 17, scope: !4)
+    !25 = !DILocation(line: 13, column: 19, scope: !4)
+    !26 = !DILocation(line: 20, column: 12, scope: !4)
+    !27 = !DILocation(line: 14, column: 19, scope: !4)
+    !28 = !DILocation(line: 15, column: 19, scope: !4)
+    !29 = !DILocation(line: 17, column: 20, scope: !4)
+    !30 = !DILocation(line: 18, column: 20, scope: !4)
+    !31 = !DILocation(line: 19, column: 20, scope: !4)
     "#);
 }
 

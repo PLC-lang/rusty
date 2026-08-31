@@ -515,7 +515,7 @@ fn write_to_parent_variable_in_instance() {
         #dbg_declare(ptr %fb, !40, !DIExpression(), !41)
       call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%bar, ptr null, i32 1) to i64), i1 false)
       call void @bar__ctor(ptr %fb), !dbg !42
-      %__foo = getelementptr inbounds nuw %bar, ptr %fb, i32 0, i32 0, !dbg !42
+      %__foo = getelementptr inbounds nuw %bar, ptr %fb, i32 0, i32 0, !dbg !43
       call void @foo__baz(ptr %__foo), !dbg !43
       call void @bar(ptr %fb), !dbg !44
       ret void, !dbg !45
