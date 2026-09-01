@@ -35,9 +35,9 @@ FUNCTION main
     printf('%s$N', REF(TOD_TO_STRING(TO_TOD(LDT#2024-11-12-16:36:15.100))));        // CHECK: TOD#16:36:15.100
 
     // TO_LTOD
-    printf('%s$N', REF(LTOD_TO_STRING(TO_LTOD(TOD#16:36:15))));                     // CHECK: 16:36:15
-    printf('%s$N', REF(LTOD_TO_STRING(TO_LTOD(LTOD#16:36:15.100))));                // CHECK: 16:36:15.100
+    printf('%s$N', REF(LTOD_TO_STRING(TO_LTOD(TOD#16:36:15))));                     // CHECK: LTOD#16:36:15
+    printf('%s$N', REF(LTOD_TO_STRING(TO_LTOD(LTOD#16:36:15.100))));                // CHECK: LTOD#16:36:15.100
     // Updated checks for short datetime unit behavior after migration.
-    printf('%s$N', REF(LTOD_TO_STRING(TO_LTOD(DT#2024-11-12-16:36:15.100))));       // CHECK: 16:36:15
-    printf('%s$N', REF(LTOD_TO_STRING(TO_LTOD(LDT#2024-11-12-16:36:15.100))));      // CHECK: 16:36:15.100
+    printf('%s$N', REF(LTOD_TO_STRING(TO_LTOD(DT#2024-11-12-16:36:15.100))));       // CHECK: LTOD#16:36:15
+    printf('%s$N', REF(LTOD_TO_STRING(TO_LTOD(LDT#2024-11-12-16:36:15.100))));      // CHECK: LTOD#16:36:15.100
 END_FUNCTION
