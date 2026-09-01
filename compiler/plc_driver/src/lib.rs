@@ -201,16 +201,22 @@ fn resolve_target(params: Option<&CompileParameters>) -> Target {
         .with_sysroot(params.and_then(|it| it.sysroot.clone()))
 }
 
-/// Keeps LLVM's `BranchFolder` from tail-merging the identical suffixes of sibling
-/// branch bodies. Merging factors the shared instructions into one block, and because a
-/// block can only carry one source location LLVM attributes the result to line 0. Branch
-/// bodies then have no line-table row of their own and a debugger cannot place a
-/// breakpoint on them.
+/// Keeps LLVM's `BranchFolder` from tail-merging the shared suffix of sibling branch
+/// bodies, which leaves both bodies below on a single `call`:
 ///
-/// This only matters for an unoptimized debug build: `-Onone` still runs the machine
-/// pipeline (see `OptimizationLevel::codegen_level`), which is where the merging happens,
-/// while the higher levels lose the rows in the IR pipeline anyway and would only pay the
-/// code-size cost.
+/// ```text
+/// CASE step OF
+///     0: fb(in := TRUE);
+///     1: fb(in := FALSE);
+/// END_CASE
+/// ```
+///
+/// A block carries one source location, so the merged block is attributed to line 0 and
+/// neither body keeps a line-table row; a breakpoint on either silently binds elsewhere.
+///
+/// Only `-Onone` needs this. It runs the machine pipeline, where the merging happens (see
+/// `OptimizationLevel::codegen_level`), while the higher levels lose the rows in the IR
+/// pipeline regardless and would only pay the code-size cost.
 fn suppress_tail_merging(compile_options: &CompileOptions) {
     if matches!(compile_options.debug_level, DebugLevel::None)
         || compile_options.optimization != OptimizationLevel::None
@@ -218,11 +224,7 @@ fn suppress_tail_merging(compile_options: &CompileOptions) {
         return;
     }
 
-    if !plc_llvm::set_llvm_option("enable-tail-merge", "false") {
-        log::warn!(
-            "This LLVM does not accept `enable-tail-merge`; breakpoints on branch bodies may be skipped"
-        );
-    }
+    plc_llvm::set_llvm_option("enable-tail-merge", "false");
 }
 
 pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
