@@ -45,6 +45,8 @@ unsafe fn write_terminated(dest: *mut u8, capacity: usize, args: std::fmt::Argum
 
 macro_rules! to_string_ext {
     ($name:ident, $ty:ty, $capacity:expr) => {
+        /// # Safety
+        /// `dest` must have room for the conversion result and its null terminator.
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $name(input: $ty, dest: *mut u8) -> i32 {
@@ -234,7 +236,7 @@ pub unsafe extern "C" fn TOD_TO_STRING(dest: *mut u8, input: i32) {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LTOD_TO_STRING(dest: *mut u8, input: i64) {
-    write_time_of_day_to_string(input, "", dest);
+    write_time_of_day_to_string(input, "LTOD#", dest);
 }
 
 #[cfg(test)]
@@ -414,7 +416,7 @@ mod tests {
         let mut dest = [0_u8; STRING_CAPACITY];
 
         unsafe { LTOD_TO_STRING(dest.as_mut_ptr(), timestamp) };
-        assert_eq!("10:10:02.123456789", terminated_str(&dest));
+        assert_eq!("LTOD#10:10:02.123456789", terminated_str(&dest));
     }
 
     #[test]

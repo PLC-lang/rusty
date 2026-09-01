@@ -14,13 +14,13 @@ FUNCTION main
     ltod1 := LTOD#23:59:50;
     lt1 := LTIME#20s;
     ltod_result := ADD_LTOD_LTIME(ltod1, lt1);
-    printf('%s$N', REF(LTOD_TO_STRING(ltod_result)));                               // CHECK: 00:00:10
+    printf('%s$N', REF(LTOD_TO_STRING(ltod_result)));                               // CHECK: LTOD#00:00:10
 
     // SUB_LTOD_LTIME: LTOD - LTIME -> LTOD
     ltod1 := LTOD#00:01:00;
     lt1 := LTIME#30s;
     ltod_result := SUB_LTOD_LTIME(ltod1, lt1);
-    printf('%s$N', REF(LTOD_TO_STRING(ltod_result)));                               // CHECK: 00:00:30
+    printf('%s$N', REF(LTOD_TO_STRING(ltod_result)));                               // CHECK: LTOD#00:00:30
 
     // SUB_LTOD_LTOD: LTOD - LTOD -> LTIME (i64)
     ltod1 := LTOD#10:30:00;
