@@ -14,18 +14,18 @@ FUNCTION main
     dt1 := DT#2024-01-15-12:30:00;
     t1 := TIME#5s;
     dt_result := ADD_DT_TIME(dt1, t1);
-    printf('%s$N', REF(DT_TO_STRING(dt_result)));                                   // CHECK: 2024-01-15-12:30:05
+    printf('%s$N', REF(DT_TO_STRING(dt_result)));                                   // CHECK: DT#2024-01-15-12:30:05
 
     // SUB_DT_TIME: DT - TIME -> DT (u32)
     dt1 := DT#2024-01-15-12:30:05;
     t1 := TIME#3s;
     dt_result := SUB_DT_TIME(dt1, t1);
-    printf('%s$N', REF(DT_TO_STRING(dt_result)));                                   // CHECK: 2024-01-15-12:30:02
+    printf('%s$N', REF(DT_TO_STRING(dt_result)));                                   // CHECK: DT#2024-01-15-12:30:02
 
     // SUB_DT_DT: DT - DT -> TIME (u32)
     dt1 := DT#2024-01-15-12:30:10;
     dt2 := DT#2024-01-15-12:30:00;
     result := SUB_DT_DT(dt1, dt2);
-    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: 10s
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#10s
 
 END_FUNCTION
