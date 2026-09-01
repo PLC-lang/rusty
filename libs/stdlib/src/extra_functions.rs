@@ -8,96 +8,24 @@ use crate::extra_functions::test_time_helpers::Local;
 pub mod test_time_helpers;
 
 use crate::string_functions::ptr_to_slice;
-use chrono::{TimeZone, Timelike};
+#[cfg(not(feature = "mock_time"))]
+use chrono::Timelike;
 use num::Float;
-use std::{io::Write, str::FromStr};
+#[cfg(test)]
+use std::io::Write;
+use std::str::FromStr;
 
-// can't determine string buffer length of an empty string, therefore
-// _TO_STRING functions use the default string length.
-const DEFAULT_STRING_LEN: usize = 81;
 const NANOS_PER_MILLISECOND: i64 = 1_000 * 1_000;
 const NANOS_PER_SECOND: i64 = 1_000 * NANOS_PER_MILLISECOND;
-// --------- x_TO_STRING
 
-/// Formats `args` into `dest` and appends the null terminator the IEC string layout
-/// requires. Output that does not fit is truncated to `capacity - 1` content bytes.
-/// Returns the number of content bytes written (excluding the terminator).
-/// Writers must not rely on the destination being zero-initialized; the buffer may
-/// hold arbitrary bytes.
-///
-/// # Safety
-/// `dest` must have room for `capacity` bytes.
+#[cfg(test)]
 unsafe fn write_terminated(dest: *mut u8, capacity: usize, args: std::fmt::Arguments) -> usize {
     let content = core::slice::from_raw_parts_mut(dest, capacity - 1);
     let mut cursor = std::io::Cursor::new(content);
-    // an Err here means the output was cut off at the end of the buffer
     let _ = cursor.write_fmt(args);
     let written = cursor.position() as usize;
     *dest.add(written) = 0;
     written
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn BYTE_TO_STRING_EXT(input: u8, dest: *mut u8) -> i32 {
-    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input}"));
-
-    0
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn LWORD_TO_STRING_EXT(input: u64, dest: *mut u8) -> i32 {
-    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input}"));
-
-    0
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn LINT_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
-    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input}"));
-
-    0
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    // double: 52 bits are used for the mantissa (about 16 decimal digits);
-    // the magnitude decides the notation, so huge negative values take the
-    // scientific path instead of overflowing the buffer with plain digits
-    if input.abs() < 1e14 {
-        write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
-    } else {
-        write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
-    }
-
-    0
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    // float: 23 bits are used for the mantissa (about 7 decimal digits);
-    // the magnitude decides the notation, consistent with LREAL_TO_STRING_EXT
-    if input.abs() < 1e6 {
-        write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
-    } else {
-        write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
-    }
-
-    0
 }
 
 /// Returns the value parsed from the longest prefix of `s` accepted by `parse`, or the type's
@@ -170,120 +98,10 @@ pub extern "C" fn LREAL_TO_LTIME(input: f64) -> i64 {
     input.round() as i64
 }
 
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn TIME_TO_STRING(dest: *mut u8, input: i32) {
-    write_time_to_string((input as u32 as i64) * NANOS_PER_MILLISECOND, dest);
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn LTIME_TO_STRING(dest: *mut u8, input: i64) {
-    write_time_to_string(input, dest);
-}
-
-unsafe fn write_time_to_string(input_nanos: i64, dest: *mut u8) {
-    let literals = parse_timestamp(input_nanos);
-    // Terminate up front so a zero duration (every component filtered out) yields an
-    // empty string; each component then overwrites the previous terminator.
-    *dest = 0;
-    let mut offset = 0;
-    for it in literals.iter().filter(|&it| it.0 != 0) {
-        offset +=
-            write_terminated(dest.add(offset), DEFAULT_STRING_LEN - offset, format_args!("{}{}", it.0, it.1));
-    }
-}
-
-fn parse_timestamp<'a>(timestamp_nanos: i64) -> [(u32, &'a str); 7] {
-    let datetime = chrono::Utc.timestamp_nanos(timestamp_nanos);
-    let (nanos, micros, millis, seconds, minutes, hours) = (
-        datetime.timestamp_subsec_nanos() % 1000,
-        datetime.timestamp_subsec_micros() % 1000,
-        datetime.timestamp_subsec_millis(),
-        datetime.second(),
-        datetime.minute(),
-        datetime.hour(),
-    );
-    let nanos_per_day = 1e9 as i64 * 3600 * 24;
-    let days = (timestamp_nanos / nanos_per_day) as u32;
-
-    [(days, "d"), (hours, "h"), (minutes, "m"), (seconds, "s"), (millis, "ms"), (micros, "us"), (nanos, "ns")]
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn DT_TO_STRING(dest: *mut u8, input: i32) {
-    write_dt_to_string((input as u32 as i64) * NANOS_PER_SECOND, dest);
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn LDT_TO_STRING(dest: *mut u8, input: i64) {
-    write_dt_to_string(input, dest);
-}
-
-unsafe fn write_dt_to_string(input_nanos: i64, dest: *mut u8) {
-    let datetime = chrono::Utc.timestamp_nanos(input_nanos);
-    let date = datetime.date_naive().to_string();
-    let time = datetime.time().to_string();
-    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{date}-{time}"));
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn DATE_TO_STRING(dest: *mut u8, input: i32) {
-    write_date_to_string((input as u32 as i64) * NANOS_PER_SECOND, dest);
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn LDATE_TO_STRING(dest: *mut u8, input: i64) {
-    write_date_to_string(input, dest);
-}
-
-unsafe fn write_date_to_string(input_nanos: i64, dest: *mut u8) {
-    let datetime = chrono::Utc.timestamp_nanos(input_nanos).date_naive();
-    let date = datetime.to_string();
-    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{date}"));
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn TOD_TO_STRING(dest: *mut u8, input: i32) {
-    write_tod_to_string((input as u32 as i64) * NANOS_PER_MILLISECOND, dest);
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn LTOD_TO_STRING(dest: *mut u8, input: i64) {
-    write_tod_to_string(input, dest);
-}
-
-unsafe fn write_tod_to_string(input_nanos: i64, dest: *mut u8) {
-    let datetime = chrono::Utc.timestamp_nanos(input_nanos);
-    let time = datetime.time().to_string();
-    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{time}"));
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::to_string_conversions::*;
 
     /// Reads the IEC string (up to the first terminator) from a buffer.
     fn terminated_str(buf: &[u8]) -> &str {

@@ -26,6 +26,6 @@ FUNCTION main
     ldt1 := LDT#2024-01-15-12:30:10;
     ldt2 := LDT#2024-01-15-12:30:00;
     lresult := SUB_LDT_LDT(ldt1, ldt2);
-    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: 10s
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#10s
 
 END_FUNCTION

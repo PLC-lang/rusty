@@ -12,6 +12,6 @@ FUNCTION main
     date1 := DATE#2024-01-15;
     date2 := DATE#2024-01-10;
     result := SUB_DATE_DATE(date1, date2);
-    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: 5d
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#5d
 
 END_FUNCTION

@@ -26,6 +26,6 @@ FUNCTION main
     ltod1 := LTOD#10:30:00;
     ltod2 := LTOD#10:20:00;
     lresult := SUB_LTOD_LTOD(ltod1, ltod2);
-    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: 10m
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#10m
 
 END_FUNCTION
