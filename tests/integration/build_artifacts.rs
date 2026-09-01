@@ -242,12 +242,29 @@ fn artifacts_of_a_project_build_are_named_after_the_path_relative_to_the_project
     }
 }
 
+/// Whether the file system stores a source named like a device instead of resolving the
+/// name to the device itself. Windows reserved those names for every file until build
+/// 26100 (11, 24H2): before it, writing `con.st` writes to the console and leaves no
+/// file behind, so a source with such a name cannot take part in a build at all.
+fn a_source_can_be_named_like_a_reserved_device() -> bool {
+    let probe = tempfile::tempdir().unwrap();
+    let source = probe.path().join("con.st");
+    fs::write(&source, "").is_ok() && source.is_file()
+}
+
 /// A source file named like one of the device names Windows reserves (`con`, `nul`,
 /// ...). The system resolves a bare device name to the device, so the artifact of such a
 /// source must keep the digest and the extension that make it an ordinary file name.
+/// `a_key_named_like_a_reserved_device_gets_a_name_that_is_not_a_device` in the driver
+/// tests covers that name on every platform; this test adds the build around it, and so
+/// only runs where such a source can exist.
 #[test]
 #[serial]
 fn a_source_named_like_a_reserved_device_builds() {
+    if !a_source_can_be_named_like_a_reserved_device() {
+        return;
+    }
+
     let project = tempfile::tempdir().unwrap();
     let build_directory = tempfile::tempdir().unwrap();
 
