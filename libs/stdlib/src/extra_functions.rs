@@ -9,7 +9,7 @@ pub mod test_time_helpers;
 
 use crate::string_functions::ptr_to_slice;
 use chrono::{TimeZone, Timelike};
-use num::{Float, PrimInt};
+use num::Float;
 use std::{io::Write, str::FromStr};
 
 // can't determine string buffer length of an empty string, therefore
@@ -20,7 +20,8 @@ const NANOS_PER_SECOND: i64 = 1_000 * NANOS_PER_MILLISECOND;
 // --------- x_TO_STRING
 
 /// Formats `args` into `dest` and appends the null terminator the IEC string layout
-/// requires. Returns the number of content bytes written (excluding the terminator).
+/// requires. Output that does not fit is truncated to `capacity - 1` content bytes.
+/// Returns the number of content bytes written (excluding the terminator).
 /// Writers must not rely on the destination being zero-initialized; the buffer may
 /// hold arbitrary bytes.
 ///
@@ -29,7 +30,8 @@ const NANOS_PER_SECOND: i64 = 1_000 * NANOS_PER_MILLISECOND;
 unsafe fn write_terminated(dest: *mut u8, capacity: usize, args: std::fmt::Arguments) -> usize {
     let content = core::slice::from_raw_parts_mut(dest, capacity - 1);
     let mut cursor = std::io::Cursor::new(content);
-    cursor.write_fmt(args).unwrap();
+    // an Err here means the output was cut off at the end of the buffer
+    let _ = cursor.write_fmt(args);
     let written = cursor.position() as usize;
     *dest.add(written) = 0;
     written
@@ -70,8 +72,10 @@ pub unsafe extern "C" fn LINT_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    // double: 52 bits are used for the mantissa (about 16 decimal digits)
-    if input.floor() < 1e14 {
+    // double: 52 bits are used for the mantissa (about 16 decimal digits);
+    // the magnitude decides the notation, so huge negative values take the
+    // scientific path instead of overflowing the buffer with plain digits
+    if input.abs() < 1e14 {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
     } else {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
@@ -85,10 +89,9 @@ pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    // float: 23 bits are used for the mantissa (about 7 decimal digits)
-
-    // TODO: discuss when scientific notation should be displayed
-    if input.floor() < 1e6 {
+    // float: 23 bits are used for the mantissa (about 7 decimal digits);
+    // the magnitude decides the notation, consistent with LREAL_TO_STRING_EXT
+    if input.abs() < 1e6 {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
     } else {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
@@ -97,56 +100,18 @@ pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
     0
 }
 
-unsafe fn string_to_int<T>(src: *const u8) -> T
-where
-    T: PrimInt,
-{
-    let slice = ptr_to_slice(src);
-    let (string, radix) = match slice {
-        [b'1', b'6', b'#', ..] => (std::str::from_utf8(&slice[3..]), 16),
-        [b'0', b'x', ..] | [b'0', b'X', ..] => (std::str::from_utf8(&slice[2..]), 16),
-        [b'8', b'#', ..] => (std::str::from_utf8(&slice[2..]), 8), // support c-style octal prefixes? e.g. 010 -> 10 octal
-        [b'2', b'#', ..] | [b'0', b'b', ..] | [b'0', b'B', ..] => (std::str::from_utf8(&slice[2..]), 2),
-        _ => (std::str::from_utf8(slice), 10),
-    };
-
-    // Parse the longest valid prefix instead of panicking on malformed input.
-    // For example "12j3" yields 12 and "123.456" yields 123, while a string with no valid prefix yields 0.
-    match string {
-        Ok(s) => parse_longest_prefix(s, |candidate| T::from_str_radix(candidate, radix).ok()),
-        Err(_) => T::zero(),
-    }
-}
-
 /// Returns the value parsed from the longest prefix of `s` accepted by `parse`, or the type's
 /// default (`0`) when no non-empty prefix is valid.
 fn parse_longest_prefix<T: num::Zero>(s: &str, parse: impl Fn(&str) -> Option<T>) -> T {
     let mut end = s.len();
     while end > 0 {
-        if s.is_char_boundary(end) {
-            if let Some(number) = parse(&s[..end]) {
-                return number;
-            }
+        // `get` returns None between char boundaries
+        if let Some(number) = s.get(..end).and_then(&parse) {
+            return number;
         }
         end -= 1;
     }
     T::zero()
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C-unwind" fn STRING_TO_LINT(src: *const u8) -> i64 {
-    string_to_int(src)
-}
-
-/// # Safety
-/// Uses raw pointers, inherently unsafe.
-#[allow(non_snake_case)]
-#[no_mangle]
-pub unsafe extern "C" fn STRING_TO_DINT(src: *const u8) -> i32 {
-    string_to_int(src)
 }
 
 unsafe fn string_to_float<T>(src: *const u8) -> T
@@ -454,83 +419,53 @@ mod test {
     }
 
     #[test]
-    fn string_to_lint_conversion() {
-        let string = "12345\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(12345_i64, result);
+    fn lreal_to_string_uses_scientific_notation_for_huge_negative_values() {
+        let mut dest = [0xAA_u8; 81];
+        let dest_ptr = dest.as_mut_ptr();
 
-        let string = "2#1111\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(15_i64, result);
+        let _ = unsafe { LREAL_TO_STRING_EXT(-1.0e300, dest_ptr) };
+        assert_eq!("-1.000000e300", terminated_str(&dest));
 
-        let string = "8#77\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(63_i64, result);
+        // negative values below the threshold keep the plain notation
+        dest.fill(0xAA);
+        let _ = unsafe { LREAL_TO_STRING_EXT(-99_999_999_999_999.25, dest_ptr) };
+        assert_eq!("-99999999999999.250000", terminated_str(&dest));
 
-        let string = "16#FF\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(255_i64, result);
+        dest.fill(0xAA);
+        let _ = unsafe { LREAL_TO_STRING_EXT(f64::NEG_INFINITY, dest_ptr) };
+        assert_eq!("-inf", terminated_str(&dest));
 
-        let string = "0b1111\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(15_i64, result);
-
-        let string = "0B1111\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(15_i64, result);
-
-        let string = "0xFF\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(255_i64, result);
-
-        let string = "0XFF\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(255_i64, result);
+        dest.fill(0xAA);
+        let _ = unsafe { LREAL_TO_STRING_EXT(f64::NAN, dest_ptr) };
+        assert_eq!("NaN", terminated_str(&dest));
     }
 
     #[test]
-    fn string_to_lint_parses_longest_valid_prefix() {
-        // a string with no valid prefix yields 0 instead of panicking
-        let string = "ab456\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(0_i64, result);
+    fn real_to_string_uses_scientific_notation_by_magnitude() {
+        let mut dest = [0xAA_u8; 81];
+        let dest_ptr = dest.as_mut_ptr();
 
-        // parsing stops at the first invalid character
-        let string = "12j3\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(12_i64, result);
+        let _ = unsafe { REAL_TO_STRING_EXT(-1.5e7, dest_ptr) };
+        assert_eq!("-1.500000e7", terminated_str(&dest));
 
-        // the integer part of a decimal number is parsed (the '.' ends the prefix)
-        let string = "123.456\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(123_i64, result);
+        dest.fill(0xAA);
+        let _ = unsafe { REAL_TO_STRING_EXT(1.5e7, dest_ptr) };
+        assert_eq!("1.500000e7", terminated_str(&dest));
 
-        // empty string yields 0
-        let string = "\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(0_i64, result);
+        // negative values below the threshold keep the plain notation
+        dest.fill(0xAA);
+        let _ = unsafe { REAL_TO_STRING_EXT(-999_999.25, dest_ptr) };
+        assert_eq!("-999999.250000", terminated_str(&dest));
+    }
 
-        // radix prefixes are still honoured, and trailing garbage is trimmed off the digits.
-        // Note 'E'/'F' are valid hex digits here, not an exponent: "16#FFE0" parses fully.
-        let string = "16#FFxy\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(255_i64, result);
+    #[test]
+    fn write_terminated_truncates_overlong_output() {
+        let mut dest = [0xAA_u8; 16];
 
-        let string = "16#FFE0\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(65504_i64, result);
+        let written = unsafe { write_terminated(dest.as_mut_ptr(), 16, format_args!("{:x<30}", "abc")) };
 
-        let string = "8#1239\0"; // 9 is not a valid octal digit, so the prefix is "123"
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(0o123_i64, result);
-
-        let string = "2#10102\0"; // 2 is not a valid binary digit, so the prefix is "1010"
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(0b1010_i64, result);
-
-        let string = "0xdeadZZ\0";
-        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
-        assert_eq!(0xdead_i64, result);
+        assert_eq!(15, written);
+        assert_eq!("abcxxxxxxxxxxxx", terminated_str(&dest));
     }
 
     #[test]
