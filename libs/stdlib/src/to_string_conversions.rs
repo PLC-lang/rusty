@@ -4,6 +4,25 @@ use chrono::TimeZone;
 use std::io::Write;
 
 const STRING_CAPACITY: usize = 2048;
+const BOOL_STRING_LENGTH: usize = 5;
+const BYTE_STRING_LENGTH: usize = 3;
+const USINT_STRING_LENGTH: usize = 3;
+const WORD_STRING_LENGTH: usize = 5;
+const UINT_STRING_LENGTH: usize = 5;
+const DWORD_STRING_LENGTH: usize = 10;
+const UDINT_STRING_LENGTH: usize = 10;
+const LWORD_STRING_LENGTH: usize = 20;
+const ULINT_STRING_LENGTH: usize = 20;
+const SINT_STRING_LENGTH: usize = 4;
+const INT_STRING_LENGTH: usize = 6;
+const DINT_STRING_LENGTH: usize = 11;
+const LINT_STRING_LENGTH: usize = 20;
+const TIME_STRING_LENGTH: usize = 19;
+const LTIME_STRING_LENGTH: usize = 37;
+const DATE_STRING_LENGTH: usize = 12;
+const DT_STRING_LENGTH: usize = 22;
+const TOD_STRING_LENGTH: usize = 16;
+const STRING_TERMINATOR_LENGTH: usize = 1;
 const NANOS_PER_MILLISECOND: u64 = 1_000_000;
 const NANOS_PER_SECOND: u64 = 1_000_000_000;
 
@@ -25,22 +44,28 @@ unsafe fn write_terminated(dest: *mut u8, capacity: usize, args: std::fmt::Argum
 }
 
 macro_rules! to_string_ext {
-    ($name:ident, $ty:ty) => {
+    ($name:ident, $ty:ty, $capacity:expr) => {
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $name(input: $ty, dest: *mut u8) -> i32 {
-            write_terminated(dest, STRING_CAPACITY, format_args!("{input}"));
+            write_terminated(dest, $capacity, format_args!("{input}"));
             0
         }
     };
 }
 
-to_string_ext!(BYTE_TO_STRING_EXT, u8);
-to_string_ext!(WORD_TO_STRING_EXT, u16);
-to_string_ext!(LWORD_TO_STRING_EXT, u64);
-to_string_ext!(SINT_TO_STRING_EXT, i8);
-to_string_ext!(INT_TO_STRING_EXT, i16);
-to_string_ext!(LINT_TO_STRING_EXT, i64);
+to_string_ext!(BYTE_TO_STRING_EXT, u8, BYTE_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(USINT_TO_STRING_EXT, u8, USINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(WORD_TO_STRING_EXT, u16, WORD_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(UINT_TO_STRING_EXT, u16, UINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(DWORD_TO_STRING_EXT, u32, DWORD_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(UDINT_TO_STRING_EXT, u32, UDINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(LWORD_TO_STRING_EXT, u64, LWORD_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(ULINT_TO_STRING_EXT, u64, ULINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(SINT_TO_STRING_EXT, i8, SINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(INT_TO_STRING_EXT, i16, INT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(DINT_TO_STRING_EXT, i32, DINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(LINT_TO_STRING_EXT, i64, LINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
 
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
@@ -73,7 +98,11 @@ pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn BOOL_TO_STRING(dest: *mut u8, input: bool) {
-    write_terminated(dest, STRING_CAPACITY, format_args!("{}", if input { "TRUE" } else { "FALSE" }));
+    write_terminated(
+        dest,
+        BOOL_STRING_LENGTH + STRING_TERMINATOR_LENGTH,
+        format_args!("{}", if input { "TRUE" } else { "FALSE" }),
+    );
 }
 
 fn duration_components(timestamp_nanos: u64) -> [(u64, &'static str); 7] {
@@ -94,7 +123,7 @@ fn duration_components(timestamp_nanos: u64) -> [(u64, &'static str); 7] {
 
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
-unsafe fn write_duration_to_string(input_nanos: u64, prefix: &str, zero_unit: &str, dest: *mut u8) {
+fn format_duration(input_nanos: u64, prefix: &str, zero_unit: &str) -> String {
     let mut value = String::from(prefix);
     for (amount, unit) in duration_components(input_nanos) {
         if amount != 0 {
@@ -106,7 +135,7 @@ unsafe fn write_duration_to_string(input_nanos: u64, prefix: &str, zero_unit: &s
         value.push('0');
         value.push_str(zero_unit);
     }
-    write_terminated(dest, STRING_CAPACITY, format_args!("{value}"));
+    value
 }
 
 /// # Safety
@@ -114,7 +143,9 @@ unsafe fn write_duration_to_string(input_nanos: u64, prefix: &str, zero_unit: &s
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn TIME_TO_STRING(dest: *mut u8, input: i32) {
-    write_duration_to_string((input as u32 as u64) * NANOS_PER_MILLISECOND, "T#", "ms", dest);
+    let input_nanos = (input as u32 as u64) * NANOS_PER_MILLISECOND;
+    let value = format_duration(input_nanos, "T#", "ms");
+    write_terminated(dest, TIME_STRING_LENGTH + STRING_TERMINATOR_LENGTH, format_args!("{value}"));
 }
 
 /// # Safety
@@ -122,7 +153,8 @@ pub unsafe extern "C" fn TIME_TO_STRING(dest: *mut u8, input: i32) {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LTIME_TO_STRING(dest: *mut u8, input: i64) {
-    write_duration_to_string(input as u64, "LTIME#", "ns", dest);
+    let value = format_duration(input as u64, "LTIME#", "ns");
+    write_terminated(dest, LTIME_STRING_LENGTH + STRING_TERMINATOR_LENGTH, format_args!("{value}"));
 }
 
 /// # Safety
@@ -141,7 +173,12 @@ unsafe fn write_date_time_to_string(input_nanos: i64, prefix: &str, dest: *mut u
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn DT_TO_STRING(dest: *mut u8, input: i32) {
-    write_date_time_to_string((input as u32 as i64) * NANOS_PER_SECOND as i64, "DT#", dest);
+    let datetime = chrono::Utc.timestamp_nanos((input as u32 as i64) * NANOS_PER_SECOND as i64);
+    write_terminated(
+        dest,
+        DT_STRING_LENGTH + STRING_TERMINATOR_LENGTH,
+        format_args!("DT#{}-{}", datetime.date_naive(), datetime.time()),
+    );
 }
 
 /// # Safety
@@ -164,7 +201,8 @@ unsafe fn write_date_to_string(input_nanos: i64, prefix: &str, dest: *mut u8) {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn DATE_TO_STRING(dest: *mut u8, input: i32) {
-    write_date_to_string((input as u32 as i64) * NANOS_PER_SECOND as i64, "D#", dest);
+    let date = chrono::Utc.timestamp_nanos((input as u32 as i64) * NANOS_PER_SECOND as i64).date_naive();
+    write_terminated(dest, DATE_STRING_LENGTH + STRING_TERMINATOR_LENGTH, format_args!("D#{date}"));
 }
 
 /// # Safety
@@ -187,7 +225,8 @@ unsafe fn write_time_of_day_to_string(input_nanos: i64, prefix: &str, dest: *mut
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn TOD_TO_STRING(dest: *mut u8, input: i32) {
-    write_time_of_day_to_string((input as u32 as i64) * NANOS_PER_MILLISECOND as i64, "TOD#", dest);
+    let time = chrono::Utc.timestamp_nanos((input as u32 as i64) * NANOS_PER_MILLISECOND as i64).time();
+    write_terminated(dest, TOD_STRING_LENGTH + STRING_TERMINATOR_LENGTH, format_args!("TOD#{time}"));
 }
 
 /// # Safety
