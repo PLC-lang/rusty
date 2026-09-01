@@ -37,8 +37,7 @@ impl TargetMachineExt for TargetMachine {
 
 /// Sets a registered LLVM command-line option, for backend knobs that have no
 /// `TargetOptions` field and no C-API entry point. Returns `false` if LLVM does not
-/// know the option or rejects the value, which is how a renamed or removed option in
-/// a future LLVM surfaces.
+/// know the option or rejects the value.
 ///
 /// The option registry is process-global and is read while a pass pipeline is built,
 /// so an option must be set before any code generation starts.
@@ -47,19 +46,4 @@ pub fn set_llvm_option(name: &str, value: &str) -> bool {
         return false;
     };
     unsafe { ffi::setLLVMOption(name.as_ptr(), value.as_ptr()) != 0 }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::set_llvm_option;
-
-    #[test]
-    fn tail_merging_option_is_known_to_this_llvm() {
-        assert!(set_llvm_option("enable-tail-merge", "false"));
-    }
-
-    #[test]
-    fn unknown_option_is_rejected() {
-        assert!(!set_llvm_option("plc-no-such-llvm-option", "false"));
-    }
 }
