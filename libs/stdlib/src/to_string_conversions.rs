@@ -7,13 +7,21 @@ const STRING_CAPACITY: usize = 2048;
 const NANOS_PER_MILLISECOND: u64 = 1_000_000;
 const NANOS_PER_SECOND: u64 = 1_000_000_000;
 
+/// Formats `args` into `dest` and appends the null terminator the IEC string layout requires.
+/// Output that does not fit is truncated to `capacity - 1` content bytes. Returns the number of
+/// content bytes written, excluding the terminator. Writers must not rely on the destination being
+/// zero-initialized; the buffer may hold arbitrary bytes.
+///
 /// # Safety
-/// `dest` must have room for `STRING_CAPACITY` bytes.
-unsafe fn write_terminated(dest: *mut u8, args: std::fmt::Arguments) {
-    let content = core::slice::from_raw_parts_mut(dest, STRING_CAPACITY - 1);
+/// `dest` must have room for `capacity` bytes.
+unsafe fn write_terminated(dest: *mut u8, capacity: usize, args: std::fmt::Arguments) -> usize {
+    let content = core::slice::from_raw_parts_mut(dest, capacity - 1);
     let mut cursor = std::io::Cursor::new(content);
+    // An error here means the output was cut off at the end of the buffer.
     let _ = cursor.write_fmt(args);
-    *dest.add(cursor.position() as usize) = 0;
+    let written = cursor.position() as usize;
+    *dest.add(written) = 0;
+    written
 }
 
 macro_rules! to_string_ext {
@@ -21,7 +29,7 @@ macro_rules! to_string_ext {
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $name(input: $ty, dest: *mut u8) -> i32 {
-            write_terminated(dest, format_args!("{input}"));
+            write_terminated(dest, STRING_CAPACITY, format_args!("{input}"));
             0
         }
     };
@@ -40,9 +48,9 @@ to_string_ext!(LINT_TO_STRING_EXT, i64);
 #[no_mangle]
 pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
     if input.abs() < 1e14 {
-        write_terminated(dest, format_args!("{input:.6}"));
+        write_terminated(dest, STRING_CAPACITY, format_args!("{input:.6}"));
     } else {
-        write_terminated(dest, format_args!("{input:.6e}"));
+        write_terminated(dest, STRING_CAPACITY, format_args!("{input:.6e}"));
     }
     0
 }
@@ -53,9 +61,9 @@ pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
 #[no_mangle]
 pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
     if input.abs() < 1e6 {
-        write_terminated(dest, format_args!("{input:.6}"));
+        write_terminated(dest, STRING_CAPACITY, format_args!("{input:.6}"));
     } else {
-        write_terminated(dest, format_args!("{input:.6e}"));
+        write_terminated(dest, STRING_CAPACITY, format_args!("{input:.6e}"));
     }
     0
 }
@@ -65,7 +73,7 @@ pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn BOOL_TO_STRING(dest: *mut u8, input: bool) {
-    write_terminated(dest, format_args!("{}", if input { "TRUE" } else { "FALSE" }));
+    write_terminated(dest, STRING_CAPACITY, format_args!("{}", if input { "TRUE" } else { "FALSE" }));
 }
 
 fn duration_components(timestamp_nanos: u64) -> [(u64, &'static str); 7] {
@@ -98,7 +106,7 @@ unsafe fn write_duration_to_string(input_nanos: u64, prefix: &str, zero_unit: &s
         value.push('0');
         value.push_str(zero_unit);
     }
-    write_terminated(dest, format_args!("{value}"));
+    write_terminated(dest, STRING_CAPACITY, format_args!("{value}"));
 }
 
 /// # Safety
@@ -121,7 +129,11 @@ pub unsafe extern "C" fn LTIME_TO_STRING(dest: *mut u8, input: i64) {
 /// Uses raw pointers, inherently unsafe.
 unsafe fn write_date_time_to_string(input_nanos: i64, prefix: &str, dest: *mut u8) {
     let datetime = chrono::Utc.timestamp_nanos(input_nanos);
-    write_terminated(dest, format_args!("{prefix}{}-{}", datetime.date_naive(), datetime.time()));
+    write_terminated(
+        dest,
+        STRING_CAPACITY,
+        format_args!("{prefix}{}-{}", datetime.date_naive(), datetime.time()),
+    );
 }
 
 /// # Safety
@@ -144,7 +156,7 @@ pub unsafe extern "C" fn LDT_TO_STRING(dest: *mut u8, input: i64) {
 /// Uses raw pointers, inherently unsafe.
 unsafe fn write_date_to_string(input_nanos: i64, prefix: &str, dest: *mut u8) {
     let date = chrono::Utc.timestamp_nanos(input_nanos).date_naive();
-    write_terminated(dest, format_args!("{prefix}{date}"));
+    write_terminated(dest, STRING_CAPACITY, format_args!("{prefix}{date}"));
 }
 
 /// # Safety
@@ -167,7 +179,7 @@ pub unsafe extern "C" fn LDATE_TO_STRING(dest: *mut u8, input: i64) {
 /// Uses raw pointers, inherently unsafe.
 unsafe fn write_time_of_day_to_string(input_nanos: i64, prefix: &str, dest: *mut u8) {
     let time = chrono::Utc.timestamp_nanos(input_nanos).time();
-    write_terminated(dest, format_args!("{prefix}{time}"));
+    write_terminated(dest, STRING_CAPACITY, format_args!("{prefix}{time}"));
 }
 
 /// # Safety
@@ -216,5 +228,165 @@ mod tests {
         assert_eq!("DT#2106-02-07-06:28:15", terminated_str(&dest));
         unsafe { TOD_TO_STRING(dest.as_mut_ptr(), 86_399_999) };
         assert_eq!("TOD#23:59:59.999", terminated_str(&dest));
+    }
+
+    #[test]
+    fn conversions_terminate_results_in_dirty_buffers() {
+        let mut dest = [0xAA_u8; STRING_CAPACITY];
+        let dest_ptr = dest.as_mut_ptr();
+
+        unsafe { BYTE_TO_STRING_EXT(42, dest_ptr) };
+        assert_eq!("42", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { LWORD_TO_STRING_EXT(7, dest_ptr) };
+        assert_eq!("7", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { LINT_TO_STRING_EXT(-12, dest_ptr) };
+        assert_eq!("-12", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { LREAL_TO_STRING_EXT(2.5, dest_ptr) };
+        assert_eq!("2.500000", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { LTIME_TO_STRING(dest_ptr, (2 * 3_600 + 3) * NANOS_PER_SECOND as i64) };
+        assert_eq!("LTIME#2h3s", terminated_str(&dest));
+    }
+
+    #[test]
+    fn byte_to_string_conversion() {
+        let mut dest = [0_u8; STRING_CAPACITY];
+
+        unsafe { BYTE_TO_STRING_EXT(0b1010_1010, dest.as_mut_ptr()) };
+
+        assert_eq!("170", terminated_str(&dest));
+    }
+
+    #[test]
+    fn lword_to_string_conversion() {
+        let mut dest = [0_u8; STRING_CAPACITY];
+        let input = 0xFF_00_FF_00_00_FF_00_FF_u64;
+
+        unsafe { LWORD_TO_STRING_EXT(input, dest.as_mut_ptr()) };
+
+        assert_eq!(input.to_string(), terminated_str(&dest));
+    }
+
+    #[test]
+    fn lint_to_string_conversion() {
+        let mut dest = [0_u8; STRING_CAPACITY];
+
+        unsafe { LINT_TO_STRING_EXT(100_200_300_400_500, dest.as_mut_ptr()) };
+
+        assert_eq!("100200300400500", terminated_str(&dest));
+    }
+
+    #[test]
+    fn lreal_to_string_conversion() {
+        let mut dest = [0_u8; STRING_CAPACITY];
+
+        unsafe { LREAL_TO_STRING_EXT(10_230.2321123121, dest.as_mut_ptr()) };
+        assert_eq!("10230.232112", terminated_str(&dest));
+
+        unsafe { LREAL_TO_STRING_EXT(-10_230.2321123121, dest.as_mut_ptr()) };
+        assert_eq!("-10230.232112", terminated_str(&dest));
+
+        unsafe { LREAL_TO_STRING_EXT(99_999_999_999_999.25, dest.as_mut_ptr()) };
+        assert_eq!("99999999999999.250000", terminated_str(&dest));
+
+        unsafe { LREAL_TO_STRING_EXT(123_456_789_123_456.13, dest.as_mut_ptr()) };
+        assert_eq!("1.234568e14", terminated_str(&dest));
+    }
+
+    #[test]
+    fn lreal_to_string_uses_scientific_notation_for_huge_negative_values() {
+        let mut dest = [0xAA_u8; STRING_CAPACITY];
+
+        unsafe { LREAL_TO_STRING_EXT(-1.0e300, dest.as_mut_ptr()) };
+        assert_eq!("-1.000000e300", terminated_str(&dest));
+
+        unsafe { LREAL_TO_STRING_EXT(-99_999_999_999_999.25, dest.as_mut_ptr()) };
+        assert_eq!("-99999999999999.250000", terminated_str(&dest));
+
+        unsafe { LREAL_TO_STRING_EXT(f64::NEG_INFINITY, dest.as_mut_ptr()) };
+        assert_eq!("-inf", terminated_str(&dest));
+
+        unsafe { LREAL_TO_STRING_EXT(f64::NAN, dest.as_mut_ptr()) };
+        assert_eq!("NaN", terminated_str(&dest));
+    }
+
+    #[test]
+    fn real_to_string_uses_scientific_notation_by_magnitude() {
+        let mut dest = [0xAA_u8; STRING_CAPACITY];
+
+        unsafe { REAL_TO_STRING_EXT(-1.5e7, dest.as_mut_ptr()) };
+        assert_eq!("-1.500000e7", terminated_str(&dest));
+
+        unsafe { REAL_TO_STRING_EXT(1.5e7, dest.as_mut_ptr()) };
+        assert_eq!("1.500000e7", terminated_str(&dest));
+
+        unsafe { REAL_TO_STRING_EXT(-999_999.25, dest.as_mut_ptr()) };
+        assert_eq!("-999999.250000", terminated_str(&dest));
+    }
+
+    #[test]
+    fn write_terminated_truncates_overlong_output() {
+        let mut dest = [0xAA_u8; 16];
+
+        let written = unsafe { write_terminated(dest.as_mut_ptr(), 16, format_args!("{:x<30}", "abc")) };
+
+        assert_eq!(15, written);
+        assert_eq!("abcxxxxxxxxxxxx", terminated_str(&dest));
+    }
+
+    #[test]
+    fn date_to_string_is_converted_in_correct_format() {
+        let datetime = chrono::NaiveDate::from_ymd_opt(1982, 12, 15)
+            .and_then(|date| date.and_hms_nano_opt(10, 10, 2, 123_456_789))
+            .unwrap();
+        let timestamp = datetime.and_utc().timestamp_nanos_opt().unwrap();
+        let mut dest = [0_u8; STRING_CAPACITY];
+        let dest_ptr = dest.as_mut_ptr();
+
+        unsafe { LDATE_TO_STRING(dest_ptr, timestamp) };
+        assert_eq!("1982-12-15", terminated_str(&dest));
+    }
+
+    #[test]
+    fn dt_to_string_is_converted_in_correct_format() {
+        let datetime = chrono::NaiveDate::from_ymd_opt(1982, 12, 15)
+            .and_then(|date| date.and_hms_nano_opt(10, 10, 2, 123_456_789))
+            .unwrap();
+        let timestamp = datetime.and_utc().timestamp_nanos_opt().unwrap();
+        let mut dest = [0_u8; STRING_CAPACITY];
+
+        unsafe { LDT_TO_STRING(dest.as_mut_ptr(), timestamp) };
+        assert_eq!("1982-12-15-10:10:02.123456789", terminated_str(&dest));
+    }
+
+    #[test]
+    fn tod_to_string_is_converted_in_correct_format() {
+        let datetime = chrono::NaiveDate::from_ymd_opt(1982, 12, 15)
+            .and_then(|date| date.and_hms_nano_opt(10, 10, 2, 123_456_789))
+            .unwrap();
+        let timestamp = datetime.and_utc().timestamp_nanos_opt().unwrap();
+        let mut dest = [0_u8; STRING_CAPACITY];
+
+        unsafe { LTOD_TO_STRING(dest.as_mut_ptr(), timestamp) };
+        assert_eq!("10:10:02.123456789", terminated_str(&dest));
+    }
+
+    #[test]
+    fn time_to_string_is_converted_in_correct_format() {
+        let datetime = chrono::NaiveDate::from_ymd_opt(1982, 12, 15)
+            .and_then(|date| date.and_hms_nano_opt(10, 10, 2, 123_456_789))
+            .unwrap();
+        let timestamp = datetime.and_utc().timestamp_nanos_opt().unwrap();
+        let mut dest = [0_u8; STRING_CAPACITY];
+
+        unsafe { LTIME_TO_STRING(dest.as_mut_ptr(), timestamp) };
+        assert_eq!("LTIME#4731d10h10m2s123ms456us789ns", terminated_str(&dest));
     }
 }
