@@ -201,8 +201,8 @@ fn resolve_target(params: Option<&CompileParameters>) -> Target {
         .with_sysroot(params.and_then(|it| it.sysroot.clone()))
 }
 
-/// Keeps LLVM's `BranchFolder` from tail-merging the shared suffix of sibling branch
-/// bodies, which leaves both bodies below on a single `call`:
+/// Keeps the backend from folding sibling branch bodies together, which would leave both
+/// bodies below sharing one `call`:
 ///
 /// ```text
 /// CASE step OF
@@ -211,13 +211,15 @@ fn resolve_target(params: Option<&CompileParameters>) -> Target {
 /// END_CASE
 /// ```
 ///
-/// A block carries one source location, so the merged block is attributed to line 0 and
-/// neither body keeps a line-table row; a breakpoint on either silently binds elsewhere.
+/// A block carries one source location, so a folded block is attributed to line 0, neither
+/// body keeps a line-table row, and a breakpoint on either silently binds to another line.
+/// `BranchFolder` merges the shared suffix on every target; on AArch64 a SimplifyCFG run in
+/// the backend also rewrites the switch into a lookup table, dropping the bodies outright.
 ///
-/// Only `-Onone` needs this. It runs the machine pipeline, where the merging happens (see
-/// `OptimizationLevel::codegen_level`), while the higher levels lose the rows in the IR
-/// pipeline regardless and would only pay the code-size cost.
-fn suppress_tail_merging(compile_options: &CompileOptions) {
+/// Only `-Onone` needs this, being the one level that pairs an unoptimized IR pipeline with
+/// an optimizing machine pipeline (see `OptimizationLevel::codegen_level`). The higher
+/// levels lose the rows in the IR pipeline regardless and would only pay the code-size cost.
+fn preserve_branch_body_locations(compile_options: &CompileOptions) {
     if matches!(compile_options.debug_level, DebugLevel::None)
         || compile_options.optimization != OptimizationLevel::None
     {
@@ -225,6 +227,7 @@ fn suppress_tail_merging(compile_options: &CompileOptions) {
     }
 
     plc_llvm::set_llvm_option("enable-tail-merge", "false");
+    plc_llvm::set_llvm_option("aarch64-enable-atomic-cfg-tidy", "false");
 }
 
 pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
@@ -234,7 +237,7 @@ pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
     pipeline.register_default_mut_participants();
     let target = resolve_target(pipeline.compile_parameters.as_ref());
     let compile_options = pipeline.get_compile_options().unwrap();
-    suppress_tail_merging(&compile_options);
+    preserve_branch_body_locations(&compile_options);
     let codegen_participant = CodegenParticipant {
         compile_options,
         link_options: pipeline.get_link_options().unwrap(),
