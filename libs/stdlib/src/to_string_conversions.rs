@@ -430,4 +430,16 @@ mod tests {
         unsafe { LTIME_TO_STRING(dest.as_mut_ptr(), timestamp) };
         assert_eq!("LTIME#4731d10h10m2s123ms456us789ns", terminated_str(&dest));
     }
+
+    #[test]
+    fn long_temporal_extremes_do_not_panic() {
+        let mut dest = [0_u8; STRING_CAPACITY];
+
+        for input in [i64::MIN, i64::MAX] {
+            unsafe { LTIME_TO_STRING(dest.as_mut_ptr(), input) };
+            unsafe { LDT_TO_STRING(dest.as_mut_ptr(), input) };
+            unsafe { LDATE_TO_STRING(dest.as_mut_ptr(), input) };
+            unsafe { LTOD_TO_STRING(dest.as_mut_ptr(), input) };
+        }
+    }
 }
