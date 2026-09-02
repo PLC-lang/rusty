@@ -253,9 +253,21 @@ mod tests {
         let mut dest = [0_u8; STRING_CAPACITY];
         unsafe { BOOL_TO_STRING(dest.as_mut_ptr(), true) };
         assert_eq!("TRUE", terminated_str(&dest));
+        unsafe { BYTE_TO_STRING_EXT(u8::MAX, dest.as_mut_ptr()) };
+        assert_eq!("255", terminated_str(&dest));
+        unsafe { USINT_TO_STRING_EXT(u8::MAX, dest.as_mut_ptr()) };
+        assert_eq!("255", terminated_str(&dest));
         unsafe { WORD_TO_STRING_EXT(u16::MAX, dest.as_mut_ptr()) };
         assert_eq!("65535", terminated_str(&dest));
+        unsafe { UINT_TO_STRING_EXT(u16::MAX, dest.as_mut_ptr()) };
+        assert_eq!("65535", terminated_str(&dest));
+        unsafe { DWORD_TO_STRING_EXT(u32::MAX, dest.as_mut_ptr()) };
+        assert_eq!("4294967295", terminated_str(&dest));
+        unsafe { UDINT_TO_STRING_EXT(u32::MAX, dest.as_mut_ptr()) };
+        assert_eq!("4294967295", terminated_str(&dest));
         unsafe { LWORD_TO_STRING_EXT(u64::MAX, dest.as_mut_ptr()) };
+        assert_eq!("18446744073709551615", terminated_str(&dest));
+        unsafe { ULINT_TO_STRING_EXT(u64::MAX, dest.as_mut_ptr()) };
         assert_eq!("18446744073709551615", terminated_str(&dest));
         unsafe { SINT_TO_STRING_EXT(i8::MIN, dest.as_mut_ptr()) };
         assert_eq!("-128", terminated_str(&dest));
@@ -312,7 +324,7 @@ mod tests {
 
         unsafe { LWORD_TO_STRING_EXT(input, dest.as_mut_ptr()) };
 
-        assert_eq!(input.to_string(), terminated_str(&dest));
+        assert_eq!("18374966855153418495", terminated_str(&dest));
     }
 
     #[test]
@@ -351,6 +363,9 @@ mod tests {
         unsafe { LREAL_TO_STRING_EXT(-99_999_999_999_999.25, dest.as_mut_ptr()) };
         assert_eq!("-99999999999999.250000", terminated_str(&dest));
 
+        unsafe { LREAL_TO_STRING_EXT(f64::INFINITY, dest.as_mut_ptr()) };
+        assert_eq!("inf", terminated_str(&dest));
+
         unsafe { LREAL_TO_STRING_EXT(f64::NEG_INFINITY, dest.as_mut_ptr()) };
         assert_eq!("-inf", terminated_str(&dest));
 
@@ -370,6 +385,15 @@ mod tests {
 
         unsafe { REAL_TO_STRING_EXT(-999_999.25, dest.as_mut_ptr()) };
         assert_eq!("-999999.250000", terminated_str(&dest));
+
+        unsafe { REAL_TO_STRING_EXT(f64::INFINITY, dest.as_mut_ptr()) };
+        assert_eq!("inf", terminated_str(&dest));
+
+        unsafe { REAL_TO_STRING_EXT(f64::NEG_INFINITY, dest.as_mut_ptr()) };
+        assert_eq!("-inf", terminated_str(&dest));
+
+        unsafe { REAL_TO_STRING_EXT(f64::NAN, dest.as_mut_ptr()) };
+        assert_eq!("NaN", terminated_str(&dest));
     }
 
     #[test]
