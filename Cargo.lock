@@ -1452,7 +1452,10 @@ dependencies = [
  "num",
  "paste",
  "plc-compiler",
+ "plc_ast",
  "plc_driver",
+ "plc_lexer",
+ "plc_parser",
  "plc_source",
  "tempfile",
 ]
@@ -2285,8 +2288,10 @@ dependencies = [
  "plc_diagnostics",
  "plc_driver",
  "plc_index",
+ "plc_lexer",
  "plc_llvm",
  "plc_lowering",
+ "plc_parser",
  "plc_project",
  "plc_source",
  "plc_util",
@@ -2410,6 +2415,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_lexer"
+version = "1.0.4"
+dependencies = [
+ "logos",
+ "plc_ast",
+ "plc_diagnostics",
+ "plc_source",
+ "pretty_assertions",
+]
+
+[[package]]
 name = "plc_llvm"
 version = "1.0.4"
 dependencies = [
@@ -2429,6 +2445,16 @@ dependencies = [
  "plc_ast",
  "plc_diagnostics",
  "plc_driver",
+ "plc_source",
+]
+
+[[package]]
+name = "plc_parser"
+version = "1.0.4"
+dependencies = [
+ "plc_ast",
+ "plc_diagnostics",
+ "plc_lexer",
  "plc_source",
 ]
 
