@@ -18,7 +18,9 @@ VAR
     second : DINT := 2;
 END_VAR
     // A terminator-directed callee reads past the argument list when the call carries no
-    // variadic argument at all. This is the shape that segfaults without the terminator.
+    // variadic argument at all. This is the shape that segfaults without the terminator, but
+    // reading past the arguments is undefined and can also find a zero by accident, so
+    // tests/lit/ir_tests/variadic_null_terminator.st is what pins the terminator down.
     SentinelPrinter('empty:');
     // CHECK: empty:
 

@@ -36,8 +36,8 @@ FUNCTION main : DINT
 VAR
     text : STRING := 'text';
 END_VAR
-    // A call without any variadic argument is still terminated, which is the case that makes a
-    // terminator-based callee read past the argument list.
+    // A call without any variadic argument is still terminated. This is the case in which a
+    // terminator-based callee reads past the argument list without the terminator.
     untyped(text);
     // CHECK: call i32 (ptr, ...) @untyped(ptr {{.*}}, ptr null)
 
