@@ -12,7 +12,7 @@ END_VAR
     s := TO_STRING(USINT#200);           printf('%s$N', REF(s));   // CHECK: 200
     s := TO_STRING(BYTE#16#FF);          printf('%s$N', REF(s));   // CHECK: 255
     s := TO_STRING(REAL#3.14);           printf('%s$N', REF(s));   // CHECK: 3.140000
-    s := TO_STRING(TIME#1s500ms);        printf('%s$N', REF(s));   // CHECK: 1s500ms
+    s := TO_STRING(TIME#1s500ms);        printf('%s$N', REF(s));   // CHECK: T#1s500ms
 
     // TO_WSTRING binds to its own per-type monomorph; round-trip back through TO_STRING to print it.
     s := TO_STRING(TO_WSTRING(DINT#42)); printf('%s$N', REF(s));   // CHECK: 42

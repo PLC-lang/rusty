@@ -16,6 +16,7 @@ pub mod string_conversion;
 pub mod string_functions;
 pub mod string_to_conversions;
 pub mod timers;
+pub mod to_string_conversions;
 pub mod types;
 pub mod utils;
 pub mod validation_functions;
