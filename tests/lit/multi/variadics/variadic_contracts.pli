@@ -1,0 +1,64 @@
+{external}
+FUNCTION SentinelPrinter
+VAR_INPUT {ref}
+    prefix : STRING;
+END_VAR
+VAR_INPUT
+    args : ...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION CountPrinter
+VAR_INPUT
+    count : DINT;
+END_VAR
+VAR_INPUT
+    args : ...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION ArgsBeforeTerminator : DINT
+VAR_INPUT {ref}
+    label : STRING;
+END_VAR
+VAR_INPUT
+    args : ...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION RefSentinelPrinter
+VAR_INPUT {ref}
+    prefix : STRING;
+END_VAR
+VAR_INPUT {ref}
+    args : ...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION FormatPrinter
+VAR_INPUT {ref}
+    fmt : STRING;
+END_VAR
+VAR_INPUT
+    args : ...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION TypedCountPrinter
+VAR_INPUT
+    count : DINT;
+    args : DINT...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION SizedPrinter
+VAR_INPUT
+    args : {sized} DINT...;
+END_VAR
+END_FUNCTION
