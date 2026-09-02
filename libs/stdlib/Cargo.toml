@@ -29,6 +29,10 @@ version = "1.0.4"
 
 [dependencies]
 chrono = "0.4"
+plc_ast = { path = "../../compiler/plc_ast", version = "1.0.4" }
+plc_lexer = { path = "../../compiler/plc_lexer", version = "1.0.4" }
+plc_parser = { path = "../../compiler/plc_parser", version = "1.0.4" }
+plc_source = { path = "../../compiler/plc_source", version = "1.0.4" }
 num = "0.4"
 paste = "1.0.8"
 log = "0.4"

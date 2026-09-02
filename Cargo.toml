@@ -20,6 +20,8 @@ verify = []
 [dependencies]
 plc_source = { path = "./compiler/plc_source", version = "1.0.4" }
 plc_ast = { path = "./compiler/plc_ast", version = "1.0.4" }
+plc_lexer = { path = "./compiler/plc_lexer", version = "1.0.4" }
+plc_parser = { path = "./compiler/plc_parser", version = "1.0.4" }
 plc_util = { path = "./compiler/plc_util", version = "1.0.4" }
 plc_diagnostics = { path = "./compiler/plc_diagnostics", version = "1.0.4" }
 plc_index = { path = "./compiler/plc_index", version = "1.0.4" }
@@ -73,6 +75,8 @@ members = [
     "libs/stdlib",
     "compiler/plc_driver",
     "compiler/plc_ast",
+    "compiler/plc_lexer",
+    "compiler/plc_parser",
     "compiler/plc_diagnostics",
     "compiler/plc_project",
     "compiler/plc_source",
