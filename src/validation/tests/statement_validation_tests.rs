@@ -1729,12 +1729,6 @@ fn validate_by_ref_argument_must_not_be_constant() {
     );
 
     assert_snapshot!(&diagnostics, @"
-    warning[E042]: VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.
-       ┌─ <internal>:32:20
-       │
-    32 │             reader(efficientIn := c);                        // Valid, {ref} is a read-only optimization
-       │                    ^^^^^^^^^^^^^^^^ VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.
-
     error[E031]: Parameter refIn is passed by reference and needs a variable with write access, but 'main.c' is constant
        ┌─ <internal>:33:39
        │
