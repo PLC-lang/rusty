@@ -244,5 +244,10 @@ pub fn compile_and_run_no_params<T, S: Compilable>(source: S, includes: S) -> T 
 /// Helper function to create includes from standard library files
 #[allow(dead_code)]
 pub fn get_includes(files: &[&str]) -> Vec<SourceCode> {
-    files.iter().map(|name| get_st_file(name)).collect()
+    let mut includes: Vec<_> = files.iter().map(|name| get_st_file(name)).collect();
+    if files.contains(&"extra_functions.st") {
+        includes.push(get_st_file("string_to_conversions.st"));
+        includes.push(get_st_file("to_string_conversions.st"));
+    }
+    includes
 }
