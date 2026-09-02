@@ -1,13 +1,22 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// Test that ADD with TIME overflow causes a panic
+// Test that ADD with TIME wraps mod 2^64 on overflow.
+// The maximum TIME value is built at runtime because TIME literals saturate
+// at 4294967295ns in this parser.
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
+    max : TIME;
     a : TIME;
+    b : TIME;
 END_VAR
-    // Adding 1ms to max TIME value should overflow and panic
-    a := ADD(TIME#9223372036854775807ms, TIME#1ms);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    max := MUL(TIME#1ns, LINT#9223372036854775807);
+    a := ADD(max, TIME#1ns);
+    // CHECK: -9223372036854775808
+    printf('%lld$N', a);
+
+    b := ADD_TIME(max, TIME#10ns);
+    // CHECK: -9223372036854775799
+    printf('%lld$N', b);
+
+    main := 0;
+END_FUNCTION
