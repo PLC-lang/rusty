@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.5](https://github.com/PLC-lang/rusty/releases/tag/v1.0.5) - 2026-09-02
+
+### Fixed
+
+- **lowering**: Resolve array ctor bounds through the index (#1897) (#1898)
+- Counter will no longer count after removing LD or R (1.0.x) (#1879)
+- Ensuring unary not validates that it requires a bit or integer (1.0.x) (#1865)
+- Program retain variables with inline type definitions (1.0.x) (#1864)
+- Pass plain variable arguments to REFERENCE TO inputs by address (1.0.x) (#1847)
+- Construct array elements in generated array type constructors (1.0.x) (#1832)
+- Provide builtin ABS monomorphs for unsigned types (#1850)
+- **stdlib**: String writers terminate their own output (#1817) (#1834)
+- Run the backend at -Oless for unoptimized builds (#1821)
+- Resolve generic TO_STRING/TO_WSTRING to the correct monomorphization (#1805) (#1829)
+- Removed round function(#1841) (#1842)
 ## [1.0.4](https://github.com/PLC-lang/rusty/releases/tag/v1.0.4) - 2026-07-29
 
 ### Fixed
