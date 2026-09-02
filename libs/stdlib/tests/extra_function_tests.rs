@@ -1718,7 +1718,7 @@ fn dt_to_string_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "1970-01-01-01:10:00";
+    let expected = "DT#1970-01-01-01:10:00";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1743,7 +1743,7 @@ fn dt_to_wstring_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "1970-01-01-01:10:00";
+    let expected = "DT#1970-01-01-01:10:00";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
@@ -1769,7 +1769,7 @@ fn date_to_string_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "1970-01-01";
+    let expected = "D#1970-01-01";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1794,7 +1794,7 @@ fn date_to_wstring_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "1970-01-01";
+    let expected = "D#1970-01-01";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
@@ -1820,7 +1820,7 @@ fn time_to_string_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "6d2m123ms456us789ns";
+    let expected = "T#6d2m123ms456us789ns";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1845,7 +1845,7 @@ fn time_to_wstring_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "6d3h2m9ns";
+    let expected = "T#6d3h2m9ns";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
@@ -1871,7 +1871,7 @@ fn tod_ltod_to_string_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "15:36:55.123";
+    let expected = "TOD#15:36:55.123";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1896,7 +1896,7 @@ fn tod_to_wstring_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "15:36:55.123";
+    let expected = "TOD#15:36:55.123";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
@@ -2024,7 +2024,7 @@ fn ltime_to_string_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "6d3h2m9ns";
+    let expected = "LTIME#6d3h2m9ns";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -2049,7 +2049,7 @@ fn ltime_to_wstring_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "6d3h2m9ns";
+    let expected = "LTIME#6d3h2m9ns";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
@@ -2075,7 +2075,7 @@ fn ltod_to_string_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "15:36:55.123";
+    let expected = "LTOD#15:36:55.123";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -2100,7 +2100,7 @@ fn ltod_to_wstring_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "15:36:55.123";
+    let expected = "LTOD#15:36:55.123";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
