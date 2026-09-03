@@ -1,0 +1,3 @@
+# Inheritance
+
+> Not written yet.
