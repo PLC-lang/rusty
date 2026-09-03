@@ -1,0 +1,45 @@
+# Summary
+
+[Introduction](README.md)
+
+# Technical Documentation
+
+- [Overview](technical/overview.md)
+- [Pipeline](technical/pipeline/README.md)
+    - [Driver](technical/pipeline/00-driver.md)
+    - [Lexer and Parser](technical/pipeline/01-lexer-parser.md)
+    - [Index](technical/pipeline/02-index.md)
+    - [Resolver](technical/pipeline/03-resolver.md)
+    - [Validation](technical/pipeline/04-validation.md)
+    - [Codegen](technical/pipeline/05-codegen.md)
+    - [Linker](technical/pipeline/06-linker.md)
+- [Participants](technical/participants/README.md)
+    - [CFC](technical/participants/00-cfc.md)
+    - [Loop Desugar](technical/participants/01-loop-desugar.md)
+    - [Property](technical/participants/02-property.md)
+    - [Polymorphism](technical/participants/03-polymorphism.md)
+    - [Control Statements](technical/participants/04-control-statements.md)
+    - [Reference To Return](technical/participants/05-reference-to-return.md)
+    - [Init](technical/participants/06-init.md)
+    - [Retain](technical/participants/07-retain.md)
+    - [Generic](technical/participants/08-generic.md)
+    - [Aggregate Return](technical/participants/09-aggregate-return.md)
+    - [Inheritance](technical/participants/10-inheritance.md)
+    - [Array](technical/participants/11-array.md)
+- [Outputs](technical/outputs/README.md)
+    - [Header Generator](technical/outputs/00-header-generator.md)
+    - [Hardware Map](technical/outputs/01-hardware-map.md)
+- [Internals](technical/internals/README.md)
+    - [POUs](technical/internals/00-pous.md)
+    - [Structs](technical/internals/01-structs.md)
+    - [Arrays](technical/internals/02-arrays.md)
+    - [Strings](technical/internals/03-strings.md)
+    - [Enums](technical/internals/04-enums.md)
+    - [Variable-Length Arrays](technical/internals/05-variable-length-arrays.md)
+    - [Reference Expressions](technical/internals/06-reference-expressions.md)
+    - [Initializers](technical/internals/07-initializers.md)
+    - [Annotated AST](technical/internals/08-annotated-ast.md)
+
+---
+
+[Known Bugs](bugs.md)
