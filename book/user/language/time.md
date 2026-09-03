@@ -1,0 +1,68 @@
+# Time and Date
+
+Four things can be measured: how long something takes, which day it is, which moment of a day it is, and which exact point in time it is. The language has a type for each, in two families.
+
+The short family is 32 bits wide, the long family is 64 bits and starts with `L`:
+
+| Short | Long | Holds | Unit of the short type |
+|---|---|---|---|
+| `TIME` | `LTIME` | A duration | milliseconds |
+| `DATE` | `LDATE` | A day | seconds since 1970-01-01 UTC |
+| `TIME_OF_DAY` | `LTIME_OF_DAY` | A moment of a day | milliseconds since 1970-01-01 UTC |
+| `DATE_AND_TIME` | `LDATE_AND_TIME` | A point in time | seconds since 1970-01-01 UTC |
+
+The long family counts in nanoseconds. Each type also has a short name: `T`, `LT`, `D`, `LD`, `TOD`, `LTOD`, `DT`, `LDT`.
+
+
+## Literals
+
+A literal starts with the name of its type and `#`:
+
+```iecst
+VAR
+    cycle   : TIME := T#10ms;
+    startup : TIME := TIME#2d4h6m8s10ms;
+    day     : DATE := D#2024-05-02;
+    moment  : TIME_OF_DAY := TOD#23:59:59.999;
+    stamp   : DATE_AND_TIME := DT#1999-12-31-23:59:59.999;
+END_VAR
+```
+
+A duration is a sequence of segments, in the order `d`, `h`, `m`, `s`, `ms`, `us`, `ns`. You leave out the ones you do not need, and only the last one can have a fraction:
+
+```iecst
+T#2d4h          (* two days and four hours *)
+T#2d4.2h        (* the last segment may be fractional *)
+T#90s           (* a segment may exceed its usual range *)
+```
+
+In a date or a point in time, only the seconds can have a fraction.
+
+
+## Calculating
+
+Durations add and subtract, and they compare:
+
+```iecst
+VAR
+    a : TIME := T#1s;
+    b : TIME := T#500ms;
+    total : TIME;
+END_VAR
+
+total := a + b;        (* 1500 ms *)
+IF a > b THEN          (* TRUE *)
+```
+
+A duration also multiplies and divides by a number, which is how you scale a cycle time.
+
+The short types are unsigned, so a negative duration does not fit. The compiler reports `E148` for a literal such as `T#-10s`. Use `LTIME` when a duration must be able to go below zero.
+
+To read a time value as a number, convert it with a cast. `DINT#cycle` gives the milliseconds of a `TIME`, because that is what the type holds.
+
+The standard library converts between the families and to text, for example `TIME_TO_LTIME` and `TIME_TO_STRING`, and it brings the timers `TON`, `TOF`, and `TP`, which are function blocks. The [standard library reference](../reference/standard-library.md) lists them.
+
+
+## What's next
+
+The next chapter builds bigger types out of the ones so far: [arrays, structs, and enumerations](composite-types.md).

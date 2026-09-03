@@ -1,0 +1,3 @@
+# User Documentation
+
+This part shows you how to write Structured Text for this compiler and how to build it. It starts with the installation and a program that runs, then walks through the language itself, from the shape of a source file to interfaces, generic functions, and programs drawn as charts. After that it explains the compiler as a tool: how to compile a project, link it against libraries, read its diagnostics, and put debug information into the artifact. The last two parts connect a project to code written in C, and list every option, key, construct, and error code for looking up. The compiler binary is called `plc`.

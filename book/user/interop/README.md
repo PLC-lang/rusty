@@ -1,0 +1,3 @@
+# Interoperability
+
+Structured Text can call foreign code, and foreign code can call compiled Structured Text. This part shows both directions: how to declare a function that lives in a C library, the variadic forms included, and what every construct of the language becomes on the C side, down to the layout of a function block and the names of the constructors that the compiler generates. It also shows how to let the compiler write the C headers of a project instead of writing them by hand. The last chapter collects the rules for an interface that other people have to use, and the reasons behind them.
