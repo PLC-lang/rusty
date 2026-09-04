@@ -50,7 +50,7 @@
                         </ppx:InputVariable>
                     </ppx:InputVariables>
                     <ppx:OutputVariables>
-                        <ppx:OutputVariable parameterName="myAdd" negated="false">
+                        <ppx:OutputVariable parameterName="" negated="false">
                             <ppx:ConnectionPointOut connectionPointOutId="6">
 <ppx:RelPosition x="90" y="30"/>
                             </ppx:ConnectionPointOut>

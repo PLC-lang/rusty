@@ -222,7 +222,7 @@ impl<'index> Resolver<'index> {
                             }
                         }
 
-                        match block::is_return_pin(object, pin) {
+                        match block::is_return_pin(pin) {
                             // The return value is received by assigning the call itself.
                             true => capture = name,
 
@@ -322,7 +322,7 @@ impl<'index> Resolver<'index> {
     ) -> Option<Temporary> {
         let Some(data_type) = block::temp_type(block, pin, self.index) else {
             self.diagnostics.push(Diagnostic::undeclared_block_output(
-                &pin.parameter_name,
+                block::pin_name(block, pin),
                 block.type_name().unwrap_or_default(),
                 location.clone(),
             ));
@@ -363,8 +363,14 @@ impl<'index> Resolver<'index> {
                     }
                 }
 
-                // A block exposes one pin per output parameter.
+                // A block exposes one pin per output parameter; only the return pin is unnamed.
                 Role::Block => {
+                    if object.output_pins().iter().filter(|pin| block::is_return_pin(pin)).count() > 1 {
+                        let name = object.type_name().unwrap_or_default();
+                        let location = self.factory.create_block_location(object.global_id);
+                        self.diagnostics.push(Diagnostic::duplicate_return_pin(name, location));
+                    }
+
                     for pin in object.output_pins() {
                         if let Some(id) = pin.output_pin() {
                             by_pin.insert(id, object);
@@ -546,12 +552,22 @@ mod block {
         block.type_name().is_some_and(|name| index.get_variadic_member(name).is_some())
     }
 
-    pub(super) fn is_return_pin(block: &FbdObject, pin: &Pin) -> bool {
-        block.type_name() == Some(pin.parameter_name.as_str())
+    // TODO: Do not merge until the IDE changes are final and can be cross-checked with the `reference/` fixtures
+    // The IDE leaves the return pin unnamed; declared outputs always carry their parameter name.
+    pub(super) fn is_return_pin(pin: &Pin) -> bool {
+        pin.parameter_name.is_empty()
+    }
+
+    // The pin's readable name: the callee for the return pin, the parameter otherwise.
+    pub(super) fn pin_name<'pin>(block: &'pin FbdObject, pin: &'pin Pin) -> &'pin str {
+        match is_return_pin(pin) {
+            true => block.type_name().unwrap_or_default(),
+            false => &pin.parameter_name,
+        }
     }
 
     pub(super) fn temp_name(block: &FbdObject, pin: &Pin) -> String {
-        format!("__out_{}_{}", pin.parameter_name, block.global_id)
+        format!("__out_{}_{}", pin_name(block, pin), block.global_id)
     }
 
     pub(super) fn inputs(block: &FbdObject) -> impl Iterator<Item = &Pin> {
@@ -570,7 +586,7 @@ mod block {
     // Outputs pass by reference, so unwrap the auto-deref pointer's inner type.
     pub(super) fn temp_type(block: &FbdObject, pin: &Pin, index: &Index) -> Option<String> {
         let function = block.type_name().unwrap_or_default();
-        let variable = match is_return_pin(block, pin) {
+        let variable = match is_return_pin(pin) {
             true => index.find_return_variable(function),
             false => index.find_member(function, &pin.parameter_name),
         }?;
@@ -1154,6 +1170,14 @@ mod tests {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_stale_output").unwrap_err(), @r"
             error[E147]: Output `oldDoubled` is not declared by `myAdd`
              = function_stale_output.cfc: Block 5
+            ");
+        }
+
+        #[test]
+        fn function_duplicate_return() {
+            insta::assert_snapshot!(transpile_project("blocks/invalid/function_duplicate_return").unwrap_err(), @r"
+            error[E152]: Block `myAdd` has more than one return pin
+             = function_duplicate_return.cfc: Block 5
             ");
         }
     }

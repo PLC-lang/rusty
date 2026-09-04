@@ -6,6 +6,11 @@ here is real, IDE-exported-shaped PLCopen XML (the `ppx` namespace,
 it can be **copy-pasted / imported into the IDE unchanged**. The authoritative
 schema is `src/model.rs` plus the verbatim exports under `reference/`.
 
+A function block element writes its return pin as an `OutputVariable` with an
+empty `parameterName`; declared `VAR_OUTPUT` pins carry their name. Void
+functions have no return pin. The `reference/` exports still predate this
+convention and name the return pin after the function.
+
 ## Layout
 
 ```
