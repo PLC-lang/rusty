@@ -461,3 +461,31 @@ fn unary_plus_in_initializer() {
     }
     "#);
 }
+
+/// A POU-local `VAR CONSTANT` used as an array bound, for an element type that needs
+/// construction. Regression test for PRG-4730: the generated element constructor is a POU of
+/// its own, so the bound cannot be the identifier `five`, which is a member of `prog` and does
+/// not resolve there. It used to be copied over verbatim, and the resulting comparison was
+/// annotated as a call to a `DINT_GREATER` function that does not exist, which failed codegen
+/// with "cannot generate call statement".
+#[test]
+fn pou_local_constant_as_array_bound_of_a_constructed_element_type() {
+    // `test_utils::codegen` runs the full pipeline, including the initializer lowering that
+    // generates the element constructor. The crate-local helper stops short of it.
+    let result = test_utils::codegen(
+        r#"
+        PROGRAM prog
+        VAR CONSTANT
+            five : DINT := 5;
+        END_VAR
+        VAR
+            arr : ARRAY[1..five] OF STRING[63];
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    // The bound arrives as a literal and is compared natively, rather than through a call.
+    assert!(result.contains("icmp sgt i32 %load___prog_arr__idx0, 5"), "{result}");
+    assert!(!result.contains("DINT_GREATER"), "{result}");
+}
