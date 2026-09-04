@@ -1,3 +1,5 @@
+//! Traces the diagram's wiring into ordered, validated network statements.
+
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
@@ -41,12 +43,20 @@ enum Source<'model> {
 
 // Everything the linking pass needs to know up front.
 struct Survey<'model> {
+    /// Every `<ConnectionPointOut connectionPointOutId="4">` to its owning element
     by_pin: HashMap<usize, &'model FbdObject>,
+
+    /// Block `<OutputVariable parameterName="out">` pins by out-id
     block_output: HashMap<usize, &'model Pin>,
+
+    /// The connector owning each `<Connector label="x">`
     connector_by_label: HashMap<&'model str, &'model FbdObject>,
+
+    /// Every `<CfcLabel label="top">` name
     labels: HashSet<&'model str>,
+
+    /// Every `<CfcJump targetLabel="top">`
     targets: HashSet<&'model str>,
-    consumed: HashSet<usize>,
 }
 
 enum Trace<'model> {
@@ -71,19 +81,22 @@ impl<'index> Resolver<'index> {
     }
 
     pub fn resolve(mut self, network: &model::Network) -> (Network, Vec<Diagnostic>) {
-        let mut survey = self.survey(network);
-        survey.consumed = consumed(network, &survey);
+        // Chart the wiring up front; `consumed` decides which outputs need temporaries.
+        let survey = self.survey(network);
+        let consumed = consumed(network, &survey);
 
+        // Turn each element into its statement(s), tagged with its priority.
         let mut statements = Vec::new();
         let mut temporaries = Vec::new();
         let mut broken = Vec::new();
         for object in network.elements() {
+            let location = self.factory.create_block_location(object.global_id);
+
             match Role::from(object) {
                 Role::Sink => match trace(consumes(object), &survey) {
                     // The traced source becomes the sink's assigned value,
                     // negated once more by the sink's own inversion bubble.
                     Trace::Reached(source) => {
-                        let location = self.factory.create_block_location(object.global_id);
                         let sink = self.expression(object, &location);
                         let source = self.value(&source, &location);
                         let source = self.negate_if(source, &location, object.in_negated());
@@ -102,7 +115,6 @@ impl<'index> Resolver<'index> {
                 Role::Return => match trace(consumes(object), &survey) {
                     // The traced source guards the return.
                     Trace::Reached(source) => {
-                        let location = self.factory.create_block_location(object.global_id);
                         let condition = self.condition(object, &source, &location);
 
                         let statement = Statement::Return { condition, location };
@@ -114,13 +126,11 @@ impl<'index> Resolver<'index> {
 
                     // A return without a condition is rejected; drop it.
                     Trace::Unwired => {
-                        let location = self.factory.create_block_location(object.global_id);
                         self.diagnostics.push(Diagnostic::disconnected_return(location));
                     }
                 },
 
                 Role::Jump => {
-                    let location = self.factory.create_block_location(object.global_id);
                     let target = object.target_label().unwrap_or_default().to_string();
 
                     // A jump to a name no label defines has nowhere to land.
@@ -151,7 +161,6 @@ impl<'index> Resolver<'index> {
                 }
 
                 Role::Label => {
-                    let location = self.factory.create_block_location(object.global_id);
                     let name = object.label().unwrap_or_default().to_string();
 
                     // A label no jump targets is dead routing; keep it, but flag it.
@@ -165,7 +174,6 @@ impl<'index> Resolver<'index> {
 
                 // A callee the index doesn't know can't be classified; reject it.
                 Role::Block if block::is_unknown(object, self.index) => {
-                    let location = self.factory.create_block_location(object.global_id);
                     let name = object.type_name().unwrap_or_default();
 
                     self.diagnostics.push(Diagnostic::unknown_block_type(name, location));
@@ -173,7 +181,6 @@ impl<'index> Resolver<'index> {
 
                 // Stateless blocks (functions and sort of methods); temporaries for outputs
                 Role::Block if block::is_stateless(object, self.index) => {
-                    let location = self.factory.create_block_location(object.global_id);
                     let variadic = block::is_variadic(object, self.index);
 
                     let mut arguments = Vec::new();
@@ -206,8 +213,8 @@ impl<'index> Resolver<'index> {
                     // Consumed outputs are captured into temporaries
                     let mut capture = None;
                     for pin in object.output_pins() {
-                        let consumed = pin.output_pin().is_some_and(|id| survey.consumed.contains(&id));
-                        let name = consumed.then(|| block::temp_name(object, pin));
+                        let read = pin.output_pin().is_some_and(|id| consumed.contains(&id));
+                        let name = read.then(|| block::temp_name(object, pin));
 
                         if let Some(name) = &name {
                             if let Some(temporary) = self.temporary(name, object, pin, &location) {
@@ -234,8 +241,6 @@ impl<'index> Resolver<'index> {
 
                 // A stateful call passes only its wired inputs; outputs read back as members.
                 Role::Block => {
-                    let location = self.factory.create_block_location(object.global_id);
-
                     let mut arguments = Vec::new();
                     for pin in block::inputs(object) {
                         match trace(pin.source_pin(), &survey) {
@@ -260,7 +265,6 @@ impl<'index> Resolver<'index> {
 
                 // Placed but never wired; warn and ignore.
                 Role::Unconnected => {
-                    let location = self.factory.create_block_location(object.global_id);
                     let name = object.identifier().unwrap_or("<unnamed>");
 
                     self.diagnostics.push(Diagnostic::unconnected_element(name, location));
@@ -337,64 +341,68 @@ impl<'index> Resolver<'index> {
         let mut targets = HashSet::new();
 
         for object in network.elements() {
-            // A label name claimed twice makes its jump target ambiguous.
-            if matches!(Role::from(object), Role::Label) {
-                if let Some(label) = object.label() {
-                    if !labels.insert(label) {
-                        let location = self.factory.create_block_location(object.global_id);
-                        self.diagnostics.push(Diagnostic::duplicate_label(label, location));
-                    }
-                }
-            }
-
-            if matches!(Role::from(object), Role::Jump) {
-                if let Some(target) = object.target_label() {
-                    targets.insert(target);
-                }
-            }
-
-            // Register every output pin an incoming wire could reference; a block exposes one per output parameter.
+            // Register every output pin an incoming wire could reference.
             if let Some(out) = &object.connection_out {
                 by_pin.insert(out.id, object);
             }
 
-            if matches!(Role::from(object), Role::Block) {
-                for pin in object.output_pins() {
-                    if let Some(id) = pin.output_pin() {
-                        by_pin.insert(id, object);
-                        block_output.insert(id, pin);
-                    }
-                }
-            }
-
-            if matches!(Role::from(object), Role::Connector) {
-                if let Some(label) = object.label() {
-                    match connector_by_label.entry(label) {
-                        // The first connector to claim a label owns it.
-                        Entry::Vacant(entry) => {
-                            entry.insert(object);
-                        }
-
-                        // A later one reusing the label is a duplicate.
-                        Entry::Occupied(_) => {
+            match Role::from(object) {
+                // A label name claimed twice makes its jump target ambiguous.
+                Role::Label => {
+                    if let Some(label) = object.label() {
+                        if !labels.insert(label) {
                             let location = self.factory.create_block_location(object.global_id);
-                            self.diagnostics.push(Diagnostic::duplicate_connector(label, location));
+                            self.diagnostics.push(Diagnostic::duplicate_label(label, location));
                         }
                     }
                 }
+
+                Role::Jump => {
+                    if let Some(target) = object.target_label() {
+                        targets.insert(target);
+                    }
+                }
+
+                // A block exposes one pin per output parameter.
+                Role::Block => {
+                    for pin in object.output_pins() {
+                        if let Some(id) = pin.output_pin() {
+                            by_pin.insert(id, object);
+                            block_output.insert(id, pin);
+                        }
+                    }
+                }
+
+                Role::Connector => {
+                    if let Some(label) = object.label() {
+                        match connector_by_label.entry(label) {
+                            // The first connector to claim a label owns it.
+                            Entry::Vacant(entry) => {
+                                entry.insert(object);
+                            }
+
+                            // A later one reusing the label is a duplicate.
+                            Entry::Occupied(_) => {
+                                let location = self.factory.create_block_location(object.global_id);
+                                self.diagnostics.push(Diagnostic::duplicate_connector(label, location));
+                            }
+                        }
+                    }
+                }
+
+                _ => {}
             }
         }
 
-        Survey { by_pin, block_output, connector_by_label, labels, targets, consumed: HashSet::new() }
+        Survey { by_pin, block_output, connector_by_label, labels, targets }
     }
 
     fn expression(&mut self, object: &FbdObject, location: &SourceLocation) -> AstNode {
         let node = self.parse(object, location);
 
-        // Expressions other than literals and references defined in the text declaration of a CFC graph node
-        // are unsupported. A variable node element should only contain a literal or reference, not a call
-        // for example (calls must use a block element instead).
-        if !is_supported(&node.stmt) {
+        // A variable element may only hold a literal or a reference; anything
+        // else (a call, arithmetic) must be modeled as a block element instead.
+        if !is_supported(&node) {
             let location = self.factory.create_block_location(object.global_id);
             let text = object.identifier().unwrap_or_default();
             self.diagnostics.push(Diagnostic::unsupported_cfc_expression(text, location));
@@ -418,21 +426,21 @@ impl<'index> Resolver<'index> {
     // Creates an AST node, wrapped in a NOT expression for each inversion
     // bubble on the wire: the producer's, then the consumer's on top.
     fn condition(&mut self, consumer: &FbdObject, source: &Source, location: &SourceLocation) -> AstNode {
-        // Unvetted; a condition may be any ST expression.
         let node = match source {
+            // Unvetted; a condition may be any ST expression.
             Source::Variable(object) => {
                 let node = self.parse(object, location);
                 self.negate_if(node, location, object.out_negated())
             }
-            Source::Output { block, pin } => self.member_read(block, pin, location),
+            Source::Output { .. } => self.value(source, location),
         };
 
         self.negate_if(node, location, consumer.in_negated())
     }
 
     fn member_read(&mut self, block: &FbdObject, pin: &Pin, location: &SourceLocation) -> AstNode {
-        let mut node = st::parse_expression(&block::read_target(block, pin, self.index), self.ids.clone());
-        node.location = location.clone();
+        let target = block::read_target(block, pin, self.index);
+        let node = st::parse_expression_at(&target, self.ids.clone(), location);
 
         self.negate_if(node, location, pin.negated)
     }
@@ -445,9 +453,7 @@ impl<'index> Resolver<'index> {
     }
 
     fn parse(&mut self, object: &FbdObject, location: &SourceLocation) -> AstNode {
-        let mut node = st::parse_expression(object.identifier().unwrap_or_default(), self.ids.clone());
-        node.location = location.clone();
-        node
+        st::parse_expression_at(object.identifier().unwrap_or_default(), self.ids.clone(), location)
     }
 }
 
@@ -516,16 +522,12 @@ fn trace<'model>(start: Option<usize>, survey: &Survey<'model>) -> Trace<'model>
     }
 }
 
-fn is_supported(statement: &AstStatement) -> bool {
-    match statement {
-        // See through parentheses, e.g. `(foo)` or `((5))`.
-        AstStatement::ParenExpression(inner) => is_supported(&inner.stmt),
-        AstStatement::Literal(_) | AstStatement::ReferenceExpr(_) => true,
-        _ => false,
-    }
+// Sees through parentheses, e.g. `(foo)` or `((5))`.
+fn is_supported(node: &AstNode) -> bool {
+    matches!(node.get_stmt_peeled(), AstStatement::Literal(_) | AstStatement::ReferenceExpr(_))
 }
 
-// Block related helpers
+// Classification, naming, and call-target helpers for block elements.
 mod block {
     use plc::index::Index;
 
@@ -629,11 +631,7 @@ fn consumed(network: &model::Network, survey: &Survey) -> HashSet<usize> {
 }
 
 fn consumes(consumer: &FbdObject) -> Option<usize> {
-    consumer
-        .connection_in
-        .as_ref()
-        .and_then(|it| it.connections.first())
-        .map(|connection| connection.ref_out_id)
+    consumer.connection_in.as_ref()?.source_pin()
 }
 
 #[cfg(test)]
@@ -657,6 +655,7 @@ mod tests {
         render(&network)
     }
 
+    // One line per statement, in the network's final evaluation order.
     fn render(network: &Network) -> String {
         network
             .statements

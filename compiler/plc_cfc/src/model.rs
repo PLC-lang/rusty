@@ -1,3 +1,5 @@
+//! The serde model of the `.cfc` document, the shape of the XML format itself.
+
 // quick-xml's serde support strips namespace prefixes and matches on the local
 // name, so the `rename`s use bare names (`Function`, `type`) rather than their
 // `ppx:` / `xsi:` prefixed forms, and attributes take a leading `@`.
@@ -304,10 +306,17 @@ impl FbdObject {
 
 impl Pin {
     pub fn source_pin(&self) -> Option<usize> {
-        self.connection_in.as_ref()?.connections.first().map(|connection| connection.ref_out_id)
+        self.connection_in.as_ref()?.source_pin()
     }
 
     pub fn output_pin(&self) -> Option<usize> {
         self.connection_out.as_ref().map(|out| out.id)
+    }
+}
+
+impl ConnectionPointIn {
+    // The producing pin a consumer reads: the first (and only) connection.
+    pub fn source_pin(&self) -> Option<usize> {
+        self.connections.first().map(|connection| connection.ref_out_id)
     }
 }

@@ -1,3 +1,5 @@
+//! The resolved intermediate representation a network transpiles through.
+
 use plc_ast::ast::AstNode;
 use plc_source::source_location::SourceLocation;
 

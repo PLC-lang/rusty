@@ -2,8 +2,8 @@
 //!
 //! A `.cfc` document is deserialized into the raw `model` types, then resolved
 //! into a `network::Network`: the `Resolver` surveys the diagram, traces the
-//! wiring, orders and validates the statements — every decision and diagnostic
-//! in one stage — so the `Transpiler` renders the final `CompilationUnit`
+//! wiring, orders and validates the statements (every decision and diagnostic
+//! in one stage), so the `Transpiler` renders the final `CompilationUnit`
 //! without making any decisions of its own.
 //!
 //! The driver enters twice: [`parse_file`] during the parse step, yielding an
@@ -79,29 +79,30 @@ pub fn transpile_file(
 
 #[cfg(test)]
 mod test_utils {
-    use plc_ast::ast::LinkageType;
+    use plc::index::{indexer, Index};
+    use plc::{builtins, lexer, parser, typesystem};
+    use plc_ast::ast::{pre_process, CompilationUnit, LinkageType};
     use plc_ast::provider::IdProvider;
     use plc_ast::ser::AstSerializer;
     use plc_diagnostics::diagnostician::Diagnostician;
-    use plc_diagnostics::diagnostics::Severity;
+    use plc_diagnostics::diagnostics::{Diagnostic, Severity};
     use plc_diagnostics::reporter::DiagnosticReporter;
+    use plc_source::source_location::SourceLocationFactory;
     use plc_source::SourceCode;
 
     // Indexes every POU a fixture involves: the interface, any companion `.st`
     // beside the `.cfc` declaring the fixture's callees, and the builtin types.
-    pub(crate) fn fixture_index(
-        fixture: &str,
-        interface: &plc_ast::ast::CompilationUnit,
-    ) -> plc::index::Index {
-        let mut index = plc::index::indexer::index(interface);
-        for data_type in plc::typesystem::get_builtin_types() {
+    pub(crate) fn fixture_index(fixture: &str, interface: &CompilationUnit) -> Index {
+        let mut index = indexer::index(interface);
+        for data_type in typesystem::get_builtin_types() {
             index.register_type(data_type);
         }
 
         // Builtin POUs (ADD, SEL, ...) join the index like in the driver.
-        let builtins = plc::builtins::parse_built_ins(IdProvider::default());
-        index.import(plc::index::indexer::index(&builtins));
+        let callees = builtins::parse_built_ins(IdProvider::default());
+        index.import(indexer::index(&callees));
 
+        // Index the companion `.st` callees beside the fixture's `.cfc`.
         let dir = format!("{}/fixtures/{fixture}", env!("CARGO_MANIFEST_DIR"));
         for entry in std::fs::read_dir(dir).unwrap() {
             let path = entry.unwrap().path();
@@ -110,13 +111,13 @@ mod test_utils {
             }
 
             let source = std::fs::read_to_string(&path).unwrap();
-            let factory = plc_source::source_location::SourceLocationFactory::internal(&source);
-            let session = plc::lexer::lex_with_ids(&source, IdProvider::default(), factory);
-            let (mut unit, _) = plc::parser::parse(session, LinkageType::Internal, "<callees>");
+            let factory = SourceLocationFactory::internal(&source);
+            let session = lexer::lex_with_ids(&source, IdProvider::default(), factory);
+            let (mut unit, _) = parser::parse(session, LinkageType::Internal, "<callees>");
 
             // Pre-process like the driver, so e.g. generic bindings index correctly.
-            plc_ast::ast::pre_process(&mut unit, IdProvider::default());
-            index.import(plc::index::indexer::index(&unit));
+            pre_process(&mut unit, IdProvider::default());
+            index.import(indexer::index(&unit));
         }
 
         index
@@ -125,6 +126,7 @@ mod test_utils {
     pub(crate) fn fixture_source(fixture: &str) -> SourceCode {
         let name = fixture.rsplit('/').next().unwrap();
         let disk = format!("{}/fixtures/{fixture}/{name}.cfc", env!("CARGO_MANIFEST_DIR"));
+
         // A stable name, so snapshots don't embed absolute paths.
         SourceCode {
             source: std::fs::read_to_string(&disk).unwrap(),
@@ -132,20 +134,8 @@ mod test_utils {
         }
     }
 
-    // Mimics the driver participant's fixed-point loop: index once (now with
-    // the temporaries), patch what resolved, repeat until quiescent. Returns
-    // the diagnostics for whatever stayed unresolved.
-    fn infer(
-        fixture: &str,
-        unit: &mut plc_ast::ast::CompilationUnit,
-        ids: IdProvider,
-    ) -> Vec<plc_diagnostics::diagnostics::Diagnostic> {
-        let mut index = fixture_index(fixture, unit);
-        while crate::infer_temporary_types(unit, &mut index, ids.clone()) {}
-
-        crate::unresolved_temporaries(unit, &index)
-    }
-
+    // Runs the full driver pipeline on a fixture; the serialized unit, or the
+    // rendered diagnostics when an error aborts.
     pub(crate) fn transpile_project(fixture: &str) -> Result<String, String> {
         let source = fixture_source(fixture);
         let ids = IdProvider::default();
@@ -184,6 +174,17 @@ mod test_utils {
             diagnostics.extend(infer(fixture, &mut unit, ids));
             diagnostician.handle(&diagnostics);
         }
+
         diagnostician.buffer().unwrap_or_default()
+    }
+
+    // Mimics the driver participant's fixed-point loop: index once (now with
+    // the temporaries), patch what resolved, repeat until quiescent. Returns
+    // the diagnostics for whatever stayed unresolved.
+    fn infer(fixture: &str, unit: &mut CompilationUnit, ids: IdProvider) -> Vec<Diagnostic> {
+        let mut index = fixture_index(fixture, unit);
+        while crate::infer_temporary_types(unit, &mut index, ids.clone()) {}
+
+        crate::unresolved_temporaries(unit, &index)
     }
 }
