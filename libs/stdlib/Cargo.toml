@@ -1,6 +1,6 @@
 [package]
 name = "iec61131std"
-version = "1.1.0-dev"
+version = "2.0.0"
 edition = "2021"
 license = "LGPL-3.0"
 description = "IEC 61131-3 standard library implementation"
@@ -10,33 +10,33 @@ glob.workspace = true
 
 [build-dependencies.plc_driver]
 path = "../../compiler/plc_driver"
-version = "1.1.0-dev"
+version = "2.0.0"
 
 
 [dev-dependencies.plc_driver]
 path = "../../compiler/plc_driver"
-version = "1.1.0-dev"
+version = "2.0.0"
 
 [dev-dependencies.plc_source]
 path = "../../compiler/plc_source"
-version = "1.1.0-dev"
+version = "2.0.0"
 
 [dev-dependencies.plc]
 package = "plc-compiler"
 path = "../.."
-version = "1.1.0-dev"
+version = "2.0.0"
 
 
 [dependencies]
 chrono = "0.4"
-plc_ast = { path = "../../compiler/plc_ast", version = "1.1.0-dev" }
-plc_lexer = { path = "../../compiler/plc_lexer", version = "1.1.0-dev" }
-plc_parser = { path = "../../compiler/plc_parser", version = "1.1.0-dev" }
+plc_ast = { path = "../../compiler/plc_ast", version = "2.0.0" }
+plc_lexer = { path = "../../compiler/plc_lexer", version = "2.0.0" }
+plc_parser = { path = "../../compiler/plc_parser", version = "2.0.0" }
 num = "0.4"
 paste = "1.0.8"
 log = "0.4"
 
-plc_source = { path = "../../compiler/plc_source", version = "1.1.0-dev" }
+plc_source = { path = "../../compiler/plc_source", version = "2.0.0" }
 
 [dev-dependencies]
 libloading = "0.9"
