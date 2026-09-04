@@ -2,8 +2,8 @@
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! A `.cfc` document is deserialized into the raw `model` types, then resolved
 <a href=#4 id=4 data-nosnippet>4</a>//! into a `network::Network`: the `Resolver` surveys the diagram, traces the
-<a href=#5 id=5 data-nosnippet>5</a>//! wiring, orders and validates the statements — every decision and diagnostic
-<a href=#6 id=6 data-nosnippet>6</a>//! in one stage — so the `Transpiler` renders the final `CompilationUnit`
+<a href=#5 id=5 data-nosnippet>5</a>//! wiring, orders and validates the statements (every decision and diagnostic
+<a href=#6 id=6 data-nosnippet>6</a>//! in one stage), so the `Transpiler` renders the final `CompilationUnit`
 <a href=#7 id=7 data-nosnippet>7</a>//! without making any decisions of its own.
 <a href=#8 id=8 data-nosnippet>8</a>//!
 <a href=#9 id=9 data-nosnippet>9</a>//! The driver enters twice: [`parse_file`] during the parse step, yielding an
@@ -79,112 +79,113 @@
 <a href=#79 id=79 data-nosnippet>79</a>
 <a href=#80 id=80 data-nosnippet>80</a><span class="attr">#[cfg(test)]
 <a href=#81 id=81 data-nosnippet>81</a></span><span class="kw">mod </span>test_utils {
-<a href=#82 id=82 data-nosnippet>82</a>    <span class="kw">use </span>plc_ast::ast::LinkageType;
-<a href=#83 id=83 data-nosnippet>83</a>    <span class="kw">use </span>plc_ast::provider::IdProvider;
-<a href=#84 id=84 data-nosnippet>84</a>    <span class="kw">use </span>plc_ast::ser::AstSerializer;
-<a href=#85 id=85 data-nosnippet>85</a>    <span class="kw">use </span>plc_diagnostics::diagnostician::Diagnostician;
-<a href=#86 id=86 data-nosnippet>86</a>    <span class="kw">use </span>plc_diagnostics::diagnostics::Severity;
-<a href=#87 id=87 data-nosnippet>87</a>    <span class="kw">use </span>plc_diagnostics::reporter::DiagnosticReporter;
-<a href=#88 id=88 data-nosnippet>88</a>    <span class="kw">use </span>plc_source::SourceCode;
-<a href=#89 id=89 data-nosnippet>89</a>
-<a href=#90 id=90 data-nosnippet>90</a>    <span class="comment">// Indexes every POU a fixture involves: the interface, any companion `.st`
-<a href=#91 id=91 data-nosnippet>91</a>    // beside the `.cfc` declaring the fixture's callees, and the builtin types.
-<a href=#92 id=92 data-nosnippet>92</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fixture_index(
-<a href=#93 id=93 data-nosnippet>93</a>        fixture: <span class="kw-2">&amp;</span>str,
-<a href=#94 id=94 data-nosnippet>94</a>        interface: <span class="kw-2">&amp;</span>plc_ast::ast::CompilationUnit,
-<a href=#95 id=95 data-nosnippet>95</a>    ) -&gt; plc::index::Index {
-<a href=#96 id=96 data-nosnippet>96</a>        <span class="kw">let </span><span class="kw-2">mut </span>index = plc::index::indexer::index(interface);
-<a href=#97 id=97 data-nosnippet>97</a>        <span class="kw">for </span>data_type <span class="kw">in </span>plc::typesystem::get_builtin_types() {
+<a href=#82 id=82 data-nosnippet>82</a>    <span class="kw">use </span>plc::index::{indexer, Index};
+<a href=#83 id=83 data-nosnippet>83</a>    <span class="kw">use </span>plc::{builtins, lexer, parser, typesystem};
+<a href=#84 id=84 data-nosnippet>84</a>    <span class="kw">use </span>plc_ast::ast::{pre_process, CompilationUnit, LinkageType};
+<a href=#85 id=85 data-nosnippet>85</a>    <span class="kw">use </span>plc_ast::provider::IdProvider;
+<a href=#86 id=86 data-nosnippet>86</a>    <span class="kw">use </span>plc_ast::ser::AstSerializer;
+<a href=#87 id=87 data-nosnippet>87</a>    <span class="kw">use </span>plc_diagnostics::diagnostician::Diagnostician;
+<a href=#88 id=88 data-nosnippet>88</a>    <span class="kw">use </span>plc_diagnostics::diagnostics::{Diagnostic, Severity};
+<a href=#89 id=89 data-nosnippet>89</a>    <span class="kw">use </span>plc_diagnostics::reporter::DiagnosticReporter;
+<a href=#90 id=90 data-nosnippet>90</a>    <span class="kw">use </span>plc_source::source_location::SourceLocationFactory;
+<a href=#91 id=91 data-nosnippet>91</a>    <span class="kw">use </span>plc_source::SourceCode;
+<a href=#92 id=92 data-nosnippet>92</a>
+<a href=#93 id=93 data-nosnippet>93</a>    <span class="comment">// Indexes every POU a fixture involves: the interface, any companion `.st`
+<a href=#94 id=94 data-nosnippet>94</a>    // beside the `.cfc` declaring the fixture's callees, and the builtin types.
+<a href=#95 id=95 data-nosnippet>95</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fixture_index(fixture: <span class="kw-2">&amp;</span>str, interface: <span class="kw-2">&amp;</span>CompilationUnit) -&gt; Index {
+<a href=#96 id=96 data-nosnippet>96</a>        <span class="kw">let </span><span class="kw-2">mut </span>index = indexer::index(interface);
+<a href=#97 id=97 data-nosnippet>97</a>        <span class="kw">for </span>data_type <span class="kw">in </span>typesystem::get_builtin_types() {
 <a href=#98 id=98 data-nosnippet>98</a>            index.register_type(data_type);
 <a href=#99 id=99 data-nosnippet>99</a>        }
 <a href=#100 id=100 data-nosnippet>100</a>
 <a href=#101 id=101 data-nosnippet>101</a>        <span class="comment">// Builtin POUs (ADD, SEL, ...) join the index like in the driver.
-<a href=#102 id=102 data-nosnippet>102</a>        </span><span class="kw">let </span>builtins = plc::builtins::parse_built_ins(IdProvider::default());
-<a href=#103 id=103 data-nosnippet>103</a>        index.import(plc::index::indexer::index(<span class="kw-2">&amp;</span>builtins));
+<a href=#102 id=102 data-nosnippet>102</a>        </span><span class="kw">let </span>callees = builtins::parse_built_ins(IdProvider::default());
+<a href=#103 id=103 data-nosnippet>103</a>        index.import(indexer::index(<span class="kw-2">&amp;</span>callees));
 <a href=#104 id=104 data-nosnippet>104</a>
-<a href=#105 id=105 data-nosnippet>105</a>        <span class="kw">let </span>dir = <span class="macro">format!</span>(<span class="string">"{}/fixtures/{fixture}"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>));
-<a href=#106 id=106 data-nosnippet>106</a>        <span class="kw">for </span>entry <span class="kw">in </span>std::fs::read_dir(dir).unwrap() {
-<a href=#107 id=107 data-nosnippet>107</a>            <span class="kw">let </span>path = entry.unwrap().path();
-<a href=#108 id=108 data-nosnippet>108</a>            <span class="kw">if </span>path.extension().is_none_or(|extension| extension != <span class="string">"st"</span>) {
-<a href=#109 id=109 data-nosnippet>109</a>                <span class="kw">continue</span>;
-<a href=#110 id=110 data-nosnippet>110</a>            }
-<a href=#111 id=111 data-nosnippet>111</a>
-<a href=#112 id=112 data-nosnippet>112</a>            <span class="kw">let </span>source = std::fs::read_to_string(<span class="kw-2">&amp;</span>path).unwrap();
-<a href=#113 id=113 data-nosnippet>113</a>            <span class="kw">let </span>factory = plc_source::source_location::SourceLocationFactory::internal(<span class="kw-2">&amp;</span>source);
-<a href=#114 id=114 data-nosnippet>114</a>            <span class="kw">let </span>session = plc::lexer::lex_with_ids(<span class="kw-2">&amp;</span>source, IdProvider::default(), factory);
-<a href=#115 id=115 data-nosnippet>115</a>            <span class="kw">let </span>(<span class="kw-2">mut </span>unit, <span class="kw">_</span>) = plc::parser::parse(session, LinkageType::Internal, <span class="string">"&lt;callees&gt;"</span>);
-<a href=#116 id=116 data-nosnippet>116</a>
-<a href=#117 id=117 data-nosnippet>117</a>            <span class="comment">// Pre-process like the driver, so e.g. generic bindings index correctly.
-<a href=#118 id=118 data-nosnippet>118</a>            </span>plc_ast::ast::pre_process(<span class="kw-2">&amp;mut </span>unit, IdProvider::default());
-<a href=#119 id=119 data-nosnippet>119</a>            index.import(plc::index::indexer::index(<span class="kw-2">&amp;</span>unit));
-<a href=#120 id=120 data-nosnippet>120</a>        }
-<a href=#121 id=121 data-nosnippet>121</a>
-<a href=#122 id=122 data-nosnippet>122</a>        index
-<a href=#123 id=123 data-nosnippet>123</a>    }
-<a href=#124 id=124 data-nosnippet>124</a>
-<a href=#125 id=125 data-nosnippet>125</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fixture_source(fixture: <span class="kw-2">&amp;</span>str) -&gt; SourceCode {
-<a href=#126 id=126 data-nosnippet>126</a>        <span class="kw">let </span>name = fixture.rsplit(<span class="string">'/'</span>).next().unwrap();
-<a href=#127 id=127 data-nosnippet>127</a>        <span class="kw">let </span>disk = <span class="macro">format!</span>(<span class="string">"{}/fixtures/{fixture}/{name}.cfc"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>));
-<a href=#128 id=128 data-nosnippet>128</a>        <span class="comment">// A stable name, so snapshots don't embed absolute paths.
-<a href=#129 id=129 data-nosnippet>129</a>        </span>SourceCode {
-<a href=#130 id=130 data-nosnippet>130</a>            source: std::fs::read_to_string(<span class="kw-2">&amp;</span>disk).unwrap(),
-<a href=#131 id=131 data-nosnippet>131</a>            path: <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">"{name}.cfc"</span>).into()),
-<a href=#132 id=132 data-nosnippet>132</a>        }
-<a href=#133 id=133 data-nosnippet>133</a>    }
-<a href=#134 id=134 data-nosnippet>134</a>
-<a href=#135 id=135 data-nosnippet>135</a>    <span class="comment">// Mimics the driver participant's fixed-point loop: index once (now with
-<a href=#136 id=136 data-nosnippet>136</a>    // the temporaries), patch what resolved, repeat until quiescent. Returns
-<a href=#137 id=137 data-nosnippet>137</a>    // the diagnostics for whatever stayed unresolved.
-<a href=#138 id=138 data-nosnippet>138</a>    </span><span class="kw">fn </span>infer(
-<a href=#139 id=139 data-nosnippet>139</a>        fixture: <span class="kw-2">&amp;</span>str,
-<a href=#140 id=140 data-nosnippet>140</a>        unit: <span class="kw-2">&amp;mut </span>plc_ast::ast::CompilationUnit,
-<a href=#141 id=141 data-nosnippet>141</a>        ids: IdProvider,
-<a href=#142 id=142 data-nosnippet>142</a>    ) -&gt; Vec&lt;plc_diagnostics::diagnostics::Diagnostic&gt; {
-<a href=#143 id=143 data-nosnippet>143</a>        <span class="kw">let </span><span class="kw-2">mut </span>index = fixture_index(fixture, unit);
-<a href=#144 id=144 data-nosnippet>144</a>        <span class="kw">while </span><span class="kw">crate</span>::infer_temporary_types(unit, <span class="kw-2">&amp;mut </span>index, ids.clone()) {}
-<a href=#145 id=145 data-nosnippet>145</a>
-<a href=#146 id=146 data-nosnippet>146</a>        <span class="kw">crate</span>::unresolved_temporaries(unit, <span class="kw-2">&amp;</span>index)
-<a href=#147 id=147 data-nosnippet>147</a>    }
-<a href=#148 id=148 data-nosnippet>148</a>
-<a href=#149 id=149 data-nosnippet>149</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transpile_project(fixture: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, String&gt; {
-<a href=#150 id=150 data-nosnippet>150</a>        <span class="kw">let </span>source = fixture_source(fixture);
-<a href=#151 id=151 data-nosnippet>151</a>        <span class="kw">let </span>ids = IdProvider::default();
-<a href=#152 id=152 data-nosnippet>152</a>        <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::buffered();
-<a href=#153 id=153 data-nosnippet>153</a>        <span class="kw">let </span>abort = |diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician| diagnostician.buffer().unwrap_or_default();
-<a href=#154 id=154 data-nosnippet>154</a>
-<a href=#155 id=155 data-nosnippet>155</a>        <span class="comment">// Mimic the driver: the parse step's unit seeds the index.
-<a href=#156 id=156 data-nosnippet>156</a>        </span><span class="kw">let </span>interface = <span class="kw">crate</span>::parse_file(<span class="kw-2">&amp;</span>source, LinkageType::Internal, ids.clone(), <span class="kw-2">&amp;mut </span>diagnostician)
-<a href=#157 id=157 data-nosnippet>157</a>            .map_err(|<span class="kw">_</span>| abort(<span class="kw-2">&amp;mut </span>diagnostician))<span class="question-mark">?</span>;
-<a href=#158 id=158 data-nosnippet>158</a>        <span class="kw">let </span>index = fixture_index(fixture, <span class="kw-2">&amp;</span>interface);
+<a href=#105 id=105 data-nosnippet>105</a>        <span class="comment">// Index the companion `.st` callees beside the fixture's `.cfc`.
+<a href=#106 id=106 data-nosnippet>106</a>        </span><span class="kw">let </span>dir = <span class="macro">format!</span>(<span class="string">"{}/fixtures/{fixture}"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>));
+<a href=#107 id=107 data-nosnippet>107</a>        <span class="kw">for </span>entry <span class="kw">in </span>std::fs::read_dir(dir).unwrap() {
+<a href=#108 id=108 data-nosnippet>108</a>            <span class="kw">let </span>path = entry.unwrap().path();
+<a href=#109 id=109 data-nosnippet>109</a>            <span class="kw">if </span>path.extension().is_none_or(|extension| extension != <span class="string">"st"</span>) {
+<a href=#110 id=110 data-nosnippet>110</a>                <span class="kw">continue</span>;
+<a href=#111 id=111 data-nosnippet>111</a>            }
+<a href=#112 id=112 data-nosnippet>112</a>
+<a href=#113 id=113 data-nosnippet>113</a>            <span class="kw">let </span>source = std::fs::read_to_string(<span class="kw-2">&amp;</span>path).unwrap();
+<a href=#114 id=114 data-nosnippet>114</a>            <span class="kw">let </span>factory = SourceLocationFactory::internal(<span class="kw-2">&amp;</span>source);
+<a href=#115 id=115 data-nosnippet>115</a>            <span class="kw">let </span>session = lexer::lex_with_ids(<span class="kw-2">&amp;</span>source, IdProvider::default(), factory);
+<a href=#116 id=116 data-nosnippet>116</a>            <span class="kw">let </span>(<span class="kw-2">mut </span>unit, <span class="kw">_</span>) = parser::parse(session, LinkageType::Internal, <span class="string">"&lt;callees&gt;"</span>);
+<a href=#117 id=117 data-nosnippet>117</a>
+<a href=#118 id=118 data-nosnippet>118</a>            <span class="comment">// Pre-process like the driver, so e.g. generic bindings index correctly.
+<a href=#119 id=119 data-nosnippet>119</a>            </span>pre_process(<span class="kw-2">&amp;mut </span>unit, IdProvider::default());
+<a href=#120 id=120 data-nosnippet>120</a>            index.import(indexer::index(<span class="kw-2">&amp;</span>unit));
+<a href=#121 id=121 data-nosnippet>121</a>        }
+<a href=#122 id=122 data-nosnippet>122</a>
+<a href=#123 id=123 data-nosnippet>123</a>        index
+<a href=#124 id=124 data-nosnippet>124</a>    }
+<a href=#125 id=125 data-nosnippet>125</a>
+<a href=#126 id=126 data-nosnippet>126</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>fixture_source(fixture: <span class="kw-2">&amp;</span>str) -&gt; SourceCode {
+<a href=#127 id=127 data-nosnippet>127</a>        <span class="kw">let </span>name = fixture.rsplit(<span class="string">'/'</span>).next().unwrap();
+<a href=#128 id=128 data-nosnippet>128</a>        <span class="kw">let </span>disk = <span class="macro">format!</span>(<span class="string">"{}/fixtures/{fixture}/{name}.cfc"</span>, <span class="macro">env!</span>(<span class="string">"CARGO_MANIFEST_DIR"</span>));
+<a href=#129 id=129 data-nosnippet>129</a>
+<a href=#130 id=130 data-nosnippet>130</a>        <span class="comment">// A stable name, so snapshots don't embed absolute paths.
+<a href=#131 id=131 data-nosnippet>131</a>        </span>SourceCode {
+<a href=#132 id=132 data-nosnippet>132</a>            source: std::fs::read_to_string(<span class="kw-2">&amp;</span>disk).unwrap(),
+<a href=#133 id=133 data-nosnippet>133</a>            path: <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">"{name}.cfc"</span>).into()),
+<a href=#134 id=134 data-nosnippet>134</a>        }
+<a href=#135 id=135 data-nosnippet>135</a>    }
+<a href=#136 id=136 data-nosnippet>136</a>
+<a href=#137 id=137 data-nosnippet>137</a>    <span class="comment">// Runs the full driver pipeline on a fixture; the serialized unit, or the
+<a href=#138 id=138 data-nosnippet>138</a>    // rendered diagnostics when an error aborts.
+<a href=#139 id=139 data-nosnippet>139</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transpile_project(fixture: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, String&gt; {
+<a href=#140 id=140 data-nosnippet>140</a>        <span class="kw">let </span>source = fixture_source(fixture);
+<a href=#141 id=141 data-nosnippet>141</a>        <span class="kw">let </span>ids = IdProvider::default();
+<a href=#142 id=142 data-nosnippet>142</a>        <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::buffered();
+<a href=#143 id=143 data-nosnippet>143</a>        <span class="kw">let </span>abort = |diagnostician: <span class="kw-2">&amp;mut </span>Diagnostician| diagnostician.buffer().unwrap_or_default();
+<a href=#144 id=144 data-nosnippet>144</a>
+<a href=#145 id=145 data-nosnippet>145</a>        <span class="comment">// Mimic the driver: the parse step's unit seeds the index.
+<a href=#146 id=146 data-nosnippet>146</a>        </span><span class="kw">let </span>interface = <span class="kw">crate</span>::parse_file(<span class="kw-2">&amp;</span>source, LinkageType::Internal, ids.clone(), <span class="kw-2">&amp;mut </span>diagnostician)
+<a href=#147 id=147 data-nosnippet>147</a>            .map_err(|<span class="kw">_</span>| abort(<span class="kw-2">&amp;mut </span>diagnostician))<span class="question-mark">?</span>;
+<a href=#148 id=148 data-nosnippet>148</a>        <span class="kw">let </span>index = fixture_index(fixture, <span class="kw-2">&amp;</span>interface);
+<a href=#149 id=149 data-nosnippet>149</a>
+<a href=#150 id=150 data-nosnippet>150</a>        <span class="kw">let </span>(<span class="kw-2">mut </span>unit, <span class="kw-2">mut </span>diagnostics) = <span class="kw">crate</span>::transpile_file(<span class="kw-2">&amp;</span>source, <span class="kw-2">&amp;</span>index, ids.clone())
+<a href=#151 id=151 data-nosnippet>151</a>            .map_err(|err| err.get_message().to_string())<span class="question-mark">?</span>;
+<a href=#152 id=152 data-nosnippet>152</a>        diagnostics.extend(infer(fixture, <span class="kw-2">&amp;mut </span>unit, ids));
+<a href=#153 id=153 data-nosnippet>153</a>
+<a href=#154 id=154 data-nosnippet>154</a>        <span class="kw">match </span>diagnostician.handle(<span class="kw-2">&amp;</span>diagnostics) {
+<a href=#155 id=155 data-nosnippet>155</a>            Severity::Error =&gt; <span class="prelude-val">Err</span>(abort(<span class="kw-2">&amp;mut </span>diagnostician)),
+<a href=#156 id=156 data-nosnippet>156</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(AstSerializer::from_unit(<span class="kw-2">&amp;</span>unit)),
+<a href=#157 id=157 data-nosnippet>157</a>        }
+<a href=#158 id=158 data-nosnippet>158</a>    }
 <a href=#159 id=159 data-nosnippet>159</a>
-<a href=#160 id=160 data-nosnippet>160</a>        <span class="kw">let </span>(<span class="kw-2">mut </span>unit, <span class="kw-2">mut </span>diagnostics) = <span class="kw">crate</span>::transpile_file(<span class="kw-2">&amp;</span>source, <span class="kw-2">&amp;</span>index, ids.clone())
-<a href=#161 id=161 data-nosnippet>161</a>            .map_err(|err| err.get_message().to_string())<span class="question-mark">?</span>;
-<a href=#162 id=162 data-nosnippet>162</a>        diagnostics.extend(infer(fixture, <span class="kw-2">&amp;mut </span>unit, ids));
-<a href=#163 id=163 data-nosnippet>163</a>
-<a href=#164 id=164 data-nosnippet>164</a>        <span class="kw">match </span>diagnostician.handle(<span class="kw-2">&amp;</span>diagnostics) {
-<a href=#165 id=165 data-nosnippet>165</a>            Severity::Error =&gt; <span class="prelude-val">Err</span>(abort(<span class="kw-2">&amp;mut </span>diagnostician)),
-<a href=#166 id=166 data-nosnippet>166</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(AstSerializer::from_unit(<span class="kw-2">&amp;</span>unit)),
-<a href=#167 id=167 data-nosnippet>167</a>        }
-<a href=#168 id=168 data-nosnippet>168</a>    }
-<a href=#169 id=169 data-nosnippet>169</a>
-<a href=#170 id=170 data-nosnippet>170</a>    <span class="comment">// Renders every diagnostic a fixture produces, whether or not it aborts.
-<a href=#171 id=171 data-nosnippet>171</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>diagnostics(fixture: <span class="kw-2">&amp;</span>str) -&gt; String {
-<a href=#172 id=172 data-nosnippet>172</a>        <span class="kw">let </span>source = fixture_source(fixture);
-<a href=#173 id=173 data-nosnippet>173</a>        <span class="kw">let </span>ids = IdProvider::default();
-<a href=#174 id=174 data-nosnippet>174</a>        <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::buffered();
-<a href=#175 id=175 data-nosnippet>175</a>
-<a href=#176 id=176 data-nosnippet>176</a>        <span class="kw">let </span><span class="prelude-val">Ok</span>(interface) =
-<a href=#177 id=177 data-nosnippet>177</a>            <span class="kw">crate</span>::parse_file(<span class="kw-2">&amp;</span>source, LinkageType::Internal, ids.clone(), <span class="kw-2">&amp;mut </span>diagnostician)
-<a href=#178 id=178 data-nosnippet>178</a>        <span class="kw">else </span>{
-<a href=#179 id=179 data-nosnippet>179</a>            <span class="kw">return </span>diagnostician.buffer().unwrap_or_default();
-<a href=#180 id=180 data-nosnippet>180</a>        };
-<a href=#181 id=181 data-nosnippet>181</a>        <span class="kw">let </span>index = fixture_index(fixture, <span class="kw-2">&amp;</span>interface);
-<a href=#182 id=182 data-nosnippet>182</a>
-<a href=#183 id=183 data-nosnippet>183</a>        <span class="kw">if let </span><span class="prelude-val">Ok</span>((<span class="kw-2">mut </span>unit, <span class="kw-2">mut </span>diagnostics)) = <span class="kw">crate</span>::transpile_file(<span class="kw-2">&amp;</span>source, <span class="kw-2">&amp;</span>index, ids.clone()) {
-<a href=#184 id=184 data-nosnippet>184</a>            diagnostics.extend(infer(fixture, <span class="kw-2">&amp;mut </span>unit, ids));
-<a href=#185 id=185 data-nosnippet>185</a>            diagnostician.handle(<span class="kw-2">&amp;</span>diagnostics);
-<a href=#186 id=186 data-nosnippet>186</a>        }
-<a href=#187 id=187 data-nosnippet>187</a>        diagnostician.buffer().unwrap_or_default()
-<a href=#188 id=188 data-nosnippet>188</a>    }
-<a href=#189 id=189 data-nosnippet>189</a>}
+<a href=#160 id=160 data-nosnippet>160</a>    <span class="comment">// Renders every diagnostic a fixture produces, whether or not it aborts.
+<a href=#161 id=161 data-nosnippet>161</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>diagnostics(fixture: <span class="kw-2">&amp;</span>str) -&gt; String {
+<a href=#162 id=162 data-nosnippet>162</a>        <span class="kw">let </span>source = fixture_source(fixture);
+<a href=#163 id=163 data-nosnippet>163</a>        <span class="kw">let </span>ids = IdProvider::default();
+<a href=#164 id=164 data-nosnippet>164</a>        <span class="kw">let </span><span class="kw-2">mut </span>diagnostician = Diagnostician::buffered();
+<a href=#165 id=165 data-nosnippet>165</a>
+<a href=#166 id=166 data-nosnippet>166</a>        <span class="kw">let </span><span class="prelude-val">Ok</span>(interface) =
+<a href=#167 id=167 data-nosnippet>167</a>            <span class="kw">crate</span>::parse_file(<span class="kw-2">&amp;</span>source, LinkageType::Internal, ids.clone(), <span class="kw-2">&amp;mut </span>diagnostician)
+<a href=#168 id=168 data-nosnippet>168</a>        <span class="kw">else </span>{
+<a href=#169 id=169 data-nosnippet>169</a>            <span class="kw">return </span>diagnostician.buffer().unwrap_or_default();
+<a href=#170 id=170 data-nosnippet>170</a>        };
+<a href=#171 id=171 data-nosnippet>171</a>        <span class="kw">let </span>index = fixture_index(fixture, <span class="kw-2">&amp;</span>interface);
+<a href=#172 id=172 data-nosnippet>172</a>
+<a href=#173 id=173 data-nosnippet>173</a>        <span class="kw">if let </span><span class="prelude-val">Ok</span>((<span class="kw-2">mut </span>unit, <span class="kw-2">mut </span>diagnostics)) = <span class="kw">crate</span>::transpile_file(<span class="kw-2">&amp;</span>source, <span class="kw-2">&amp;</span>index, ids.clone()) {
+<a href=#174 id=174 data-nosnippet>174</a>            diagnostics.extend(infer(fixture, <span class="kw-2">&amp;mut </span>unit, ids));
+<a href=#175 id=175 data-nosnippet>175</a>            diagnostician.handle(<span class="kw-2">&amp;</span>diagnostics);
+<a href=#176 id=176 data-nosnippet>176</a>        }
+<a href=#177 id=177 data-nosnippet>177</a>
+<a href=#178 id=178 data-nosnippet>178</a>        diagnostician.buffer().unwrap_or_default()
+<a href=#179 id=179 data-nosnippet>179</a>    }
+<a href=#180 id=180 data-nosnippet>180</a>
+<a href=#181 id=181 data-nosnippet>181</a>    <span class="comment">// Mimics the driver participant's fixed-point loop: index once (now with
+<a href=#182 id=182 data-nosnippet>182</a>    // the temporaries), patch what resolved, repeat until quiescent. Returns
+<a href=#183 id=183 data-nosnippet>183</a>    // the diagnostics for whatever stayed unresolved.
+<a href=#184 id=184 data-nosnippet>184</a>    </span><span class="kw">fn </span>infer(fixture: <span class="kw-2">&amp;</span>str, unit: <span class="kw-2">&amp;mut </span>CompilationUnit, ids: IdProvider) -&gt; Vec&lt;Diagnostic&gt; {
+<a href=#185 id=185 data-nosnippet>185</a>        <span class="kw">let </span><span class="kw-2">mut </span>index = fixture_index(fixture, unit);
+<a href=#186 id=186 data-nosnippet>186</a>        <span class="kw">while </span><span class="kw">crate</span>::infer_temporary_types(unit, <span class="kw-2">&amp;mut </span>index, ids.clone()) {}
+<a href=#187 id=187 data-nosnippet>187</a>
+<a href=#188 id=188 data-nosnippet>188</a>        <span class="kw">crate</span>::unresolved_temporaries(unit, <span class="kw-2">&amp;</span>index)
+<a href=#189 id=189 data-nosnippet>189</a>    }
+<a href=#190 id=190 data-nosnippet>190</a>}
 </code></pre></div></section></main></body></html>
