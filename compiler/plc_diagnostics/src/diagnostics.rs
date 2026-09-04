@@ -480,6 +480,15 @@ impl Diagnostic {
             .with_location(location)
     }
 
+    pub fn duplicate_return_pin<T>(name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Block `{name}` has more than one return pin"))
+            .with_error_code("E152")
+            .with_location(location)
+    }
+
     pub fn disconnected_jump<T>(location: T) -> Diagnostic
     where
         T: Into<SourceLocation>,

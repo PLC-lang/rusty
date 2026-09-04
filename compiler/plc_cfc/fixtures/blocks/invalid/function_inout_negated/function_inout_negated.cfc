@@ -36,7 +36,7 @@ END_VAR</bmx:TextDeclaration>
                         </ppx:InputVariable>
                     </ppx:InputVariables>
                     <ppx:OutputVariables>
-                        <ppx:OutputVariable parameterName="addInto" negated="false">
+                        <ppx:OutputVariable parameterName="" negated="false">
                             <ppx:ConnectionPointOut connectionPointOutId="2">
 <ppx:RelPosition x="120" y="30"/>
                             </ppx:ConnectionPointOut>
