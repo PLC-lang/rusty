@@ -1,0 +1,13 @@
+{
+	"name" : "cfc_enable_guard",
+	"files" : [
+		"enable_guard.cfc",
+		"isNonZero.st",
+		"safeDiv.st",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
