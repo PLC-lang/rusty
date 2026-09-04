@@ -1861,10 +1861,10 @@ impl Index {
     }
 
     /// Computes the struct GEP index for a member variable.
-    /// VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the POU struct but they are allowed to have a member index.
+    /// VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the POU struct
     /// (they are stack-allocated or reference external storage), so they are excluded
     /// when computing the index.
-    /// Returns None if the variable is not part of the struct (temp/return).
+    /// Returns None if the variable is not part of the struct (temp/external/return).
     pub fn get_struct_member_index(&self, container_name: &str, variable_name: &str) -> Option<u32> {
         let members = self.get_pou_members(container_name);
         let mut index: u32 = 0;
