@@ -498,6 +498,15 @@ impl Diagnostic {
             .with_location(location)
     }
 
+    pub fn negated_reference_assignment<T>(name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Reference assignment to `{name}` cannot be negated"))
+            .with_error_code("E154")
+            .with_location(location)
+    }
+
     pub fn disconnected_jump<T>(location: T) -> Diagnostic
     where
         T: Into<SourceLocation>,

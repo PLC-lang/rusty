@@ -255,6 +255,7 @@ lazy_static! {
         E151,   Error,      include_str!("./error_codes/E151.md"),  // Unary NOT with unsupported operand type
         E152,   Error,      include_str!("./error_codes/E152.md"),  // Unconnected CFC EN pin
         E153,   Error,      include_str!("./error_codes/E153.md"),  // CFC ENO cycle
+        E154,   Error,      include_str!("./error_codes/E154.md"),  // Negated CFC reference assignment
     );
 }
 

@@ -50,6 +50,12 @@ impl Transpiler {
                 AstFactory::create_assignment(sink, source, self.ids.next_id())
             }
 
+            // A reference-mode sink re-points: it stores the source's address,
+            // `sink REF= source`, instead of assigning the source's value.
+            Statement::Assignment { sink, source, storage: Some(Storage::Reference) } => {
+                AstFactory::create_ref_assignment(sink, source, self.ids.next_id())
+            }
+
             // A storage-mode sink latches: the source guards a constant store,
             // `TRUE` for Set, `FALSE` for Reset; nothing is written otherwise.
             Statement::Assignment { sink, source, storage: Some(storage) } => {
@@ -317,6 +323,19 @@ mod tests {
                 IF NOT NOT a THEN
                     b := TRUE
                 END_IF;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn storage_reference() {
+            insta::assert_snapshot!(transpile_project("variables/valid/storage_reference").unwrap(), @r"
+            PROGRAM storage_reference
+            VAR
+                a : DINT;
+                b : REFERENCE TO DINT;
+            END_VAR
+                b REF= a;
             END_PROGRAM
             ");
         }

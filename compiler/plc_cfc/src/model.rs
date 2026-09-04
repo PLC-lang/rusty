@@ -90,8 +90,9 @@ pub struct Negation {
     pub out_negated: bool,
 }
 
-// The Set/Reset latch behavior on a data sink: the incoming value no longer
-// assigns but guards a constant `TRUE` (Set) or `FALSE` (Reset) store.
+// The storage behavior on a data sink. Set/Reset latch: the incoming value no
+// longer assigns but guards a constant `TRUE` (Set) or `FALSE` (Reset) store.
+// Reference re-points: the sink stores the source's address (`REF=`).
 #[derive(Debug, Deserialize)]
 pub struct StorageMode {
     #[serde(rename = "@mode")]
@@ -102,6 +103,7 @@ pub struct StorageMode {
 pub enum Storage {
     Set,
     Reset,
+    Reference,
 }
 
 // The execution control flag: when set, the block's `EN` input pin guards its
