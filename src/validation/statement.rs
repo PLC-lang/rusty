@@ -684,8 +684,8 @@ fn validate_access_index<T: AnnotationMap>(
                     Diagnostic::new(format!(
                         "{access_type:?}-Wise access for type {} must be in range {}..{}",
                         target_type.get_name(),
-                        &range.start,
-                        &range.end
+                        range.start,
+                        range.end
                     ))
                     .with_error_code("E057")
                     .with_location(location),

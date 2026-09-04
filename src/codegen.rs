@@ -47,6 +47,7 @@ use plc_ast::ast::{CompilationUnit, LinkageType, PouType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_llvm::TargetMachineExt;
 use plc_source::source_location::{FileMarker, SourceLocation};
+use plc_xmlgen::{serializer::Node, xml_gen::*};
 
 mod debug;
 pub(crate) mod generators;
@@ -478,6 +479,7 @@ impl<'ink> GeneratedModule<'ink> {
 
     /// Persists the module into the disk based on output and target requirments
     /// If an object file should be generated, all optimizations will be executed on the object
+    #[allow(clippy::too_many_arguments)]
     pub fn persist(
         &self,
         output_dir: Option<&Path>,
@@ -486,6 +488,8 @@ impl<'ink> GeneratedModule<'ink> {
         relocation_preference: RelocationPreference,
         target: &Target,
         optimization_level: OptimizationLevel,
+        annotated_project: &Vec<&CompilationUnit>,
+        compilation_options: &GenerationParameters,
     ) -> Result<PathBuf, CodegenError> {
         let output = Self::get_output_file(output_dir, output_name, target);
         //ensure output exists
@@ -525,6 +529,7 @@ impl<'ink> GeneratedModule<'ink> {
             },
             FormatOption::Bitcode => self.persist_to_bitcode(output),
             FormatOption::IR => self.persist_to_ir(output),
+            FormatOption::XML => self.persist_to_xml(output, annotated_project, compilation_options),
         }
     }
 
@@ -540,6 +545,42 @@ impl<'ink> GeneratedModule<'ink> {
 
     pub fn get_unit_location(&self) -> &Path {
         &self.location
+    }
+
+    fn persist_to_xml(
+        &self,
+        output: PathBuf,
+        annotated_project: &Vec<&CompilationUnit>,
+        compilation_options: &GenerationParameters,
+    ) -> Result<PathBuf, CodegenError> {
+        let schema_path: &'static str;
+
+        let template: Node = if compilation_options.output_xml_omron {
+            if let Some((message, location)) = find_unsupported_omron_type(annotated_project) {
+                return Err(CodegenError::DiagnosticError(
+                    Diagnostic::new(message).with_error_code("E152").with_location(location),
+                ));
+            }
+
+            schema_path = OMRON_SCHEMA;
+            get_omron_template()
+        } else {
+            return Err(CodegenError::GenericError(
+                String::from("No XML variant chosen as CLI argument but XML output format was specified."),
+                SourceLocation::undefined(),
+            ));
+        };
+
+        match parse_project_into_nodetree(
+            compilation_options,
+            annotated_project,
+            schema_path,
+            &output,
+            template,
+        ) {
+            Ok(_) => Ok(output),
+            Err(error) => Err(CodegenError::GenericError(error.to_string(), SourceLocation::default())),
+        }
     }
 
     ///

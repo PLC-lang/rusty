@@ -1805,7 +1805,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         })
     }
 
-    /// geneartes a gep for the given reference with an optional qualifier
+    /// generates a gep for the given reference with an optional qualifier
     ///
     /// - `qualifier` an optional qualifier for a reference (e.g. myStruct.x where myStruct is the qualifier for x)
     /// - `name` the name of the reference-name (e.g. myStruct.x where 'x' is the reference-name)
@@ -3287,7 +3287,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // `.foo`
             (ReferenceAccess::Global(node), _) => {
                 let name = node.get_flat_reference_name().unwrap_or("unknown");
-
                 let value = self.create_llvm_pointer_value_for_reference(
                     None,
                     self.get_load_name(node).as_deref().unwrap_or(name),
@@ -3298,7 +3297,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let datatype = self.annotations.get_type(node, self.index).unwrap();
                     self.llvm_index.get_associated_type(&datatype.name).unwrap()
                 };
-
                 Ok(ExpressionValue::LValue(value, pointee))
             }
 

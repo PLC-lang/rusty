@@ -232,7 +232,7 @@ pub fn visit_implementation<T: AnnotationMap>(
                         locations.push(first.location.clone());
                         locations.push(second.location.clone());
                         validator.push_diagnostic(
-                            Diagnostic::new(format!("{}: Duplicate label.", &first.name))
+                            Diagnostic::new(format!("{}: Duplicate label.", first.name))
                                 .with_error_code("E018")
                                 .with_location(&first.location)
                                 .with_secondary_locations(locations),
