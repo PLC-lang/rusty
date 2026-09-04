@@ -2006,7 +2006,7 @@ impl AstFactory {
         )
     }
 
-    pub fn create_global_reference(member: AstNode, location: SourceLocation, id: AstId) -> AstNode {
+    pub fn create_global_reference(id: AstId, member: AstNode, location: SourceLocation) -> AstNode {
         AstNode {
             stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Global(Box::new(member)),
