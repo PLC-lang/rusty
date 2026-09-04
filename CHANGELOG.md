@@ -2,11 +2,73 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.1](https://github.com/PLC-lang/rusty/releases/tag/v1.0.1) - 2026-06-09
+## [2.0.0](https://github.com/PLC-lang/rusty/releases/tag/v2.0.0) - 2026-09-04
+
+### Added
+
+- **cfc**: Storage mode (set/reset) (#1851)
+- **cfc**: Negations (#1848)
+- Reject undefined symbols when producing a shared object (#1823)
+- Changed time to unsigned 32-bit preserving ltime as 64-bit (#1801)
+- **cfc**: Jumps (#1814)
+- **cfc**: Functions (#1812)
+- **cfc**: Stateful blocks (#1811)
+- **cfc**: Connectors and continuations (#1810)
+- **cfc**: Returns (#1809)
+- **cfc**: Variable source/sinks (#1808)
+- **stdlib**: Added LTIME to extra functions (#1781)
 
 ### Fixed
 
-- Hwmap no longer infinitely recurses when an enum is in the project (#1769)
+- **lowering**: Resolve array ctor bounds through the index (#1897)
+- Consolidated parsing logic for STRING_TO - DINT and LINT (#1899)
+- Added missing STRING_TO functions to the standard library (#1884)
+- **stdlib**: Stop strict UTF-8/UTF-16 decoding in string functions (#1874)
+- **stdlib**: Clamp out-of-range string function parameters (#1873)
+- **stdlib**: Saturate LDT date conversion, add defensive defaults (#1872)
+- **stdlib**: Truncate oversized *_TO_STRING output (#1871)
+- **stdlib**: Default to epoch for invalid date constructor inputs (#1870)
+- **stdlib**: Remove overflow panics from TIME mul/div (#1867)
+- **stdlib**: Use wrapping arithmetic in date/time functions (#1866)
+- Keep struct-initializer parens when folding array elements (#1878)
+- Run the backend at -Oless for unoptimized builds (#1869)
+- Counter will no longer count after removing LD or R (#1877)
+- Ensuring unary not validates that it requires a bit or integer (#1854)
+- Program retain variables with inline type definitions (#1863)
+- Escape response-file backslashes for driver linkers (#1853)
+- Pass plain variable arguments to REFERENCE TO inputs by address (#1846)
+- Link the driver probe to a real path and plumb the sysroot onto the target (#1852)
+- Implement ABS as a builtin (#1849)
+- **cfc**: Generic variable type resolution (#1840)
+- Move generics into a lowerer instead of resolver phase (#1820)
+- Added warning for long time variant overflows (#1828)
+- Removed round function (#1841)
+- **stdlib**: String writers terminate their own output (#1817)
+- Construct array elements in generated array type constructors (#1831)
+- Emit lifetime markers for lowered call temporaries (#1803)
+- Const-fold array initializers before lowering into constructors (#1826)
+- **header-generator**: Evaluate STRING/ARRAY sizes referencing constants (#1815)
+- Resolve generic TO_STRING/TO_WSTRING to the correct monomorphization (#1805)
+- Ensuring no segfault when c library function returns oversized string (#1794)
+- Reject VAR_IN_OUT access from outside the declaring POU (#1806)
+- Validate the generic natures before lowering (#1793)
+- **stdlib**: CONCAT/INSERT/REPLACE no longer overflow the result buffer (#1791)
+- Invalid numeric literal strings no longer crash the application … (#1787)
+- Annotate allocas inside actions correctly (#1784)
+- Stdlib now accepts the correct data type for LDT_TO_** functions (#1780)
+- Resolve project paths containing glob metacharacters as literals (#1777)
+- Hwmap no longer infinitely recurses when an enum is in the project (#1769) (#1776)
+
+### Refactored
+
+- **cfc**: Simplify resolver and transpiler internals (#1881)
+- **cfc**: Adopt the bmx text declaration format (#1827)
+- **cfc**: Rewrite the transpiler around a post-index stage (#1824)
+- **cfc**: Delete plc_xml crate (#1807)
+
+### Documentation
+
+- Windows C++ Build Tools (#1792)
 ## [1.0.0](https://github.com/PLC-lang/rusty/releases/tag/v1.0.0) - 2026-06-03
 
 ### Added
