@@ -557,13 +557,8 @@ impl<'a> Llvm<'a> {
         let v_type_info = variable_data_type.get_type_information();
 
         const DEFAULT_ALIGNMENT: u32 = 1;
-        let initializer_statement = initializer_statement.and_then(|stmt| {
-            if matches!(stmt.get_stmt(), AstStatement::DefaultValue(_)) {
-                None
-            } else {
-                Some(stmt)
-            }
-        });
+        let initializer_statement =
+            initializer_statement.filter(|stmt| !matches!(stmt.get_stmt(), AstStatement::DefaultValue(_)));
         let (value, alignment) =
         // 1st try: see if there is a global variable with the right name - naming convention :-(
         if let Some(global_variable) =  llvm_index.find_global_value(&crate::index::get_initializer_name(qualified_name)) {

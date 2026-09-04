@@ -7,12 +7,12 @@ pub struct SysoutReporter;
 
 impl Reporter for SysoutReporter {
     fn persist(&self, report: BenchmarkReport) -> Result<()> {
-        println!("Benchmark results for commit: {}", &report.commit);
+        println!("Benchmark results for commit: {}", report.commit);
         println!("Host information:");
         println!("-----------------");
-        println!("  CPU: {}", &report.host.cpu);
-        println!("  Memory: {}", &report.host.mem);
-        println!("  OS: {}", &report.host.os);
+        println!("  CPU: {}", report.host.cpu);
+        println!("  Memory: {}", report.host.mem);
+        println!("  OS: {}", report.host.os);
         println!("-----------------");
         for (name, duration) in report.metrics {
             let (duration, duration_format) = match duration {

@@ -708,15 +708,9 @@ impl Variable {
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(bound(deserialize = "'de: 'static"))]
 pub enum DataTypeDeclaration {
-    Reference {
-        referenced_type: String,
-        location: SourceLocation,
-    },
+    Reference { referenced_type: String, location: SourceLocation },
     Definition { data_type: Box<DataType>, location: SourceLocation, scope: Option<String> },
-    Aggregate {
-        referenced_type: String,
-        location: SourceLocation,
-    },
+    Aggregate { referenced_type: String, location: SourceLocation },
 }
 
 impl Debug for DataTypeDeclaration {
