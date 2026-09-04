@@ -213,7 +213,8 @@ impl AstVisitor for Initializer {
             }
         }
 
-        if matches!(block.kind, VariableBlockType::External) { //prevents VAR_EXTERNAL blocks from getting initialised twice
+        if matches!(block.kind, VariableBlockType::External) {
+            //prevents VAR_EXTERNAL blocks from getting initialised twice
             return;
         }
         self.context.enter_variable_block(block);
