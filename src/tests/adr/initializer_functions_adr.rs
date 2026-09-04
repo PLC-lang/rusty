@@ -1366,7 +1366,7 @@ fn external_inherited_initializers() {
     "#);
 }
 
-/// External initializers being forward declared also applies to programs
+/// External initializers being forward declared also applies to structs and programs
 #[test]
 fn external_struct_and_program_initializers() {
     let src = r"
@@ -1412,12 +1412,7 @@ fn external_struct_and_program_initializers() {
 
     declare void @baz__ctor(ptr)
 
-    define void @myStruct__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
+    declare void @myStruct__ctor(ptr)
 
     define void @__unit___internal___[ctor-hash]__ctor() {
     entry:

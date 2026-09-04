@@ -369,11 +369,7 @@ impl AstVisitor for Initializer {
             return;
         }
 
-        let is_standalone_declaration = !user_type.location.is_internal() && user_type.scope.is_none();
-        let constructor_body = match user_type.linkage {
-            LinkageType::External if is_standalone_declaration => Body::Internal(vec![]),
-            linkage => self.constructor_body_for_linkage(linkage),
-        };
+        let constructor_body = self.constructor_body_for_linkage(user_type.linkage);
         self.constructors.insert(name.to_string(), constructor_body);
 
         // For alias types (typedefs), call the parent type's constructor first
@@ -1715,6 +1711,38 @@ mod tests {
         // The external global variable is skipped (its owning module initializes it).
         insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"
         MyExtStruct__ctor(internalVar)
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @r"
+        extern:
+        self.a := 5
+        self.b := TRUE
+        ");
+    }
+
+    #[test]
+    fn external_global_variables_are_initialized_when_generating_external_constructors() {
+        let src = r#"
+        VAR_GLOBAL
+            internalVar : MyExtStruct;
+        END_VAR
+
+        {external}
+        VAR_GLOBAL
+            extVar : MyExtStruct;
+        END_VAR
+
+        {external}
+        TYPE MyExtStruct : STRUCT
+            a : INT := 5;
+            b : BOOL := TRUE;
+        END_STRUCT
+        END_TYPE
+        "#;
+
+        let initializer = parse_and_init_internal(vec![src.into()], true);
+        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @r"
+        MyExtStruct__ctor(internalVar)
+        MyExtStruct__ctor(extVar)
         ");
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @r"
         intern:
