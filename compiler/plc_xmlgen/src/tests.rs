@@ -20,10 +20,10 @@ mod xml_gen_tests {
 
     /// Helper: Create a SourceLocation with a non-None CodeSpan::Range so variables are not skipped.
     fn make_source_location() -> SourceLocation {
-        SourceLocation {
-            span: CodeSpan::Range(TextLocation::new(0, 0, 0)..TextLocation::new(0, 10, 10)),
-            file: FileMarker::Internal("<test>"),
-        }
+        SourceLocation::new(
+            CodeSpan::Range(TextLocation::new(0, 0, 0)..TextLocation::new(0, 10, 10)),
+            FileMarker::Internal("<test>"),
+        )
     }
 
     /// Helper: Create a simple Variable with a given name and type.
@@ -321,10 +321,10 @@ mod xml_gen_tests {
         let st_path_str: &'static str = Box::leak(st_path.to_string_lossy().into_owned().into_boxed_str());
 
         let body_len = program_body.len();
-        let impl_location = SourceLocation {
-            span: CodeSpan::Range(TextLocation::new(0, 0, 0)..TextLocation::new(0, body_len, body_len)),
-            file: FileMarker::File(st_path_str),
-        };
+        let impl_location = SourceLocation::new(
+            CodeSpan::Range(TextLocation::new(0, 0, 0)..TextLocation::new(0, body_len, body_len)),
+            FileMarker::File(st_path_str),
+        );
 
         let mut unit = make_unit("test_pou_source.st");
 
@@ -404,10 +404,10 @@ mod xml_gen_tests {
         let st_path_str: &'static str = Box::leak(st_path.to_string_lossy().into_owned().into_boxed_str());
 
         let body_len = program_body.len();
-        let impl_location = SourceLocation {
-            span: CodeSpan::Range(TextLocation::new(0, 0, 0)..TextLocation::new(0, body_len, body_len)),
-            file: FileMarker::File(st_path_str),
-        };
+        let impl_location = SourceLocation::new(
+            CodeSpan::Range(TextLocation::new(0, 0, 0)..TextLocation::new(0, body_len, body_len)),
+            FileMarker::File(st_path_str),
+        );
 
         let mut unit = make_unit("test_external_source.st");
 
@@ -980,7 +980,7 @@ mod xml_gen_tests {
 
         assert!(message.contains(POINTER_UNSUPPORTED_BY_OMRON));
         assert!(message.contains("MyPtr"));
-        assert_ne!(location.span, CodeSpan::None);
+        assert_ne!(*location.get_span(), CodeSpan::None);
     }
 
     #[test]
@@ -1303,10 +1303,10 @@ mod xml_gen_tests {
 
         let st_path_str: &'static str = Box::leak(st_path.to_string_lossy().into_owned().into_boxed_str());
 
-        let impl_location = SourceLocation {
-            span: CodeSpan::Range(TextLocation::new(0, 0, 0)..TextLocation::new(0, body.len(), body.len())),
-            file: FileMarker::File(st_path_str),
-        };
+        let impl_location = SourceLocation::new(
+            CodeSpan::Range(TextLocation::new(0, 0, 0)..TextLocation::new(0, body.len(), body.len())),
+            FileMarker::File(st_path_str),
+        );
 
         let mut unit = make_unit("test_pou_kind.st");
 

@@ -89,7 +89,7 @@ pub fn find_unsupported_omron_type(
                 continue;
             }
 
-            if current_usertype.location.span == CodeSpan::None {
+            if *current_usertype.location.get_span() == CodeSpan::None {
                 continue;
             }
 
@@ -110,7 +110,7 @@ pub fn find_unsupported_omron_type(
         }
 
         for current_variable in collect_declared_variables(current_unit) {
-            if current_variable.location.span == CodeSpan::None {
+            if *current_variable.location.get_span() == CodeSpan::None {
                 continue;
             }
 
@@ -345,7 +345,7 @@ pub(crate) fn generate_globals(
         for b in 0..current_global.variables.len() {
             let current_variable = &current_global.variables[b];
 
-            if current_variable.location.span == CodeSpan::None {
+            if *current_variable.location.get_span() == CodeSpan::None {
                 continue; //discard compiler interally generated variables
             }
 
@@ -426,7 +426,7 @@ pub(crate) fn generate_custom_types(
     for a in 0..current_unit.user_types.len() {
         let current_usertype = &current_unit.user_types[a];
 
-        if current_usertype.location.span == CodeSpan::None {
+        if *current_usertype.location.get_span() == CodeSpan::None {
             continue; //discard internally generated types
         }
 
@@ -682,7 +682,7 @@ pub(crate) fn generate_pous(
             None => &current_impl.type_name,
         };
 
-        let procedure_text = match &current_impl.location.span {
+        let procedure_text = match current_impl.location.get_span() {
             CodeSpan::Range(inner_range) => {
                 match current_impl.location.file {
                     plc_source::source_location::FileMarker::File(file_path) => {
@@ -775,7 +775,7 @@ pub(crate) fn generate_pous(
                 let use_order_attr = current_block.kind != VariableBlockType::Local
                     && current_block.kind != VariableBlockType::External;
 
-                if current_variable.location.span == CodeSpan::None {
+                if *current_variable.location.get_span() == CodeSpan::None {
                     continue; //discard compiler interally generated variables
                 }
 
@@ -1006,9 +1006,9 @@ fn generate_variable_element(
 
 fn grab_file_statement_from_span(file_path: &'static str, range: &Range<TextLocation>) -> Option<String> {
     let mut file = File::open(file_path).unwrap_or_else(|_| panic!("source file exists: {}", file_path));
-    let unsigned_start = TryInto::<u64>::try_into(range.start.offset).expect("u64");
+    let unsigned_start = TryInto::<u64>::try_into(range.start.get_offset()).expect("u64");
     file.seek(SeekFrom::Start(unsigned_start)).expect("seeks to starting offset");
-    let maybe_size = range.end.offset.checked_sub(range.start.offset);
+    let maybe_size = range.end.get_offset().checked_sub(range.start.get_offset());
 
     let size = match maybe_size {
         Some(a) => a,
