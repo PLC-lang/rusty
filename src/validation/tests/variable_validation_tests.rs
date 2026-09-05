@@ -158,7 +158,7 @@ fn constant_on_illegal_var_blocks_cause_validation_issue() {
         END_VAR
 
         PROGRAM prg
-            VAR_INPUT CONSTANT //illegal
+            VAR_INPUT CONSTANT //accepted, no effect
             END_VAR
 
             VAR_OUTPUT CONSTANT //illegal
@@ -177,7 +177,7 @@ fn constant_on_illegal_var_blocks_cause_validation_issue() {
             END_VAR
 
              METHOD testMethod
-                VAR_INPUT CONSTANT //illegal
+                VAR_INPUT CONSTANT //accepted, no effect
                 END_VAR
 
                 VAR_OUTPUT CONSTANT //illegal
@@ -193,7 +193,7 @@ fn constant_on_illegal_var_blocks_cause_validation_issue() {
        ",
     );
 
-    // THEN everything but VAR and VAR_GLOBALS are reported
+    // THEN everything but VAR, VAR_GLOBAL and VAR_INPUT is reported
     assert_snapshot!(&diagnostics);
 }
 

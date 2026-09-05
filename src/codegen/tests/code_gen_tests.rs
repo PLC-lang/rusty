@@ -4826,3 +4826,39 @@ fn function_block_with_var_temp_should_compile_when_implicit_output_is_specified
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
+
+#[test]
+fn var_input_constant_has_no_effect_on_codegen() {
+    // the input must be read from the passed argument, not folded to its default value
+    let result = codegen(
+        r#"
+        FUNCTION foo : INT
+        VAR_INPUT CONSTANT
+            x : INT := 3;
+        END_VAR
+            foo := x + 1;
+        END_FUNCTION
+        "#,
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define i16 @foo(i16 %0) {
+    entry:
+      %foo = alloca i16, align [filtered]
+      %x = alloca i16, align [filtered]
+      store i16 %0, ptr %x, align [filtered]
+      store i16 0, ptr %foo, align [filtered]
+      %load_x = load i16, ptr %x, align [filtered]
+      %1 = sext i16 %load_x to i32
+      %tmpVar = add i32 %1, 1
+      %2 = trunc i32 %tmpVar to i16
+      store i16 %2, ptr %foo, align [filtered]
+      %foo_ret = load i16, ptr %foo, align [filtered]
+      ret i16 %foo_ret
+    }
+    "#);
+}

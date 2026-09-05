@@ -1612,7 +1612,13 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
     let location = lexer.location();
     let variable_block_type = parse_variable_block_type(lexer);
 
-    let constant = try_consume_var_modifier(lexer, KeywordConstant);
+    // Ignore the constant flag, i.e. yield false, for VAR_INPUT blocks; no constant semantics
+    // (validation, codegen) apply to their members
+    // XXX: Not particularly clean because the AST no longer reflects the users input, but this
+    // is the least invasive option making CONSTANT a no-op on VAR_INPUT without touching the
+    // index, const evaluator, etc.; required due to CodeSys compatibility
+    let constant = try_consume_var_modifier(lexer, KeywordConstant)
+        && !matches!(variable_block_type, VariableBlockType::Input(_));
     let retain = try_consume_var_modifier(lexer, KeywordRetain);
     try_consume_var_modifier(lexer, KeywordNonRetain);
 
