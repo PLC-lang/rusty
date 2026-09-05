@@ -201,14 +201,47 @@ fn resolve_target(params: Option<&CompileParameters>) -> Target {
         .with_sysroot(params.and_then(|it| it.sysroot.clone()))
 }
 
+/// Keeps the backend from folding sibling branch bodies together, which would leave both
+/// bodies below sharing one `call`:
+///
+/// ```text
+/// CASE step OF
+///     0: fb(in := TRUE);
+///     1: fb(in := FALSE);
+/// END_CASE
+/// ```
+///
+/// A block carries one source location, so a folded block is attributed to line 0, neither
+/// body keeps a line-table row, and a breakpoint on either silently binds to another line.
+/// `BranchFolder` merges the shared suffix on every target; on AArch64 and ARM a SimplifyCFG
+/// run in the backend also sinks the bodies into the join block or rewrites the switch into
+/// a lookup table, dropping the bodies outright.
+///
+/// Only `--debug -Onone` needs this: statement locations are emitted, and it is the one
+/// level that pairs an unoptimized IR pipeline with an optimizing machine pipeline (see
+/// `OptimizationLevel::codegen_level`). The higher levels lose the rows in the IR pipeline
+/// regardless and would only pay the code-size cost. The options are process-global, so
+/// every other configuration sets them back to their defaults.
+fn preserve_branch_body_locations(compile_options: &CompileOptions) {
+    let preserve = matches!(compile_options.debug_level, DebugLevel::Full(_))
+        && compile_options.optimization == OptimizationLevel::None;
+    let merge = if preserve { "false" } else { "true" };
+
+    plc_llvm::set_llvm_option("enable-tail-merge", merge);
+    plc_llvm::set_llvm_option("aarch64-enable-atomic-cfg-tidy", merge);
+    plc_llvm::set_llvm_option("arm-atomic-cfg-tidy", merge);
+}
+
 pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
     mut pipeline: BuildPipeline<T>,
 ) -> Result<()> {
     //register participants
     pipeline.register_default_mut_participants();
     let target = resolve_target(pipeline.compile_parameters.as_ref());
+    let compile_options = pipeline.get_compile_options().unwrap();
+    preserve_branch_body_locations(&compile_options);
     let codegen_participant = CodegenParticipant {
-        compile_options: pipeline.get_compile_options().unwrap(),
+        compile_options,
         link_options: pipeline.get_link_options().unwrap(),
         target: target.clone(),
         objects: Arc::new(RwLock::new(GeneratedProject {

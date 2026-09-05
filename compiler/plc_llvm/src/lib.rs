@@ -1,7 +1,9 @@
 //! This crate provides Rust bindings for LLVM Target Machine functionalities.
 
 use inkwell::llvm_sys::prelude::LLVMBool;
+use inkwell::llvm_sys::support::LLVMParseCommandLineOptions;
 use inkwell::targets::TargetMachine;
+use std::ffi::{CString, c_int};
 
 mod ffi {
     use inkwell::llvm_sys::prelude::LLVMBool;
@@ -30,4 +32,19 @@ impl TargetMachineExt for TargetMachine {
             ffi::setUseInitArray(tm, if use_init_array { 1 } else { 0 } as LLVMBool);
         }
     }
+}
+
+/// Sets an LLVM command-line option, for backend knobs that have no `TargetOptions`
+/// field. The option is parsed as `-name=value` through LLVM's command-line parser,
+/// which ignores options it does not know, such as the knob of a target that is not
+/// built in.
+///
+/// The option registry is process-global and is read while a pass pipeline is built,
+/// so an option must be set before any code generation starts.
+pub fn set_llvm_option(name: &str, value: &str) {
+    let Ok(option) = CString::new(format!("-{name}={value}")) else {
+        return;
+    };
+    let argv = [c"plc".as_ptr(), option.as_ptr()];
+    unsafe { LLVMParseCommandLineOptions(argv.len() as c_int, argv.as_ptr(), c"".as_ptr()) };
 }

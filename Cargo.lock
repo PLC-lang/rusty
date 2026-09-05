@@ -2340,6 +2340,7 @@ dependencies = [
  "plc_diagnostics",
  "plc_header_generator",
  "plc_index",
+ "plc_llvm",
  "plc_lowering",
  "plc_project",
  "plc_source",
