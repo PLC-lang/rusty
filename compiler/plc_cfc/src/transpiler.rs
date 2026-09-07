@@ -1,3 +1,5 @@
+//! Renders the resolved network into the interface unit's AST body.
+
 use plc_ast::ast::{AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, Variable, VariableBlock};
 use plc_ast::control_statements::{ConditionalBlock, IfStatement};
 use plc_ast::literals::AstLiteral;
@@ -28,7 +30,7 @@ impl Transpiler {
             implementation.statements = statements;
         }
 
-        // Declare the captured function outputs in an own VAR block.
+        // Declare the captured function outputs in their own VAR block.
         let mut temporaries = Vec::new();
         for temporary in network.temporaries {
             let data_type = DataTypeDeclaration::reference(temporary.data_type, temporary.location.clone());
@@ -53,23 +55,17 @@ impl Transpiler {
             Statement::Assignment { sink, source, storage: Some(storage) } => {
                 let location = sink.location.clone();
 
-                let value = AstLiteral::Bool(matches!(storage, Storage::Set));
-                let value = AstFactory::create_literal(value, location.clone(), self.ids.next_id());
+                let value = self.boolean(matches!(storage, Storage::Set), &location);
                 let store = AstFactory::create_assignment(sink, value, self.ids.next_id());
 
-                let statement = IfStatement {
-                    blocks: vec![ConditionalBlock { condition: Box::new(source), body: vec![store] }],
-                    else_block: Vec::new(),
-                    end_location: location.clone(),
-                };
-                AstFactory::create_if_statement(statement, location, self.ids.next_id())
+                self.guard(source, store, location)
             }
             Statement::Return { condition, location } => {
                 AstFactory::create_return_statement(Some(condition), location, self.ids.next_id())
             }
             Statement::Jump { condition, target, location } => {
                 // No wired condition lowers to a guard the jump can never pass.
-                let condition = condition.unwrap_or_else(|| self.reference("FALSE", &location));
+                let condition = condition.unwrap_or_else(|| self.boolean(false, &location));
                 let target = self.reference(&target, &location);
 
                 AstFactory::create_jump_statement(
@@ -116,6 +112,22 @@ impl Transpiler {
         }
     }
 
+    // `IF condition THEN body END_IF`; the shape shared by storage-mode
+    // latches and EN guards.
+    fn guard(&mut self, condition: AstNode, body: AstNode, location: SourceLocation) -> AstNode {
+        let statement = IfStatement {
+            blocks: vec![ConditionalBlock { condition: Box::new(condition), body: vec![body] }],
+            else_block: Vec::new(),
+            end_location: location.clone(),
+        };
+
+        AstFactory::create_if_statement(statement, location, self.ids.next_id())
+    }
+
+    fn boolean(&mut self, value: bool, location: &SourceLocation) -> AstNode {
+        AstFactory::create_literal(AstLiteral::Bool(value), location.clone(), self.ids.next_id())
+    }
+
     fn argument(&mut self, argument: Argument, location: &SourceLocation) -> AstNode {
         match argument {
             // `parameter := value`
@@ -141,9 +153,7 @@ impl Transpiler {
     }
 
     fn reference(&mut self, name: &str, location: &SourceLocation) -> AstNode {
-        let mut node = st::parse_expression(name, self.ids.clone());
-        node.location = location.clone();
-        node
+        st::parse_expression_at(name, self.ids.clone(), location)
     }
 }
 
