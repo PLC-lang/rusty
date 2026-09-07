@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-daa32d40.js";
+            window.path_to_searchindex_js = "searchindex-0b166e97.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-5ab56ec6.js"></script>
+        <script src="toc-a843d319.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2651,6 +2651,17 @@ END_VAR
     value.out := NOT value.out;
 END_PROGRAM
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unconnected-cfc-en-pin"><a class="header" href="#unconnected-cfc-en-pin">Unconnected CFC EN pin</a></h1>
+<p>A block in a CFC network declares execution control but its EN pin carries no
+connection. Without a wired enable the guard can never be decided, so the call
+is rejected; unlike an unwired data input there is no sensible default.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cfc-eno-cycle"><a class="header" href="#cfc-eno-cycle">CFC ENO cycle</a></h1>
+<p>An ENO pin mirrors its block’s EN value, so a wire reading ENO resolves through
+the block to the EN source. When the EN pins of two or more blocks are fed only
+by each other’s ENO pins, the wire never reaches a real source and the blocks
+are rejected.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
