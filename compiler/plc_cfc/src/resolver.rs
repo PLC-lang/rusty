@@ -11,7 +11,7 @@ use plc_source::SourceCode;
 
 use plc::index::Index;
 
-use crate::model::{self, FbdObject, Pin};
+use crate::model::{self, FbdObject, Pin, Storage};
 use crate::network::{Argument, Network, Statement, Temporary};
 use crate::st;
 
@@ -35,10 +35,11 @@ enum Role {
     Other,
 }
 
-// A plain variable/literal, or a block output (read as `instance.member`).
+// A plain variable/literal, or a block output (read as `instance.member`);
+// `negated` carries the inversion bubble of any EN pin hopped on the way.
 enum Source<'model> {
-    Variable(&'model FbdObject),
-    Output { block: &'model FbdObject, pin: &'model Pin },
+    Variable { object: &'model FbdObject, negated: bool },
+    Output { block: &'model FbdObject, pin: &'model Pin, negated: bool },
 }
 
 // Everything the linking pass needs to know up front.
@@ -73,6 +74,7 @@ struct Broken<'model> {
 enum Reason {
     OpenConnector,
     DanglingContinuation,
+    EnoCycle,
 }
 
 impl<'index> Resolver<'index> {
@@ -94,6 +96,16 @@ impl<'index> Resolver<'index> {
 
             match Role::from(object) {
                 Role::Sink => match trace(consumes(object), &survey) {
+                    // An address has no inverse; a bubble anywhere on a
+                    // reference assignment's wire is rejected.
+                    Trace::Reached(source)
+                        if matches!(object.storage(), Some(Storage::Reference))
+                            && negated(object, &source) =>
+                    {
+                        let name = object.identifier().unwrap_or_default();
+                        self.diagnostics.push(Diagnostic::negated_reference_assignment(name, location));
+                    }
+
                     // The traced source becomes the sink's assigned value,
                     // negated once more by the sink's own inversion bubble.
                     Trace::Reached(source) => {
@@ -182,6 +194,7 @@ impl<'index> Resolver<'index> {
                 // Stateless blocks (functions and sort of methods); temporaries for outputs
                 Role::Block if block::is_stateless(object, self.index) => {
                     let variadic = block::is_variadic(object, self.index);
+                    let enable = self.enable(object, &survey, &mut broken, &location);
 
                     let mut arguments = Vec::new();
                     for pin in block::inputs(object) {
@@ -213,6 +226,11 @@ impl<'index> Resolver<'index> {
                     // Consumed outputs are captured into temporaries
                     let mut capture = None;
                     for pin in object.output_pins() {
+                        // ENO is not a data output; consumers read the EN source.
+                        if object.eno_pin().is_some_and(|eno| std::ptr::eq(eno, pin)) {
+                            continue;
+                        }
+
                         let read = pin.output_pin().is_some_and(|id| consumed.contains(&id));
                         let name = read.then(|| block::temp_name(object, pin));
 
@@ -234,13 +252,20 @@ impl<'index> Resolver<'index> {
                         }
                     }
 
-                    let statement =
-                        Statement::Call { target: block::call_target(object), arguments, capture, location };
+                    let statement = Statement::Call {
+                        target: block::call_target(object),
+                        arguments,
+                        capture,
+                        enable,
+                        location,
+                    };
                     statements.push((object.priority(), statement));
                 }
 
                 // A stateful call passes only its wired inputs; outputs read back as members.
                 Role::Block => {
+                    let enable = self.enable(object, &survey, &mut broken, &location);
+
                     let mut arguments = Vec::new();
                     for pin in block::inputs(object) {
                         match trace(pin.source_pin(), &survey) {
@@ -258,6 +283,7 @@ impl<'index> Resolver<'index> {
                         target: block::call_target(object),
                         arguments,
                         capture: None,
+                        enable,
                         location,
                     };
                     statements.push((object.priority(), statement));
@@ -363,7 +389,8 @@ impl<'index> Resolver<'index> {
                     }
                 }
 
-                // A block exposes one pin per output parameter; only the return pin is unnamed.
+                // A block exposes one pin per output parameter; only the return pin is
+                // unnamed, and the ENO pin resolves to the EN source instead of a member read.
                 Role::Block => {
                     if object.output_pins().iter().filter(|pin| block::is_return_pin(pin)).count() > 1 {
                         let name = object.type_name().unwrap_or_default();
@@ -371,10 +398,14 @@ impl<'index> Resolver<'index> {
                         self.diagnostics.push(Diagnostic::duplicate_return_pin(name, location));
                     }
 
+                    let eno = object.eno_pin().and_then(|pin| pin.output_pin());
                     for pin in object.output_pins() {
                         if let Some(id) = pin.output_pin() {
                             by_pin.insert(id, object);
-                            block_output.insert(id, pin);
+
+                            if Some(id) != eno {
+                                block_output.insert(id, pin);
+                            }
                         }
                     }
                 }
@@ -418,14 +449,19 @@ impl<'index> Resolver<'index> {
     }
 
     // The value a source produces: a vetted plain expression, or a block-output
-    // member read; either negated by the producer's inversion bubble.
+    // member read; either negated by the producer's inversion bubble, then by
+    // the bubbles of the EN pins the trace hopped through.
     fn value(&mut self, source: &Source, location: &SourceLocation) -> AstNode {
         match source {
-            Source::Variable(object) => {
+            Source::Variable { object, negated } => {
                 let node = self.expression(object, location);
-                self.negate_if(node, location, object.out_negated())
+                let node = self.negate_if(node, location, object.out_negated());
+                self.negate_if(node, location, *negated)
             }
-            Source::Output { block, pin } => self.member_read(block, pin, location),
+            Source::Output { block, pin, negated } => {
+                let node = self.member_read(block, pin, location);
+                self.negate_if(node, location, *negated)
+            }
         }
     }
 
@@ -434,14 +470,50 @@ impl<'index> Resolver<'index> {
     fn condition(&mut self, consumer: &FbdObject, source: &Source, location: &SourceLocation) -> AstNode {
         let node = match source {
             // Unvetted; a condition may be any ST expression.
-            Source::Variable(object) => {
+            Source::Variable { object, negated } => {
                 let node = self.parse(object, location);
-                self.negate_if(node, location, object.out_negated())
+                let node = self.negate_if(node, location, object.out_negated());
+                self.negate_if(node, location, *negated)
             }
             Source::Output { .. } => self.value(source, location),
         };
 
         self.negate_if(node, location, consumer.in_negated())
+    }
+
+    // The EN guard for a block with execution control, negated by the pin's
+    // inversion bubble; `None` without the flag. A missing or unwired EN pin
+    // has no decidable guard and is rejected.
+    fn enable<'model>(
+        &mut self,
+        object: &'model FbdObject,
+        survey: &Survey<'model>,
+        broken: &mut Vec<Broken<'model>>,
+        location: &SourceLocation,
+    ) -> Option<AstNode> {
+        if !object.has_execution_control() {
+            return None;
+        }
+
+        let en = object.en_pin();
+        match trace(en.and_then(|pin| pin.source_pin()), survey) {
+            Trace::Reached(source) => {
+                let value = self.value(&source, location);
+                Some(self.negate_if(value, location, en.is_some_and(|pin| pin.negated)))
+            }
+
+            // A consumed chain that never reached a source; reported below.
+            Trace::DeadEnd(at) => {
+                broken.push(at);
+                None
+            }
+
+            Trace::Unwired => {
+                let name = object.type_name().unwrap_or_default();
+                self.diagnostics.push(Diagnostic::unconnected_en(name, location.clone()));
+                None
+            }
+        }
     }
 
     fn member_read(&mut self, block: &FbdObject, pin: &Pin, location: &SourceLocation) -> AstNode {
@@ -488,6 +560,7 @@ impl Broken<'_> {
         match self.reason {
             Reason::OpenConnector => Diagnostic::open_connector(label, location),
             Reason::DanglingContinuation => Diagnostic::dangling_continuation(label, location),
+            Reason::EnoCycle => Diagnostic::eno_cycle(self.element.type_name().unwrap_or_default(), location),
         }
     }
 }
@@ -498,33 +571,57 @@ fn trace<'model>(start: Option<usize>, survey: &Survey<'model>) -> Trace<'model>
 
     // Trace through the connections until we hit a producer (cycle-guarded).
     let mut visited = HashSet::new();
-    while matches!(Role::from(element), Role::Continuation) {
-        let dangling = |element| Trace::DeadEnd(Broken { element, reason: Reason::DanglingContinuation });
+    let mut visited_blocks = HashSet::new();
+    let mut negated = false;
+    loop {
+        if matches!(Role::from(element), Role::Continuation) {
+            let dangling = |element| Trace::DeadEnd(Broken { element, reason: Reason::DanglingContinuation });
 
-        // An unlabeled continuation, or one revisiting a label (a cycle), dangles.
-        let Some(label) = element.label() else { return dangling(element) };
-        if !visited.insert(label) {
-            return dangling(element);
+            // An unlabeled continuation, or one revisiting a label (a cycle), dangles.
+            let Some(label) = element.label() else { return dangling(element) };
+            if !visited.insert(label) {
+                return dangling(element);
+            }
+
+            // Resolve the label to the connector owning it; an unclaimed label dangles.
+            let Some(connector) = survey.connector_by_label.get(label).copied() else {
+                return dangling(element);
+            };
+
+            // Step onto whatever feeds that connector; an input-less one is open.
+            let open = Broken { element: connector, reason: Reason::OpenConnector };
+            let Some(wire) = consumes(connector) else { return Trace::DeadEnd(open) };
+            let Some(producer) = survey.by_pin.get(&wire).copied() else { return Trace::DeadEnd(open) };
+
+            pin = wire;
+            element = producer;
+        } else if let Some(eno) = element.eno_pin().filter(|eno| eno.output_pin() == Some(pin)) {
+            // An ENO pin mirrors its block's post-negation EN value, negated
+            // once more by its own bubble; step onto the EN wire. A block
+            // revisited on the way is a cycle.
+            if !visited_blocks.insert(element.global_id) {
+                return Trace::DeadEnd(Broken { element, reason: Reason::EnoCycle });
+            }
+
+            // A missing or unwired EN behind the pin is the block's own error
+            // (E152); the consumer drops silently like any unwired wire.
+            let Some(en) = element.en_pin() else { return Trace::Unwired };
+            negated ^= eno.negated ^ en.negated;
+
+            let Some(wire) = en.source_pin() else { return Trace::Unwired };
+            let Some(producer) = survey.by_pin.get(&wire).copied() else { return Trace::Unwired };
+
+            pin = wire;
+            element = producer;
+        } else {
+            break;
         }
-
-        // Resolve the label to the connector owning it; an unclaimed label dangles.
-        let Some(connector) = survey.connector_by_label.get(label).copied() else {
-            return dangling(element);
-        };
-
-        // Step onto whatever feeds that connector; an input-less one is open.
-        let open = Broken { element: connector, reason: Reason::OpenConnector };
-        let Some(wire) = consumes(connector) else { return Trace::DeadEnd(open) };
-        let Some(producer) = survey.by_pin.get(&wire).copied() else { return Trace::DeadEnd(open) };
-
-        pin = wire;
-        element = producer;
     }
 
     // A landed wire is a block output pin (read as a member) or a plain source.
     match survey.block_output.get(&pin).copied() {
-        Some(output) => Trace::Reached(Source::Output { block: element, pin: output }),
-        None => Trace::Reached(Source::Variable(element)),
+        Some(output) => Trace::Reached(Source::Output { block: element, pin: output, negated }),
+        None => Trace::Reached(Source::Variable { object: element, negated }),
     }
 }
 
@@ -569,8 +666,14 @@ mod block {
         format!("__out_{}_{}", pin_name(block, pin), block.global_id)
     }
 
+    // Every data input; the EN pin guards the call and never passes as an argument.
     pub(super) fn inputs(block: &FbdObject) -> impl Iterator<Item = &Pin> {
-        block.input_pins().iter().chain(block.inout_pins())
+        let en = block.en_pin();
+        block
+            .input_pins()
+            .iter()
+            .chain(block.inout_pins())
+            .filter(move |pin| !en.is_some_and(|en| std::ptr::eq(en, *pin)))
     }
 
     // The captured temporary (stateless) or instance member (stateful).
@@ -637,6 +740,9 @@ fn consumed(network: &model::Network, survey: &Survey) -> HashSet<usize> {
                 for pin in block::inputs(object) {
                     record(pin.source_pin());
                 }
+                if let Some(en) = object.en_pin() {
+                    record(en.source_pin());
+                }
             }
             _ => {}
         }
@@ -647,6 +753,17 @@ fn consumed(network: &model::Network, survey: &Survey) -> HashSet<usize> {
 
 fn consumes(consumer: &FbdObject) -> Option<usize> {
     consumer.connection_in.as_ref()?.source_pin()
+}
+
+// Any inversion bubble between a producer and its consumer: the producer's,
+// the consumer's, or one synthesized by an EN hop on the way.
+fn negated(consumer: &FbdObject, source: &Source) -> bool {
+    let negated = match source {
+        Source::Variable { object, negated } => object.out_negated() || *negated,
+        Source::Output { pin, negated, .. } => pin.negated || *negated,
+    };
+
+    negated || consumer.in_negated()
 }
 
 #[cfg(test)]
@@ -680,15 +797,13 @@ mod tests {
                     format!("{} := {}", AstSerializer::format(sink), AstSerializer::format(source))
                 }
                 Statement::Assignment { sink, source, storage: Some(storage) } => {
-                    let value = match storage {
-                        Storage::Set => "TRUE",
-                        Storage::Reset => "FALSE",
-                    };
-                    format!(
-                        "IF {} THEN {} := {value}",
-                        AstSerializer::format(source),
-                        AstSerializer::format(sink)
-                    )
+                    let sink = AstSerializer::format(sink);
+                    let source = AstSerializer::format(source);
+                    match storage {
+                        Storage::Set => format!("IF {source} THEN {sink} := TRUE"),
+                        Storage::Reset => format!("IF {source} THEN {sink} := FALSE"),
+                        Storage::Reference => format!("{sink} REF= {source}"),
+                    }
                 }
                 Statement::Return { condition, .. } => {
                     format!("RETURN {}", AstSerializer::format(condition))
@@ -700,7 +815,7 @@ mod tests {
                     format!("JMP {target} <disconnected>")
                 }
                 Statement::Label { name, .. } => format!("LABEL {name}"),
-                Statement::Call { target, arguments, capture, .. } => {
+                Statement::Call { target, arguments, capture, enable, .. } => {
                     let arguments = arguments
                         .iter()
                         .map(|argument| match argument {
@@ -715,9 +830,13 @@ mod tests {
                         })
                         .collect::<Vec<_>>()
                         .join(", ");
-                    match capture {
+                    let call = match capture {
                         Some(capture) => format!("{capture} := {target}({arguments})"),
                         None => format!("{target}({arguments})"),
+                    };
+                    match enable {
+                        Some(enable) => format!("IF {} THEN {call}", AstSerializer::format(enable)),
+                        None => call,
                     }
                 }
             })
@@ -790,6 +909,11 @@ mod tests {
             IF NOT a THEN b := TRUE
             IF NOT a THEN b := FALSE
             IF NOT NOT a THEN b := TRUE");
+        }
+
+        #[test]
+        fn storage_reference() {
+            insta::assert_snapshot!(resolve_project("variables/valid/storage_reference"), @"b REF= a");
         }
 
         #[test]
@@ -1063,6 +1187,119 @@ mod tests {
         }
     }
 
+    mod execution_control {
+        use super::resolve_project;
+
+        #[test]
+        fn enable_fb() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_fb"), @r"
+            IF trigger THEN inst(in := localIn)
+            localOut := inst.out
+            done := trigger");
+        }
+
+        #[test]
+        fn enable_function() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_function"), @r"
+            IF trigger THEN __out_myAdd_7 := myAdd(in1 := a, in2 := b, myAddDoubled => )
+            sum := __out_myAdd_7
+            done := trigger");
+        }
+
+        #[test]
+        fn enable_no_eno() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_no_eno"), @r"
+            IF trigger THEN inst(in := localIn)
+            localOut := inst.out");
+        }
+
+        #[test]
+        fn enable_negated() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_negated"), @r"
+            IF NOT trigger THEN inst(in := localIn)
+            localOut := inst.out
+            done := NOT trigger");
+        }
+
+        #[test]
+        fn eno_negated() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/eno_negated"), @r"
+            IF NOT trigger THEN inst(in := localIn)
+            localOut := inst.out
+            done := trigger");
+        }
+
+        #[test]
+        fn enable_from_block() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_from_block"), @r"
+            g()
+            IF g.ok THEN inst(in := localIn)
+            localOut := inst.out");
+        }
+
+        #[test]
+        fn eno_fan_out() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/eno_fan_out"), @r"
+            IF trigger THEN inst(in := localIn)
+            d1 := trigger
+            d2 := trigger");
+        }
+
+        #[test]
+        fn eno_chain() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/eno_chain"), @r"
+            IF trigger THEN a(in := seed)
+            IF trigger THEN b(in := a.out)
+            result := b.out
+            done := trigger");
+        }
+
+        #[test]
+        fn enable_generic() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_generic"), @r"
+            IF trigger THEN __out_myGenAdd_7 := myGenAdd(a := x, b := y)
+            result := __out_myGenAdd_7");
+        }
+
+        #[test]
+        fn enable_from_function() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_from_function"), @r"
+            __out_isNonZero_3 := isNonZero(val := b)
+            IF __out_isNonZero_3 THEN __out_safeDiv_7 := safeDiv(dividend := a, divisor := b)
+            result := __out_safeDiv_7");
+        }
+
+        #[test]
+        fn enable_independent() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_independent"), @r"
+            IF t1 THEN a(in := seed)
+            IF t2 THEN b(in := a.out)
+            result := b.out");
+        }
+
+        #[test]
+        fn connector_routing() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/connector_routing"), @r"
+            IF trigger THEN inst(in := localIn)
+            localOut := inst.out
+            done := trigger");
+        }
+
+        #[test]
+        fn eno_storage() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/eno_storage"), @r"
+            IF trigger THEN inst(in := localIn)
+            IF trigger THEN latch := TRUE");
+        }
+
+        #[test]
+        fn enable_variadic() {
+            insta::assert_snapshot!(resolve_project("execution_control/valid/enable_variadic"), @r"
+            IF trigger THEN __out_ADD_1 := ADD(x, y)
+            r := __out_ADD_1");
+        }
+    }
+
     mod validations {
         use super::resolve_project;
         use crate::test_utils::{diagnostics, transpile_project};
@@ -1165,6 +1402,38 @@ mod tests {
         }
 
         #[test]
+        fn unwired_en() {
+            insta::assert_snapshot!(transpile_project("execution_control/invalid/unwired_en").unwrap_err(), @r"
+            error[E152]: Block `counter` has an unconnected EN pin
+             = unwired_en.cfc: Block 3
+            ");
+        }
+
+        #[test]
+        fn eno_cycle() {
+            insta::assert_snapshot!(transpile_project("execution_control/invalid/eno_cycle").unwrap_err(), @r"
+            error[E153]: EN pin of block `counter` resolves through an ENO cycle
+             = eno_cycle.cfc: Block 1
+
+            error[E153]: EN pin of block `counter` resolves through an ENO cycle
+             = eno_cycle.cfc: Block 4
+            ");
+        }
+
+        // Not yet defined by the export format; a loud stop beats a silent guess.
+        #[test]
+        #[should_panic(expected = "ambiguous `EN` pin")]
+        fn ambiguous_en() {
+            resolve_project("execution_control/invalid/ambiguous_en");
+        }
+
+        #[test]
+        #[should_panic(expected = "ambiguous `ENO` pin")]
+        fn ambiguous_eno() {
+            resolve_project("execution_control/invalid/ambiguous_eno");
+        }
+
+        #[test]
         fn function_stale_output() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_stale_output").unwrap_err(), @r"
             error[E147]: Output `oldDoubled` is not declared by `myAdd`
@@ -1175,8 +1444,19 @@ mod tests {
         #[test]
         fn function_duplicate_return() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_duplicate_return").unwrap_err(), @r"
-            error[E152]: Block `myAdd` has more than one return pin
+            error[E155]: Block `myAdd` has more than one return pin
              = function_duplicate_return.cfc: Block 5
+            ");
+        }
+
+        #[test]
+        fn storage_reference_negated() {
+            insta::assert_snapshot!(transpile_project("variables/invalid/storage_reference_negated").unwrap_err(), @r"
+            error[E154]: Reference assignment to `b` cannot be negated
+             = storage_reference_negated.cfc: Block 3
+
+            error[E154]: Reference assignment to `b` cannot be negated
+             = storage_reference_negated.cfc: Block 6
             ");
         }
     }

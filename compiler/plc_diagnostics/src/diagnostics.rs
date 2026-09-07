@@ -480,12 +480,39 @@ impl Diagnostic {
             .with_location(location)
     }
 
+    pub fn unconnected_en<T>(name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Block `{name}` has an unconnected EN pin"))
+            .with_error_code("E152")
+            .with_location(location)
+    }
+
+    pub fn eno_cycle<T>(name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("EN pin of block `{name}` resolves through an ENO cycle"))
+            .with_error_code("E153")
+            .with_location(location)
+    }
+
+    pub fn negated_reference_assignment<T>(name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Reference assignment to `{name}` cannot be negated"))
+            .with_error_code("E154")
+            .with_location(location)
+    }
+
     pub fn duplicate_return_pin<T>(name: &str, location: T) -> Diagnostic
     where
         T: Into<SourceLocation>,
     {
         Diagnostic::new(format!("Block `{name}` has more than one return pin"))
-            .with_error_code("E152")
+            .with_error_code("E155")
             .with_location(location)
     }
 

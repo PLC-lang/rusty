@@ -1,0 +1,12 @@
+{
+	"name" : "cfc_eno_in_body",
+	"files" : [
+		"eno_in_body.cfc",
+		"sneaky.st",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
