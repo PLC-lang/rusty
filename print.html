@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-4f92288f.js";
+            window.path_to_searchindex_js = "searchindex-7af0b795.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-ba53e5c1.js"></script>
+        <script src="toc-11748e21.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2668,6 +2668,32 @@ are rejected.</p>
 <p>A data sink with the <code>REF=</code> storage mode stores the address of its source, and
 an address has no negation. A negation bubble anywhere on the wire, on the
 source, on the sink, or on a block output pin feeding it, is rejected.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="duplicate-cfc-return-pin"><a class="header" href="#duplicate-cfc-return-pin">Duplicate CFC return pin</a></h1>
+<p>A function block in a CFC network shows more than one return pin. A function
+returns at most one value, so only one output pin can carry it; every other
+output pin belongs to a declared <code>VAR_OUTPUT</code> variable and shows its name.</p>
+<pre><code>        myAdd
+      +--------------------+
+a --&gt; | in1                | --&gt;  the return pin, unnamed
+b --&gt; | in2                | --&gt;  a second unnamed pin: rejected
+      |       myAddDoubled | --&gt;  a declared output
+      +--------------------+
+</code></pre>
+<p>This usually means the diagram is stale: the callee’s signature changed after
+the block was placed. Re-export the diagram from the IDE, or delete the block
+and place it again, so the block matches the callee’s current signature.</p>
+<h2 id="technical-details"><a class="header" href="#technical-details">Technical details</a></h2>
+<p>In the exported CFC file, an output pin is an <code>OutputVariable</code> element. The
+return pin is the one with an empty <code>parameterName</code>; declared outputs always
+carry their parameter name. The block is rejected when more than one output
+pin has an empty name:</p>
+<pre><code class="language-xml">&lt;ppx:OutputVariables&gt;
+    &lt;ppx:OutputVariable parameterName=""&gt;           &lt;!-- the return pin --&gt;
+    &lt;ppx:OutputVariable parameterName=""&gt;           &lt;!-- a second one: rejected --&gt;
+    &lt;ppx:OutputVariable parameterName="doubled"&gt;    &lt;!-- a declared output --&gt;
+&lt;/ppx:OutputVariables&gt;
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
