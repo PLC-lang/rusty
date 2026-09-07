@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-0b166e97.js";
+            window.path_to_searchindex_js = "searchindex-37c136a7.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-a843d319.js"></script>
+        <script src="toc-ba53e5c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2662,6 +2662,11 @@ is rejected; unlike an unwired data input there is no sensible default.</p>
 the block to the EN source. When the EN pins of two or more blocks are fed only
 by each other’s ENO pins, the wire never reaches a real source and the blocks
 are rejected.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="negated-cfc-reference-assignment"><a class="header" href="#negated-cfc-reference-assignment">Negated CFC reference assignment</a></h1>
+<p>A data sink with the <code>REF=</code> storage mode stores the address of its source, and
+an address has no negation. A negation bubble anywhere on the wire, on the
+source, on the sink, or on a block output pin feeding it, is rejected.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
