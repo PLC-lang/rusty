@@ -209,7 +209,7 @@ Manual calls are not required on any architecture.
 
 - Install `stdlib.lib` from the same pipeline into the same folder.
 
-- Install the `Windows SDK` and `MSVC`. You can use the Visual Studio Installer to do this or install them as standalone packages. 
+- Install the `Windows SDK` and `MSVC`. You can use the Visual Studio Installer to do this or install them as standalone packages.
 
 - Create a `LIB` environment variable containing paths to `iec61131std.lib`, `ws2_32.lib`, `ntdll.lib`, `userenv.lib`, `libcmt.lib`, `oldnames.lib` and `libucrt.lib`.
 
@@ -233,9 +233,9 @@ EXPORTS
 ```
 
 This example allows linking with Rusty's Standard Library.
-    
+
 - Proceed with compilation:
-    
+
     ```
     plc ./examples/hello_world.st -c -l iec61131std -l ws2_32 -l ntdll -l userenv -o ./hello_world.o
     clang ./hello_world.o --shared -l iec61131std -l ws2_32 -l ntdll -l userenv -fuse-ld=lld-link "-Wl,/DEF:exports.def" -o ./hello_world.dll
@@ -243,7 +243,7 @@ This example allows linking with Rusty's Standard Library.
 
 ## Generating open XML exchange format
 
-Rust can convert Structured Text to a standardised IEC 61131-10 XML format, with implementation specific schemas.
+Rusty can convert Structured Text to a standardised IEC 61131-10 XML format, with implementation specific schemas.
 Currently, Rusty supports importing it's generated XML into Omron Sysmac Studio.
 
 ```
