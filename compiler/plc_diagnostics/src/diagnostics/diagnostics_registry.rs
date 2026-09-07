@@ -256,6 +256,7 @@ lazy_static! {
         E152,   Error,      include_str!("./error_codes/E152.md"),  // Unconnected CFC EN pin
         E153,   Error,      include_str!("./error_codes/E153.md"),  // CFC ENO cycle
         E154,   Error,      include_str!("./error_codes/E154.md"),  // Negated CFC reference assignment
+        E155,   Error,      include_str!("./error_codes/E155.md"),  // Duplicate CFC return pin
     );
 }
 

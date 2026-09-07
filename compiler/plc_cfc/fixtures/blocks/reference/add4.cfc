@@ -76,7 +76,7 @@ END_VAR
                         </ppx:InputVariable>
                     </ppx:InputVariables>
                     <ppx:OutputVariables>
-                        <ppx:OutputVariable parameterName="ADD" negated="false">
+                        <ppx:OutputVariable parameterName="" negated="false">
                             <ppx:ConnectionPointOut connectionPointOutId="10">
 <ppx:RelPosition x="80" y="30"/>
                             </ppx:ConnectionPointOut>
