@@ -52,9 +52,10 @@ impl TimerParams {
     /// Sets the elapsed time to either the preset time or the real elapsed time, whatever is smaller
     fn update_elapsed_time(&mut self) {
         if self.is_running() {
+            debug_assert!(self.start_time.is_some(), "a running timer must have a start time");
             self.set_elapsed_time(std::cmp::min(
                 self.preset_time,
-                self.get_run_time().expect("Timer should be running").as_nanos() as i64,
+                self.get_run_time().unwrap_or_default().as_nanos() as i64,
             ));
         }
     }

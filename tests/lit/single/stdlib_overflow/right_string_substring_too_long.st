@@ -1,16 +1,20 @@
-// RUN: (%COMPILE %s && %RUN 2>&1) | %CHECK %s
-// XFAIL: *
-// Test that RIGHT with substring length > string length causes a panic
-// Expected failure message: Requested substring length exceeds string length.
-// CHECK: Requested substring length exceeds string length.
+// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// Test that RIGHT with a substring length above the string length clamps
+// to the whole string, matching CODESYS
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
     s : STRING;
 END_VAR
-    s := 'sample text';
-    // Length 12 exceeds string length 11 -> should panic
-    s := RIGHT(s, 12);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    s := RIGHT('sample text', 12);
+    // CHECK: sample text
+    printf('%s$N', REF(s));
+
+    s := RIGHT('sample text', -1);
+    // CHECK: negative_length_yields_empty
+    IF s = '' THEN
+        printf('negative_length_yields_empty$N');
+    END_IF
+
+    main := 0;
+END_FUNCTION
