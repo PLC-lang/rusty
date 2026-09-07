@@ -1,0 +1,14 @@
+{
+	"name" : "cfc_enable_chain",
+	"files" : [
+		"enable_chain.cfc",
+		"counter.st",
+		"doubler.st",
+		"addOne.st",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
