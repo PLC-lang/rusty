@@ -552,7 +552,6 @@ mod block {
         block.type_name().is_some_and(|name| index.get_variadic_member(name).is_some())
     }
 
-    // TODO: Do not merge until the IDE changes are final and can be cross-checked with the `reference/` fixtures
     // The IDE leaves the return pin unnamed; declared outputs always carry their parameter name.
     pub(super) fn is_return_pin(pin: &Pin) -> bool {
         pin.parameter_name.is_empty()

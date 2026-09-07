@@ -8,8 +8,7 @@ schema is `src/model.rs` plus the verbatim exports under `reference/`.
 
 A function block element writes its return pin as an `OutputVariable` with an
 empty `parameterName`; declared `VAR_OUTPUT` pins carry their name. Void
-functions have no return pin. The `reference/` exports still predate this
-convention and name the return pin after the function.
+functions have no return pin.
 
 ## Layout
 
