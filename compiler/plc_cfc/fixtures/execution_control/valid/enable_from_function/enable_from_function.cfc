@@ -38,7 +38,7 @@ END_VAR</bmx:TextDeclaration>
                         </ppx:InputVariable>
                     </ppx:InputVariables>
                     <ppx:OutputVariables>
-                        <ppx:OutputVariable parameterName="isNonZero" negated="false">
+                        <ppx:OutputVariable parameterName="" negated="false">
                             <ppx:ConnectionPointOut connectionPointOutId="4">
 <ppx:RelPosition x="130" y="30"/>
                             </ppx:ConnectionPointOut>
@@ -85,7 +85,7 @@ END_VAR</bmx:TextDeclaration>
                         </ppx:InputVariable>
                     </ppx:InputVariables>
                     <ppx:OutputVariables>
-                        <ppx:OutputVariable parameterName="safeDiv" negated="false">
+                        <ppx:OutputVariable parameterName="" negated="false">
                             <ppx:ConnectionPointOut connectionPointOutId="8">
 <ppx:RelPosition x="130" y="50"/>
                             </ppx:ConnectionPointOut>
