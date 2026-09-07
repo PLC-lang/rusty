@@ -1,4 +1,5 @@
 use common::{compile_and_run, get_includes};
+use iec61131std::date_time_conversion as dtc;
 
 // Import common functionality into the integration tests
 mod common;
@@ -277,4 +278,56 @@ fn tod_to_ltod_conversion() {
             .timestamp_nanos_opt()
             .unwrap()
     );
+}
+
+// The conversions are total integer arithmetic; these tests pin the values the
+// previous chrono-based implementation produced and the saturation at the LDT
+// range minimum (midnight of the first representable day lies below i64::MIN).
+#[test]
+fn ldate_and_time_to_ldate_saturates_on_the_first_representable_day() {
+    assert_eq!(dtc::LDATE_AND_TIME_TO_LDATE(i64::MIN), i64::MIN);
+
+    let noon_first_day = i64::MIN + 12 * 3_600 * 1_000_000_000;
+    assert_eq!(dtc::LDATE_AND_TIME_TO_LDATE(noon_first_day), i64::MIN);
+}
+
+#[test]
+fn ldate_and_time_to_ldate_returns_midnight() {
+    let datetime = chrono::NaiveDate::from_ymd_opt(2024, 5, 5)
+        .and_then(|date| date.and_hms_opt(13, 30, 15))
+        .expect("valid date");
+    let midnight = chrono::NaiveDate::from_ymd_opt(2024, 5, 5)
+        .and_then(|date| date.and_hms_opt(0, 0, 0))
+        .expect("valid date");
+
+    assert_eq!(
+        dtc::LDATE_AND_TIME_TO_LDATE(datetime.and_utc().timestamp_nanos_opt().expect("in range")),
+        midnight.and_utc().timestamp_nanos_opt().expect("in range")
+    );
+
+    // pre-1970 values floor to the day boundary below, not toward zero
+    let before_epoch = chrono::NaiveDate::from_ymd_opt(1969, 12, 31)
+        .and_then(|date| date.and_hms_opt(23, 0, 0))
+        .expect("valid date");
+    let before_epoch_midnight = chrono::NaiveDate::from_ymd_opt(1969, 12, 31)
+        .and_then(|date| date.and_hms_opt(0, 0, 0))
+        .expect("valid date");
+
+    assert_eq!(
+        dtc::LDATE_AND_TIME_TO_LDATE(before_epoch.and_utc().timestamp_nanos_opt().expect("in range")),
+        before_epoch_midnight.and_utc().timestamp_nanos_opt().expect("in range")
+    );
+}
+
+#[test]
+fn date_and_time_conversions_match_previous_values_at_the_range_bounds() {
+    assert_eq!(dtc::DATE_AND_TIME_TO_DATE(0), 0);
+    assert_eq!(dtc::DATE_AND_TIME_TO_DATE(u32::MAX), 4_294_944_000);
+    assert_eq!(dtc::DATE_AND_TIME_TO_TIME_OF_DAY(0), 0);
+    assert_eq!(dtc::DATE_AND_TIME_TO_TIME_OF_DAY(u32::MAX), 23_295_000);
+
+    let noon_nanos = 12 * 3_600 * 1_000_000_000_i64;
+    assert_eq!(dtc::LDATE_AND_TIME_TO_LTIME_OF_DAY(noon_nanos), noon_nanos);
+    // one hour before the epoch is 23:00 on the previous day
+    assert_eq!(dtc::LDATE_AND_TIME_TO_LTIME_OF_DAY(-3_600 * 1_000_000_000), 23 * 3_600 * 1_000_000_000);
 }

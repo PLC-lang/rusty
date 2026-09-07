@@ -104,6 +104,7 @@ use plc_ast::ast::{
     flatten_expression_list, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration,
     UnaryExpression, Variable,
 };
+use plc_ast::control_statements::AstControlStatement;
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 
@@ -116,6 +117,7 @@ pub fn infer_temporary_types(unit: &mut CompilationUnit, index: &mut Index, ids:
     if open.is_empty() {
         return false;
     }
+
     log::trace!("round starts with {} open temporaries: {:?}", open.len(), {
         let mut names = open.iter().collect::<Vec<_>>();
         names.sort();
@@ -128,43 +130,35 @@ pub fn infer_temporary_types(unit: &mut CompilationUnit, index: &mut Index, ids:
 
     // Harvest the concrete type each open temporary's capture resolved to.
     let mut resolved = HashMap::new();
-    for statement in unit.implementations.iter().flat_map(|implementation| &implementation.statements) {
-        // `callee(...)`, bare or behind `temporary := callee(...)`.
-        let (call_node, return_capture) = match statement.get_stmt() {
-            AstStatement::Assignment(assignment) => {
-                (assignment.right.as_ref(), assignment.left.get_flat_reference_name())
+    for statement in statements(unit) {
+        let Some((call_node, call, return_capture)) = captured_call(statement) else { continue };
+
+        // The capture takes its annotated node's concrete type, once the
+        // call's evidence is complete (see `is_ready`).
+        let mut record = |name: &str, annotated: &AstNode, kind: &str| {
+            if !(open.contains(name) && is_ready(call, name, &open)) {
+                return;
             }
-            AstStatement::CallStatement(_) => (statement, None),
-            _ => continue,
+
+            match resolved_type(annotations.get_type(annotated, index), call, &annotations, index) {
+                Some(data_type) => {
+                    log::trace!("`{name}` resolved to `{data_type}` ({kind})");
+                    resolved.insert(name.to_string(), data_type);
+                }
+                None => log::trace!("`{name}`: no concrete annotation ({kind})"),
+            }
         };
-        let AstStatement::CallStatement(call) = call_node.get_stmt() else { continue };
 
         // `temporary := callee(...)`: the temporary takes the call's annotated (return) type.
         if let Some(name) = return_capture {
-            if open.contains(name) && is_ready(call, name, &open) {
-                match resolved_type(annotations.get_type(call_node, index), call, &annotations, index) {
-                    Some(data_type) => {
-                        log::trace!("`{name}` resolved to `{data_type}` (return capture)");
-                        resolved.insert(name.to_string(), data_type);
-                    }
-                    None => log::trace!("`{name}`: call has no concrete annotation"),
-                }
-            }
+            record(name, call_node, "return capture");
         }
 
         // `parameter => temporary`: the temporary takes the output parameter's annotated type.
         for argument in arguments(call) {
             let AstStatement::OutputAssignment(inner) = argument.get_stmt() else { continue };
             let Some(name) = base_reference(&inner.right) else { continue };
-            if open.contains(name) && is_ready(call, name, &open) {
-                match resolved_type(annotations.get_type(&inner.left, index), call, &annotations, index) {
-                    Some(data_type) => {
-                        log::trace!("`{name}` resolved to `{data_type}` (output capture)");
-                        resolved.insert(name.to_string(), data_type);
-                    }
-                    None => log::trace!("`{name}`: output parameter has no concrete annotation"),
-                }
-            }
+            record(name, &inner.left, "output capture");
         }
     }
 
@@ -243,8 +237,8 @@ fn is_ready(call: &CallStatement, own: &str, open: &HashSet<String>) -> bool {
 }
 
 /// The concrete type behind an annotated capture: the annotator's answer when it is already
-/// concrete (see [`concrete_type`]). When it is still generic — the annotator no longer resolves
-/// non-builtin generic calls, that happens in the later `GenericLowerer` phase — the binding is
+/// concrete (see [`concrete_type`]). When it is still generic (the annotator no longer resolves
+/// non-builtin generic calls, that happens in the later `GenericLowerer` phase), the binding is
 /// derived from the call's concrete arguments instead; arguments that are themselves still
 /// generic carry no vote, so a resolved external input decides even in feedback shapes.
 fn resolved_type(
@@ -281,15 +275,8 @@ fn concrete_type(data_type: Option<&DataType>, index: &Index) -> Option<String> 
 
 // The callee whose return or output is captured into the given temporary.
 fn producer<'unit>(unit: &'unit CompilationUnit, temporary: &str) -> Option<&'unit str> {
-    unit.implementations.iter().flat_map(|implementation| &implementation.statements).find_map(|statement| {
-        // `callee(...)`, bare or behind `temporary := callee(...)`.
-        let (call_node, return_capture) = match statement.get_stmt() {
-            AstStatement::Assignment(assignment) => {
-                (assignment.right.as_ref(), assignment.left.get_flat_reference_name())
-            }
-            _ => (statement, None),
-        };
-        let AstStatement::CallStatement(call) = call_node.get_stmt() else { return None };
+    statements(unit).into_iter().find_map(|statement| {
+        let (_, call, return_capture) = captured_call(statement)?;
 
         let captures = return_capture == Some(temporary)
             || arguments(call).iter().any(|argument| match argument.get_stmt() {
@@ -299,6 +286,44 @@ fn producer<'unit>(unit: &'unit CompilationUnit, temporary: &str) -> Option<&'un
 
         captures.then(|| call.operator.get_flat_reference_name()).flatten()
     })
+}
+
+// The statements a unit executes, seeing through the IF guards the transpiler
+// wraps around enabled calls and latched stores.
+fn statements(unit: &CompilationUnit) -> Vec<&AstNode> {
+    fn collect<'unit>(nodes: &'unit [AstNode], flat: &mut Vec<&'unit AstNode>) {
+        for node in nodes {
+            match node.get_stmt() {
+                AstStatement::ControlStatement(AstControlStatement::If(inner)) => {
+                    for block in &inner.blocks {
+                        collect(&block.body, flat);
+                    }
+                    collect(&inner.else_block, flat);
+                }
+                _ => flat.push(node),
+            }
+        }
+    }
+
+    let mut flat = Vec::new();
+    for implementation in &unit.implementations {
+        collect(&implementation.statements, &mut flat);
+    }
+    flat
+}
+
+// `callee(...)`, bare or behind `temporary := callee(...)`: the call node, the
+// call itself, and the name capturing its return value, if any.
+fn captured_call(statement: &AstNode) -> Option<(&AstNode, &CallStatement, Option<&str>)> {
+    let (call_node, return_capture) = match statement.get_stmt() {
+        AstStatement::Assignment(assignment) => {
+            (assignment.right.as_ref(), assignment.left.get_flat_reference_name())
+        }
+        _ => (statement, None),
+    };
+
+    let AstStatement::CallStatement(call) = call_node.get_stmt() else { return None };
+    Some((call_node, call, return_capture))
 }
 
 // `NOT (x)` -> `x`: the referenced name behind negation/parentheses.

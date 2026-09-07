@@ -1,0 +1,12 @@
+{
+	"name" : "cfc_enable_declared",
+	"files" : [
+		"enable_declared.cfc",
+		"counter.st",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

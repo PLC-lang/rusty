@@ -1,13 +1,24 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// Test that SUB with TIME overflow causes a panic
+// Test that SUB with TIME and DATE wraps mod 2^32 on underflow, matching CODESYS
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
     a : TIME;
+    b : TIME;
+    c : TIME;
 END_VAR
-    // Subtracting from minimum TIME value should overflow and panic
-    a := SUB(TIME#-9223372036854775807ms, TIME#1ms);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    a := SUB(TIME#1s, TIME#5s);
+    // CHECK: 4294963296
+    printf('%u$N', a);
+
+    b := SUB_TIME(TIME#2s, TIME#5s);
+    // CHECK: 4294964296
+    printf('%u$N', b);
+
+    // 152 days exceed the TIME range in milliseconds; the result wraps
+    c := SUB_DATE_DATE(DATE#2024-06-01, DATE#2024-01-01);
+    // CHECK: 247898112
+    printf('%u$N', c);
+
+    main := 0;
+END_FUNCTION
