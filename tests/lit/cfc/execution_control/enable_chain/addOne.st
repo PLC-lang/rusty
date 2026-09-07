@@ -1,0 +1,9 @@
+FUNCTION_BLOCK addOne
+VAR_INPUT
+    in : DINT;
+END_VAR
+VAR_OUTPUT
+    out : DINT;
+END_VAR
+    out := in + 1;
+END_FUNCTION_BLOCK

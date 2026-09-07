@@ -608,3 +608,164 @@ fn multi_segment_above_threshold_is_unrolled_per_segment() {
     // 40 indexed assignments + `v := 1` + `main := 0`
     assert_eq!(count_assignments(stmts), 42);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Element construction loop bounds (PRG-4730)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// The bounds the generated element construction loop was built with, read back out of the
+/// constructor body. The body has the shape
+///
+/// ```st
+/// __idx0 := <lo>;
+/// WHILE TRUE DO
+///     IF __idx0 > <hi> THEN EXIT; END_IF
+///     ...
+/// END_WHILE
+/// ```
+///
+/// so the lower bound is the counter initialization and the upper bound is the right hand
+/// side of the exit guard. Both must be literals: the constructor is a POU of its own, and a
+/// bound that still named a constant of the declaring POU would not resolve inside it.
+fn element_ctor_loop_bounds(stmts: &[plc_ast::ast::AstNode]) -> (i128, i128) {
+    use plc_ast::ast::AstStatement;
+    use plc_ast::control_statements::AstControlStatement;
+    use plc_ast::literals::AstLiteral;
+
+    let literal_int = |node: &plc_ast::ast::AstNode| match node.get_stmt() {
+        AstStatement::Literal(AstLiteral::Integer(value)) => Some(*value),
+        _ => None,
+    };
+
+    let start = stmts
+        .iter()
+        .find_map(|statement| match statement.get_stmt() {
+            AstStatement::Assignment(data) => literal_int(&data.right),
+            _ => None,
+        })
+        .expect("the counter is initialized with a literal lower bound");
+
+    let while_loop = stmts
+        .iter()
+        .find_map(|statement| match statement.get_stmt() {
+            AstStatement::ControlStatement(AstControlStatement::WhileLoop(data)) => Some(data),
+            _ => None,
+        })
+        .expect("the element construction loop is a WHILE loop");
+
+    let end = while_loop
+        .body
+        .iter()
+        .find_map(|statement| match statement.get_stmt() {
+            AstStatement::ControlStatement(AstControlStatement::If(data)) => {
+                let condition = data.blocks.first()?.condition.as_ref();
+                match condition.get_stmt() {
+                    AstStatement::BinaryExpression(binary) => literal_int(&binary.right),
+                    _ => None,
+                }
+            }
+            _ => None,
+        })
+        .expect("the exit guard compares the counter against a literal upper bound");
+
+    (start, end)
+}
+
+/// A bound naming a POU-local `VAR CONSTANT` has to reach the generated constructor as a
+/// literal. It used to be copied over as the identifier, which does not resolve there, and
+/// the resulting comparison was annotated as a call to a non-existent `DINT_GREATER`.
+#[test]
+fn element_ctor_loop_resolves_a_pou_local_constant_bound() {
+    let project = lower(
+        "
+        PROGRAM prog
+        VAR CONSTANT five : DINT := 5; END_VAR
+        VAR arr : ARRAY[1..five] OF STRING[63]; END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    let stmts = find_impl_stmts(&project, "__prog_arr__ctor");
+    assert_eq!(element_ctor_loop_bounds(stmts), (1, 5));
+}
+
+/// The same for a global constant, which resolved before this fix as well. Kept so that a
+/// change to the bound resolution shows up for both kinds of constant.
+#[test]
+fn element_ctor_loop_resolves_a_global_constant_bound() {
+    let project = lower(
+        "
+        VAR_GLOBAL CONSTANT five : DINT := 5; END_VAR
+
+        PROGRAM prog
+        VAR arr : ARRAY[1..five] OF STRING[63]; END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    let stmts = find_impl_stmts(&project, "__prog_arr__ctor");
+    assert_eq!(element_ctor_loop_bounds(stmts), (1, 5));
+}
+
+/// A bound given as an expression over a POU-local constant is const-evaluated by the index,
+/// so the constructor sees the computed value.
+#[test]
+fn element_ctor_loop_resolves_an_expression_over_a_local_constant() {
+    let project = lower(
+        "
+        PROGRAM prog
+        VAR CONSTANT two : DINT := 2; END_VAR
+        VAR arr : ARRAY[two..two * 3] OF STRING[63]; END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    let stmts = find_impl_stmts(&project, "__prog_arr__ctor");
+    assert_eq!(element_ctor_loop_bounds(stmts), (2, 6));
+}
+
+/// One loop per dimension, each with its own resolved bounds. The outer loop is the one that
+/// appears at the top level of the constructor body; the inner one sits in its body.
+#[test]
+fn element_ctor_loops_resolve_every_dimension() {
+    use plc_ast::ast::AstStatement;
+    use plc_ast::control_statements::AstControlStatement;
+
+    let project = lower(
+        "
+        PROGRAM prog
+        VAR CONSTANT two : DINT := 2; five : DINT := 5; END_VAR
+        VAR arr : ARRAY[1..two, 2..five] OF STRING[63]; END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    let stmts = find_impl_stmts(&project, "__prog_arr__ctor");
+    assert_eq!(element_ctor_loop_bounds(stmts), (1, 2), "outer dimension");
+
+    let outer = stmts
+        .iter()
+        .find_map(|statement| match statement.get_stmt() {
+            AstStatement::ControlStatement(AstControlStatement::WhileLoop(data)) => Some(data),
+            _ => None,
+        })
+        .expect("the outer dimension is a WHILE loop");
+    assert_eq!(element_ctor_loop_bounds(&outer.body), (2, 5), "inner dimension");
+}
+
+/// An array of a type that needs no construction still gets a constructor, but its body
+/// carries no element construction loop, so a local constant bound has nowhere to leak to.
+#[test]
+fn an_array_of_a_type_without_a_constructor_gets_no_element_ctor_loop() {
+    let project = lower(
+        "
+        PROGRAM prog
+        VAR CONSTANT five : DINT := 5; END_VAR
+        VAR arr : ARRAY[1..five] OF DINT; END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    let stmts = find_impl_stmts(&project, "__prog_arr__ctor");
+    assert!(!has_while_loop(stmts), "an array of DINT needs no per-element construction");
+}
