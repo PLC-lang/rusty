@@ -253,6 +253,8 @@ lazy_static! {
         E149,   Error,      include_str!("./error_codes/E149.md"),  // Unresolved generic CFC block output
         E150,   Warning,    include_str!("./error_codes/E150.md"),  // ABS on an unsigned value has no effect
         E151,   Error,      include_str!("./error_codes/E151.md"),  // Unary NOT with unsupported operand type
+        E152,   Error,      include_str!("./error_codes/E152.md"),  // Unconnected CFC EN pin
+        E153,   Error,      include_str!("./error_codes/E153.md"),  // CFC ENO cycle
     );
 }
 

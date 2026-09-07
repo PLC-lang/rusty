@@ -62,6 +62,9 @@ pub struct Data {
 
     #[serde(rename = "StorageMode")]
     pub storage_mode: Option<StorageMode>,
+
+    #[serde(rename = "ExecutionControl")]
+    pub execution_control: Option<ExecutionControl>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -99,6 +102,15 @@ pub struct StorageMode {
 pub enum Storage {
     Set,
     Reset,
+}
+
+// The execution control flag: when set, the block's `EN` input pin guards its
+// execution and its `ENO` output pin mirrors that guard for consumers. The
+// pins themselves appear as ordinary input/output pins named `EN` and `ENO`.
+#[derive(Debug, Deserialize)]
+pub struct ExecutionControl {
+    #[serde(rename = "$text")]
+    pub enabled: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -298,6 +310,18 @@ impl FbdObject {
         self.data(|data| data.storage_mode.as_ref()).map(|storage| storage.mode)
     }
 
+    pub fn has_execution_control(&self) -> bool {
+        self.data(|data| data.execution_control.as_ref()).is_some_and(|control| control.enabled)
+    }
+
+    pub fn en_pin(&self) -> Option<&Pin> {
+        self.has_execution_control().then(|| control_pin(self.input_pins(), "EN")).flatten()
+    }
+
+    pub fn eno_pin(&self) -> Option<&Pin> {
+        self.has_execution_control().then(|| control_pin(self.output_pins(), "ENO")).flatten()
+    }
+
     // `AddData` interleaves its payloads across several `Data` entries.
     fn data<'a, T>(&'a self, pick: impl Fn(&'a Data) -> Option<&'a T>) -> Option<&'a T> {
         self.add_data.as_ref()?.data.iter().find_map(pick)
@@ -319,4 +343,19 @@ impl ConnectionPointIn {
     pub fn source_pin(&self) -> Option<usize> {
         self.connections.first().map(|connection| connection.ref_out_id)
     }
+}
+
+// The execution control pin among a block's pins. A callee declaring an own
+// `EN`/`ENO` parameter is indistinguishable from the control pin in the
+// current export format; panic until the format defines the disambiguation.
+fn control_pin<'model>(pins: &'model [Pin], name: &str) -> Option<&'model Pin> {
+    let mut candidates = pins.iter().filter(|pin| pin.parameter_name == name);
+    let pin = candidates.next();
+
+    assert!(
+        candidates.next().is_none(),
+        "ambiguous `{name}` pin: the callee declares an own `{name}` parameter next to the execution control pin"
+    );
+
+    pin
 }

@@ -1,0 +1,12 @@
+{
+	"name" : "cfc_enable_function",
+	"files" : [
+		"enable_function.cfc",
+		"myAdd.st",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
