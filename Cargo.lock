@@ -2426,6 +2426,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_literals"
+version = "1.0.4"
+
+[[package]]
 name = "plc_llvm"
 version = "1.0.4"
 dependencies = [
