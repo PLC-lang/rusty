@@ -4,116 +4,35 @@
 //! All functions here share the same contract:
 //! - Never fault: every input, including malformed or empty ones, returns a value.
 //! - Surrounding whitespace (space, tab, CR, LF, FF, VT) is trimmed before any other rule applies.
-//! - A rejected input returns the type's zero value.
+//! - The input must be a literal of the target type, prefix included, and nothing else may follow
+//!   it. Durations may additionally separate segments with whitespace or `_` and repeat or reorder
+//!   them.
+//! - A rejected input, or a value the target type cannot hold, returns the type's zero value.
+//! - Nothing on this path allocates.
 
 use crate::string_functions::ptr_to_slice;
 use num::NumCast;
-use plc_ast::{
-    ast::{AstNode, AstStatement},
-    literals::AstLiteral,
-    provider::IdProvider,
-};
-use plc_lexer::{lex_with_ids, ParseSession, Token};
-use plc_parser::{
-    parse_bool, parse_integer, parse_literal_date, parse_literal_date_and_time, parse_literal_time,
-    parse_literal_time_of_day,
-};
-use plc_source::source_location::SourceLocationFactory;
-use std::borrow::Cow;
+use plc_literals::{parse_duration, strip_prefix_ignore_ascii_case, trim, Leniency};
 
-const NANOS_PER_MILLISECOND: f64 = 1_000_000.0;
-const NANOS_PER_SECOND: f64 = 1_000_000_000.0;
+const NANOS_PER_MILLISECOND: u128 = 1_000_000;
 
 // --------- shared helpers
 
-/// Reads the null-terminated source string and trims the whitespace set shared by every
-/// `STRING_TO_*` function: space, tab, CR, LF, FF, VT.
+/// Reads the null-terminated source string and trims the surrounding whitespace.
 ///
 /// # Safety
 /// `src` must point to a null-terminated buffer, or be null.
 unsafe fn trimmed_str<'a>(src: *const u8) -> &'a str {
-    let slice = ptr_to_slice(src);
-    match std::str::from_utf8(slice) {
-        Ok(s) => s.trim_matches(|c: char| matches!(c, ' ' | '\t' | '\r' | '\n' | '\x0C' | '\x0B')),
+    match std::str::from_utf8(ptr_to_slice(src)) {
+        Ok(s) => trim(s),
         Err(_) => "",
     }
 }
 
-fn parse_single_statement<'a>(input: &'a str) -> ParseSession<'a> {
-    lex_with_ids(input, IdProvider::default(), SourceLocationFactory::internal(input))
-}
-
-fn parse_literal(
-    input: &str,
-    expected: Token,
-    parser: fn(&mut ParseSession) -> Option<AstNode>,
-) -> Option<AstLiteral> {
-    let mut session = parse_single_statement(input);
-    if session.token != expected {
-        return None;
-    }
-    let node = parser(&mut session)?;
-    if !session.is_end_of_stream() || !session.diagnostics.is_empty() {
-        return None;
-    }
-    match node.get_stmt() {
-        AstStatement::Literal(literal) => Some(literal.clone()),
-        _ => None,
-    }
-}
-
-fn parse_prefixed_literal(
-    input: &str,
-    prefix: &str,
-    expected: Token,
-    parser: fn(&mut ParseSession) -> Option<AstNode>,
-) -> Option<AstLiteral> {
-    let source = if input.contains('#') {
-        input.to_owned()
-    } else {
-        format!("{prefix}{}", input.replacen('T', "-", 1))
-    };
-    parse_literal(&source, expected, parser)
-}
-
-fn parse_time_literal(input: &str, prefixes: &[&str]) -> Option<AstLiteral> {
-    prefixes
-        .iter()
-        .find(|prefix| input.get(..prefix.len()).is_some_and(|start| start.eq_ignore_ascii_case(prefix)))?;
-    let normalized: String =
-        input.replace(',', ".").chars().filter(|character| !character.is_ascii_whitespace()).collect();
-    parse_literal(&normalized, Token::LiteralTime, parse_literal_time)
-}
-
-fn date_seconds(literal: AstLiteral) -> Option<u32> {
-    let value = match literal {
-        AstLiteral::Date(date) => date.value().ok()?,
-        _ => return None,
-    };
-    u32::try_from(value / NANOS_PER_SECOND as i64).ok()
-}
-
-fn date_time_seconds(literal: AstLiteral) -> Option<u32> {
-    let value = match literal {
-        AstLiteral::DateAndTime(date_time) => date_time.value().ok()?,
-        _ => return None,
-    };
-    u32::try_from(value / NANOS_PER_SECOND as i64).ok()
-}
-
-fn time_of_day_millis(literal: AstLiteral) -> Option<u32> {
-    let value = match literal {
-        AstLiteral::TimeOfDay(time) => time.value().ok()?,
-        _ => return None,
-    };
-    u32::try_from(value / NANOS_PER_MILLISECOND as i64).ok()
-}
-
-fn duration_nanos(literal: AstLiteral) -> Option<i64> {
-    match literal {
-        AstLiteral::Time(time) if !time.is_negative() => Some(time.value()),
-        _ => None,
-    }
+/// Strips one of the accepted type prefixes and parses the remaining duration body.
+fn duration_after_prefix(input: &str, prefixes: &[&str]) -> Option<plc_literals::Duration> {
+    let body = strip_prefix_ignore_ascii_case(input, prefixes)?;
+    parse_duration(body, Leniency::RUNTIME).ok()
 }
 
 // --------- BOOL
@@ -123,23 +42,17 @@ fn duration_nanos(literal: AstLiteral) -> Option<i64> {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_BOOL(src: *const u8) -> bool {
-    parse_bool(trimmed_str(src)).unwrap_or_default()
+    plc_literals::parse_bool(trimmed_str(src)).unwrap_or_default()
 }
 
 // --------- integer / bit-string widths
 
-fn normalize_integer_literal(input: &str) -> Cow<'_, str> {
-    if let Some(digits) = input.strip_prefix("0b").or_else(|| input.strip_prefix("0B")) {
-        Cow::Owned(format!("2#{digits}"))
-    } else if let Some(digits) = input.strip_prefix("0x").or_else(|| input.strip_prefix("0X")) {
-        Cow::Owned(format!("16#{digits}"))
-    } else {
-        Cow::Borrowed(input)
-    }
+/// One parse rule shared by every integer width, so widening a variable never changes the parsed
+/// value: an integer literal in any radix, or a real literal truncated toward zero.
+fn parse_integer_input(input: &str) -> Option<i128> {
+    plc_literals::parse_integer(input).or_else(|_| plc_literals::parse_real_as_integer(input)).ok()
 }
 
-/// One radix-prefix + full-consumption parse rule shared by every integer width, so widening a
-/// variable never changes the parsed value.
 macro_rules! string_to_int_fn {
     ($name:ident, $ty:ty) => {
         /// # Safety
@@ -147,8 +60,7 @@ macro_rules! string_to_int_fn {
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $name(src: *const u8) -> $ty {
-            let input = normalize_integer_literal(trimmed_str(src));
-            parse_integer(&input).and_then(NumCast::from).unwrap_or_default()
+            parse_integer_input(trimmed_str(src)).and_then(NumCast::from).unwrap_or_default()
         }
     };
 }
@@ -168,74 +80,75 @@ string_to_int_fn!(STRING_TO_ULINT, u64);
 
 // --------- durations (TIME / LTIME)
 
-/// Parses the body after the `T#`/`TIME#`/`LT#`/`LTIME#` prefix has been stripped, returning the
-/// duration in (fractional) nanoseconds. Rejects negative durations, out-of-order or duplicate
-/// unit segments, and unknown units.
+/// Accepts `T#` and `TIME#` literals; the value is returned in milliseconds, with anything finer
+/// truncated. Negative durations and durations above the `TIME` range yield 0.
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_TIME(src: *const u8) -> u32 {
-    let s = trimmed_str(src);
-    match parse_time_literal(s, &["TIME#", "T#"]).and_then(duration_nanos) {
-        Some(nanos) => (nanos as f64 / NANOS_PER_MILLISECOND).trunc() as u32,
-        None => 0,
-    }
+    duration_after_prefix(trimmed_str(src), &["TIME#", "T#"])
+        .filter(|duration| !duration.negative)
+        .and_then(|duration| u32::try_from(duration.nanos / NANOS_PER_MILLISECOND).ok())
+        .unwrap_or_default()
 }
 
+/// Accepts `LT#` and `LTIME#` literals; the value is returned in nanoseconds. Negative durations
+/// and durations above the `LTIME` range yield 0.
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_LTIME(src: *const u8) -> i64 {
-    let s = trimmed_str(src);
-    parse_time_literal(s, &["LTIME#", "LT#"]).and_then(duration_nanos).unwrap_or_default()
+    duration_after_prefix(trimmed_str(src), &["LTIME#", "LT#"])
+        .filter(|duration| !duration.negative)
+        .and_then(|duration| duration.signed_nanos())
+        .unwrap_or_default()
 }
 
 // --------- dates and times of day (DATE / DT / TOD)
 
+/// Accepts `D#` and `DATE#` literals; the value is returned in seconds since the epoch. Dates that
+/// do not exist or lie outside the `DATE` range yield 0.
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_DATE(src: *const u8) -> u32 {
-    let s = trimmed_str(src);
-    date_seconds(
-        parse_prefixed_literal(s, "D#", Token::LiteralDate, parse_literal_date)
-            .unwrap_or(AstLiteral::Integer(0)),
-    )
-    .unwrap_or(0)
+    strip_prefix_ignore_ascii_case(trimmed_str(src), &["DATE#", "D#"])
+        .and_then(|body| plc_literals::parse_date(body).ok())
+        .and_then(|date| date.seconds_since_epoch())
+        .and_then(|seconds| u32::try_from(seconds).ok())
+        .unwrap_or_default()
 }
 
+/// Accepts `DT#` and `DATE_AND_TIME#` literals; the value is returned in seconds since the epoch,
+/// with fractions of a second truncated. Values that do not exist or lie outside the `DT` range
+/// yield 0.
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_DT(src: *const u8) -> u32 {
-    let s = trimmed_str(src);
-    let source = if !s.contains('#') && !s.contains('T') && !s.contains('t') && s.matches('-').count() == 2 {
-        format!("DT#{s}-00:00:00")
-    } else {
-        s.to_owned()
-    };
-    date_time_seconds(
-        parse_prefixed_literal(&source, "DT#", Token::LiteralDateAndTime, parse_literal_date_and_time)
-            .unwrap_or(AstLiteral::Integer(0)),
-    )
-    .unwrap_or(0)
+    strip_prefix_ignore_ascii_case(trimmed_str(src), &["DATE_AND_TIME#", "DT#"])
+        .and_then(|body| plc_literals::parse_date_and_time(body).ok())
+        .and_then(|date_time| date_time.seconds_since_epoch())
+        .and_then(|seconds| u32::try_from(seconds).ok())
+        .unwrap_or_default()
 }
 
+/// Accepts `TOD#` and `TIME_OF_DAY#` literals; the value is returned in milliseconds since
+/// midnight, with anything finer truncated. Times that do not exist yield 0.
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn STRING_TO_TOD(src: *const u8) -> u32 {
-    let s = trimmed_str(src);
-    time_of_day_millis(
-        parse_prefixed_literal(s, "TOD#", Token::LiteralTimeOfDay, parse_literal_time_of_day)
-            .unwrap_or(AstLiteral::Integer(0)),
-    )
-    .unwrap_or(0)
+    strip_prefix_ignore_ascii_case(trimmed_str(src), &["TIME_OF_DAY#", "TOD#"])
+        .and_then(|body| plc_literals::parse_time_of_day(body).ok())
+        .and_then(|time| time.nanos())
+        .and_then(|nanos| u32::try_from(nanos / NANOS_PER_MILLISECOND as u64).ok())
+        .unwrap_or_default()
 }
 
 #[cfg(test)]
@@ -262,6 +175,52 @@ mod tests {
     }
     unsafe fn call_i64(f: unsafe extern "C" fn(*const u8) -> i64, s: &str) -> i64 {
         f(format!("{s}\0").as_ptr())
+    }
+
+    #[test]
+    fn conversions_do_not_allocate() {
+        use crate::counting_allocator::allocations_during;
+        use std::ffi::CString;
+
+        let inputs: Vec<CString> = [
+            "TRUE",
+            "  -1_000  ",
+            "16#FF_FF",
+            "1.5e2",
+            "2147483648",
+            "T#1h 30m",
+            "T#49d17h2m47s295ms",
+            "LTIME#106751d23h47m16s854ms775us807ns",
+            "D#2024-02-29",
+            "DT#2106-02-07-06:28:15",
+            "TOD#23:59:59.9999999999",
+            "D#2024-01-01//junk",
+            "T#1h§30m",
+            "",
+        ]
+        .into_iter()
+        .map(|input| CString::new(input).unwrap())
+        .collect();
+
+        let allocations = allocations_during(|| unsafe {
+            for input in &inputs {
+                let src = input.as_ptr() as *const u8;
+                std::hint::black_box((
+                    STRING_TO_BOOL(src),
+                    STRING_TO_BYTE(src),
+                    STRING_TO_INT(src),
+                    STRING_TO_DINT(src),
+                    STRING_TO_LINT(src),
+                    STRING_TO_ULINT(src),
+                    STRING_TO_TIME(src),
+                    STRING_TO_LTIME(src),
+                    STRING_TO_DATE(src),
+                    STRING_TO_DT(src),
+                    STRING_TO_TOD(src),
+                ));
+            }
+        });
+        assert_eq!(allocations, 0);
     }
 
     #[test]

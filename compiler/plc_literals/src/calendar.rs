@@ -34,29 +34,29 @@ pub enum CalendarError {
     MissingField,
     /// A character outside the literal's shape, including a sign or a second decimal point.
     InvalidCharacter,
-    /// A field's digits do not fit its type.
-    Overflow,
+    /// A field's digits do not fit its type; `start..end` is the field's byte range in the body.
+    Overflow { start: usize, end: usize },
 }
 
 /// Parses `year-month-day`.
 pub fn parse_date(body: &str) -> Result<Date, CalendarError> {
-    let (date, rest) = date_prefix(body)?;
+    let (date, rest) = date_prefix(body, body)?;
     end(rest)?;
     Ok(date)
 }
 
 /// Parses `hour:min[:sec[.fraction]]`. The fraction is truncated to whole nanoseconds.
 pub fn parse_time_of_day(body: &str) -> Result<TimeOfDay, CalendarError> {
-    let (time, rest) = time_prefix(body)?;
+    let (time, rest) = time_prefix(body, body)?;
     end(rest)?;
     Ok(time)
 }
 
 /// Parses `year-month-day-hour:min[:sec[.fraction]]`.
 pub fn parse_date_and_time(body: &str) -> Result<DateAndTime, CalendarError> {
-    let (date, rest) = date_prefix(body)?;
+    let (date, rest) = date_prefix(body, body)?;
     let rest = separator(rest, b'-')?;
-    let (time, rest) = time_prefix(rest)?;
+    let (time, rest) = time_prefix(body, rest)?;
     end(rest)?;
     Ok(DateAndTime { date, time })
 }
@@ -116,24 +116,26 @@ impl DateAndTime {
     }
 }
 
-fn date_prefix(body: &str) -> Result<(Date, &str), CalendarError> {
-    let (year, rest) = field(body)?;
-    let year = i32::try_from(year).map_err(|_| CalendarError::Overflow)?;
+/// `body` is the whole literal body and `input` the unparsed remainder of it; the pair lets errors
+/// report byte ranges relative to `body`.
+fn date_prefix<'a>(body: &str, input: &'a str) -> Result<(Date, &'a str), CalendarError> {
+    let (year, rest) = field(body, input)?;
+    let year = i32::try_from(year).map_err(|_| overflow(body, input, rest))?;
     let rest = separator(rest, b'-')?;
-    let (month, rest) = field(rest)?;
+    let (month, rest) = field(body, rest)?;
     let rest = separator(rest, b'-')?;
-    let (day, rest) = field(rest)?;
+    let (day, rest) = field(body, rest)?;
     Ok((Date { year, month, day }, rest))
 }
 
-fn time_prefix(body: &str) -> Result<(TimeOfDay, &str), CalendarError> {
-    let (hour, rest) = field(body)?;
+fn time_prefix<'a>(body: &str, input: &'a str) -> Result<(TimeOfDay, &'a str), CalendarError> {
+    let (hour, rest) = field(body, input)?;
     let rest = separator(rest, b':')?;
-    let (min, mut rest) = field(rest)?;
+    let (min, mut rest) = field(body, rest)?;
     let mut sec = 0;
     let mut nano = 0;
     if let Some(after_colon) = rest.strip_prefix(':') {
-        (sec, rest) = field(after_colon)?;
+        (sec, rest) = field(body, after_colon)?;
         if let Some(after_dot) = rest.strip_prefix('.') {
             let digits = after_dot.bytes().take_while(u8::is_ascii_digit).count();
             if digits == 0 {
@@ -155,8 +157,8 @@ fn time_prefix(body: &str) -> Result<(TimeOfDay, &str), CalendarError> {
     Ok((TimeOfDay { hour, min, sec, nano }, rest))
 }
 
-/// Splits off a run of decimal digits and returns it as `u32`.
-fn field(input: &str) -> Result<(u32, &str), CalendarError> {
+/// Splits off a run of decimal digits from `input` (a suffix of `body`) and returns it as `u32`.
+fn field<'a>(body: &str, input: &'a str) -> Result<(u32, &'a str), CalendarError> {
     let digits = input.bytes().take_while(u8::is_ascii_digit).count();
     if digits == 0 {
         return Err(if input.is_empty() {
@@ -165,11 +167,18 @@ fn field(input: &str) -> Result<(u32, &str), CalendarError> {
             CalendarError::InvalidCharacter
         });
     }
+    let rest = &input[digits..];
     let value = input[..digits]
         .bytes()
         .try_fold(0u32, |acc, byte| acc.checked_mul(10)?.checked_add((byte - b'0') as u32))
-        .ok_or(CalendarError::Overflow)?;
-    Ok((value, &input[digits..]))
+        .ok_or_else(|| overflow(body, input, rest))?;
+    Ok((value, rest))
+}
+
+/// The byte range within `body` of the field that spans from `input` up to `rest`.
+fn overflow(body: &str, input: &str, rest: &str) -> CalendarError {
+    let start = body.len() - input.len();
+    CalendarError::Overflow { start, end: body.len() - rest.len() }
 }
 
 fn separator(input: &str, expected: u8) -> Result<&str, CalendarError> {
@@ -237,8 +246,9 @@ mod tests {
         assert_eq!(parse_date("-2024-01-01"), Err(CalendarError::InvalidCharacter));
         assert_eq!(parse_date("2024_000-01-01"), Err(CalendarError::InvalidCharacter));
         assert_eq!(parse_date(" 2024-01-01"), Err(CalendarError::InvalidCharacter));
-        assert_eq!(parse_date("99999999999-01-01"), Err(CalendarError::Overflow));
-        assert_eq!(parse_date("2147483648-01-01"), Err(CalendarError::Overflow));
+        assert_eq!(parse_date("99999999999-01-01"), Err(CalendarError::Overflow { start: 0, end: 11 }));
+        assert_eq!(parse_date("2147483648-01-01"), Err(CalendarError::Overflow { start: 0, end: 10 }));
+        assert_eq!(parse_date("2024-01-99999999999"), Err(CalendarError::Overflow { start: 8, end: 19 }));
         assert_eq!(parse_date("2147483647-01-01"), Ok(date(i32::MAX, 1, 1)));
     }
 
@@ -263,7 +273,11 @@ mod tests {
         assert_eq!(parse_time_of_day("12.00.00"), Err(CalendarError::InvalidCharacter));
         assert_eq!(parse_time_of_day("-12:00:00"), Err(CalendarError::InvalidCharacter));
         assert_eq!(parse_time_of_day("12 :00:00"), Err(CalendarError::InvalidCharacter));
-        assert_eq!(parse_time_of_day("4294967296:00:00"), Err(CalendarError::Overflow));
+        assert_eq!(parse_time_of_day("4294967296:00:00"), Err(CalendarError::Overflow { start: 0, end: 10 }));
+        assert_eq!(
+            parse_date_and_time("2024-01-01-12:00:99999999999"),
+            Err(CalendarError::Overflow { start: 17, end: 28 })
+        );
     }
 
     #[test]

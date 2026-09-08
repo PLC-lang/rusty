@@ -1,4 +1,4 @@
-// STRING_TO integer and bit-string conversions accept IEC and C-style radix literals.
+// STRING_TO integer and bit-string conversions accept IEC based literals and nothing else.
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 
 FUNCTION main
@@ -19,31 +19,27 @@ FUNCTION main
     printf('unsupported_radix=%d$N', STRING_TO_UDINT('10#42')); // CHECK-NEXT: unsupported_radix=0
     printf('signed_hex=%d$N', STRING_TO_UDINT('+16#FF'));    // CHECK-NEXT: signed_hex=0
 
-    // C-style binary literals parse for every target type.
-    printf('byte_c_binary=%d$N', STRING_TO_BYTE('0b1010'));      // CHECK-NEXT: byte_c_binary=10
-    printf('word_c_binary=%d$N', STRING_TO_WORD('0B1010'));      // CHECK-NEXT: word_c_binary=10
-    printf('dword_c_binary=%d$N', STRING_TO_DWORD('0b1010'));    // CHECK-NEXT: dword_c_binary=10
-    printf('lword_c_binary=%d$N', STRING_TO_LWORD('0B1010'));    // CHECK-NEXT: lword_c_binary=10
-    printf('sint_c_binary=%d$N', STRING_TO_SINT('0b1010'));      // CHECK-NEXT: sint_c_binary=10
-    printf('usint_c_binary=%d$N', STRING_TO_USINT('0B1010'));    // CHECK-NEXT: usint_c_binary=10
-    printf('int_c_binary=%d$N', STRING_TO_INT('0b1010'));        // CHECK-NEXT: int_c_binary=10
-    printf('uint_c_binary=%d$N', STRING_TO_UINT('0B1010'));      // CHECK-NEXT: uint_c_binary=10
-    printf('dint_c_binary=%d$N', STRING_TO_DINT('0b1010'));      // CHECK-NEXT: dint_c_binary=10
-    printf('udint_c_binary=%d$N', STRING_TO_UDINT('0B1010'));    // CHECK-NEXT: udint_c_binary=10
-    printf('lint_c_binary=%d$N', STRING_TO_LINT('0b1010'));      // CHECK-NEXT: lint_c_binary=10
-    printf('ulint_c_binary=%d$N', STRING_TO_ULINT('0B1010'));    // CHECK-NEXT: ulint_c_binary=10
+    // Based literals are unsigned; a sign on either side of the radix is rejected.
+    printf('negative_hex=%d$N', STRING_TO_DINT('-16#FF'));   // CHECK-NEXT: negative_hex=0
+    printf('hex_negative=%d$N', STRING_TO_DINT('16#-FF'));   // CHECK-NEXT: hex_negative=0
+    printf('binary_negative=%d$N', STRING_TO_SINT('2#-1'));  // CHECK-NEXT: binary_negative=0
 
-    // C-style hexadecimal literals parse for every target type.
-    printf('byte_c_hex=%d$N', STRING_TO_BYTE('0x7F'));           // CHECK-NEXT: byte_c_hex=127
-    printf('word_c_hex=%d$N', STRING_TO_WORD('0X7F'));           // CHECK-NEXT: word_c_hex=127
-    printf('dword_c_hex=%d$N', STRING_TO_DWORD('0x7F'));         // CHECK-NEXT: dword_c_hex=127
-    printf('lword_c_hex=%d$N', STRING_TO_LWORD('0X7F'));         // CHECK-NEXT: lword_c_hex=127
-    printf('sint_c_hex=%d$N', STRING_TO_SINT('0x7F'));           // CHECK-NEXT: sint_c_hex=127
-    printf('usint_c_hex=%d$N', STRING_TO_USINT('0X7F'));         // CHECK-NEXT: usint_c_hex=127
-    printf('int_c_hex=%d$N', STRING_TO_INT('0x7F'));             // CHECK-NEXT: int_c_hex=127
-    printf('uint_c_hex=%d$N', STRING_TO_UINT('0X7F'));           // CHECK-NEXT: uint_c_hex=127
-    printf('dint_c_hex=%d$N', STRING_TO_DINT('0x7F'));           // CHECK-NEXT: dint_c_hex=127
-    printf('udint_c_hex=%d$N', STRING_TO_UDINT('0X7F'));         // CHECK-NEXT: udint_c_hex=127
-    printf('lint_c_hex=%d$N', STRING_TO_LINT('0x7F'));           // CHECK-NEXT: lint_c_hex=127
-    printf('ulint_c_hex=%d$N', STRING_TO_ULINT('0X7F'));         // CHECK-NEXT: ulint_c_hex=127
+    // Underscores group digits; they may not lead, trail or double up.
+    printf('leading_underscore=%d$N', STRING_TO_UDINT('16#_FF'));  // CHECK-NEXT: leading_underscore=0
+    printf('trailing_underscore=%d$N', STRING_TO_UDINT('16#FF_')); // CHECK-NEXT: trailing_underscore=0
+    printf('double_underscore=%d$N', STRING_TO_UDINT('16#F__F')); // CHECK-NEXT: double_underscore=0
+    printf('decimal_grouped=%d$N', STRING_TO_UDINT('1_000'));     // CHECK-NEXT: decimal_grouped=1000
+    printf('decimal_leading_us=%d$N', STRING_TO_UDINT('_1'));     // CHECK-NEXT: decimal_leading_us=0
+    printf('decimal_double_us=%d$N', STRING_TO_UDINT('1__0'));    // CHECK-NEXT: decimal_double_us=0
+
+    // C-style radix prefixes are not Structured Text literals.
+    printf('byte_c_binary=%d$N', STRING_TO_BYTE('0b1010'));   // CHECK-NEXT: byte_c_binary=0
+    printf('lword_c_binary=%d$N', STRING_TO_LWORD('0B1010')); // CHECK-NEXT: lword_c_binary=0
+    printf('dint_c_hex=%d$N', STRING_TO_DINT('0x7F'));        // CHECK-NEXT: dint_c_hex=0
+    printf('ulint_c_hex=%d$N', STRING_TO_ULINT('0X7F'));      // CHECK-NEXT: ulint_c_hex=0
+
+    // A hexadecimal bit pattern that does not fit the signed target is rejected, not reinterpreted.
+    printf('int_hex_max=%d$N', STRING_TO_INT('16#7FFF'));          // CHECK-NEXT: int_hex_max=32767
+    printf('int_hex_all_ones=%d$N', STRING_TO_INT('16#FFFF'));     // CHECK-NEXT: int_hex_all_ones=0
+    printf('word_hex_all_ones=%d$N', STRING_TO_WORD('16#FFFF'));   // CHECK-NEXT: word_hex_all_ones=65535
 END_FUNCTION

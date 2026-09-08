@@ -1,4 +1,4 @@
-// STRING_TO_DATE, STRING_TO_DT, and STRING_TO_TOD accept valid calendar literals.
+// STRING_TO_DATE, STRING_TO_DT, and STRING_TO_TOD accept exactly the calendar literals of their type.
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 
 FUNCTION main
@@ -40,11 +40,35 @@ FUNCTION main
     printf('dt_fraction=%s$N', REF(DT_TO_STRING(STRING_TO_DT('DT#2024-01-01-12:00:00.500')))); // CHECK-NEXT: dt_fraction=2024-01-01-12:00:00
     printf('tod_fraction=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('TOD#12:00:00.500')))); // CHECK-NEXT: tod_fraction=12:00:00.500
 
-    // The type-specific ISO forms work without their literal prefixes.
-    printf('date_unprefixed=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('2024-01-01')))); // CHECK-NEXT: date_unprefixed=2024-01-01
-    printf('dt_unprefixed_date=%s$N', REF(DT_TO_STRING(STRING_TO_DT('2024-01-01')))); // CHECK-NEXT: dt_unprefixed_date=2024-01-01-00:00:00
-    printf('dt_unprefixed=%s$N', REF(DT_TO_STRING(STRING_TO_DT('2024-01-01T12:00:00')))); // CHECK-NEXT: dt_unprefixed=2024-01-01-12:00:00
-    printf('tod_unprefixed=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('12:00:00')))); // CHECK-NEXT: tod_unprefixed=12:00:00
+    // The literal prefix is required; bare ISO forms are rejected.
+    printf('date_unprefixed=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('2024-01-01')))); // CHECK-NEXT: date_unprefixed=1970-01-01
+    printf('dt_unprefixed_date=%s$N', REF(DT_TO_STRING(STRING_TO_DT('2024-01-01')))); // CHECK-NEXT: dt_unprefixed_date=1970-01-01-00:00:00
+    printf('dt_unprefixed=%s$N', REF(DT_TO_STRING(STRING_TO_DT('2024-01-01T12:00:00')))); // CHECK-NEXT: dt_unprefixed=1970-01-01-00:00:00
+    printf('tod_unprefixed=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('12:00:00')))); // CHECK-NEXT: tod_unprefixed=00:00:00
+
+    // The long spelling of each prefix is accepted, case-insensitively.
+    printf('date_long_prefix=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('date#2024-01-01')))); // CHECK-NEXT: date_long_prefix=2024-01-01
+    printf('dt_long_prefix=%s$N', REF(DT_TO_STRING(STRING_TO_DT('DATE_AND_TIME#2024-01-01-12:00:00')))); // CHECK-NEXT: dt_long_prefix=2024-01-01-12:00:00
+    printf('tod_long_prefix=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('time_of_day#12:00:00')))); // CHECK-NEXT: tod_long_prefix=12:00:00
+
+    // The 64-bit literal prefixes belong to LDATE, LDT and LTOD and are rejected here.
+    printf('date_ldate_prefix=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('LDATE#2024-01-01')))); // CHECK-NEXT: date_ldate_prefix=1970-01-01
+    printf('dt_ldt_prefix=%s$N', REF(DT_TO_STRING(STRING_TO_DT('LDT#2024-01-01-12:00:00')))); // CHECK-NEXT: dt_ldt_prefix=1970-01-01-00:00:00
+    printf('tod_ltod_prefix=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('LTOD#12:00:00')))); // CHECK-NEXT: tod_ltod_prefix=00:00:00
+
+    // Nothing may follow the literal, not even comment-like text.
+    printf('date_trailing=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2024-01-01//x')))); // CHECK-NEXT: date_trailing=1970-01-01
+    printf('dt_trailing=%s$N', REF(DT_TO_STRING(STRING_TO_DT('DT#2024-01-01-12:00:00(*x*)')))); // CHECK-NEXT: dt_trailing=1970-01-01-00:00:00
+    printf('tod_trailing=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('TOD#12:00:00{x}')))); // CHECK-NEXT: tod_trailing=00:00:00
+
+    // Fractions truncate: no rounding into the next second or day.
+    printf('tod_truncated=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('TOD#23:59:59.9999999999')))); // CHECK-NEXT: tod_truncated=23:59:59.999
+    printf('dt_truncated=%s$N', REF(DT_TO_STRING(STRING_TO_DT('DT#2024-01-01-23:59:59.9999999999')))); // CHECK-NEXT: dt_truncated=2024-01-01-23:59:59
+
+    // Single-digit fields and optional seconds follow the literal grammar.
+    printf('date_short_fields=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE('D#2024-1-1')))); // CHECK-NEXT: date_short_fields=2024-01-01
+    printf('dt_no_seconds=%s$N', REF(DT_TO_STRING(STRING_TO_DT('DT#2024-01-01-12:00')))); // CHECK-NEXT: dt_no_seconds=2024-01-01-12:00:00
+    printf('tod_no_seconds=%s$N', REF(TOD_TO_STRING(STRING_TO_TOD('TOD#12:00')))); // CHECK-NEXT: tod_no_seconds=12:00:00
 
     // Surrounding whitespace is ignored for every target type.
     printf('date_trimmed=%s$N', REF(DATE_TO_STRING(STRING_TO_DATE(' D#2024-01-01 ')))); // CHECK-NEXT: date_trimmed=2024-01-01

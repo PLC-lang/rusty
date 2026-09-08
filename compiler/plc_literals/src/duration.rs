@@ -7,7 +7,7 @@ use crate::{digit_values, is_whitespace, split_digit_group};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Duration {
     pub negative: bool,
-    pub nanos: u64,
+    pub nanos: u128,
 }
 
 impl Duration {
@@ -75,7 +75,7 @@ pub enum DurationError {
     DuplicateSegment,
     /// Anything else, including whitespace or `_` where the leniency does not allow it.
     InvalidCharacter,
-    /// More than `u64::MAX` nanoseconds.
+    /// More than `u128::MAX` nanoseconds.
     Overflow,
 }
 
@@ -162,7 +162,6 @@ pub fn parse_duration(body: &str, leniency: Leniency) -> Result<Duration, Durati
     if previous.is_none() {
         return Err(DurationError::Empty);
     }
-    let nanos = u64::try_from(nanos).map_err(|_| DurationError::Overflow)?;
     Ok(Duration { negative, nanos })
 }
 
@@ -188,11 +187,11 @@ fn segment_nanos(integer: &str, fraction: &str, unit: Unit) -> Result<u128, Dura
 mod tests {
     use super::*;
 
-    const NANOS_PER_MILLI: u64 = 1_000_000;
-    const NANOS_PER_SECOND: u64 = 1_000 * NANOS_PER_MILLI;
-    const NANOS_PER_MINUTE: u64 = 60 * NANOS_PER_SECOND;
-    const NANOS_PER_HOUR: u64 = 60 * NANOS_PER_MINUTE;
-    const NANOS_PER_DAY: u64 = 24 * NANOS_PER_HOUR;
+    const NANOS_PER_MILLI: u128 = 1_000_000;
+    const NANOS_PER_SECOND: u128 = 1_000 * NANOS_PER_MILLI;
+    const NANOS_PER_MINUTE: u128 = 60 * NANOS_PER_SECOND;
+    const NANOS_PER_HOUR: u128 = 60 * NANOS_PER_MINUTE;
+    const NANOS_PER_DAY: u128 = 24 * NANOS_PER_HOUR;
 
     fn strict(body: &str) -> Result<Duration, DurationError> {
         parse_duration(body, Leniency::STRICT)
@@ -200,7 +199,7 @@ mod tests {
     fn runtime(body: &str) -> Result<Duration, DurationError> {
         parse_duration(body, Leniency::RUNTIME)
     }
-    fn positive(nanos: u64) -> Result<Duration, DurationError> {
+    fn positive(nanos: u128) -> Result<Duration, DurationError> {
         Ok(Duration { negative: false, nanos })
     }
 
@@ -303,13 +302,14 @@ mod tests {
     #[test]
     fn range() {
         assert_eq!(strict("5000000000ns"), positive(5 * NANOS_PER_SECOND));
-        assert_eq!(strict("106751d23h47m16s854ms775us807ns"), positive(i64::MAX as u64));
+        assert_eq!(strict("106751d23h47m16s854ms775us807ns"), positive(i64::MAX as u128));
         assert_eq!(strict("106751d23h47m16s854ms775us807ns").unwrap().signed_nanos(), Some(i64::MAX));
         assert_eq!(strict("106751d23h47m16s854ms775us808ns").unwrap().signed_nanos(), None);
-        assert_eq!(strict("18446744073709551615ns"), positive(u64::MAX));
-        assert_eq!(strict("18446744073709551616ns"), Err(DurationError::Overflow));
-        assert_eq!(strict("213504d"), Err(DurationError::Overflow));
+        assert_eq!(strict("3000000d"), positive(3_000_000 * NANOS_PER_DAY));
+        assert_eq!(strict("3000000d").unwrap().signed_nanos(), None);
+        assert_eq!(strict("340282366920938463463374607431768211455ns"), positive(u128::MAX));
+        assert_eq!(strict("340282366920938463463374607431768211456ns"), Err(DurationError::Overflow));
         assert_eq!(strict("99999999999999999999999999999999999999999d"), Err(DurationError::Overflow));
-        assert_eq!(runtime("18446744073709551615ns1ns"), Err(DurationError::Overflow));
+        assert_eq!(runtime("340282366920938463463374607431768211455ns1ns"), Err(DurationError::Overflow));
     }
 }
