@@ -476,7 +476,7 @@ END_FUNCTION
 
 (******************************************************************************
 *
-* Converts STRING to LINT.
+* Converts STRING to LINT. Never faults; a rejected input yields 0.
 *
 ******************************************************************************)
 {external}
@@ -656,7 +656,7 @@ END_FUNCTION
 
 (******************************************************************************
 *
-* Converts STRING to DINT.
+* Converts STRING to DINT. Never faults; a rejected input yields 0.
 *
 ******************************************************************************)
 {external}
@@ -679,7 +679,7 @@ VAR_TEMP
     STR : STRING;
 END_VAR
     WSTRING_TO_STRING_EXT(IN, STR);
-    WSTRING_TO_DINT := STRING_TO_LINT(STR);
+    WSTRING_TO_DINT := STRING_TO_DINT(STR);
 END_FUNCTION
 
 (******************************************************************************
@@ -1256,8 +1256,8 @@ END_FUNCTION
 
 (******************************************************************************
 *
-* Converts STRING to DATE. Accepts D#/DATE# prefixed or bare ISO (yyyy-mm-dd) input.
-* Never faults; an impossible or unrepresentable date yields D#1970-01-01.
+* Converts STRING to DATE. Requires a D#/DATE# prefix. Never faults; an impossible or
+* unrepresentable date yields D#1970-01-01.
 *
 ******************************************************************************)
 {external}
@@ -1269,8 +1269,7 @@ END_FUNCTION
 
 (******************************************************************************
 *
-* Converts STRING to DT. Accepts DT#/DATE_AND_TIME# prefixed or bare ISO
-* (yyyy-mm-dd, yyyy-mm-dd-hh:mm:ss or yyyy-mm-ddThh:mm:ss) input. Never faults; an
+* Converts STRING to DT. Requires a DT#/DATE_AND_TIME# prefix. Never faults; an
 * impossible or unrepresentable date-time yields DT#1970-01-01-00:00:00.
 *
 ******************************************************************************)
@@ -1283,8 +1282,8 @@ END_FUNCTION
 
 (******************************************************************************
 *
-* Converts STRING to TOD. Accepts TOD#/TIME_OF_DAY# prefixed or bare (hh:mm:ss[.fff])
-* input. Never faults; an impossible time yields TOD#00:00:00.
+* Converts STRING to TOD. Requires a TOD#/TIME_OF_DAY# prefix. Never faults; an
+* impossible time yields TOD#00:00:00.
 *
 ******************************************************************************)
 {external}
