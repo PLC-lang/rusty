@@ -206,3 +206,26 @@ fn there_should_be_no_downcast_warning_for_literal_assignment_to_integer_types()
 
     assert_snapshot!(&diagnostics, @r"");
 }
+
+#[test]
+fn signed_and_grouped_duration_literals_are_accepted() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        PROGRAM prg
+        VAR
+            plus : TIME := T#+1s;
+            grouped : TIME := T#1_000ms;
+            grouped_fraction : LTIME := LTIME#1_000.000_5ms;
+            big_ns : LTIME := LTIME#5000000000ns;
+            exact_max : LTIME := LTIME#106751d23h47m16s854ms775us807ns;
+        END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    let normalized = diagnostics.lines().map(str::trim_start).collect::<Vec<_>>().join(
+        "
+",
+    );
+    assert_snapshot!(normalized, @r"");
+}
