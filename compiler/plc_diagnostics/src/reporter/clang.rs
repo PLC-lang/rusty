@@ -1,4 +1,5 @@
 use codespan_reporting::files::{Files, Location, SimpleFile, SimpleFiles};
+use plc_source::source_location::CodeSpan;
 
 use crate::diagnostics::Severity;
 
@@ -28,16 +29,21 @@ impl DiagnosticReporter for ClangFormatDiagnosticReporter {
             let file_id = diagnostic.main_location.file_handle;
             let location = &diagnostic.main_location;
 
+            // Only a text range resolves to lines and columns in the file.
             let file = self.files.get(file_id).ok();
-            let start =
-                self.files.location(file_id, location.span.to_range().map(|it| it.start).unwrap_or(0)).ok();
-            let end =
-                self.files.location(file_id, location.span.to_range().map(|it| it.end).unwrap_or(0)).ok();
+            let (start, end) = match location.span.to_range() {
+                Some(range) => (
+                    self.files.location(file_id, range.start).ok(),
+                    self.files.location(file_id, range.end).ok(),
+                ),
+                None => (None, None),
+            };
 
             let res = self.build_diagnostic_msg(
                 file,
                 start.as_ref(),
                 end.as_ref(),
+                &location.span,
                 &diagnostic.code,
                 &diagnostic.severity,
                 &diagnostic.message,
@@ -53,44 +59,45 @@ impl DiagnosticReporter for ClangFormatDiagnosticReporter {
 
 impl ClangFormatDiagnosticReporter {
     /// returns diagnostic message in clang format
-    /// file-name:{range}: severity: message
+    /// file-name:{range}: severity: message for a text location,
+    /// file-name.diagram:order[:pin]: severity: message for a diagram element
     /// optional parameters that are none will not be included
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn build_diagnostic_msg(
         &self,
         file: Option<&SimpleFile<String, String>>,
         start: Option<&Location>,
         end: Option<&Location>,
+        span: &CodeSpan,
         code: &str,
         severity: &Severity,
         msg: &str,
     ) -> String {
         let mut str = String::new();
-        // file name
+        // file name and position
         if let Some(f) = file {
-            str.push_str(format!("{}:", f.name().as_str()).as_str());
-            // range
-            if let Some(s) = start {
-                if let Some(e) = end {
-                    // if start and end are equal there is no need to show the range
-                    if s.eq(e) {
-                        str.push_str(format!("{}:{}: ", s.line_number, s.column_number).as_str());
-                    } else {
-                        str.push_str(
-                            format!(
-                                "{}:{}:{{{}:{}-{}:{}}}: ",
-                                s.line_number,
-                                s.column_number,
-                                s.line_number,
-                                s.column_number,
-                                e.line_number,
-                                e.column_number
-                            )
-                            .as_str(),
-                        );
-                    }
+            str.push_str(f.name().as_str());
+            match (start, end) {
+                // if start and end are equal there is no need to show the range
+                (Some(s), Some(e)) if s.eq(e) => {
+                    str.push_str(format!(":{}:{}: ", s.line_number, s.column_number).as_str());
                 }
-            } else {
-                str.push(' ');
+                (Some(s), Some(e)) => {
+                    str.push_str(
+                        format!(
+                            ":{}:{}:{{{}:{}-{}:{}}}: ",
+                            s.line_number,
+                            s.column_number,
+                            s.line_number,
+                            s.column_number,
+                            e.line_number,
+                            e.column_number
+                        )
+                        .as_str(),
+                    );
+                }
+                _ if matches!(span, CodeSpan::Block { .. }) => str.push_str(format!(".{span}: ").as_str()),
+                _ => str.push_str(": "),
             }
         }
         // severity

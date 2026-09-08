@@ -18,6 +18,7 @@ use crate::st;
 pub struct Resolver<'index> {
     ids: IdProvider,
     factory: SourceLocationFactory,
+    diagram: String,
     diagnostics: Vec<Diagnostic>,
     index: &'index Index,
 }
@@ -78,8 +79,23 @@ enum Reason {
 }
 
 impl<'index> Resolver<'index> {
-    pub fn new(ids: IdProvider, source: &SourceCode, index: &'index Index) -> Self {
-        Self { ids, factory: SourceLocationFactory::for_source(source), diagnostics: Vec::new(), index }
+    pub fn new(ids: IdProvider, source: &SourceCode, index: &'index Index, diagram: &str) -> Self {
+        Self {
+            ids,
+            factory: SourceLocationFactory::for_source(source),
+            diagram: diagram.to_string(),
+            diagnostics: Vec::new(),
+            index,
+        }
+    }
+
+    fn location(&self, object: &FbdObject) -> SourceLocation {
+        match object.priority() {
+            Some(order) => self.factory.create_block_location(&self.diagram, order),
+
+            // Not targetable, emit only the file location
+            None => self.factory.create_file_only_location(),
+        }
     }
 
     pub fn resolve(mut self, network: &model::Network) -> (Network, Vec<Diagnostic>) {
@@ -92,7 +108,7 @@ impl<'index> Resolver<'index> {
         let mut temporaries = Vec::new();
         let mut broken = Vec::new();
         for object in network.elements() {
-            let location = self.factory.create_block_location(object.global_id);
+            let location = self.location(object);
 
             match Role::from(object) {
                 Role::Sink => match trace(consumes(object), &survey) {
@@ -198,26 +214,27 @@ impl<'index> Resolver<'index> {
 
                     let mut arguments = Vec::new();
                     for pin in block::inputs(object) {
+                        // Whatever flows into the pin is located at the pin.
+                        let at = location.with_pin(block::pin_index(object, pin));
+
                         let argument = match trace(pin.source_pin(), &survey) {
                             // A variadic callee takes its values by pin order; the pins
                             // carry no usable parameter names.
-                            Trace::Reached(source) if variadic => {
-                                Some(self.variadic(pin, &source, &location))
-                            }
+                            Trace::Reached(source) if variadic => Some(self.variadic(pin, &source, &at)),
 
                             // The traced source becomes the pin's passed value.
-                            Trace::Reached(source) => Some(self.input(pin, &source, &location)),
+                            Trace::Reached(source) => Some(self.input(pin, &source, &at)),
 
                             // A consumed chain that never reached a source; reported below.
-                            Trace::DeadEnd(at) => {
-                                broken.push(at);
-                                (!variadic).then(|| self.empty_input(pin, &location))
+                            Trace::DeadEnd(dead) => {
+                                broken.push(dead);
+                                (!variadic).then(|| self.empty_input(pin, &at))
                             }
 
                             // An unwired pin takes the callee's declared default; a
                             // variadic slot has none and is dropped to keep the
                             // remaining positions meaningful.
-                            Trace::Unwired => (!variadic).then(|| self.empty_input(pin, &location)),
+                            Trace::Unwired => (!variadic).then(|| self.empty_input(pin, &at)),
                         };
 
                         arguments.extend(argument);
@@ -268,8 +285,10 @@ impl<'index> Resolver<'index> {
 
                     let mut arguments = Vec::new();
                     for pin in block::inputs(object) {
+                        let at = location.with_pin(block::pin_index(object, pin));
+
                         match trace(pin.source_pin(), &survey) {
-                            Trace::Reached(source) => arguments.push(self.input(pin, &source, &location)),
+                            Trace::Reached(source) => arguments.push(self.input(pin, &source, &at)),
 
                             // A consumed chain that never reached a source; reported below.
                             Trace::DeadEnd(at) => broken.push(at),
@@ -305,7 +324,8 @@ impl<'index> Resolver<'index> {
         broken.sort_by_key(|at| at.element.global_id);
         broken.dedup_by_key(|at| at.element.global_id);
         for at in broken {
-            self.diagnostics.push(at.diagnostic(&self.factory));
+            let location = self.location(at.element);
+            self.diagnostics.push(at.diagnostic(location));
         }
 
         // Statements and temporaries run in evaluation-priority order.
@@ -377,7 +397,7 @@ impl<'index> Resolver<'index> {
                 Role::Label => {
                     if let Some(label) = object.label() {
                         if !labels.insert(label) {
-                            let location = self.factory.create_block_location(object.global_id);
+                            let location = self.location(object);
                             self.diagnostics.push(Diagnostic::duplicate_label(label, location));
                         }
                     }
@@ -394,7 +414,7 @@ impl<'index> Resolver<'index> {
                 Role::Block => {
                     if object.output_pins().iter().filter(|pin| block::is_return_pin(pin)).count() > 1 {
                         let name = object.type_name().unwrap_or_default();
-                        let location = self.factory.create_block_location(object.global_id);
+                        let location = self.location(object);
                         self.diagnostics.push(Diagnostic::duplicate_return_pin(name, location));
                     }
 
@@ -420,7 +440,7 @@ impl<'index> Resolver<'index> {
 
                             // A later one reusing the label is a duplicate.
                             Entry::Occupied(_) => {
-                                let location = self.factory.create_block_location(object.global_id);
+                                let location = self.location(object);
                                 self.diagnostics.push(Diagnostic::duplicate_connector(label, location));
                             }
                         }
@@ -440,9 +460,8 @@ impl<'index> Resolver<'index> {
         // A variable element may only hold a literal or a reference; anything
         // else (a call, arithmetic) must be modeled as a block element instead.
         if !is_supported(&node) {
-            let location = self.factory.create_block_location(object.global_id);
             let text = object.identifier().unwrap_or_default();
-            self.diagnostics.push(Diagnostic::unsupported_cfc_expression(text, location));
+            self.diagnostics.push(Diagnostic::unsupported_cfc_expression(text, location.clone()));
         }
 
         node
@@ -495,7 +514,14 @@ impl<'index> Resolver<'index> {
             return None;
         }
 
+        // The guard's value is located at the EN pin it enters through.
         let en = object.en_pin();
+        let location = match en {
+            Some(pin) => location.with_pin(block::pin_index(object, pin)),
+            None => location.clone(),
+        };
+        let location = &location;
+
         match trace(en.and_then(|pin| pin.source_pin()), survey) {
             Trace::Reached(source) => {
                 let value = self.value(&source, location);
@@ -553,8 +579,7 @@ impl From<&FbdObject> for Role {
 }
 
 impl Broken<'_> {
-    fn diagnostic(&self, factory: &SourceLocationFactory) -> Diagnostic {
-        let location = factory.create_block_location(self.element.global_id);
+    fn diagnostic(&self, location: SourceLocation) -> Diagnostic {
         let label = self.element.label().unwrap_or_default();
 
         match self.reason {
@@ -664,6 +689,16 @@ mod block {
 
     pub(super) fn temp_name(block: &FbdObject, pin: &Pin) -> String {
         format!("__out_{}_{}", pin_name(block, pin), block.global_id)
+    }
+
+    // The pin's position on the block's input side: the inputs first, then the in-outs.
+    pub(super) fn pin_index(block: &FbdObject, pin: &Pin) -> usize {
+        block
+            .input_pins()
+            .iter()
+            .chain(block.inout_pins())
+            .position(|candidate| std::ptr::eq(candidate, pin))
+            .expect("the pin belongs to the block")
     }
 
     // Every data input; the EN pin guards the call and never passes as an argument.
@@ -783,7 +818,8 @@ mod tests {
         let (interface, _) = crate::st::parse_interface(&pou, &source, ids.clone());
         let index = crate::test_utils::fixture_index(fixture, &interface);
 
-        let (network, _) = super::Resolver::new(ids, &source, &index).resolve(pou.content().network());
+        let resolver = super::Resolver::new(ids, &source, &index, pou.diagram_name());
+        let (network, _) = resolver.resolve(pou.content().network());
         render(&network)
     }
 
@@ -921,10 +957,8 @@ mod tests {
             insta::assert_snapshot!(resolve_project("variables/valid/unconnected_variables"), @"bar := foo");
             insta::assert_snapshot!(diagnostics("variables/valid/unconnected_variables"), @r"
             warning[E084]: Element `foo` is unconnected and will be ignored
-             = unconnected_variables.cfc: Block 1
 
             warning[E084]: Element `bar` is unconnected and will be ignored
-             = unconnected_variables.cfc: Block 4
             ");
         }
     }
@@ -1039,7 +1073,7 @@ mod tests {
             LABEL skipAssignment");
             insta::assert_snapshot!(diagnostics("jumps/valid/disconnected_jump"), @r"
             warning[E145]: Jump element is not connected to a condition and can never be taken
-             = disconnected_jump.cfc: Block 1
+             = disconnected_jump.cfc, diagram disconnected_jump, execution order 0
             ");
         }
 
@@ -1050,7 +1084,7 @@ mod tests {
             LABEL orphan");
             insta::assert_snapshot!(diagnostics("jumps/valid/unused_label"), @r"
             warning[E143]: Label `orphan` is not referenced by any jump
-             = unused_label.cfc: Block 4
+             = unused_label.cfc, diagram unused_label, execution order 1
             ");
         }
 
@@ -1308,7 +1342,7 @@ mod tests {
         fn call_expression() {
             insta::assert_snapshot!(diagnostics("variables/invalid/call_expression"), @r"
             error[E083]: Unsupported CFC expression: `MAX(foo, bar)`
-             = call_expression.cfc: Block 1
+             = call_expression.cfc, diagram call_expression, execution order 0
             ");
         }
 
@@ -1316,40 +1350,28 @@ mod tests {
         fn binary_expression() {
             insta::assert_snapshot!(diagnostics("variables/invalid/binary_expression"), @r"
             error[E083]: Unsupported CFC expression: `foo + 1`
-             = binary_expression.cfc: Block 1
+             = binary_expression.cfc, diagram binary_expression, execution order 0
             ");
         }
 
         #[test]
         fn duplicate_connector() {
-            insta::assert_snapshot!(transpile_project("connectors/invalid/duplicate_connector").unwrap_err(), @r"
-            error[E081]: Connector `x` is already defined
-             = duplicate_connector.cfc: Block 10
-            ");
+            insta::assert_snapshot!(transpile_project("connectors/invalid/duplicate_connector").unwrap_err(), @"error[E081]: Connector `x` is already defined");
         }
 
         #[test]
         fn without_source() {
-            insta::assert_snapshot!(transpile_project("connectors/invalid/without_source").unwrap_err(), @r"
-            error[E086]: Connector `x` has no incoming connection
-             = without_source.cfc: Block 5
-            ");
+            insta::assert_snapshot!(transpile_project("connectors/invalid/without_source").unwrap_err(), @"error[E086]: Connector `x` has no incoming connection");
         }
 
         #[test]
         fn dangling_continuation() {
-            insta::assert_snapshot!(transpile_project("connectors/invalid/dangling_continuation").unwrap_err(), @r"
-            error[E082]: Continuation `x` has no matching connector
-             = dangling_continuation.cfc: Block 6
-            ");
+            insta::assert_snapshot!(transpile_project("connectors/invalid/dangling_continuation").unwrap_err(), @"error[E082]: Continuation `x` has no matching connector");
         }
 
         #[test]
         fn connector_cycle() {
-            insta::assert_snapshot!(transpile_project("connectors/invalid/connector_cycle").unwrap_err(), @r"
-            error[E082]: Continuation `x` has no matching connector
-             = connector_cycle.cfc: Block 6
-            ");
+            insta::assert_snapshot!(transpile_project("connectors/invalid/connector_cycle").unwrap_err(), @"error[E082]: Continuation `x` has no matching connector");
         }
 
         #[test]
@@ -1357,7 +1379,7 @@ mod tests {
             insta::assert_snapshot!(resolve_project("returns/invalid/disconnected_return"), @"RETURN myCondition");
             insta::assert_snapshot!(transpile_project("returns/invalid/disconnected_return").unwrap_err(), @r"
             error[E085]: Return element is not connected to a condition
-             = disconnected_return.cfc: Block 4
+             = disconnected_return.cfc, diagram disconnected_return, execution order 1
             ");
         }
 
@@ -1365,7 +1387,7 @@ mod tests {
         fn undefined_jump_target() {
             insta::assert_snapshot!(transpile_project("jumps/invalid/undefined_jump_target").unwrap_err(), @r"
             error[E142]: Jump refers to undefined label `missing`
-             = undefined_jump_target.cfc: Block 3
+             = undefined_jump_target.cfc, diagram undefined_jump_target, execution order 0
             ");
         }
 
@@ -1373,7 +1395,7 @@ mod tests {
         fn duplicate_label() {
             insta::assert_snapshot!(transpile_project("jumps/invalid/duplicate_label").unwrap_err(), @r"
             error[E144]: Label `dup` is already defined
-             = duplicate_label.cfc: Block 5
+             = duplicate_label.cfc, diagram duplicate_label, execution order 2
             ");
         }
 
@@ -1381,15 +1403,15 @@ mod tests {
         fn unknown_type() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/unknown_type").unwrap_err(), @r"
             error[E146]: Block `counter` refers to an undeclared POU
-             = unknown_type.cfc: Block 3
+             = unknown_type.cfc, diagram unknown_type, execution order 0
             ");
         }
 
         #[test]
         fn generic_unresolved() {
-            insta::assert_snapshot!(transpile_project("blocks/invalid/generic_unresolved").unwrap_err(), @"
+            insta::assert_snapshot!(transpile_project("blocks/invalid/generic_unresolved").unwrap_err(), @r"
             error[E149]: Cannot determine a type for generic block `myGenAdd`: no input decides its type
-             = generic_unresolved.cfc: Block 1
+             = generic_unresolved.cfc, diagram generic_unresolved, execution order 0
             ");
         }
 
@@ -1397,7 +1419,7 @@ mod tests {
         fn generic_unbound_feedback() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/generic_unbound_feedback").unwrap_err(), @r"
             error[E149]: Cannot determine a type for generic block `myGenScale`: no input decides its type
-             = generic_unbound_feedback.cfc: Block 1
+             = generic_unbound_feedback.cfc, diagram generic_unbound_feedback, execution order 0
             ");
         }
 
@@ -1405,7 +1427,7 @@ mod tests {
         fn unwired_en() {
             insta::assert_snapshot!(transpile_project("execution_control/invalid/unwired_en").unwrap_err(), @r"
             error[E152]: Block `counter` has an unconnected EN pin
-             = unwired_en.cfc: Block 3
+             = unwired_en.cfc, diagram unwired_en, execution order 0, pin 0
             ");
         }
 
@@ -1413,10 +1435,10 @@ mod tests {
         fn eno_cycle() {
             insta::assert_snapshot!(transpile_project("execution_control/invalid/eno_cycle").unwrap_err(), @r"
             error[E153]: EN pin of block `counter` resolves through an ENO cycle
-             = eno_cycle.cfc: Block 1
+             = eno_cycle.cfc, diagram eno_cycle, execution order 0
 
             error[E153]: EN pin of block `counter` resolves through an ENO cycle
-             = eno_cycle.cfc: Block 4
+             = eno_cycle.cfc, diagram eno_cycle, execution order 1
             ");
         }
 
@@ -1437,7 +1459,7 @@ mod tests {
         fn function_stale_output() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_stale_output").unwrap_err(), @r"
             error[E147]: Output `oldDoubled` is not declared by `myAdd`
-             = function_stale_output.cfc: Block 5
+             = function_stale_output.cfc, diagram function_stale_output, execution order 0
             ");
         }
 
@@ -1445,7 +1467,7 @@ mod tests {
         fn function_duplicate_return() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_duplicate_return").unwrap_err(), @r"
             error[E155]: Block `myAdd` has more than one return pin
-             = function_duplicate_return.cfc: Block 5
+             = function_duplicate_return.cfc, diagram function_duplicate_return, execution order 0
             ");
         }
 
@@ -1453,10 +1475,10 @@ mod tests {
         fn storage_reference_negated() {
             insta::assert_snapshot!(transpile_project("variables/invalid/storage_reference_negated").unwrap_err(), @r"
             error[E154]: Reference assignment to `b` cannot be negated
-             = storage_reference_negated.cfc: Block 3
+             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 0
 
             error[E154]: Reference assignment to `b` cannot be negated
-             = storage_reference_negated.cfc: Block 6
+             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 1
             ");
         }
     }

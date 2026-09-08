@@ -541,6 +541,8 @@ impl Diagnostic {
 mod tests {
     use codespan_reporting::files::{Location, SimpleFile};
 
+    use plc_source::source_location::CodeSpan;
+
     use crate::{diagnostics::Severity, reporter::clang::ClangFormatDiagnosticReporter};
 
     #[test]
@@ -553,6 +555,7 @@ mod tests {
             Some(&file),
             Some(&start),
             Some(&end),
+            &CodeSpan::None,
             "E001",
             &Severity::Error,
             "This is an error",
@@ -571,6 +574,7 @@ mod tests {
             Some(&file),
             Some(&start),
             Some(&end),
+            &CodeSpan::None,
             "E001",
             &Severity::Error,
             "This is an error",
@@ -587,6 +591,7 @@ mod tests {
             Some(&file),
             None,
             None,
+            &CodeSpan::None,
             "E001",
             &Severity::Error,
             "This is an error",
@@ -604,6 +609,7 @@ mod tests {
             None,
             Some(&start),
             Some(&end),
+            &CodeSpan::None,
             "E001",
             &Severity::Error,
             "This is an error",
@@ -615,8 +621,15 @@ mod tests {
     #[test]
     fn test_build_diagnostic_msg_no_file_no_location() {
         let reporter = ClangFormatDiagnosticReporter::default();
-        let res =
-            reporter.build_diagnostic_msg(None, None, None, "E001", &Severity::Error, "This is an error");
+        let res = reporter.build_diagnostic_msg(
+            None,
+            None,
+            None,
+            &CodeSpan::None,
+            "E001",
+            &Severity::Error,
+            "This is an error",
+        );
 
         assert_eq!(res, "error[E001]: This is an error");
     }
