@@ -558,7 +558,7 @@ impl<'ink> GeneratedModule<'ink> {
         let template: Node = if compilation_options.output_xml_omron {
             if let Some((message, location)) = find_unsupported_omron_type(annotated_project) {
                 return Err(CodegenError::DiagnosticError(
-                    Diagnostic::new(message).with_error_code("E152").with_location(location),
+                    Diagnostic::new(message).with_error_code("E156").with_location(location), //E156: Unsupported Syntax for the Chosen XML Target
                 ));
             }
 
