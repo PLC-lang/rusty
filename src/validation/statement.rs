@@ -58,6 +58,9 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::LiteralReal { value, location, id } => (),
         // AstStatement::LiteralBool { value, location, id } => (),
         // AstStatement::LiteralString { value, is_wide, location, id } => (),
+        AstStatement::Literal(AstLiteral::Time(time)) => {
+            validate_duration_literal(validator, time, &statement.location);
+        }
         AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) => {
             visit_statement(validator, elements.as_ref(), context);
         }
@@ -180,6 +183,29 @@ pub fn visit_statement<T: AnnotationMap>(
         _ => {}
     }
     validate_type_nature(validator, statement, context);
+}
+
+/// A `TIME` literal must be a non-negative duration that fits its 64-bit storage; `LTIME` may be
+/// negative.
+fn validate_duration_literal(
+    validator: &mut Validator,
+    time: &plc_ast::literals::Time,
+    location: &SourceLocation,
+) {
+    let literal_name = if time.is_long() { "LTIME" } else { "TIME" };
+    let problem = match time.value() {
+        Err(_) if time.is_negative() => Some("underflow"),
+        Err(_) => Some("overflow"),
+        Ok(_) if time.is_negative() && !time.is_long() => Some("underflow"),
+        Ok(_) => None,
+    };
+    if let Some(problem) = problem {
+        validator.push_diagnostic(
+            Diagnostic::new(format!("{literal_name} literal {problem} detected"))
+                .with_error_code("E148")
+                .with_location(location),
+        );
+    }
 }
 
 fn validate_reference_expression<T: AnnotationMap>(

@@ -96,6 +96,7 @@ pub fn parse_literal_time(lexer: &mut ParseSession) -> Option<AstNode> {
     let location = lexer.location();
     let token = lexer.slice_and_advance().to_string();
     let body = literal_body(&token);
+    let is_long = token.starts_with(['L', 'l']);
 
     let duration = match plc_literals::parse_duration(body, Leniency::STRICT) {
         Ok(duration) => duration,
@@ -128,7 +129,7 @@ pub fn parse_literal_time(lexer: &mut ParseSession) -> Option<AstNode> {
         }
     };
     Some(AstNode::new_literal(
-        AstLiteral::Time(Time { nanos: duration.nanos, negative: duration.negative }),
+        AstLiteral::Time(Time { nanos: duration.nanos, negative: duration.negative, is_long }),
         lexer.next_id(),
         location,
     ))

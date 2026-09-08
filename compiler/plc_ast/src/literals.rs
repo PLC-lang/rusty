@@ -72,6 +72,7 @@ pub struct TimeOfDay {
 pub struct Time {
     pub nanos: u128,
     pub negative: bool,
+    pub is_long: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -158,6 +159,10 @@ impl StringValue {
 impl Time {
     pub fn is_negative(&self) -> bool {
         self.negative
+    }
+
+    pub fn is_long(&self) -> bool {
+        self.is_long
     }
 }
 
