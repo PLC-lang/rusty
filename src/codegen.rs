@@ -360,7 +360,7 @@ impl<'ink> CodeGen<'ink> {
 
     /// generates all TYPEs, GLOBAL-sections and POUs of the given CompilationUnit
     pub fn generate(
-        self,
+        mut self,
         context: &'ink CodegenContext,
         unit: &CompilationUnit,
         annotations: &AstAnnotations,
@@ -387,6 +387,15 @@ impl<'ink> CodeGen<'ink> {
                     {
                         continue;
                     }
+                    // A diagram body's statements are scoped to the diagram's own debug file.
+                    let function = llvm_index.find_associated_implementation(&implementation.name);
+                    let mut statements = implementation.statements.iter().map(|it| it.get_location());
+                    if let (Some(function), Some(diagram)) =
+                        (function, statements.find(SourceLocation::is_block))
+                    {
+                        self.debug.register_diagram(function, &implementation.name, &diagram);
+                    }
+
                     let noop_debug = DebugBuilderEnum::None;
                     // Use noop debug ONLY for compiler-generated types (Init/ProjectInit POUs)
                     // User-defined functions should retain full debug info even if they have internal locations
