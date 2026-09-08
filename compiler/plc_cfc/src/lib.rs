@@ -71,7 +71,8 @@ pub fn transpile_file(
     // The parse step already reported the interface's diagnostics.
     let (unit, _) = st::parse_interface(&pou, source, ids.clone());
 
-    let (network, diagnostics) = Resolver::new(ids.clone(), source, index).resolve(pou.content().network());
+    let resolver = Resolver::new(ids.clone(), source, index, pou.diagram_name());
+    let (network, diagnostics) = resolver.resolve(pou.content().network());
     let unit = Transpiler::new(ids).transpile(unit, network);
 
     Ok((unit, diagnostics))
