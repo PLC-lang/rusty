@@ -18,4 +18,9 @@ FUNCTION main
     printf('%d$N', WSTRING_TO_DINT("12j3"));         // CHECK: 0
     printf('%d$N', WSTRING_TO_DINT("123.456"));      // CHECK: 123
     printf('%d$N', WSTRING_TO_LINT("12j3"));         // CHECK: 0
+
+    // WSTRING_TO_DINT applies the DINT range, not the LINT range.
+    printf('%d$N', WSTRING_TO_DINT("2147483647"));   // CHECK: 2147483647
+    printf('%d$N', WSTRING_TO_DINT("2147483648"));   // CHECK: 0
+    printf('%d$N', WSTRING_TO_DINT("4294967297"));   // CHECK: 0
 END_FUNCTION
