@@ -1,19 +1,34 @@
 RUN: %COMPILE_IR %S/function_pins.cfc %S/myAdd.st | %CHECK_IR %s
 
-The block call (order 0) and the sinks (orders 1 and 2) carry their order plus
-one as the debug line, inside a lexical block bound to the diagram's file.
-CHECK: define void @function_pins(ptr %0) !dbg ![[SP:[0-9]+]]
-CHECK: call i32 @myAdd({{.*}}), !dbg ![[CALL:[0-9]+]]
-CHECK: store i32 {{.*}}, ptr %b2, {{.*}}!dbg ![[B2:[0-9]+]]
-CHECK: store i32 {{.*}}, ptr %b1, {{.*}}!dbg ![[B1:[0-9]+]]
+The diagram, with execution orders in parentheses; `o` marks a negated pin:
 
-The declaration and the diagram are two debug files. Declared variables keep
-their declaration line; the captured block output sits at its block's order.
-CHECK-DAG: ![[DECL:[0-9]+]] = !DIFile(filename: "function_pins.cfc"
-CHECK-DAG: !DIDerivedType(tag: DW_TAG_member, name: "a1", scope: ![[DECL]], file: ![[DECL]], line: 3,
-CHECK-DAG: !DIDerivedType(tag: DW_TAG_member, name: "__out_myAdd_1", scope: ![[DECL]], file: ![[DIAGRAM:[0-9]+]], line: 1,
-CHECK-DAG: ![[DIAGRAM]] = !DIFile(filename: "function_pins.cfc.function_pins"
-CHECK-DAG: ![[CALL]] = !DILocation(line: 1, scope: ![[LB:[0-9]+]])
-CHECK-DAG: ![[LB]] = distinct !DILexicalBlock(scope: ![[SP]], file: ![[DIAGRAM]])
-CHECK-DAG: ![[B2]] = !DILocation(line: 2, scope: ![[LB]])
-CHECK-DAG: ![[B1]] = !DILocation(line: 3, scope: ![[LB]])
+           +-------- myAdd ---------+
+a1 ------o-| IN1              myAdd |-o------> b1 (2)
+a2 --------| IN2       myAddDoubled |-o------> b2 (1)
+           +------------------------+ (0)
+
+Each ordered element must get a debug location in the diagram's own file,
+at line = order + 1, so a debugger can break on it.
+
+Debug file per area: declaration text vs. diagram `function_pins`.
+CHECK-DAG: ![[#DECL:]] = !DIFile(filename: "function_pins.cfc", directory:
+CHECK-DAG: ![[#DIAGRAM:]] = !DIFile(filename: "function_pins.cfc.function_pins", directory:
+
+The function lives in the declaration; a lexical block inside it is bound to the diagram file.
+CHECK-DAG: ![[#SP:]] = distinct !DISubprogram(name: "function_pins", {{.*}}, file: ![[#DECL]], line: 1,
+CHECK-DAG: ![[#LB:]] = distinct !DILexicalBlock(scope: ![[#SP]], file: ![[#DIAGRAM]])
+
+Diagram statements are scoped to that block, line = execution order + 1 (0 is reserved).
+CHECK-DAG: ![[#CALL:]] = !DILocation(line: 1, scope: ![[#LB]])
+CHECK-DAG: ![[#B2:]] = !DILocation(line: 2, scope: ![[#LB]])
+CHECK-DAG: ![[#B1:]] = !DILocation(line: 3, scope: ![[#LB]])
+
+Block `myAdd` (order 0), sink `b2` (order 1), sink `b1` (order 2).
+CHECK-DAG: define void @function_pins(ptr %0) !dbg ![[#SP]]
+CHECK-DAG: call i32 @myAdd({{.*}}), !dbg ![[#CALL]]
+CHECK-DAG: store i32 {{.*}}, ptr %b2, {{.*}}!dbg ![[#B2]]
+CHECK-DAG: store i32 {{.*}}, ptr %b1, {{.*}}!dbg ![[#B1]]
+
+Declared variables keep their text line; the captured block output sits at its block's order.
+CHECK-DAG: !DIDerivedType(tag: DW_TAG_member, name: "a1", scope: ![[#DECL]], file: ![[#DECL]], line: 3,
+CHECK-DAG: !DIDerivedType(tag: DW_TAG_member, name: "__out_myAdd_1", scope: ![[#DECL]], file: ![[#DIAGRAM]], line: 1,

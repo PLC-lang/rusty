@@ -1,14 +1,28 @@
 RUN: %COMPILE_IR %S/guarded_return.cfc | %CHECK_IR %s
 
-The guard's load, the branch and the early return share the return element's
-location (order 0, line 1); the store carries the sink's (order 1, line 2).
-CHECK: define void @guarded_return(ptr %0) !dbg ![[SP:[0-9]+]]
-CHECK: %load_guard = load i8, ptr %guard, {{.*}}!dbg ![[RET:[0-9]+]]
-CHECK: br i1 {{.*}}, !dbg ![[RET]]
-CHECK: ret void, !dbg ![[RET]]
-CHECK: store i32 42, ptr %result, {{.*}}!dbg ![[STORE:[0-9]+]]
+The diagram, with execution orders in parentheses:
 
-CHECK-DAG: ![[DIAGRAM:[0-9]+]] = !DIFile(filename: "guarded_return.cfc.guarded_return"
-CHECK-DAG: ![[RET]] = !DILocation(line: 1, scope: ![[LB:[0-9]+]])
-CHECK-DAG: ![[LB]] = distinct !DILexicalBlock(scope: ![[SP]], file: ![[DIAGRAM]])
-CHECK-DAG: ![[STORE]] = !DILocation(line: 2, scope: ![[LB]])
+guard --> RETURN (0)
+42 -----> result (1)
+
+Each ordered element must get a debug location in the diagram's own file,
+at line = order + 1, so a debugger can break on it.
+
+Debug file per area: declaration text vs. diagram `guarded_return`.
+CHECK-DAG: ![[#DECL:]] = !DIFile(filename: "guarded_return.cfc", directory:
+CHECK-DAG: ![[#DIAGRAM:]] = !DIFile(filename: "guarded_return.cfc.guarded_return", directory:
+
+The function lives in the declaration; a lexical block inside it is bound to the diagram file.
+CHECK-DAG: ![[#SP:]] = distinct !DISubprogram(name: "guarded_return", {{.*}}, file: ![[#DECL]], line: 1,
+CHECK-DAG: ![[#LB:]] = distinct !DILexicalBlock(scope: ![[#SP]], file: ![[#DIAGRAM]])
+
+Diagram statements are scoped to that block, line = execution order + 1 (0 is reserved).
+CHECK-DAG: ![[#RET:]] = !DILocation(line: 1, scope: ![[#LB]])
+CHECK-DAG: ![[#STORE:]] = !DILocation(line: 2, scope: ![[#LB]])
+
+Guard load, branch and return are one element (order 0); the store is the sink (order 1).
+CHECK-DAG: define void @guarded_return(ptr %0) !dbg ![[#SP]]
+CHECK-DAG: %load_guard = load i8, ptr %guard, {{.*}}!dbg ![[#RET]]
+CHECK-DAG: br i1 {{.*}}, !dbg ![[#RET]]
+CHECK-DAG: ret void, !dbg ![[#RET]]
+CHECK-DAG: store i32 42, ptr %result, {{.*}}!dbg ![[#STORE]]
