@@ -64,14 +64,7 @@ impl From<DebugLevel> for DWARFEmissionKind {
 /// information
 pub trait Debug<'ink> {
     /// Set the debug info source location of the instruction currently pointed at by the builder
-    fn set_debug_location(
-        &self,
-        llvm: &Llvm,
-        scope: &FunctionContext,
-        //Current line starts with 0
-        line: usize,
-        column: usize,
-    );
+    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionContext, location: &SourceLocation);
 
     //Unsets the current debug location allowing the debug info to be skipped for variable
     //initializations
@@ -88,6 +81,10 @@ pub trait Debug<'ink> {
         parameter_types: &[&'idx DataType],
         implementation_start: usize,
     );
+
+    /// Scopes the registered function's diagram statements to the diagram's own debug file, so a
+    /// debugger reads their lines as execution orders; `location` is any element of that diagram
+    fn register_diagram(&mut self, function: FunctionValue<'ink>, name: &str, location: &SourceLocation);
 
     /// Registers a new datatype for debugging
     fn register_debug_type<'idx>(
@@ -332,7 +329,9 @@ pub struct DebugBuilder<'ink> {
     processing: FxHashSet<String>,
     variables: FxHashMap<VariableKey, DILocalVariable<'ink>>,
     optimization: OptimizationLevel,
-    files: FxHashMap<&'static str, DIFile<'ink>>,
+    files: FxHashMap<String, DIFile<'ink>>,
+    /// The lexical block scoping a function's diagram statements to the diagram's debug file, by call name.
+    diagram_scopes: FxHashMap<String, DIScope<'ink>>,
     target_data: TargetData,
     compile_dir: PathBuf,
     mapped_compile_dir: PathBuf,
@@ -420,6 +419,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     variables: Default::default(),
                     optimization,
                     files: Default::default(),
+                    diagram_scopes: Default::default(),
                     target_data,
                     compile_dir,
                     mapped_compile_dir,
@@ -481,10 +481,7 @@ impl<'ink> DebugBuilder<'ink> {
 
         let inner_dt = index.get_effective_type_by_name(referenced_type)?;
         let inner_type = self.get_or_create_debug_type(inner_dt, index, types_index)?;
-        let file = location
-            .get_file_name()
-            .map(|it| self.get_or_create_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
+        let file = self.debug_file(location);
 
         let llvm_type = types_index.get_associated_type(name)?;
         let size_bits = self.target_data.get_bit_size(&llvm_type);
@@ -549,10 +546,7 @@ impl<'ink> DebugBuilder<'ink> {
             return Ok(());
         }
 
-        let file = location
-            .get_file_name()
-            .map(|it| self.get_or_create_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
+        let file = self.debug_file(location);
 
         let super_ty_name = index.find_pou(name).and_then(|it| it.get_super_class());
 
@@ -580,12 +574,19 @@ impl<'ink> DebugBuilder<'ink> {
                     .filter(|sname| member.get_name() == format!("__{sname}"))
                     .map_or(member.get_name(), |_| "SUPER");
 
+                // A member declared by a diagram element (a captured block output) lives in the diagram's file.
+                let member_file = member
+                    .source_location
+                    .get_debug_file_name()
+                    .map(|it| self.get_or_create_debug_file(&it))
+                    .unwrap_or(file);
+
                 Some(
                     self.debug_info
                         .create_member_type(
                             file.as_debug_info_scope(),
                             member_name,
-                            file,
+                            member_file,
                             member.source_location.get_line_plus_one() as u32,
                             size_bits,
                             align_bits,
@@ -838,10 +839,7 @@ impl<'ink> DebugBuilder<'ink> {
     ) -> Result<(), Diagnostic> {
         let inner_dt = index.get_effective_type_by_name(referenced_type)?;
         let inner_type = self.get_or_create_debug_type(inner_dt, index, types_index)?;
-        let file = location
-            .get_file_name()
-            .map(|it| self.get_or_create_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
+        let file = self.debug_file(location);
 
         let llvm_type = types_index.get_associated_type(name)?;
         let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
@@ -886,10 +884,7 @@ impl<'ink> DebugBuilder<'ink> {
 
         let inner_dt = index.get_effective_type_by_name(referenced_type)?;
         let inner_type = self.get_or_create_debug_type(inner_dt, index, types_index)?;
-        let file = location
-            .get_file_name()
-            .map(|it| self.get_or_create_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
+        let file = self.debug_file(location);
 
         let llvm_type = types_index.get_associated_type(name)?;
         let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
@@ -941,10 +936,7 @@ impl<'ink> DebugBuilder<'ink> {
         implementation_start: usize,
     ) -> DISubprogram<'_> {
         let location = pou.get_location();
-        let file = location
-            .get_file_name()
-            .map(|it| self.get_or_create_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
+        let file = self.debug_file(location);
         let is_external = matches!(pou.get_linkage(), LinkageType::External);
         let ditype = self.create_subroutine_type(return_type, parameter_types, file);
         self.debug_info.create_function(
@@ -1004,7 +996,15 @@ impl<'ink> DebugBuilder<'ink> {
         }
     }
 
-    fn get_or_create_debug_file(&mut self, location: &'static str) -> DIFile<'ink> {
+    // The file a location's debug info is attributed to; the compile unit's for an internal one.
+    fn debug_file(&mut self, location: &SourceLocation) -> DIFile<'ink> {
+        match location.get_debug_file_name() {
+            Some(name) => self.get_or_create_debug_file(&name),
+            None => self.compile_unit.get_file(),
+        }
+    }
+
+    fn get_or_create_debug_file(&mut self, location: &str) -> DIFile<'ink> {
         let path = debug_display_path(
             Path::new(location),
             &self.compile_dir,
@@ -1024,39 +1024,52 @@ impl<'ink> DebugBuilder<'ink> {
             )
         };
 
-        *self.files.entry(location).or_insert_with(|| self.debug_info.create_file(&filename, &directory))
+        *self
+            .files
+            .entry(location.to_string())
+            .or_insert_with(|| self.debug_info.create_file(&filename, &directory))
     }
 
-    fn get_debug_file(&self, location: &'static str) -> Option<DIFile<'ink>> {
+    fn get_debug_file(&self, location: &str) -> Option<DIFile<'ink>> {
         self.files.get(location).copied()
+    }
+
+    // The scope of a diagram element's location in the given function: the lexical block bound
+    // to the diagram's debug file, registered up front; `None` for a text location.
+    fn diagram_scope(
+        &self,
+        function_scope: &FunctionContext,
+        location: &SourceLocation,
+    ) -> Option<DIScope<'ink>> {
+        if !location.is_block() {
+            return None;
+        }
+
+        self.diagram_scopes.get(function_scope.linking_context.get_call_name()).copied()
     }
 }
 
 impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
-    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionContext, line: usize, column: usize) {
+    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionContext, location: &SourceLocation) {
         // Skip setting debug locations for functions without a subprogram
         // This can happen for compiler-generated functions that weren't registered with debug info
-        if scope.function.get_subprogram().is_none() {
+        let Some(subprogram) = scope.function.get_subprogram() else {
             log::trace!(
                 "Skipping debug location for function {} (no subprogram)",
                 scope.linking_context.get_call_name()
             );
             return;
-        }
+        };
 
-        let file = scope
-            .linking_context
-            .get_location()
-            .get_file_name()
-            .and_then(|it| self.get_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
-        let scope = scope
-            .function
-            .get_subprogram()
-            .map(|it| it.as_debug_info_scope())
-            .unwrap_or_else(|| file.as_debug_info_scope());
-        let location =
-            self.debug_info.create_debug_location(self.context, line as u32, column as u32, scope, None);
+        // A diagram element is attributed to the diagram's file through its own scope.
+        let scope = self.diagram_scope(scope, location).unwrap_or_else(|| subprogram.as_debug_info_scope());
+        let location = self.debug_info.create_debug_location(
+            self.context,
+            location.get_line_plus_one() as u32,
+            location.get_column() as u32,
+            scope,
+            None,
+        );
         llvm.builder.set_current_debug_location(location);
     }
 
@@ -1093,11 +1106,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             pou.get_linkage(),
             pou.get_location()
         );
-        let file = pou
-            .get_location()
-            .get_file_name()
-            .map(|it| self.get_or_create_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
+        let file = self.debug_file(pou.get_location());
         let scope = if let Some(function) = parent_function.and_then(|it| it.get_subprogram()) {
             function.as_debug_info_scope()
         } else {
@@ -1107,6 +1116,17 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         func.function.set_subprogram(subprogram);
         //Create function parameters
         self.create_function_variables(pou, func, index, types_index);
+    }
+
+    fn register_diagram(&mut self, function: FunctionValue<'ink>, name: &str, location: &SourceLocation) {
+        let Some(diagram) = location.is_block().then(|| location.get_debug_file_name()).flatten() else {
+            return;
+        };
+        let Some(subprogram) = function.get_subprogram() else { return };
+
+        let file = self.get_or_create_debug_file(&diagram);
+        let scope = self.debug_info.create_lexical_block(subprogram.as_debug_info_scope(), file, 0, 0);
+        self.diagram_scopes.insert(name.to_string(), scope.as_debug_info_scope());
     }
 
     fn register_debug_type<'idx>(
@@ -1199,10 +1219,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             let debug_type =
                 self.apply_const_type_if_needed((*debug_type).into(), global_variable.is_constant());
 
-            let file = location
-                .get_file_name()
-                .map(|it| self.get_or_create_debug_file(it))
-                .unwrap_or_else(|| self.compile_unit.get_file());
+            let file = self.debug_file(location);
             let debug_variable = self.debug_info.create_global_variable_expression(
                 file.as_debug_info_scope(),
                 name,
@@ -1230,10 +1247,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     ) {
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
-        let file = location
-            .get_file_name()
-            .map(|it| self.get_or_create_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
+        let file = self.debug_file(location);
         let line = location.get_line_plus_one() as u32;
 
         let scope = function_scope
@@ -1271,10 +1285,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     ) {
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
-        let file = location
-            .get_file_name()
-            .map(|it| self.get_or_create_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
+        let file = self.debug_file(location);
         let line = location.get_line_plus_one() as u32;
         let scope = function_scope
             .function
@@ -1305,12 +1316,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     }
 
     fn register_struct_parameter(&mut self, name: &str, function_scope: &FunctionContext<'ink, '_>) {
-        let file = function_scope
-            .linking_context
-            .get_location()
-            .get_file_name()
-            .map(|it| self.get_or_create_debug_file(it))
-            .unwrap_or_else(|| self.compile_unit.get_file());
+        let file = self.debug_file(function_scope.linking_context.get_location());
         let scope = function_scope
             .function
             .get_subprogram()
@@ -1347,8 +1353,8 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         let file = function_scope
             .linking_context
             .get_location()
-            .get_file_name()
-            .and_then(|it| self.get_debug_file(it))
+            .get_debug_file_name()
+            .and_then(|it| self.get_debug_file(&it))
             .unwrap_or_else(|| self.compile_unit.get_file());
         let scope = function_scope
             .function
@@ -1409,10 +1415,10 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
 }
 
 impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
-    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionContext, line: usize, column: usize) {
+    fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionContext, location: &SourceLocation) {
         match self {
             Self::None | Self::VariablesOnly(..) => {}
-            Self::Full(obj) => obj.set_debug_location(llvm, scope, line, column),
+            Self::Full(obj) => obj.set_debug_location(llvm, scope, location),
         };
     }
 
@@ -1442,6 +1448,13 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
                 parameter_types,
                 implementation_start,
             ),
+        };
+    }
+
+    fn register_diagram(&mut self, function: FunctionValue<'ink>, name: &str, location: &SourceLocation) {
+        match self {
+            Self::None | Self::VariablesOnly(..) => {}
+            Self::Full(obj) => obj.register_diagram(function, name, location),
         };
     }
 
