@@ -23,9 +23,29 @@ pub enum Argument {
 }
 
 pub enum Statement {
-    Assignment { sink: AstNode, source: AstNode, storage: Option<Storage> },
-    Return { condition: AstNode, location: SourceLocation },
-    Jump { condition: Option<AstNode>, target: String, location: SourceLocation },
-    Label { name: String, location: SourceLocation },
-    Call { target: String, arguments: Vec<Argument>, capture: Option<String>, location: SourceLocation },
+    Assignment {
+        sink: AstNode,
+        source: AstNode,
+        storage: Option<Storage>,
+    },
+    Return {
+        condition: AstNode,
+        location: SourceLocation,
+    },
+    Jump {
+        condition: Option<AstNode>,
+        target: String,
+        location: SourceLocation,
+    },
+    Label {
+        name: String,
+        location: SourceLocation,
+    },
+    Call {
+        target: String,
+        arguments: Vec<Argument>,
+        capture: Option<String>,
+        enable: Option<AstNode>,
+        location: SourceLocation,
+    },
 }

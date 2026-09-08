@@ -45,7 +45,7 @@ END_VAR
                         </ppx:InputVariable>
                     </ppx:InputVariables>
                     <ppx:OutputVariables>
-                        <ppx:OutputVariable parameterName="MUX" negated="false">
+                        <ppx:OutputVariable parameterName="" negated="false">
                             <ppx:ConnectionPointOut connectionPointOutId="2">
 <ppx:RelPosition x="80" y="30"/>
                             </ppx:ConnectionPointOut>

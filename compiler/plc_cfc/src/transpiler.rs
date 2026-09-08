@@ -50,6 +50,12 @@ impl Transpiler {
                 AstFactory::create_assignment(sink, source, self.ids.next_id())
             }
 
+            // A reference-mode sink re-points: it stores the source's address,
+            // `sink REF= source`, instead of assigning the source's value.
+            Statement::Assignment { sink, source, storage: Some(Storage::Reference) } => {
+                AstFactory::create_ref_assignment(sink, source, self.ids.next_id())
+            }
+
             // A storage-mode sink latches: the source guards a constant store,
             // `TRUE` for Set, `FALSE` for Reset; nothing is written otherwise.
             Statement::Assignment { sink, source, storage: Some(storage) } => {
@@ -78,7 +84,7 @@ impl Transpiler {
             Statement::Label { name, location } => {
                 AstFactory::create_label_statement(name, location, self.ids.next_id())
             }
-            Statement::Call { target, arguments, capture, location } => {
+            Statement::Call { target, arguments, capture, enable, location } => {
                 let operator = self.reference(&target, &location);
 
                 let mut parameters = Vec::new();
@@ -101,11 +107,18 @@ impl Transpiler {
                 );
 
                 // A captured call assigns the return value to its temporary.
-                match capture {
+                let call = match capture {
                     Some(temporary) => {
                         let temporary = self.reference(&temporary, &location);
                         AstFactory::create_assignment(temporary, call, self.ids.next_id())
                     }
+                    None => call,
+                };
+
+                // The EN guard wraps the whole call, capture included, so a
+                // skipped call leaves the captured temporary untouched.
+                match enable {
+                    Some(condition) => self.guard(condition, call, location),
                     None => call,
                 }
             }
@@ -310,6 +323,19 @@ mod tests {
                 IF NOT NOT a THEN
                     b := TRUE
                 END_IF;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn storage_reference() {
+            insta::assert_snapshot!(transpile_project("variables/valid/storage_reference").unwrap(), @r"
+            PROGRAM storage_reference
+            VAR
+                a : DINT;
+                b : REFERENCE TO DINT;
+            END_VAR
+                b REF= a;
             END_PROGRAM
             ");
         }
@@ -1065,6 +1091,120 @@ mod tests {
             __out_addInto_1 := addInto(delta := 5, acc := );
             result := __out_addInto_1;
         END_PROGRAM");
+        }
+    }
+
+    mod execution_control {
+        use crate::test_utils::transpile_project;
+
+        #[test]
+        fn enable_fb() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/enable_fb").unwrap(), @r"
+            PROGRAM enable_fb
+            VAR
+                inst : counter;
+                trigger : BOOL;
+                localIn : DINT := 5;
+                localOut : DINT;
+                done : BOOL;
+            END_VAR
+                IF trigger THEN
+                    inst(in := localIn)
+                END_IF;
+                localOut := inst.out;
+                done := trigger;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn enable_function() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/enable_function").unwrap(), @r"
+            PROGRAM enable_function
+            VAR
+                trigger : BOOL;
+                a : DINT := 3;
+                b : DINT := 4;
+                sum : DINT;
+                done : BOOL;
+            END_VAR
+            VAR
+                __out_myAdd_7 : DINT;
+            END_VAR
+                IF trigger THEN
+                    __out_myAdd_7 := myAdd(in1 := a, in2 := b, myAddDoubled => )
+                END_IF;
+                sum := __out_myAdd_7;
+                done := trigger;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn enable_generic() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/enable_generic").unwrap(), @r"
+            PROGRAM enable_generic
+            VAR
+                trigger : BOOL;
+                x : DINT;
+                y : DINT;
+                result : DINT;
+            END_VAR
+            VAR
+                __out_myGenAdd_7 : DINT;
+            END_VAR
+                IF trigger THEN
+                    __out_myGenAdd_7 := myGenAdd(a := x, b := y)
+                END_IF;
+                result := __out_myGenAdd_7;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn enable_from_function() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/enable_from_function").unwrap(), @r"
+            PROGRAM enable_from_function
+            VAR
+                a : DINT := 20;
+                b : DINT := 4;
+                result : DINT;
+            END_VAR
+            VAR
+                __out_isNonZero_3 : BOOL;
+                __out_safeDiv_7 : DINT;
+            END_VAR
+                __out_isNonZero_3 := isNonZero(val := b);
+                IF __out_isNonZero_3 THEN
+                    __out_safeDiv_7 := safeDiv(dividend := a, divisor := b)
+                END_IF;
+                result := __out_safeDiv_7;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn eno_chain() {
+            insta::assert_snapshot!(transpile_project("execution_control/valid/eno_chain").unwrap(), @r"
+            PROGRAM eno_chain
+            VAR
+                a : counter;
+                b : counter;
+                trigger : BOOL;
+                seed : DINT;
+                result : DINT;
+                done : BOOL;
+            END_VAR
+                IF trigger THEN
+                    a(in := seed)
+                END_IF;
+                IF trigger THEN
+                    b(in := a.out)
+                END_IF;
+                result := b.out;
+                done := trigger;
+            END_PROGRAM
+            ");
         }
     }
 

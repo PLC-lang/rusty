@@ -362,7 +362,7 @@ fn enum_typed_varargs_get_promoted() {
       %0 = sext i16 %load_e1 to i32
       %load_i1 = load i16, ptr %i1, align [filtered]
       %1 = sext i16 %load_i1 to i32
-      %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %0, i32 %1)
+      %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %0, i32 %1, ptr null)
       %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
@@ -466,8 +466,8 @@ fn arrays_and_strings_passed_as_pointers_in_unsized_variadics() {
       %myArray = alloca [3 x i16], align [filtered]
       call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %myString, ptr align [filtered] @__main.myString__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
       call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %myArray, ptr align [filtered] @__main.myArray__init, i64 ptrtoint (ptr getelementptr ([3 x i16], ptr null, i32 1) to i64), i1 false)
-      %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_1, ptr %myString)
-      %call1 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, ptr %myArray)
+      %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_1, ptr %myString, ptr null)
+      %call1 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, ptr %myArray, ptr null)
       ret void
     }
 

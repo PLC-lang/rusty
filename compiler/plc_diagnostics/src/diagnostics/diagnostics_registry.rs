@@ -143,7 +143,7 @@ lazy_static! {
         E039,   Warning,    include_str!("./error_codes/E039.md"),
         E040,   Warning,    include_str!("./error_codes/E040.md"),
         E041,   Error,      include_str!("./error_codes/E041.md"),
-        E042,   Warning,    include_str!("./error_codes/E042.md"), // Assignment to reference
+        E042,   Warning,    include_str!("./error_codes/E042.md"), // TODO: Use me, I'm free
         E043,   Error,      include_str!("./error_codes/E043.md"),
         E044,   Error,      include_str!("./error_codes/E044.md"),
         E045,   Error,      include_str!("./error_codes/E045.md"),
@@ -252,7 +252,11 @@ lazy_static! {
         E149,   Error,      include_str!("./error_codes/E149.md"),  // Unresolved generic CFC block output
         E150,   Warning,    include_str!("./error_codes/E150.md"),  // ABS on an unsigned value has no effect
         E151,   Error,      include_str!("./error_codes/E151.md"),  // Unary NOT with unsupported operand type
-        E152,   Error,      include_str!("./error_codes/E152.md"),  // Unsupported syntax for the chosen XML target
+        E152,   Error,      include_str!("./error_codes/E152.md"),  // Unconnected CFC EN pin
+        E153,   Error,      include_str!("./error_codes/E153.md"),  // CFC ENO cycle
+        E154,   Error,      include_str!("./error_codes/E154.md"),  // Negated CFC reference assignment
+        E155,   Error,      include_str!("./error_codes/E155.md"),  // Duplicate CFC return pin
+        E156,   Error,      include_str!("./error_codes/E156.md"),  // Unsupported syntax for the chosen XML target
     );
 }
 

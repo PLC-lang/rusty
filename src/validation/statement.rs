@@ -1610,15 +1610,6 @@ fn validate_assignment<T: AnnotationMap>(
                 );
             }
 
-            // ...VAR_INPUT {ref} variable
-            if matches!(argument_type, ArgumentType::ByRef(VariableType::Input)) {
-                validator.push_diagnostic(
-                    Diagnostic::new("VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.")
-                    .with_error_code("E042")
-                    .with_location(location)
-                    );
-            }
-
             is_output_assignment = matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
                 || matches!(argument_type, ArgumentType::ByVal(VariableType::Output));
 
