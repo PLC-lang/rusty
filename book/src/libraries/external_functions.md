@@ -111,6 +111,22 @@ An example of a variadic function is `printf`.
 
 Calling a variadic function is supported in `ST`. To mark an external function as variadic, you can add a parameter of type `...` to the `VAR_INPUT` block.
 
+#### Argument list termination
+
+A call to an untyped variadic (`args : ...`) passes a null pointer after the last argument the
+caller wrote. A callee that walks the argument list until a terminator therefore always finds its
+end, including when the call carries no variadic argument at all. A terminator written by the
+caller ends the list first, so the implicit one stays unread.
+
+Format-directed callees such as `printf`, and callees that take an argument count, read only as
+many arguments as they expect and never see the terminator.
+
+The typed variadic forms keep the exact argument list the caller wrote, so a callee for either
+form must not expect a terminator:
+
+- `args : T...` passes every argument as a `T`.
+- `args : {sized} T...` passes an argument count followed by a pointer to an array of `T`.
+
 #### Variadic function example
 
 Given the `printf` function defined as:
