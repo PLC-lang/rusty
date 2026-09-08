@@ -292,8 +292,8 @@ mod tests {
             assert_eq!(call_i64(STRING_TO_LINT, "12abc"), 0);
             assert_eq!(call_u32(STRING_TO_UDINT, "12 34"), 0);
             assert_eq!(call_u64(STRING_TO_ULINT, "12 34"), 0);
-            assert_eq!(call_u32(STRING_TO_UDINT, "1e3"), 0);
-            assert_eq!(call_u64(STRING_TO_ULINT, "1e3"), 0);
+            assert_eq!(call_u32(STRING_TO_UDINT, "1e3"), 1_000);
+            assert_eq!(call_u64(STRING_TO_ULINT, "1e3"), 1_000);
             assert_eq!(call_u32(STRING_TO_UDINT, "8#19"), 0);
             assert_eq!(call_u64(STRING_TO_ULINT, "8#19"), 0);
             assert_eq!(call_u32(STRING_TO_UDINT, "  12  "), 12);
@@ -308,10 +308,10 @@ mod tests {
             assert_eq!(call_i64(STRING_TO_LINT, "8#77"), 63);
             assert_eq!(call_i32(STRING_TO_DINT, "16#FF"), 255);
             assert_eq!(call_i64(STRING_TO_LINT, "16#FF"), 255);
-            assert_eq!(call_u32(STRING_TO_UDINT, "0b1010"), 10);
-            assert_eq!(call_i32(STRING_TO_DINT, "0B1010"), 10);
-            assert_eq!(call_u64(STRING_TO_ULINT, "0xFF"), 255);
-            assert_eq!(call_i64(STRING_TO_LINT, "0XFF"), 255);
+            assert_eq!(call_u32(STRING_TO_UDINT, "0b1010"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "0B1010"), 0);
+            assert_eq!(call_u64(STRING_TO_ULINT, "0xFF"), 0);
+            assert_eq!(call_i64(STRING_TO_LINT, "0XFF"), 0);
             assert_eq!(call_u32(STRING_TO_UDINT, "1.9"), 1);
             assert_eq!(call_u64(STRING_TO_ULINT, "1.9"), 1);
             assert_eq!(call_i16(STRING_TO_INT, "-1"), -1);
@@ -322,13 +322,26 @@ mod tests {
     #[test]
     fn fractional_durations_parse_correctly() {
         unsafe {
-            assert_eq!(call_i64(STRING_TO_TIME, "T#1.5s"), 1_500 * NANOS_PER_MILLISECOND);
-            assert_eq!(call_i64(STRING_TO_TIME, "T#0.5s"), 500 * NANOS_PER_MILLISECOND);
-            assert_eq!(call_i64(STRING_TO_TIME, "T#2.75s"), 2_750 * NANOS_PER_MILLISECOND);
-            assert_eq!(call_i64(STRING_TO_TIME, "T#1.5h"), 90 * 60 * NANOS_PER_SECOND);
-            assert_eq!(call_i64(STRING_TO_TIME, "T#1,5s"), 1_500 * NANOS_PER_MILLISECOND);
-            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#1.5s"), 1_500 * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1.5s"), (1_500) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#0.5s"), (500) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#2.75s"), (2_750) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1.5h"), (90 * 60 * 1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1.5h30m"), (120 * 60 * 1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#1.5s"), 1_500_000_000);
             assert_eq!(call_i64(STRING_TO_TIME, "T#1.0004ms"), 1_000_400);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1500us"), 1_500_000);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#999us"), 999_000);
+        }
+    }
+
+    #[test]
+    fn comma_is_not_a_decimal_separator() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1,5s"), 0);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#1,5s"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#12:00:00,500"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2024-01-01-12:00:00,5"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "1,5"), 0);
         }
     }
 
@@ -339,19 +352,18 @@ mod tests {
             assert_eq!(call_i64(STRING_TO_TIME, "T#-1000ms"), 0);
             assert_eq!(call_i64(STRING_TO_TIME, "T#- 1s"), 0);
             assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#-1s"), 0);
-            assert_eq!(call_i64(STRING_TO_TIME, "T#1s"), NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1s"), (1_000) * NANOS_PER_MILLISECOND);
         }
     }
 
     #[test]
-    fn durations_without_a_matching_prefix_are_rejected() {
+    fn the_67ms_constant_is_gone() {
         unsafe {
             assert_eq!(call_i64(STRING_TO_TIME, ""), 0);
             assert_eq!(call_i64(STRING_TO_TIME, "abc"), 0);
             assert_eq!(call_i64(STRING_TO_TIME, "1s"), 0);
             assert_eq!(call_i64(STRING_TO_TIME, "LTIME#1s"), 0);
-            assert_eq!(call_i64(STRING_TO_LTIME, "T#1s"), 0);
-            assert_eq!(call_i64(STRING_TO_TIME, "T#67ms"), 67 * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#67ms"), (67) * NANOS_PER_MILLISECOND);
         }
     }
 
@@ -372,37 +384,329 @@ mod tests {
     #[test]
     fn dates_outside_the_nanosecond_range_are_rejected() {
         unsafe {
+            assert_eq!(call_i64(STRING_TO_DATE, "D#1969-12-31"), -86_400 * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2106-02-08"), 4_295_030_400 * NANOS_PER_SECOND);
             assert_eq!(call_i64(STRING_TO_DATE, "D#0001-01-01"), 0);
             assert_eq!(call_i64(STRING_TO_DATE, "D#9999-12-31"), 0);
-            assert_eq!(call_i64(STRING_TO_DT, "DT#9999-12-31-23:59:59"), 0);
             assert_eq!(call_i64(STRING_TO_DATE, "D#1970-01-01"), 0);
-            assert_eq!(call_i64(STRING_TO_DATE, "D#1969-12-31"), -24 * 3_600 * NANOS_PER_SECOND);
-            assert_ne!(call_i64(STRING_TO_DATE, "D#2106-02-08"), 0);
-            assert_ne!(call_i64(STRING_TO_DT, "DT#2106-02-08-00:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2262-04-11"), 9_223_286_400 * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2262-04-12"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#1969-12-31-23:59:59"), -NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2262-04-11-23:47:16.854775807"), i64::MAX);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2262-04-11-23:47:16.854775808"), 0);
         }
     }
 
     #[test]
-    fn unprefixed_iso_dates_and_times_are_accepted() {
+    fn unprefixed_forms_are_rejected() {
         unsafe {
-            let d1 = call_i64(STRING_TO_DATE, "2024-01-01");
-            let d2 = call_i64(STRING_TO_DATE, "D#2024-01-01");
-            assert_eq!(d1, d2);
-            assert_ne!(d1, 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "2024-01-01"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "12:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "12:00:00.500"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "2024-01-01"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "2024-01-01-12:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "2024-01-01T12:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "2024-01-01 12:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "1s"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "1000"), 0);
+            assert_eq!(call_i64(STRING_TO_LTIME, "1s"), 0);
+        }
+    }
 
-            assert_eq!(call_i64(STRING_TO_TOD, "12:00:00"), 12 * 3_600 * NANOS_PER_SECOND);
+    #[test]
+    fn prefixes_are_case_insensitive_and_accept_the_long_spelling() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_TIME, "TIME#1s"), (1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "t#1s"), (1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "time#1S"), (1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#1s"), 1_000_000_000);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LT#1s"), 1_000_000_000);
+            assert_eq!(call_i64(STRING_TO_LTIME, "ltime#1s"), 1_000_000_000);
+
+            let date = call_i64(STRING_TO_DATE, "D#2024-01-01");
+            assert_eq!(date, 1_704_067_200 * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DATE, "DATE#2024-01-01"), date);
+            assert_eq!(call_i64(STRING_TO_DATE, "d#2024-01-01"), date);
+
+            let date_time = call_i64(STRING_TO_DT, "DT#2024-01-01-12:00:00");
+            assert_eq!(date_time, 1_704_110_400 * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DT, "DATE_AND_TIME#2024-01-01-12:00:00"), date_time);
+            assert_eq!(call_i64(STRING_TO_DT, "dt#2024-01-01-12:00:00"), date_time);
+
+            let time_of_day = call_i64(STRING_TO_TOD, "TOD#12:00:00");
+            assert_eq!(time_of_day, 12 * 3_600_000 * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TOD, "TIME_OF_DAY#12:00:00"), time_of_day);
+            assert_eq!(call_i64(STRING_TO_TOD, "tod#12:00:00"), time_of_day);
+        }
+    }
+
+    #[test]
+    fn long_prefixes_are_rejected_for_short_types() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_TIME, "LTIME#1s"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "LT#1s"), 0);
+            assert_eq!(call_i64(STRING_TO_LTIME, "TIME#1s"), 0);
+            assert_eq!(call_i64(STRING_TO_LTIME, "T#1s"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "LDATE#2024-01-01"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "LD#2024-01-01"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "LDT#2024-01-01-12:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "LDATE_AND_TIME#2024-01-01-12:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "LTOD#12:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "LTIME_OF_DAY#12:00:00"), 0);
+        }
+    }
+
+    #[test]
+    fn the_literal_grammar_is_not_relaxed_for_calendar_types() {
+        unsafe {
+            // date-only and hours-only forms are not literals
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2024-01-01"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2024-01-01-12"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#12"), 0);
+            // neither are ISO / space separators
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2024-01-01T12:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2024-01-01 12:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024T01-01"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024-01-01-00:00:00"), 0);
+            // but the compiler's grammar is: single-digit fields and optional seconds
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024-1-1"), (1_704_067_200) * NANOS_PER_SECOND);
             assert_eq!(
-                call_i64(STRING_TO_TOD, "12:00:00.500"),
-                12 * 3_600 * NANOS_PER_SECOND + 500 * NANOS_PER_MILLISECOND
+                call_i64(STRING_TO_DT, "DT#2024-1-1-1:2:3"),
+                (1_704_067_200 + 3_723) * NANOS_PER_SECOND
             );
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2024-01-01-12:00"), (1_704_110_400) * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#12:00"), (12 * 3_600_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#1:2:3"), (3_723_000) * NANOS_PER_MILLISECOND);
+        }
+    }
 
-            let dt_date_only = call_i64(STRING_TO_DT, "2024-01-01");
-            assert_eq!(dt_date_only, d1);
+    #[test]
+    fn trailing_input_is_rejected() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024-01-01§"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024-01-01//junk"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024-01-01(*junk*)"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024-01-01{junk}"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024-01-01x"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1h§30m"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1s//x"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1s(*x*)"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1s{x}"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1sx"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1s§"), 0);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#1s{x}"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#12:00:00//x"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#12:00:00§"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#12:00:00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2024-01-01-12:00:00{x}"), 0);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2024-01-01-12:00:00§"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "12//x"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "12(*x*)"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "12{x}"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "12§"), 0);
+            assert!(!call_bool("TRUE//x"));
+            assert!(!call_bool("TRUE§"));
+        }
+    }
 
-            let dt1 = call_i64(STRING_TO_DT, "2024-01-01-12:00:00");
-            let dt2 = call_i64(STRING_TO_DT, "2024-01-01T12:00:00");
-            assert_eq!(dt1, dt2);
-            assert_ne!(dt1, 0);
+    #[test]
+    fn whitespace_and_underscores_separate_segments_but_never_split_numbers() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1h 30m"), (90 * 60 * 1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1h_30m"), (90 * 60 * 1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1h\t30m"), (90 * 60 * 1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1h\x0B30m"), (90 * 60 * 1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1h  30m"), (90 * 60 * 1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1_000ms"), (1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#1h 30m"), 90 * 60 * 1_000_000_000);
+
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1 0s"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1h3 0m"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1 s"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1_ 0s"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T# 1s"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T #1s"), 0);
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#12 :00:00"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D# 2024-01-01"), 0);
+        }
+    }
+
+    #[test]
+    fn segments_may_repeat_or_be_unordered() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_TIME, "T#30m1h"), (90 * 60 * 1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1h1h"), (2 * 60 * 60 * 1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1ms1s"), (1_001) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1s1ms"), (1_001) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#1ns1d"), 86_400_000_000_001);
+        }
+    }
+
+    #[test]
+    fn plus_sign_is_accepted_on_durations() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_TIME, "T#+1s"), (1_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#+1s"), 1_000_000_000);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#+-1s"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#++1s"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1s+1s"), 0);
+        }
+    }
+
+    #[test]
+    fn nanosecond_segments_are_not_truncated_to_u32() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_TIME, "T#5000000000ns"), (5_000) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#5000000000ns"), 5_000_000_000);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#4294967296ns"), 4_294_967_296);
+        }
+    }
+
+    #[test]
+    fn overflowing_durations_are_rejected() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_TIME, "T#49d17h2m47s296ms"), 4_294_967_296 * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#50d"), 50 * 86_400 * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#106751d23h47m16s854ms775us807ns"), i64::MAX);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#106751d23h47m16s854ms775us808ns"), 0);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#106752d"), 0);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#106751d23h47m16s854ms775us807ns"), i64::MAX);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#106751d23h47m16s854ms775us808ns"), 0);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#106752d"), 0);
+            assert_eq!(call_i64(STRING_TO_LTIME, "LTIME#99999999999999999999999999999999999999999d"), 0);
+        }
+    }
+
+    #[test]
+    fn fractions_of_a_second_truncate_instead_of_rounding() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#23:59:59.999"), (86_399_999) * NANOS_PER_MILLISECOND);
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#23:59:59.9999999999"), 86_400 * NANOS_PER_SECOND - 1);
+            assert_eq!(
+                call_i64(STRING_TO_TOD, "TOD#12:00:59.9999999999"),
+                (12 * 3_600 + 60) * NANOS_PER_SECOND - 1
+            );
+            assert_eq!(
+                call_i64(STRING_TO_TOD, "TOD#12:00:00.9999999999"),
+                (12 * 3_600 + 1) * NANOS_PER_SECOND - 1
+            );
+            assert_eq!(
+                call_i64(STRING_TO_TOD, "TOD#12:00:00.5"),
+                (12 * 3_600_000 + 500) * NANOS_PER_MILLISECOND
+            );
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#12:00:00.0005"), 12 * 3_600 * NANOS_PER_SECOND + 500_000);
+            assert_eq!(
+                call_i64(STRING_TO_DT, "DT#2024-01-01-23:59:59.9999999999"),
+                (1_704_067_200 + 86_400) * NANOS_PER_SECOND - 1
+            );
+            assert_eq!(
+                call_i64(STRING_TO_DT, "DT#2024-01-01-12:00:00.5"),
+                (1_704_110_400) * NANOS_PER_SECOND
+            );
+            assert_eq!(call_i64(STRING_TO_TOD, "TOD#24:00:00"), 0);
+        }
+    }
+
+    #[test]
+    fn calendar_arithmetic_matches_the_proleptic_gregorian_calendar() {
+        unsafe {
+            assert_eq!(call_i64(STRING_TO_DATE, "D#1970-01-02"), (86_400) * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2000-02-29"), (951_782_400) * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2096-02-29"), (3_981_312_000) * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2100-02-29"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2106-02-07"), (4_294_944_000) * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2106-02-07-06:28:15"), 4_294_967_295 * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DT, "DT#2106-02-07-06:28:16"), 4_294_967_296 * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024-04-31"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024-00-01"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#0-01-01"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#-2024-01-01"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#+2024-01-01"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#20240101"), 0);
+            assert_eq!(call_i64(STRING_TO_DATE, "D#2024/01/01"), 0);
+        }
+    }
+
+    #[test]
+    fn based_literals_take_no_sign_and_only_single_inner_underscores() {
+        unsafe {
+            assert_eq!(call_i32(STRING_TO_DINT, "16#-FF"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "-16#FF"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "+16#FF"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "16#+FF"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "2#-1"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "16#_FF"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "16#FF_"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "16#F__F"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "16#F_F"), 255);
+            assert_eq!(call_i32(STRING_TO_DINT, "16#"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "16#G"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "#FF"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "10#12"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "16#ff"), 255);
+            assert_eq!(call_i32(STRING_TO_DINT, "2#12"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "_1"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "1_"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "1__0"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "1_000"), 1_000);
+            assert_eq!(call_i32(STRING_TO_DINT, "-1_000"), -1_000);
+            assert_eq!(call_i32(STRING_TO_DINT, "+1"), 1);
+            assert_eq!(call_i32(STRING_TO_DINT, "- 1"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "--1"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "007"), 7);
+            assert_eq!(call_i32(STRING_TO_DINT, "-0"), 0);
+        }
+    }
+
+    #[test]
+    fn real_and_exponent_forms_follow_the_compiler() {
+        unsafe {
+            assert_eq!(call_i32(STRING_TO_DINT, "1e3"), 1_000);
+            assert_eq!(call_i32(STRING_TO_DINT, "1E3"), 1_000);
+            assert_eq!(call_i32(STRING_TO_DINT, "1e+3"), 1_000);
+            assert_eq!(call_i32(STRING_TO_DINT, "1.5e2"), 150);
+            assert_eq!(call_i32(STRING_TO_DINT, "1e-3"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "1e"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "e3"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "1.9"), 1);
+            assert_eq!(call_i32(STRING_TO_DINT, "-1.9"), -1);
+            assert_eq!(call_i32(STRING_TO_DINT, "1.0"), 1);
+            assert_eq!(call_i32(STRING_TO_DINT, "123."), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, ".5"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "1.9.9"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "1.5e2.5"), 0);
+        }
+    }
+
+    #[test]
+    fn integers_that_do_not_fit_the_target_yield_zero() {
+        unsafe {
+            assert_eq!(call_i32(STRING_TO_DINT, "2147483647"), i32::MAX);
+            assert_eq!(call_i32(STRING_TO_DINT, "2147483648"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "-2147483648"), i32::MIN);
+            assert_eq!(call_i32(STRING_TO_DINT, "-2147483649"), 0);
+            assert_eq!(call_i32(STRING_TO_DINT, "4294967297"), 0);
+            assert_eq!(call_i16(STRING_TO_INT, "32767"), i16::MAX);
+            assert_eq!(call_i16(STRING_TO_INT, "32768"), 0);
+            assert_eq!(call_i16(STRING_TO_INT, "16#7FFF"), i16::MAX);
+            assert_eq!(call_i16(STRING_TO_INT, "16#FFFF"), 0);
+            assert_eq!(call_u8(STRING_TO_BYTE, "255"), u8::MAX);
+            assert_eq!(call_u8(STRING_TO_BYTE, "256"), 0);
+            assert_eq!(call_u8(STRING_TO_BYTE, "16#100"), 0);
+            assert_eq!(call_u8(STRING_TO_BYTE, "2#100000000"), 0);
+            assert_eq!(call_u32(STRING_TO_UDINT, "4294967295"), u32::MAX);
+            assert_eq!(call_u32(STRING_TO_UDINT, "4294967296"), 0);
+            assert_eq!(call_u32(STRING_TO_UDINT, "-1"), 0);
+            assert_eq!(call_i64(STRING_TO_LINT, "9223372036854775807"), i64::MAX);
+            assert_eq!(call_i64(STRING_TO_LINT, "9223372036854775808"), 0);
+            assert_eq!(call_i64(STRING_TO_LINT, "-9223372036854775808"), i64::MIN);
+            assert_eq!(call_i64(STRING_TO_LINT, "-9223372036854775809"), 0);
+            assert_eq!(call_i64(STRING_TO_LINT, "16#FFFFFFFFFFFFFFFF"), 0);
+            assert_eq!(call_u64(STRING_TO_LWORD, "16#FFFFFFFFFFFFFFFF"), u64::MAX);
+            assert_eq!(call_u64(STRING_TO_ULINT, "18446744073709551615"), u64::MAX);
+            assert_eq!(call_u64(STRING_TO_ULINT, "18446744073709551616"), 0);
+            assert_eq!(call_u64(STRING_TO_ULINT, "340282366920938463463374607431768211456"), 0);
+            assert_eq!(call_u64(STRING_TO_ULINT, "99999999999999999999999999999999999999999999"), 0);
         }
     }
 
@@ -414,7 +718,7 @@ mod tests {
             assert_eq!(call_i16(STRING_TO_INT, "\n12"), 12);
             assert_eq!(call_u64(STRING_TO_ULINT, "12 "), 12);
             assert_ne!(call_i64(STRING_TO_TOD, "TOD#12:00:00\t"), 0);
-            assert_eq!(call_i64(STRING_TO_TIME, "T#1h 30m"), 90 * 60 * NANOS_PER_SECOND);
+            assert_eq!(call_i64(STRING_TO_TIME, "T#1h 30m"), (90 * 60 * 1_000) * NANOS_PER_MILLISECOND);
             assert_eq!(call_i64(STRING_TO_DATE, "D# 2024-01-01"), 0);
         }
     }
