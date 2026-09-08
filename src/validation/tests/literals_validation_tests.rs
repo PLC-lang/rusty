@@ -206,3 +206,63 @@ fn there_should_be_no_downcast_warning_for_literal_assignment_to_integer_types()
 
     assert_snapshot!(&diagnostics, @r"");
 }
+
+#[test]
+fn signed_and_grouped_duration_literals_are_accepted() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        PROGRAM prg
+        VAR
+            plus : TIME := T#+1s;
+            grouped : TIME := T#1_000ms;
+            grouped_fraction : LTIME := LTIME#1_000.000_5ms;
+            big_ns : LTIME := LTIME#5000000000ns;
+            exact_max : LTIME := LTIME#106751d23h47m16s854ms775us807ns;
+        END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    let normalized = diagnostics.lines().map(str::trim_start).collect::<Vec<_>>().join(
+        "
+",
+    );
+    assert_snapshot!(normalized, @r"");
+}
+
+#[test]
+fn negative_and_oversized_duration_literals_produce_warnings() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        PROGRAM prg
+        VAR
+            t_negative : TIME := T#-1s;
+            t_overflow : TIME := TIME#106751d23h47m16s854ms775us808ns;
+            lt_overflow : LTIME := LTIME#106752d;
+            lt_negative : LTIME := LTIME#-1s;
+        END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    let normalized = diagnostics.lines().map(str::trim_start).collect::<Vec<_>>().join("\n");
+    assert_snapshot!(normalized, @r"
+    warning[E148]: TIME literal underflow detected
+    ┌─ <internal>:4:34
+    │
+    4 │             t_negative : TIME := T#-1s;
+    │                                  ^^^^^ TIME literal underflow detected
+
+    warning[E148]: TIME literal overflow detected
+    ┌─ <internal>:5:34
+    │
+    5 │             t_overflow : TIME := TIME#106751d23h47m16s854ms775us808ns;
+    │                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ TIME literal overflow detected
+
+    warning[E148]: LTIME literal overflow detected
+    ┌─ <internal>:6:36
+    │
+    6 │             lt_overflow : LTIME := LTIME#106752d;
+    │                                    ^^^^^^^^^^^^^ LTIME literal overflow detected
+    ");
+}

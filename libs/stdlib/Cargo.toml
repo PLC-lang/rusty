@@ -29,6 +29,7 @@ version = "1.0.4"
 
 [dependencies]
 chrono = "0.4"
+plc_literals = { path = "../../compiler/plc_literals", version = "1.0.4" }
 num = "0.4"
 paste = "1.0.8"
 log = "0.4"

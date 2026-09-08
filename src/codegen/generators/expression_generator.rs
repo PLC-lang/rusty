@@ -2491,7 +2491,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location).into())
                     .and_then(|ns| self.create_const_int(ns))
                     .map(ExpressionValue::RValue),
-                AstLiteral::Time(t) => self.create_const_int(t.value()).map(ExpressionValue::RValue),
+                AstLiteral::Time(t) => t
+                    .value()
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location).into())
+                    .and_then(|ns| self.create_const_int(ns))
+                    .map(ExpressionValue::RValue),
                 AstLiteral::String(s) => self.generate_string_literal(literal_statement, s.value(), location),
                 AstLiteral::Array(arr) => self
                     .generate_literal_array(
