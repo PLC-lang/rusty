@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-7af0b795.js";
+            window.path_to_searchindex_js = "searchindex-2d958ec2.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-11748e21.js"></script>
@@ -2982,6 +2982,19 @@ END_FUNCTION
 <p>These functions are usually defined with the last parameter <code>...</code>, and signify that a function can be called with unlimited parameters.</p>
 <p>An example of a variadic function is <code>printf</code>.</p>
 <p>Calling a variadic function is supported in <code>ST</code>. To mark an external function as variadic, you can add a parameter of type <code>...</code> to the <code>VAR_INPUT</code> block.</p>
+<h4 id="argument-list-termination"><a class="header" href="#argument-list-termination">Argument list termination</a></h4>
+<p>A call to an untyped variadic (<code>args : ...</code>) passes a null pointer after the last argument the
+caller wrote. A callee that walks the argument list until a terminator therefore always finds its
+end, including when the call carries no variadic argument at all. A terminator written by the
+caller ends the list first, so the implicit one stays unread.</p>
+<p>Format-directed callees such as <code>printf</code>, and callees that take an argument count, read only as
+many arguments as they expect and never see the terminator.</p>
+<p>The typed variadic forms keep the exact argument list the caller wrote, so a callee for either
+form must not expect a terminator:</p>
+<ul>
+<li><code>args : T...</code> passes every argument as a <code>T</code>.</li>
+<li><code>args : {sized} T...</code> passes an argument count followed by a pointer to an array of <code>T</code>.</li>
+</ul>
 <h4 id="variadic-function-example"><a class="header" href="#variadic-function-example">Variadic function example</a></h4>
 <p>Given the <code>printf</code> function defined as:</p>
 <pre><code class="language-C">int printf( const char *restrict format, ... );
