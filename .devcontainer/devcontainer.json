@@ -23,6 +23,8 @@
     // the home directory and the build cache live on named volumes.
     "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
     "workspaceFolder": "/workspace",
+    // Claude Code is installed into the home volume on first start so it can update itself.
+    "postCreateCommand": "command -v claude >/dev/null || curl -fsSL https://claude.ai/install.sh | bash",
     "mounts": [
         "source=${localWorkspaceFolder}/.devcontainer,target=/workspace/.devcontainer,type=bind,readonly",
         "source=rusty-home-${devcontainerId},target=/home/ubuntu,type=volume",

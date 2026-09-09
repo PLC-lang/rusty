@@ -4,7 +4,7 @@ We provide a [dev container](https://containers.dev/) for development. For nativ
 
 ## Dev Container
 
-Open the repository in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers) and choose "Reopen in Container". The container is defined in `.devcontainer/` and is based on Ubuntu 26.04. It contains the Rust toolchain pinned to the version used in CI, LLVM 21, `lit`, `cargo-insta` and Claude Code.
+Open the repository in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers) and choose "Reopen in Container". The container is defined in `.devcontainer/` and is based on Ubuntu 26.04. It contains the Rust toolchain pinned to the version used in CI, LLVM 21, `lit` and `cargo-insta`. Claude Code is installed into the home volume on first start and updates itself.
 
 The container runs with a read-only root filesystem and without `sudo`. The workspace is mounted at `/workspace`, and the home directory and the `target/` directory live on named volumes, so builds and tools installed with `cargo install` persist across container rebuilds. The `.devcontainer/` directory is mounted read-only.
 

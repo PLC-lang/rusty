@@ -26,14 +26,8 @@ RUN cargo install --locked cargo-insta && rm -rf /usr/local/cargo/registry /usr/
 # lit test runner shipped with the llvm tools package
 RUN ln -s /usr/lib/llvm-${LLVM_VERSION}/bin/lit /usr/local/bin/lit
 
-# Claude Code from the signed apt repository, key fingerprint verified
-RUN mkdir -p /etc/apt/keyrings && curl -fsSL https://downloads.claude.ai/keys/claude-code.asc -o /etc/apt/keyrings/claude-code.asc
-RUN gpg --show-keys --with-colons /etc/apt/keyrings/claude-code.asc | grep -q '^fpr:.*31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE'
-RUN echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" > /etc/apt/sources.list.d/claude-code.list
-RUN apt-get update && apt-get install -y --no-install-recommends claude-code && rm -rf /var/lib/apt/lists/*
-
-# The root filesystem is read-only at runtime: the cargo registry and user installed tools live in
-# the home volume, and the volume mount points must be owned by the container user.
+# The root filesystem is read-only at runtime: the cargo registry, Claude Code and other user installed
+# tools live in the home volume, and the volume mount points must be owned by the container user.
 ENV CARGO_HOME=/home/ubuntu/.cargo
 ENV PATH=/home/ubuntu/.cargo/bin:/home/ubuntu/.local/bin:$PATH
 
@@ -43,8 +37,7 @@ RUN mkdir -p /workspace/target && chown -R ubuntu:ubuntu /workspace
 ENV TERM=xterm-256color
 ENV COLORTERM=truecolor
 
-# Lock down the container user: no setuid binaries, locked password, no auto updates or telemetry
-ENV DISABLE_AUTOUPDATER=1
+# Lock down the container user: no setuid binaries, locked password, no telemetry
 ENV DISABLE_TELEMETRY=1
 
 RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} +
