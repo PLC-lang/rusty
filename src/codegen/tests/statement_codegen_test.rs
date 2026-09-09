@@ -513,3 +513,121 @@ fn real_conversion_with_pretty_syntax() {
     }
     "#);
 }
+
+#[test]
+fn struct_literal_assignment_with_sized_string_member() {
+    let result = codegen(
+        r#"
+        TYPE Motor : STRUCT
+            name  : STRING[20];
+            speed : REAL;
+        END_STRUCT END_TYPE
+
+        PROGRAM prg
+        VAR
+            motor  : Motor;
+            motors : ARRAY[0..1] OF Motor;
+        END_VAR
+            motor := (name := 'Motor1', speed := 10.5);
+            motors[1] := (name := 'Motor2', speed := 20.5);
+        END_PROGRAM
+        "#,
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %prg = type { %Motor, [2 x %Motor] }
+    %Motor = type { [21 x i8], float }
+
+    @prg_instance = global %prg zeroinitializer
+    @utf08_literal_0 = private unnamed_addr constant [7 x i8] c"Motor1\00"
+    @utf08_literal_1 = private unnamed_addr constant [7 x i8] c"Motor2\00"
+    @.const_init = private unnamed_addr constant %Motor { [21 x i8] c"Motor1\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", float 1.050000e+01 }
+    @.const_init.1 = private unnamed_addr constant %Motor { [21 x i8] c"Motor2\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", float 2.050000e+01 }
+
+    define void @prg(ptr %0) {
+    entry:
+      %motor = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %motors = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %motor, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr (%Motor, ptr null, i32 1) to i64), i1 false)
+      %tmpVar = getelementptr inbounds [2 x %Motor], ptr %motors, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %tmpVar, ptr align [filtered] @.const_init.1, i64 ptrtoint (ptr getelementptr (%Motor, ptr null, i32 1) to i64), i1 false)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    "#);
+}
+
+#[test]
+fn struct_literal_member_from_string_variable_of_different_size() {
+    let result = codegen(
+        r#"
+        TYPE Motor : STRUCT
+            name  : STRING[20];
+            speed : REAL;
+        END_STRUCT END_TYPE
+
+        PROGRAM prg
+        VAR
+            motor      : Motor;
+            long_name  : STRING;
+            short_name : STRING[5];
+        END_VAR
+            motor := (name := long_name, speed := 1.0);
+            motor := (name := short_name, speed := 2.0);
+        END_PROGRAM
+        "#,
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %prg = type { %Motor, [81 x i8], [6 x i8] }
+    %Motor = type { [21 x i8], float }
+
+    @prg_instance = global %prg zeroinitializer
+    @.const_init = private unnamed_addr constant %Motor zeroinitializer
+    @.const_init.1 = private unnamed_addr constant %Motor zeroinitializer
+
+    define void @prg(ptr %0) {
+    entry:
+      %motor = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %long_name = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %short_name = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+      %struct_literal = alloca %Motor, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %struct_literal, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr (%Motor, ptr null, i32 1) to i64), i1 false)
+      %name = getelementptr inbounds nuw %Motor, ptr %struct_literal, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %name, ptr align [filtered] %long_name, i32 20, i1 false)
+      %speed = getelementptr inbounds nuw %Motor, ptr %struct_literal, i32 0, i32 1
+      store float 1.000000e+00, ptr %speed, align [filtered]
+      %1 = load %Motor, ptr %struct_literal, align [filtered]
+      store %Motor %1, ptr %motor, align [filtered]
+      %struct_literal1 = alloca %Motor, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %struct_literal1, ptr align [filtered] @.const_init.1, i64 ptrtoint (ptr getelementptr (%Motor, ptr null, i32 1) to i64), i1 false)
+      %name2 = getelementptr inbounds nuw %Motor, ptr %struct_literal1, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %name2, ptr align [filtered] %short_name, i32 6, i1 false)
+      %speed3 = getelementptr inbounds nuw %Motor, ptr %struct_literal1, i32 0, i32 1
+      store float 2.000000e+00, ptr %speed3, align [filtered]
+      %2 = load %Motor, ptr %struct_literal1, align [filtered]
+      store %Motor %2, ptr %motor, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    "#);
+}
