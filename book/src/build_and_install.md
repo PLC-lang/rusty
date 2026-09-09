@@ -1,6 +1,27 @@
 # Build & Install
 
-We provide a [`devcontainer.json`](https://containers.dev/) and a `Dockerfile` for development. For native development, refer to the following sections.
+We provide a [dev container](https://containers.dev/) for development. For native development, refer to the sections after it.
+
+## Dev Container
+
+Open the repository in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers) and choose "Reopen in Container". The container is defined in `.devcontainer/` and is based on Ubuntu 26.04. It contains the Rust toolchain pinned to the version used in CI, LLVM 21, `lit`, `cargo-insta` and Claude Code.
+
+The container runs with a read-only root filesystem and without `sudo`. The workspace is mounted at `/workspace`, and the home directory and the `target/` directory live on named volumes, so builds and tools installed with `cargo install` persist across container rebuilds. The `.devcontainer/` directory is mounted read-only.
+
+## Ubuntu 26.04
+
+Ubuntu 26.04 ships LLVM 21 in its own package archive, so there is no need for the LLVM apt repository:
+
+```bash
+# Install pre-requisites
+sudo apt install build-essential clang lld zlib1g-dev libzstd-dev llvm-21-dev llvm-21-tools libpolly-21-dev
+
+# Install Rust, see https://rust-lang.org/tools/install/
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# lit is shipped with llvm-21-tools, make it available as `lit`
+sudo ln -s /usr/lib/llvm-21/bin/lit /usr/local/bin/lit
+```
 
 ## Ubuntu 24.04
 

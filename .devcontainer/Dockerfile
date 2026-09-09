@@ -1,39 +1,46 @@
-ARG LLVM_VER=21
-ARG RUST_VER=1.90
-ARG CONTAINER_VERSION=$LLVM_VER-$RUST_VER
-ARG BASE_IMAGE=ghcr.io/plc-lang/rust-llvm:$CONTAINER_VERSION
-FROM $BASE_IMAGE
+# Ubuntu 26.04 LTS, pinned by digest
+FROM docker.io/library/ubuntu:26.04@sha256:2260313b31c8c011cd2eebe728008efac1b3982be73eb71348ea2648d2c0e09b
 
-# Avoid warnings by switching to noninteractive
-ENV DEBIAN_FRONTEND=noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
+ARG LLVM_VERSION=21
+ARG RUST_VERSION=1.95.0
 
-# This Dockerfile adds a non-root user with sudo access. Use the "remoteUser"
-# property in devcontainer.json to use it. On Linux, the container user's GID/UIDs
-# will be updated to match your local UID/GID (when using the dockerFile property).
-# See https://aka.ms/vscode-remote/containers/non-root-user for details.
-# ARG USERNAME=vscode
-# ARG USER_UID=1000
-# ARG USER_GID=$USER_UID
+USER root
 
-# # Create a non-root user to use if preferred - see https://aka.ms/vscode-remote/containers/non-root-user.
-# RUN groupadd --gid $USER_GID $USERNAME \
-# && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
-# # [Optional] Add sudo support for the non-root user
-# && apt-get install -y sudo \
-# && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
-# && chmod 0440 /etc/sudoers.d/$USERNAME
+# Build dependencies, see book/src/build_and_install.md. Ubuntu 26.04 ships LLVM 21 in its own archive.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential clang lld zlib1g-dev libzstd-dev \
+    llvm-${LLVM_VERSION}-dev llvm-${LLVM_VERSION}-tools libpolly-${LLVM_VERSION}-dev lldb \
+    git openssh-client curl wget ca-certificates gnupg \
+    lsb-release software-properties-common python3 procps vim \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get -y update
-RUN apt-get -y install git
+# Rust toolchain
+ENV RUSTUP_HOME=/usr/local/rustup
+ENV CARGO_HOME=/usr/local/cargo
+ENV PATH=/usr/local/cargo/bin:$PATH
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path --profile minimal --default-toolchain ${RUST_VERSION} -c clippy -c rustfmt -c rust-src
+RUN cargo install --locked cargo-insta && rm -rf /usr/local/cargo/registry /usr/local/cargo/git
 
-RUN cargo install cargo-insta cargo-watch
+# lit test runner shipped with the llvm tools package
+RUN ln -s /usr/lib/llvm-${LLVM_VERSION}/bin/lit /usr/local/bin/lit
 
-# Give all users access to cargo and rust home
-RUN chmod -R a+rw $CARGO_HOME \
-    && chmod -R a+rw $RUSTUP_HOME
+# Claude Code from the signed apt repository, key fingerprint verified
+RUN mkdir -p /etc/apt/keyrings && curl -fsSL https://downloads.claude.ai/keys/claude-code.asc -o /etc/apt/keyrings/claude-code.asc
+RUN gpg --show-keys --with-colons /etc/apt/keyrings/claude-code.asc | grep -q '^fpr:.*31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE'
+RUN echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" > /etc/apt/sources.list.d/claude-code.list
+RUN apt-get update && apt-get install -y --no-install-recommends claude-code && rm -rf /var/lib/apt/lists/*
 
-# Switch back to dialog for any ad-hoc use of apt-get
-ENV DEBIAN_FRONTEND=dialog
+# The root filesystem is read-only at runtime: the cargo registry and user installed tools live in
+# the home volume, and the volume mount points must be owned by the container user.
+ENV CARGO_HOME=/home/ubuntu/.cargo
+ENV PATH=/home/ubuntu/.cargo/bin:/home/ubuntu/.local/bin:$PATH
+RUN mkdir -p /workspace/target && chown -R ubuntu:ubuntu /workspace
 
-# Required if we want to use `lld` as the default linker for RuSTy
-# RUN ln -sf /usr/bin/ld.lld-$LLVM_VER /usr/bin/ld.lld
+# Lock down the container user: no setuid binaries, locked password, no auto updates or telemetry
+ENV DISABLE_AUTOUPDATER=1
+ENV DISABLE_TELEMETRY=1
+RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} +
+RUN passwd -l ubuntu
+WORKDIR /workspace
+USER ubuntu

@@ -1,44 +1,43 @@
 {
-    "name": "Rust",
+    "name": "RuSTy",
     "build": {
-        "dockerfile": "./Dockerfile"
+        "dockerfile": "Dockerfile"
     },
-    // "image": "ghcr.io/plc-lang/rust-llvm:latest",
-    "features": {
-        "ghcr.io/devcontainers/features/common-utils:2": {
-            "installZsh": "true",
-            "username": "vscode",
-            "userUid": "1000",
-            "userGid": "1000",
-            "upgradePackages": "true"
-        }
-    },
-    // Set *default* container specific settings.json values on container create.
+    "remoteUser": "ubuntu",
     "customizations": {
         "vscode": {
+            "extensions": [
+                "rust-lang.rust-analyzer",
+                "vadimcn.vscode-lldb",
+                "mutantdino.resourcemonitor"
+            ],
             "settings": {
                 "lldb.executable": "/usr/bin/lldb",
-                // VS Code don't watch files under ./target
                 "files.watcherExclude": {
                     "**/target/**": true
-                },
-                "rust-analyzer.checkOnSave.command": "clippy"
-            },
-            // Add the IDs of extensions you want installed when the container is created.
-            "extensions": [
-                "bungcip.better-toml",
-                "editorconfig.editorconfig",
-                "vadimcn.vscode-lldb",
-                "mutantdino.resourcemonitor",
-                "rust-lang.rust-analyzer"
-            ]
+                }
+            }
         }
     },
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    // "forwardPorts": [],
-    // Use 'postCreateCommand' to run commands after the container is created.
-    // "postCreateCommand": "rustc --version",
-    // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-    "remoteUser": "vscode",
-    "containerUser": "vscode"
+    // Only the workspace is writable from the host. The container definition is mounted read-only,
+    // the home directory and the build cache live on named volumes.
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+    "workspaceFolder": "/workspace",
+    "mounts": [
+        "source=${localWorkspaceFolder}/.devcontainer,target=/workspace/.devcontainer,type=bind,readonly",
+        "source=rusty-home-${devcontainerId},target=/home/ubuntu,type=volume",
+        "source=rusty-target-${devcontainerId},target=/workspace/target,type=volume"
+    ],
+    "privileged": false,
+    // Unprivileged container with a read-only root filesystem. No resource limits, builds get the whole host.
+    // /tmp allows exec because the stdlib tests load shared objects from there.
+    "runArgs": [
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges:true",
+        "--init",
+        "--read-only",
+        "--tmpfs=/tmp:rw,nosuid,nodev,exec",
+        "--env-file=${localWorkspaceFolder}/.devcontainer/sandbox.env"
+    ],
+    "shutdownAction": "stopContainer"
 }
