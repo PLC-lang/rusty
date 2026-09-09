@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV RUSTUP_HOME=/usr/local/rustup
 ENV CARGO_HOME=/usr/local/cargo
 ENV PATH=/usr/local/cargo/bin:$PATH
+
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path --profile minimal --default-toolchain ${RUST_VERSION} -c clippy -c rustfmt -c rust-src
 RUN cargo install --locked cargo-insta && rm -rf /usr/local/cargo/registry /usr/local/cargo/git
 
@@ -35,12 +36,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends claude-code && 
 # the home volume, and the volume mount points must be owned by the container user.
 ENV CARGO_HOME=/home/ubuntu/.cargo
 ENV PATH=/home/ubuntu/.cargo/bin:/home/ubuntu/.local/bin:$PATH
+
 RUN mkdir -p /workspace/target && chown -R ubuntu:ubuntu /workspace
+
+# Colored prompt and tool output in shells started with docker exec, which sets no terminal type
+ENV TERM=xterm-256color
+ENV COLORTERM=truecolor
 
 # Lock down the container user: no setuid binaries, locked password, no auto updates or telemetry
 ENV DISABLE_AUTOUPDATER=1
 ENV DISABLE_TELEMETRY=1
+
 RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} +
 RUN passwd -l ubuntu
+
 WORKDIR /workspace
 USER ubuntu
