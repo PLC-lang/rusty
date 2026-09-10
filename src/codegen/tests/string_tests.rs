@@ -560,3 +560,93 @@ fn assigning_utf8_literal_to_wstring() {
     // THEN
     filtered_assert_snapshot!(result);
 }
+
+/// The string fields of a generated struct type, as LLVM array types in declaration order.
+/// Comparing these rather than whole IR keeps the assertion on the sizes themselves, which is
+/// what a constant in a type position decides.
+fn string_fields(ir: &str, type_name: &str) -> Vec<String> {
+    let prefix = format!("%{type_name} = type");
+    let line = ir
+        .lines()
+        .find(|line| line.trim_start().starts_with(&prefix))
+        .unwrap_or_else(|| panic!("no type definition for '{type_name}' in:\n{ir}"));
+
+    // Drop the `%prg = type {` prefix so that the first field does not carry it.
+    let fields = line.split_once('{').map(|(_, rest)| rest).unwrap_or(line);
+    fields
+        .split(',')
+        .filter(|field| field.contains(" x i8]") || field.contains(" x i16]"))
+        .map(|field| field.trim().trim_end_matches('}').trim().to_string())
+        .collect()
+}
+
+/// A POU-local `VAR CONSTANT` must size a string exactly like the literal it stands for, on
+/// its own and inside an expression. The global form is covered by
+/// `variable_length_strings_using_constants_can_be_created`; this is the local counterpart,
+/// added with PRG-4730 where a local constant in a type position turned out to be treated
+/// differently from a global one.
+#[test]
+fn strings_sized_by_a_pou_local_constant_match_the_literal_size() {
+    let from_constant = codegen(
+        r#"
+        PROGRAM prg
+        VAR CONSTANT
+            five : DINT := 5;
+        END_VAR
+        VAR
+            s  : STRING[five];
+            ws : WSTRING[five];
+            e  : STRING[five * 2 + 1];
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    let from_literal = codegen(
+        r#"
+        PROGRAM prg
+        VAR
+            s  : STRING[5];
+            ws : WSTRING[5];
+            e  : STRING[11];
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    // One byte more than the declared length in every case, for the terminator.
+    assert_eq!(string_fields(&from_literal, "prg"), ["[6 x i8]", "[6 x i16]", "[12 x i8]"]);
+    assert_eq!(string_fields(&from_constant, "prg"), string_fields(&from_literal, "prg"));
+}
+
+/// An array of strings where a POU-local `VAR CONSTANT` gives both the bound and the element
+/// length. This is the shape that PRG-4730 was reported against.
+#[test]
+fn an_array_of_strings_sized_by_pou_local_constants_matches_the_literal_size() {
+    let from_constant = codegen(
+        r#"
+        PROGRAM prg
+        VAR CONSTANT
+            len   : DINT := 63;
+            count : DINT := 5;
+        END_VAR
+        VAR
+            arr : ARRAY[1..count] OF STRING[len];
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    let from_literal = codegen(
+        r#"
+        PROGRAM prg
+        VAR
+            arr : ARRAY[1..5] OF STRING[63];
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    assert_eq!(string_fields(&from_literal, "prg"), ["[5 x [64 x i8]]"]);
+    assert_eq!(string_fields(&from_constant, "prg"), string_fields(&from_literal, "prg"));
+}

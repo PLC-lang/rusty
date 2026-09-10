@@ -1,6 +1,7 @@
 use chrono::DurationRound;
 use chrono::TimeZone;
 use common::{compile_and_run, get_includes};
+use iec61131std::date_time_numeric_functions as dtf;
 
 // Import common functionality into the integration tests
 mod common;
@@ -909,4 +910,143 @@ fn date_time_overloaded_add_and_numerical_add_compile_correctly() {
 
     assert_eq!(tod_23h_56m, maintype.a);
     assert_eq!(18.0, maintype.b);
+}
+
+macro_rules! wrapping_tests {
+    ($(($name:ident, $func:path, $lhs:expr, $rhs:expr, $expected:expr)),+ $(,)?) => {
+        $(
+            #[test]
+            fn $name() {
+                assert_eq!($func($lhs, $rhs), $expected);
+            }
+        )+
+    };
+}
+
+// Overflow at the top of the range: MAX + 1 rolls over to i64::MIN.
+wrapping_tests!(
+    (add_time_wraps_on_overflow, dtf::ADD_TIME, i64::MAX, 1, i64::MIN),
+    (add_tod_time_wraps_on_overflow, dtf::ADD_TOD_TIME, i64::MAX, 1, i64::MIN),
+    (add_dt_time_wraps_on_overflow, dtf::ADD_DT_TIME, i64::MAX, 1, i64::MIN),
+);
+
+// Underflow below the minimum: the deficit reappears at the top of the range;
+// the largest delta MAX - MIN wraps to -1.
+wrapping_tests!(
+    (sub_time_wraps_on_underflow, dtf::SUB_TIME, i64::MIN, 1, i64::MAX),
+    (sub_date_date_wraps_on_large_delta, dtf::SUB_DATE_DATE, i64::MAX, i64::MIN, -1),
+    (sub_tod_time_wraps_on_underflow, dtf::SUB_TOD_TIME, i64::MIN, 1, i64::MAX),
+    (sub_tod_tod_wraps_on_large_delta, dtf::SUB_TOD_TOD, i64::MAX, i64::MIN, -1),
+    (sub_dt_time_wraps_on_underflow, dtf::SUB_DT_TIME, i64::MIN, 1, i64::MAX),
+    (sub_dt_dt_wraps_on_large_delta, dtf::SUB_DT_DT, i64::MAX, i64::MIN, -1),
+);
+
+// MUL: i64::MAX * 2 wraps to -2 for every factor width. The last case uses a factor
+// above i64::MAX to check that the u64 to i64 cast keeps the result correct mod 2^64.
+wrapping_tests!(
+    (mul_time_sint_wraps_on_overflow, dtf::MUL__TIME__SINT, i64::MAX, 2_i8, -2),
+    (mul_time_sint_alias_wraps_on_overflow, dtf::MUL_TIME__SINT, i64::MAX, 2_i8, -2),
+    (mul_ltime_sint_wraps_on_overflow, dtf::MUL_LTIME__SINT, i64::MAX, 2_i8, -2),
+    (mul_time_int_wraps_on_overflow, dtf::MUL__TIME__INT, i64::MAX, 2_i16, -2),
+    (mul_time_int_alias_wraps_on_overflow, dtf::MUL_TIME__INT, i64::MAX, 2_i16, -2),
+    (mul_ltime_int_wraps_on_overflow, dtf::MUL_LTIME__INT, i64::MAX, 2_i16, -2),
+    (mul_time_dint_wraps_on_overflow, dtf::MUL__TIME__DINT, i64::MAX, 2_i32, -2),
+    (mul_time_dint_alias_wraps_on_overflow, dtf::MUL_TIME__DINT, i64::MAX, 2_i32, -2),
+    (mul_ltime_dint_wraps_on_overflow, dtf::MUL_LTIME__DINT, i64::MAX, 2_i32, -2),
+    (mul_time_lint_wraps_on_overflow, dtf::MUL__TIME__LINT, i64::MAX, 2, -2),
+    (mul_time_lint_alias_wraps_on_overflow, dtf::MUL_TIME__LINT, i64::MAX, 2, -2),
+    (mul_ltime_lint_wraps_on_overflow, dtf::MUL_LTIME__LINT, i64::MAX, 2, -2),
+    (mul_time_usint_wraps_on_overflow, dtf::MUL__TIME__USINT, i64::MAX, 2_u8, -2),
+    (mul_time_usint_alias_wraps_on_overflow, dtf::MUL_TIME__USINT, i64::MAX, 2_u8, -2),
+    (mul_ltime_usint_wraps_on_overflow, dtf::MUL_LTIME__USINT, i64::MAX, 2_u8, -2),
+    (mul_time_uint_wraps_on_overflow, dtf::MUL__TIME__UINT, i64::MAX, 2_u16, -2),
+    (mul_time_uint_alias_wraps_on_overflow, dtf::MUL_TIME__UINT, i64::MAX, 2_u16, -2),
+    (mul_ltime_uint_wraps_on_overflow, dtf::MUL_LTIME__UINT, i64::MAX, 2_u16, -2),
+    (mul_time_udint_wraps_on_overflow, dtf::MUL__TIME__UDINT, i64::MAX, 2_u32, -2),
+    (mul_time_udint_alias_wraps_on_overflow, dtf::MUL_TIME__UDINT, i64::MAX, 2_u32, -2),
+    (mul_ltime_udint_wraps_on_overflow, dtf::MUL_LTIME__UDINT, i64::MAX, 2_u32, -2),
+    (mul_time_ulint_wraps_on_overflow, dtf::MUL__TIME__ULINT, i64::MAX, 2_u64, -2),
+    (mul_time_ulint_alias_wraps_on_overflow, dtf::MUL_TIME__ULINT, i64::MAX, 2_u64, -2),
+    (mul_ltime_ulint_wraps_on_overflow, dtf::MUL_LTIME__ULINT, i64::MAX, 2_u64, -2),
+    (mul_time_ulint_wraps_when_factor_exceeds_lint, dtf::MUL__TIME__ULINT, 1, u64::MAX, -1),
+);
+
+// Integer division is total except for a zero divisor: i64::MIN / -1 wraps and a
+// u64 divisor above the signed range always exceeds the dividend magnitude, so the
+// quotient is zero.
+#[test]
+fn div_time_min_by_minus_one_wraps() {
+    assert_eq!(dtf::DIV__TIME__LINT(i64::MIN, -1), i64::MIN);
+    assert_eq!(dtf::DIV_LTIME__LINT(i64::MIN, -1), i64::MIN);
+}
+
+#[test]
+fn div_time_by_unsigned_divisor_above_lint_range_yields_zero() {
+    assert_eq!(dtf::DIV__TIME__ULINT(i64::MAX, u64::MAX), 0);
+    assert_eq!(dtf::DIV_LTIME__ULINT(i64::MIN, u64::MAX), 0);
+}
+
+// Float factors: a NaN yields zero and oversized results saturate at the TIME range
+// (sign-aware), instead of panicking inside std::time::Duration.
+#[test]
+fn mul_time_with_nan_factor_yields_zero() {
+    assert_eq!(dtf::MUL__TIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::MUL_TIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::MUL_LTIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::MUL__TIME__LREAL(1_000, f64::NAN), 0);
+    assert_eq!(dtf::MUL_TIME__LREAL(1_000, f64::NAN), 0);
+    assert_eq!(dtf::MUL_LTIME__LREAL(1_000, f64::NAN), 0);
+}
+
+#[test]
+fn mul_time_with_oversized_float_factor_saturates() {
+    assert_eq!(dtf::MUL__TIME__REAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_TIME__REAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_LTIME__REAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL__TIME__LREAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_TIME__LREAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_LTIME__LREAL(i64::MAX, 2.0), i64::MAX);
+}
+
+#[test]
+fn mul_time_with_oversized_float_factor_saturates_negative() {
+    assert_eq!(dtf::MUL__TIME__REAL(i64::MAX, -2.0), -i64::MAX);
+    assert_eq!(dtf::MUL__TIME__LREAL(i64::MIN, 2.0), -i64::MAX);
+}
+
+#[test]
+fn mul_zero_time_with_infinite_factor_yields_zero() {
+    assert_eq!(dtf::MUL__TIME__REAL(0, f32::INFINITY), 0);
+    assert_eq!(dtf::MUL__TIME__LREAL(0, f64::INFINITY), 0);
+}
+
+#[test]
+fn div_time_by_nan_yields_zero() {
+    assert_eq!(dtf::DIV__TIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::DIV__TIME__LREAL(1_000, f64::NAN), 0);
+}
+
+#[test]
+fn div_time_by_tiny_float_saturates() {
+    assert_eq!(dtf::DIV__TIME__REAL(i64::MAX, 0.5), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(i64::MAX, 0.5), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(i64::MAX, -0.5), -i64::MAX);
+}
+
+#[test]
+fn div_time_by_zero_float_saturates() {
+    assert_eq!(dtf::DIV__TIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_TIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_LTIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_TIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_LTIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV__TIME__REAL(-1, 0.0), -i64::MAX);
+    assert_eq!(dtf::DIV__TIME__LREAL(1, -0.0), -i64::MAX);
+}
+
+#[test]
+fn div_zero_time_by_zero_float_yields_zero() {
+    assert_eq!(dtf::DIV__TIME__REAL(0, 0.0), 0);
+    assert_eq!(dtf::DIV__TIME__LREAL(0, 0.0), 0);
 }

@@ -16,28 +16,26 @@ macro_rules! define_float_type {
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $max_name(size: u32, value: *const $rust_type) -> $rust_type {
-            // Declare array for value
-            let arr = if !value.is_null() {
-                slice::from_raw_parts(value, size as usize)
-            } else {
-                panic!("Null pointer for value");
-            };
+            debug_assert!(!value.is_null() && size > 0, "MAX requires at least one element");
+            if value.is_null() || size == 0 {
+                return <$rust_type>::default();
+            }
 
-            arr.iter().map(|it| *it).reduce(<$rust_type>::max).expect("A max will always exist")
+            let arr = slice::from_raw_parts(value, size as usize);
+            arr.iter().map(|it| *it).reduce(<$rust_type>::max).unwrap_or_default()
         }
         /// # Safety
         /// Dealing with raw pointers
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $min_name(size: u32, value: *const $rust_type) -> $rust_type {
-            // Declare array for value
-            let arr = if !value.is_null() {
-                slice::from_raw_parts(value, size as usize)
-            } else {
-                panic!("Null pointer for value");
-            };
+            debug_assert!(!value.is_null() && size > 0, "MIN requires at least one element");
+            if value.is_null() || size == 0 {
+                return <$rust_type>::default();
+            }
 
-            arr.iter().map(|it| *it).reduce(<$rust_type>::min).expect("A max will always exist")
+            let arr = slice::from_raw_parts(value, size as usize);
+            arr.iter().map(|it| *it).reduce(<$rust_type>::min).unwrap_or_default()
         }
 
         //Limit
@@ -58,12 +56,13 @@ macro_rules! define_order_type {
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $max_name(size: u32, value: *const $rust_type) -> $rust_type {
-            if !value.is_null() {
-                let arr = slice::from_raw_parts(value, size as usize);
-                *arr.iter().max().expect("A max will always exist")
-            } else {
-                panic!("Null pointer for value");
+            debug_assert!(!value.is_null() && size > 0, "MAX requires at least one element");
+            if value.is_null() || size == 0 {
+                return <$rust_type>::default();
             }
+
+            let arr = slice::from_raw_parts(value, size as usize);
+            arr.iter().max().copied().unwrap_or_default()
         }
         //Min impl
         /// # Safety
@@ -71,12 +70,13 @@ macro_rules! define_order_type {
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $min_name(size: u32, value: *const $rust_type) -> $rust_type {
-            if !value.is_null() {
-                let arr = slice::from_raw_parts(value, size as usize);
-                *arr.iter().min().expect("A min will always exist")
-            } else {
-                panic!("Null pointer for value");
+            debug_assert!(!value.is_null() && size > 0, "MIN requires at least one element");
+            if value.is_null() || size == 0 {
+                return <$rust_type>::default();
             }
+
+            let arr = slice::from_raw_parts(value, size as usize);
+            arr.iter().min().copied().unwrap_or_default()
         }
 
         //Limit
