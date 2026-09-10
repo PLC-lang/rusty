@@ -1922,7 +1922,7 @@ fn ldt_to_string_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "1970-01-01-01:10:00";
+    let expected = "LDT#1970-01-01-01:10:00";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1947,7 +1947,7 @@ fn ldt_to_wstring_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "1970-01-01-01:10:00";
+    let expected = "LDT#1970-01-01-01:10:00";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
@@ -1973,7 +1973,7 @@ fn ldate_to_string_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "1970-01-01";
+    let expected = "LDATE#1970-01-01";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1998,7 +1998,7 @@ fn ldate_to_wstring_conversion() {
         "numerical_functions.st",
     ]);
 
-    let expected = "1970-01-01";
+    let expected = "LDATE#1970-01-01";
     let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
