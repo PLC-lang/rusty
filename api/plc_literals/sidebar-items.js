@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["is_whitespace","strip_prefix_ignore_ascii_case","trim"],"mod":["calendar","duration","integer"]};

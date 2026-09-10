@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["parse_bool","parse_integer","parse_literal_date","parse_literal_date_and_time","parse_literal_time","parse_literal_time_of_day"]};
+window.SIDEBAR_ITEMS = {"fn":["parse_literal_date","parse_literal_date_and_time","parse_literal_time","parse_literal_time_of_day"]};

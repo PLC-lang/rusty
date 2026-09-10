@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CalendarError"],"fn":["parse_date","parse_date_and_time","parse_time_of_day"],"struct":["Date","DateAndTime","TimeOfDay"]};

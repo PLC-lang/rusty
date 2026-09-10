@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["IntegerError"],"fn":["parse_bool","parse_integer","parse_real_as_integer"]};
