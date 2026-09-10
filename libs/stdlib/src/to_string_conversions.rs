@@ -1,9 +1,10 @@
-//! `*_TO_STRING` conversions for BOOL, integer and bit-string widths, and date/time types.
+//! `*_TO_STRING` conversions for BOOL, the integer and bit-string widths, REAL and LREAL, and the
+//! date and time types. Each conversion writes at most the result length its declaration
+//! advertises, plus the null terminator.
 
 use chrono::TimeZone;
-use std::io::Write;
+use std::fmt::Write;
 
-const STRING_CAPACITY: usize = 2048;
 const BOOL_STRING_LENGTH: usize = 5;
 const BYTE_STRING_LENGTH: usize = 3;
 const USINT_STRING_LENGTH: usize = 3;
@@ -17,94 +18,113 @@ const SINT_STRING_LENGTH: usize = 4;
 const INT_STRING_LENGTH: usize = 6;
 const DINT_STRING_LENGTH: usize = 11;
 const LINT_STRING_LENGTH: usize = 20;
+const LREAL_STRING_LENGTH: usize = 22;
 const TIME_STRING_LENGTH: usize = 33;
 const LTIME_STRING_LENGTH: usize = 37;
 const DATE_STRING_LENGTH: usize = 12;
+const LDATE_STRING_LENGTH: usize = 10;
 const DT_STRING_LENGTH: usize = 32;
+const LDT_STRING_LENGTH: usize = 29;
 const TOD_STRING_LENGTH: usize = 22;
-const STRING_TERMINATOR_LENGTH: usize = 1;
+const LTOD_STRING_LENGTH: usize = 23;
 const NANOS_PER_MILLISECOND: u64 = 1_000_000;
 const NANOS_PER_SECOND: u64 = 1_000_000_000;
 
+/// Formats into a raw IEC string buffer, never touching a byte beyond the declared length.
+struct BoundedWriter {
+    dest: *mut u8,
+    length: usize,
+    written: usize,
+}
+
+impl Write for BoundedWriter {
+    fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        let count = s.len().min(self.length - self.written);
+        // SAFETY: `write_terminated` requires `length + 1` bytes behind `dest`, and
+        // `written + count` never exceeds `length`.
+        unsafe { std::ptr::copy_nonoverlapping(s.as_ptr(), self.dest.add(self.written), count) };
+        self.written += count;
+        if count == s.len() {
+            Ok(())
+        } else {
+            Err(std::fmt::Error)
+        }
+    }
+}
+
 /// Formats `args` into `dest` and appends the null terminator the IEC string layout requires.
-/// Output that does not fit is truncated to `capacity - 1` content bytes. Returns the number of
-/// content bytes written, excluding the terminator. Writers must not rely on the destination being
+/// Output that does not fit is truncated to `length` content bytes. Returns the number of content
+/// bytes written, excluding the terminator. Writers must not rely on the destination being
 /// zero-initialized; the buffer may hold arbitrary bytes.
 ///
 /// # Safety
-/// `dest` must have room for `capacity` bytes.
-unsafe fn write_terminated(dest: *mut u8, capacity: usize, args: std::fmt::Arguments) -> usize {
-    let content = core::slice::from_raw_parts_mut(dest, capacity - 1);
-    let mut cursor = std::io::Cursor::new(content);
+/// `dest` must have room for `length + 1` bytes.
+unsafe fn write_terminated(dest: *mut u8, length: usize, args: std::fmt::Arguments) -> usize {
+    let mut writer = BoundedWriter { dest, length, written: 0 };
     // An error here means the output was cut off at the end of the buffer.
-    let _ = cursor.write_fmt(args);
-    let written = cursor.position() as usize;
-    *dest.add(written) = 0;
-    written
+    let _ = writer.write_fmt(args);
+    *dest.add(writer.written) = 0;
+    writer.written
 }
 
 macro_rules! to_string_ext {
-    ($name:ident, $ty:ty, $capacity:expr) => {
+    ($name:ident, $ty:ty, $length:expr) => {
         /// # Safety
         /// `dest` must have room for the conversion result and its null terminator.
         #[allow(non_snake_case)]
         #[no_mangle]
         pub unsafe extern "C" fn $name(input: $ty, dest: *mut u8) -> i32 {
-            write_terminated(dest, $capacity, format_args!("{input}"));
+            write_terminated(dest, $length, format_args!("{input}"));
             0
         }
     };
 }
 
-to_string_ext!(BYTE_TO_STRING_EXT, u8, BYTE_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(USINT_TO_STRING_EXT, u8, USINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(WORD_TO_STRING_EXT, u16, WORD_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(UINT_TO_STRING_EXT, u16, UINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(DWORD_TO_STRING_EXT, u32, DWORD_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(UDINT_TO_STRING_EXT, u32, UDINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(LWORD_TO_STRING_EXT, u64, LWORD_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(ULINT_TO_STRING_EXT, u64, ULINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(SINT_TO_STRING_EXT, i8, SINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(INT_TO_STRING_EXT, i16, INT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(DINT_TO_STRING_EXT, i32, DINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
-to_string_ext!(LINT_TO_STRING_EXT, i64, LINT_STRING_LENGTH + STRING_TERMINATOR_LENGTH);
+to_string_ext!(BYTE_TO_STRING_EXT, u8, BYTE_STRING_LENGTH);
+to_string_ext!(USINT_TO_STRING_EXT, u8, USINT_STRING_LENGTH);
+to_string_ext!(WORD_TO_STRING_EXT, u16, WORD_STRING_LENGTH);
+to_string_ext!(UINT_TO_STRING_EXT, u16, UINT_STRING_LENGTH);
+to_string_ext!(DWORD_TO_STRING_EXT, u32, DWORD_STRING_LENGTH);
+to_string_ext!(UDINT_TO_STRING_EXT, u32, UDINT_STRING_LENGTH);
+to_string_ext!(LWORD_TO_STRING_EXT, u64, LWORD_STRING_LENGTH);
+to_string_ext!(ULINT_TO_STRING_EXT, u64, ULINT_STRING_LENGTH);
+to_string_ext!(SINT_TO_STRING_EXT, i8, SINT_STRING_LENGTH);
+to_string_ext!(INT_TO_STRING_EXT, i16, INT_STRING_LENGTH);
+to_string_ext!(DINT_TO_STRING_EXT, i32, DINT_STRING_LENGTH);
+to_string_ext!(LINT_TO_STRING_EXT, i64, LINT_STRING_LENGTH);
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
     if input.abs() < 1e14 {
-        write_terminated(dest, STRING_CAPACITY, format_args!("{input:.6}"));
+        write_terminated(dest, LREAL_STRING_LENGTH, format_args!("{input:.6}"));
     } else {
-        write_terminated(dest, STRING_CAPACITY, format_args!("{input:.6e}"));
+        write_terminated(dest, LREAL_STRING_LENGTH, format_args!("{input:.6e}"));
     }
     0
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
     if input.abs() < 1e6 {
-        write_terminated(dest, STRING_CAPACITY, format_args!("{input:.6}"));
+        write_terminated(dest, LREAL_STRING_LENGTH, format_args!("{input:.6}"));
     } else {
-        write_terminated(dest, STRING_CAPACITY, format_args!("{input:.6e}"));
+        write_terminated(dest, LREAL_STRING_LENGTH, format_args!("{input:.6e}"));
     }
     0
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn BOOL_TO_STRING(dest: *mut u8, input: bool) {
-    write_terminated(
-        dest,
-        BOOL_STRING_LENGTH + STRING_TERMINATOR_LENGTH,
-        format_args!("{}", if input { "TRUE" } else { "FALSE" }),
-    );
+    write_terminated(dest, BOOL_STRING_LENGTH, format_args!("{}", if input { "TRUE" } else { "FALSE" }));
 }
 
 fn duration_components(timestamp_nanos: u64) -> [(u64, &'static str); 7] {
@@ -139,95 +159,97 @@ fn format_duration(input_nanos: u64, prefix: &str, zero_unit: &str) -> String {
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn TIME_TO_STRING(dest: *mut u8, input: i64) {
     let value = format_duration(input as u64, "T#", "ms");
-    write_terminated(dest, TIME_STRING_LENGTH + STRING_TERMINATOR_LENGTH, format_args!("{value}"));
+    write_terminated(dest, TIME_STRING_LENGTH, format_args!("{value}"));
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LTIME_TO_STRING(dest: *mut u8, input: i64) {
     let value = format_duration(input as u64, "LTIME#", "ns");
-    write_terminated(dest, LTIME_STRING_LENGTH + STRING_TERMINATOR_LENGTH, format_args!("{value}"));
+    write_terminated(dest, LTIME_STRING_LENGTH, format_args!("{value}"));
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
-unsafe fn write_date_time_to_string(input_nanos: i64, prefix: &str, capacity: usize, dest: *mut u8) {
+/// `dest` must have room for `length + 1` bytes.
+unsafe fn write_date_time_to_string(input_nanos: i64, prefix: &str, length: usize, dest: *mut u8) {
     let datetime = chrono::Utc.timestamp_nanos(input_nanos);
-    write_terminated(dest, capacity, format_args!("{prefix}{}-{}", datetime.date_naive(), datetime.time()));
+    write_terminated(dest, length, format_args!("{prefix}{}-{}", datetime.date_naive(), datetime.time()));
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn DT_TO_STRING(dest: *mut u8, input: i64) {
-    write_date_time_to_string(input, "DT#", DT_STRING_LENGTH + STRING_TERMINATOR_LENGTH, dest);
+    write_date_time_to_string(input, "DT#", DT_STRING_LENGTH, dest);
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LDT_TO_STRING(dest: *mut u8, input: i64) {
-    write_date_time_to_string(input, "", STRING_CAPACITY, dest);
+    write_date_time_to_string(input, "", LDT_STRING_LENGTH, dest);
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
-unsafe fn write_date_to_string(input_nanos: i64, prefix: &str, capacity: usize, dest: *mut u8) {
+/// `dest` must have room for `length + 1` bytes.
+unsafe fn write_date_to_string(input_nanos: i64, prefix: &str, length: usize, dest: *mut u8) {
     let date = chrono::Utc.timestamp_nanos(input_nanos).date_naive();
-    write_terminated(dest, capacity, format_args!("{prefix}{date}"));
+    write_terminated(dest, length, format_args!("{prefix}{date}"));
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn DATE_TO_STRING(dest: *mut u8, input: i64) {
-    write_date_to_string(input, "D#", DATE_STRING_LENGTH + STRING_TERMINATOR_LENGTH, dest);
+    write_date_to_string(input, "D#", DATE_STRING_LENGTH, dest);
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LDATE_TO_STRING(dest: *mut u8, input: i64) {
-    write_date_to_string(input, "", STRING_CAPACITY, dest);
+    write_date_to_string(input, "", LDATE_STRING_LENGTH, dest);
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
-unsafe fn write_time_of_day_to_string(input_nanos: i64, prefix: &str, capacity: usize, dest: *mut u8) {
+/// `dest` must have room for `length + 1` bytes.
+unsafe fn write_time_of_day_to_string(input_nanos: i64, prefix: &str, length: usize, dest: *mut u8) {
     let time = chrono::Utc.timestamp_nanos(input_nanos).time();
-    write_terminated(dest, capacity, format_args!("{prefix}{time}"));
+    write_terminated(dest, length, format_args!("{prefix}{time}"));
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn TOD_TO_STRING(dest: *mut u8, input: i64) {
-    write_time_of_day_to_string(input, "TOD#", TOD_STRING_LENGTH + STRING_TERMINATOR_LENGTH, dest);
+    write_time_of_day_to_string(input, "TOD#", TOD_STRING_LENGTH, dest);
 }
 
 /// # Safety
-/// Uses raw pointers, inherently unsafe.
+/// `dest` must have room for the conversion result and its null terminator.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LTOD_TO_STRING(dest: *mut u8, input: i64) {
-    write_time_of_day_to_string(input, "LTOD#", STRING_CAPACITY, dest);
+    write_time_of_day_to_string(input, "LTOD#", LTOD_STRING_LENGTH, dest);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const STRING_CAPACITY: usize = 2048;
 
     fn terminated_str(buffer: &[u8]) -> &str {
         let length = buffer.iter().position(|byte| *byte == 0).unwrap();
@@ -248,9 +270,21 @@ mod tests {
         let mut dest = [0_u8; STRING_CAPACITY];
         unsafe { BOOL_TO_STRING(dest.as_mut_ptr(), true) };
         assert_eq!("TRUE", terminated_str(&dest));
+        unsafe { BYTE_TO_STRING_EXT(u8::MAX, dest.as_mut_ptr()) };
+        assert_eq!("255", terminated_str(&dest));
+        unsafe { USINT_TO_STRING_EXT(u8::MAX, dest.as_mut_ptr()) };
+        assert_eq!("255", terminated_str(&dest));
         unsafe { WORD_TO_STRING_EXT(u16::MAX, dest.as_mut_ptr()) };
         assert_eq!("65535", terminated_str(&dest));
+        unsafe { UINT_TO_STRING_EXT(u16::MAX, dest.as_mut_ptr()) };
+        assert_eq!("65535", terminated_str(&dest));
+        unsafe { DWORD_TO_STRING_EXT(u32::MAX, dest.as_mut_ptr()) };
+        assert_eq!("4294967295", terminated_str(&dest));
+        unsafe { UDINT_TO_STRING_EXT(u32::MAX, dest.as_mut_ptr()) };
+        assert_eq!("4294967295", terminated_str(&dest));
         unsafe { LWORD_TO_STRING_EXT(u64::MAX, dest.as_mut_ptr()) };
+        assert_eq!("18446744073709551615", terminated_str(&dest));
+        unsafe { ULINT_TO_STRING_EXT(u64::MAX, dest.as_mut_ptr()) };
         assert_eq!("18446744073709551615", terminated_str(&dest));
         unsafe { SINT_TO_STRING_EXT(i8::MIN, dest.as_mut_ptr()) };
         assert_eq!("-128", terminated_str(&dest));
@@ -352,6 +386,17 @@ mod tests {
     }
 
     #[test]
+    fn lreal_to_string_longest_output_fills_the_declared_length() {
+        let mut dest = [0xAA_u8; STRING_CAPACITY];
+        let largest_plain_magnitude = 1e14_f64.next_down();
+
+        unsafe { LREAL_TO_STRING_EXT(-largest_plain_magnitude, dest.as_mut_ptr()) };
+
+        assert_eq!("-99999999999999.984375", terminated_str(&dest));
+        assert_eq!(LREAL_STRING_LENGTH, terminated_str(&dest).len());
+    }
+
+    #[test]
     fn lreal_to_string_uses_scientific_notation_for_huge_negative_values() {
         let mut dest = [0xAA_u8; STRING_CAPACITY];
 
@@ -360,6 +405,9 @@ mod tests {
 
         unsafe { LREAL_TO_STRING_EXT(-99_999_999_999_999.25, dest.as_mut_ptr()) };
         assert_eq!("-99999999999999.250000", terminated_str(&dest));
+
+        unsafe { LREAL_TO_STRING_EXT(f64::INFINITY, dest.as_mut_ptr()) };
+        assert_eq!("inf", terminated_str(&dest));
 
         unsafe { LREAL_TO_STRING_EXT(f64::NEG_INFINITY, dest.as_mut_ptr()) };
         assert_eq!("-inf", terminated_str(&dest));
@@ -380,16 +428,36 @@ mod tests {
 
         unsafe { REAL_TO_STRING_EXT(-999_999.25, dest.as_mut_ptr()) };
         assert_eq!("-999999.250000", terminated_str(&dest));
+
+        unsafe { REAL_TO_STRING_EXT(f64::INFINITY, dest.as_mut_ptr()) };
+        assert_eq!("inf", terminated_str(&dest));
+
+        unsafe { REAL_TO_STRING_EXT(f64::NEG_INFINITY, dest.as_mut_ptr()) };
+        assert_eq!("-inf", terminated_str(&dest));
+
+        unsafe { REAL_TO_STRING_EXT(f64::NAN, dest.as_mut_ptr()) };
+        assert_eq!("NaN", terminated_str(&dest));
     }
 
     #[test]
     fn write_terminated_truncates_overlong_output() {
         let mut dest = [0xAA_u8; 16];
 
-        let written = unsafe { write_terminated(dest.as_mut_ptr(), 16, format_args!("{:x<30}", "abc")) };
+        let written = unsafe { write_terminated(dest.as_mut_ptr(), 15, format_args!("{:x<30}", "abc")) };
 
         assert_eq!(15, written);
         assert_eq!("abcxxxxxxxxxxxx", terminated_str(&dest));
+    }
+
+    #[test]
+    fn write_terminated_leaves_bytes_past_the_declared_length_untouched() {
+        let mut dest = [0xAA_u8; 8];
+
+        let written = unsafe { write_terminated(dest.as_mut_ptr(), 3, format_args!("{}", "abcdef")) };
+
+        assert_eq!(3, written);
+        assert_eq!("abc", terminated_str(&dest));
+        assert_eq!([0xAA; 4], dest[4..]);
     }
 
     #[test]
