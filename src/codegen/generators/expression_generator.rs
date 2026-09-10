@@ -4,7 +4,7 @@ use crate::codegen::generators::data_type_generator::get_default_for;
 use inkwell::{
     attributes::AttributeLoc,
     builder::Builder,
-    types::{BasicType, BasicTypeEnum},
+    types::{BasicType, BasicTypeEnum, StructType},
     values::{
         ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, CallSiteValue, FloatValue, IntValue,
         PointerValue, ScalableVectorValue, StructValue, ValueKind, VectorValue,
@@ -2665,101 +2665,174 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     /// generates a struct literal value with the given value assignments (ExpressionList)
     fn generate_literal_struct(&self, assignments: &AstNode) -> Result<ExpressionValue<'ink>, CodegenError> {
-        if let DataTypeInformation::Struct { name: struct_name, members, .. } =
+        let DataTypeInformation::Struct { name: struct_name, members, .. } =
             self.get_type_hint_info_for(assignments)?
-        {
-            let mut uninitialized_members: FxHashSet<&VariableIndexEntry> = FxHashSet::from_iter(members);
-            let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
-            for assignment in flatten_expression_list(assignments) {
-                if let AstStatement::Assignment(data) = assignment.get_stmt() {
-                    if let Some(StatementAnnotation::Variable { qualified_name, .. }) =
-                        self.annotations.get(data.left.as_ref())
-                    {
-                        let member: &VariableIndexEntry =
-                            self.index.find_fully_qualified_variable(qualified_name).ok_or_else(|| {
-                                Diagnostic::unresolved_reference(qualified_name, data.left.as_ref())
-                            })?;
-
-                        let index_in_parent = member.get_location_in_parent();
-                        let value = self.generate_expression(data.right.as_ref())?;
-
-                        uninitialized_members.remove(member);
-                        member_values.push((index_in_parent, value));
-                    } else {
-                        return Err(Diagnostic::codegen_error(
-                            "struct member lvalue required as left operand of assignment",
-                            data.left.as_ref(),
-                        )
-                        .into());
-                    }
-                } else {
-                    return Err(Diagnostic::codegen_error(
-                        "struct literal must consist of explicit assignments in the form of member := value",
-                        assignment,
-                    )
-                    .into());
-                }
-            }
-
-            //fill the struct with fields we didnt mention yet
-            for member in uninitialized_members {
-                let initial_value = self
-                    .llvm_index
-                    .find_associated_variable_value(member.get_qualified_name())
-                    // .or_else(|| self.index.find_associated_variable_value(name))
-                    .or_else(|| self.llvm_index.find_associated_initial_value(member.get_type_name()))
-                    .ok_or_else(|| {
-                        Diagnostic::cannot_generate_initializer(member.get_qualified_name(), assignments)
-                    })?;
-
-                member_values.push((member.get_location_in_parent(), initial_value));
-            }
-            let struct_type = self.llvm_index.get_associated_type(struct_name)?.into_struct_type();
-            if member_values.len() == struct_type.count_fields() as usize {
-                member_values.sort_by_key(|(a, _)| *a);
-                let ordered_values: Vec<BasicValueEnum<'ink>> =
-                    member_values.iter().map(|(_, v)| *v).collect();
-
-                if ordered_values.iter().all(|v| v.is_const()) {
-                    Ok(ExpressionValue::RValue(
-                        struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum(),
-                    ))
-                } else if self.function_context.is_none() {
-                    Err(Diagnostic::codegen_error(
-                        "Non-constant struct literal requires function context",
-                        assignments,
-                    )
-                    .into())
-                } else {
-                    let mut value = struct_type.get_undef();
-                    for (idx, field) in ordered_values.iter().enumerate() {
-                        value = self
-                            .llvm
-                            .builder
-                            .build_insert_value(value, *field, idx as u32, "")?
-                            .into_struct_value();
-                    }
-                    Ok(ExpressionValue::RValue(value.as_basic_value_enum()))
-                }
-            } else {
-                Err(Diagnostic::codegen_error(
-                    format!(
-                        "Expected {} fields for Struct {}, but found {}.",
-                        struct_type.count_fields(),
-                        struct_name,
-                        member_values.len()
-                    ),
-                    assignments,
-                )
-                .into())
-            }
-        } else {
-            Err(Diagnostic::codegen_error(
+        else {
+            return Err(Diagnostic::codegen_error(
                 format!("Expected Struct-literal, got {assignments:#?}"),
                 assignments,
             )
-            .into())
+            .into());
+        };
+        let member_assignments = self.collect_struct_literal_assignments(assignments)?;
+        let struct_type = self.llvm_index.get_associated_type(struct_name)?.into_struct_type();
+
+        // runtime member values need stores, everything else folds into a constant sized like a declaration
+        let has_runtime_values =
+            member_assignments.iter().any(|(_, value)| !Self::is_literal_struct_value(value));
+        if let (Some(function_context), true) = (self.function_context, has_runtime_values) {
+            return self.generate_struct_literal_in_memory(
+                function_context,
+                struct_name,
+                struct_type,
+                &member_assignments,
+                assignments,
+            );
         }
+        ExpressionCodeGenerator::new_context_free(self.llvm, self.index, self.annotations, self.llvm_index)
+            .generate_constant_struct_literal(
+                struct_name,
+                struct_type,
+                members,
+                &member_assignments,
+                assignments,
+            )
+    }
+
+    /// returns true if the struct literal value consists of literals only, including nested struct literals
+    fn is_literal_struct_value(value: &AstNode) -> bool {
+        match value.get_stmt() {
+            AstStatement::Literal(AstLiteral::Array(array)) => {
+                array.elements().is_none_or(Self::is_literal_struct_value)
+            }
+            AstStatement::Literal(_) => true,
+            AstStatement::MultipliedStatement(data) => Self::is_literal_struct_value(&data.element),
+            AstStatement::ParenExpression(inner) => Self::is_literal_struct_value(inner),
+            AstStatement::ExpressionList(values) => values.iter().all(Self::is_literal_struct_value),
+            AstStatement::Assignment(data) => Self::is_literal_struct_value(&data.right),
+            _ => false,
+        }
+    }
+
+    /// pairs every `member := value` of a struct literal with the member it assigns
+    fn collect_struct_literal_assignments<'a>(
+        &self,
+        assignments: &'a AstNode,
+    ) -> Result<Vec<(&'b VariableIndexEntry, &'a AstNode)>, CodegenError> {
+        let mut result = Vec::new();
+        for assignment in flatten_expression_list(assignments) {
+            let AstStatement::Assignment(data) = assignment.get_stmt() else {
+                return Err(Diagnostic::codegen_error(
+                    "struct literal must consist of explicit assignments in the form of member := value",
+                    assignment,
+                )
+                .into());
+            };
+            let Some(StatementAnnotation::Variable { qualified_name, .. }) =
+                self.annotations.get(data.left.as_ref())
+            else {
+                return Err(Diagnostic::codegen_error(
+                    "struct member lvalue required as left operand of assignment",
+                    data.left.as_ref(),
+                )
+                .into());
+            };
+            let member = self
+                .index
+                .find_fully_qualified_variable(qualified_name)
+                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, data.left.as_ref()))?;
+            result.push((member, data.right.as_ref()));
+        }
+        Ok(result)
+    }
+
+    /// builds a struct literal in a stack temporary so every member is stored with assignment semantics
+    fn generate_struct_literal_in_memory(
+        &self,
+        function_context: &FunctionContext<'ink, 'b>,
+        struct_name: &str,
+        struct_type: StructType<'ink>,
+        member_assignments: &[(&VariableIndexEntry, &AstNode)],
+        assignments: &AstNode,
+    ) -> Result<ExpressionValue<'ink>, CodegenError> {
+        // start from the type's default value so unmentioned members and string tails are initialized
+        let temp = self.llvm.create_entry_local_variable(
+            function_context.function,
+            "struct_literal",
+            &struct_type.as_basic_type_enum(),
+        )?;
+        let default_value = self
+            .llvm_index
+            .find_associated_initial_value(struct_name)
+            .unwrap_or_else(|| get_default_for(struct_type.as_basic_type_enum()));
+        self.store_aggregate_via_memcpy(temp, default_value, assignments)?;
+
+        // store the mentioned members like regular assignments
+        for (member, value) in member_assignments {
+            let member_ptr = self.llvm.builder.build_struct_gep(
+                struct_type,
+                temp,
+                member.get_location_in_parent(),
+                member.get_name(),
+            )?;
+            let member_type =
+                self.index.get_effective_type_or_void_by_name(member.get_type_name()).get_type_information();
+            self.generate_store(member_ptr, member_type, value)?;
+        }
+        Ok(ExpressionValue::LValue(temp, struct_type.as_basic_type_enum()))
+    }
+
+    /// builds a struct literal as a constant, used where no function is available to emit stores
+    fn generate_constant_struct_literal(
+        &self,
+        struct_name: &str,
+        struct_type: StructType<'ink>,
+        members: &[VariableIndexEntry],
+        member_assignments: &[(&VariableIndexEntry, &AstNode)],
+        assignments: &AstNode,
+    ) -> Result<ExpressionValue<'ink>, CodegenError> {
+        let mut member_values: Vec<(u32, BasicValueEnum<'ink>)> = Vec::new();
+        for (member, value) in member_assignments {
+            member_values.push((member.get_location_in_parent(), self.generate_expression(value)?));
+        }
+
+        // fill the members we did not mention with their defaults
+        let assigned: FxHashSet<&VariableIndexEntry> =
+            member_assignments.iter().map(|(member, _)| *member).collect();
+        for member in members.iter().filter(|member| !assigned.contains(member)) {
+            let initial_value = self
+                .llvm_index
+                .find_associated_variable_value(member.get_qualified_name())
+                .or_else(|| self.llvm_index.find_associated_initial_value(member.get_type_name()))
+                .ok_or_else(|| {
+                    Diagnostic::cannot_generate_initializer(member.get_qualified_name(), assignments)
+                })?;
+            member_values.push((member.get_location_in_parent(), initial_value));
+        }
+
+        if member_values.len() != struct_type.count_fields() as usize {
+            return Err(Diagnostic::codegen_error(
+                format!(
+                    "Expected {} fields for Struct {}, but found {}.",
+                    struct_type.count_fields(),
+                    struct_name,
+                    member_values.len()
+                ),
+                assignments,
+            )
+            .into());
+        }
+        member_values.sort_by_key(|(index, _)| *index);
+        let ordered_values: Vec<BasicValueEnum<'ink>> =
+            member_values.into_iter().map(|(_, value)| value).collect();
+        if !ordered_values.iter().all(|value| value.is_const()) {
+            return Err(Diagnostic::codegen_error(
+                "Non-constant struct literal requires function context",
+                assignments,
+            )
+            .into());
+        }
+        Ok(ExpressionValue::RValue(struct_type.const_named_struct(&ordered_values).as_basic_value_enum()))
     }
 
     /// generates an array literal with the given optional elements (represented as an ExpressionList)
