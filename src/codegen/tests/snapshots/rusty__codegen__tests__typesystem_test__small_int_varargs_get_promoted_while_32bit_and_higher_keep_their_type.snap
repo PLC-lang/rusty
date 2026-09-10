@@ -29,12 +29,12 @@ entry:
   %load_out2 = load i32, ptr %out2, align [filtered]
   %load_out3 = load i64, ptr %out3, align [filtered]
   %load_out4 = load i32, ptr %out4, align [filtered]
-  %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %0, i32 %load_out2, i64 %load_out3, i32 %load_out4)
+  %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %0, i32 %load_out2, i64 %load_out3, i32 %load_out4, ptr null)
   %load_out11 = load i16, ptr %out1, align [filtered]
   %1 = sext i16 %load_out11 to i32
   %load_out22 = load i32, ptr %out2, align [filtered]
   %load_out33 = load i64, ptr %out3, align [filtered]
-  %call4 = call i32 (ptr, ...) @printf(ptr @utf08_literal_1, i32 %1, i32 %load_out22, i64 %load_out33)
+  %call4 = call i32 (ptr, ...) @printf(ptr @utf08_literal_1, i32 %1, i32 %load_out22, i64 %load_out33, ptr null)
   %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }
