@@ -22,9 +22,9 @@ const LREAL_STRING_LENGTH: usize = 22;
 const TIME_STRING_LENGTH: usize = 33;
 const LTIME_STRING_LENGTH: usize = 37;
 const DATE_STRING_LENGTH: usize = 12;
-const LDATE_STRING_LENGTH: usize = 10;
+const LDATE_STRING_LENGTH: usize = 16;
 const DT_STRING_LENGTH: usize = 32;
-const LDT_STRING_LENGTH: usize = 29;
+const LDT_STRING_LENGTH: usize = 33;
 const TOD_STRING_LENGTH: usize = 22;
 const LTOD_STRING_LENGTH: usize = 23;
 const NANOS_PER_MILLISECOND: u64 = 1_000_000;
@@ -196,7 +196,7 @@ pub unsafe extern "C" fn DT_TO_STRING(dest: *mut u8, input: i64) {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LDT_TO_STRING(dest: *mut u8, input: i64) {
-    write_date_time_to_string(input, "", LDT_STRING_LENGTH, dest);
+    write_date_time_to_string(input, "LDT#", LDT_STRING_LENGTH, dest);
 }
 
 /// # Safety
@@ -219,7 +219,7 @@ pub unsafe extern "C" fn DATE_TO_STRING(dest: *mut u8, input: i64) {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LDATE_TO_STRING(dest: *mut u8, input: i64) {
-    write_date_to_string(input, "", LDATE_STRING_LENGTH, dest);
+    write_date_to_string(input, "LDATE#", LDATE_STRING_LENGTH, dest);
 }
 
 /// # Safety
@@ -465,7 +465,7 @@ mod tests {
         let mut dest = [0_u8; STRING_CAPACITY];
 
         unsafe { LDATE_TO_STRING(dest.as_mut_ptr(), nanos(1982, 12, 15, 10, 10, 2, 123_456_789)) };
-        assert_eq!("1982-12-15", terminated_str(&dest));
+        assert_eq!("LDATE#1982-12-15", terminated_str(&dest));
     }
 
     #[test]
@@ -473,7 +473,7 @@ mod tests {
         let mut dest = [0_u8; STRING_CAPACITY];
 
         unsafe { LDT_TO_STRING(dest.as_mut_ptr(), nanos(1982, 12, 15, 10, 10, 2, 123_456_789)) };
-        assert_eq!("1982-12-15-10:10:02.123456789", terminated_str(&dest));
+        assert_eq!("LDT#1982-12-15-10:10:02.123456789", terminated_str(&dest));
     }
 
     #[test]
