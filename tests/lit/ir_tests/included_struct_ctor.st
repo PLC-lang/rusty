@@ -6,7 +6,9 @@ VAR
 END_VAR
 END_PROGRAM
 
-// CHECK: define void @Main__ctor(ptr %0) {
-// CHECK: call void @IncludedStruct__ctor(ptr %s)
-// CHECK: declare void @IncludedStruct__ctor(ptr)
+// The declaration may precede or follow Main__ctor depending on the unit order
+// CHECK-NOT: define{{.*}}@IncludedStruct__ctor
+// CHECK-DAG: define void @Main__ctor(ptr %0) {
+// CHECK-DAG: call void @IncludedStruct__ctor(ptr %s)
+// CHECK-DAG: declare void @IncludedStruct__ctor(ptr)
 // CHECK-NOT: define{{.*}}@IncludedStruct__ctor

@@ -29,6 +29,6 @@ RuSTy is aiming towards a **fast**, **modern** and **open-source** industry-grad
 
 ## Getting started
 
-The easiest way to compile this project is to use the provided `Dockerfile`. The project offers a `.devcontainer` when using [VSCode](https://code.visualstudio.com/docs/remote/containers). The Dockerfile offers a linux-image which contains everything you need to run `cargo build` / `cargo test` in the project's root directory.
+The easiest way to build this project is the provided [dev container](https://containers.dev/). Open the repository in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers) and choose "Reopen in Container". The container is based on Ubuntu 26.04 and contains everything you need to run `cargo build`, `cargo test` and the `lit` test suite.
 
-If you want to build the project without docker, start [here](https://plc-lang.github.io/rusty/build_and_install.html).
+If you want to build the project natively, start [here](https://plc-lang.github.io/rusty/build_and_install.html).

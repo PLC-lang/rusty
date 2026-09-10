@@ -1,6 +1,5 @@
 use std::fmt::{Debug, Formatter};
 
-use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 use crate::ast::AstNode;
@@ -71,15 +70,10 @@ pub struct TimeOfDay {
     is_long: bool,
 }
 
+/// A duration literal, kept as its exact magnitude in nanoseconds plus the sign.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Time {
-    pub day: f64,
-    pub hour: f64,
-    pub min: f64,
-    pub sec: f64,
-    pub milli: f64,
-    pub micro: f64,
-    pub nano: u32,
+    pub nanos: u128,
     pub negative: bool,
     pub is_long: bool,
 }
@@ -107,15 +101,16 @@ fn calculate_date_time(
     sec: u32,
     nano: u32,
 ) -> Result<i64, String> {
-    NaiveDate::from_ymd_opt(year, month, day)
-        .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
-        .ok_or_else(|| format!("Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
-        .and_then(|date_time| {
-            date_time
-                .and_utc()
-                .timestamp_nanos_opt()
-                .ok_or_else(|| format!("Out of range Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
-        })
+    let date_time = plc_literals::DateAndTime {
+        date: plc_literals::Date { year, month, day },
+        time: plc_literals::TimeOfDay { hour, min, sec, nano },
+    };
+    if !date_time.date.is_valid() || !date_time.time.is_valid() {
+        return Err(format!("Invalid Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"));
+    }
+    date_time
+        .nanos_since_epoch()
+        .ok_or_else(|| format!("Out of range Date {year}-{month}-{day}-{hour}:{min}:{sec}.{nano}"))
 }
 
 impl DateAndTime {
@@ -126,24 +121,12 @@ impl DateAndTime {
 }
 
 impl Time {
-    /// the nanos represented by the given time-period
-    pub fn value(&self) -> i64 {
-        let dhm_seconds = {
-            let hours = self.day * 24_f64 + self.hour;
-            let mins = hours * 60_f64 + self.min;
-            mins * 60_f64 + self.sec
-        };
-        let millis = dhm_seconds * 1000_f64 + self.milli;
-        let micro = millis * 1000_f64 + self.micro;
-        let nano = micro * 1000_f64 + self.nano as f64;
-        //go to full micro
-        let nanos = nano.round() as i64;
-
-        if self.negative {
-            -nanos
-        } else {
-            nanos
-        }
+    /// the signed nanoseconds represented by the time period, or an error if the magnitude
+    /// exceeds what an `i64` holds
+    pub fn value(&self) -> Result<i64, String> {
+        plc_literals::Duration { negative: self.negative, nanos: self.nanos }.signed_nanos().ok_or_else(
+            || format!("Out of range TIME {}{}ns", if self.negative { "-" } else { "" }, self.nanos),
+        )
     }
 }
 
@@ -165,7 +148,6 @@ impl Date {
 impl_getters! { Date, [year, month, day], [i32, u32, u32] }
 impl_getters! { DateAndTime, [year, month, day, hour, min, sec, nano], [i32, u32, u32, u32, u32, u32, u32]}
 impl_getters! { TimeOfDay, [hour, min, sec, nano], [u32, u32, u32, u32]}
-impl_getters! { Time, [day, hour, min, sec, milli, micro, nano], [f64, f64, f64, f64, f64, f64, u32]}
 
 impl StringValue {
     pub fn is_wide(&self) -> bool {
@@ -368,17 +350,9 @@ impl Debug for AstLiteral {
                 .field("sec", sec)
                 .field("nano", nano)
                 .finish(),
-            AstLiteral::Time(Time { day, hour, min, sec, milli, micro, nano, negative, .. }) => f
-                .debug_struct("LiteralTime")
-                .field("day", day)
-                .field("hour", hour)
-                .field("min", min)
-                .field("sec", sec)
-                .field("milli", milli)
-                .field("micro", micro)
-                .field("nano", nano)
-                .field("negative", negative)
-                .finish(),
+            AstLiteral::Time(Time { nanos, negative, .. }) => {
+                f.debug_struct("LiteralTime").field("nanos", nanos).field("negative", negative).finish()
+            }
             AstLiteral::Real(value) => f.debug_struct("LiteralReal").field("value", value).finish(),
             AstLiteral::Bool(value) => f.debug_struct("LiteralBool").field("value", value).finish(),
             AstLiteral::String(StringValue { value, is_wide, .. }) => {
