@@ -1,0 +1,54 @@
+# Reviews pull requests with Entmoot, installed fresh from its `main` branch on every run. Under `pull_request`,
+# forks receive neither secrets nor a writable token, so their runs would fail rather than leak; the job skips
+# them outright instead.
+
+name: Entmoot
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, closed] # closed only cancels a running review
+
+# No token permissions by default, each job asks for what it needs
+permissions: {}
+
+# A new push or a close queues a run in the same group, which cancels the review still running
+concurrency:
+  group: entmoot-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Skip closed, foreign, Dependabot, and draft pull requests. Dependabot runs receive no secrets, so
+    # they would fail on the missing API key
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]' &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # the budget caps spend, this caps a hung provider
+
+    # Reading the repository and posting the comment is all the token is used for
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      # Check out the reviewed head rather than the synthetic merge, with enough history to resolve the
+      # base branch and the merge base, and without leaving the token in `.git/config`
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      # Whichever provider secret the repository defines selects the provider, the other expands to empty
+      - run: npx --yes github:volsa/entmoot#main review
+        env:
+          ENTMOOT_OPENROUTER_API_KEY: ${{ secrets.ENTMOOT_OPENROUTER_API_KEY }}
+          ENTMOOT_OPENAI_API_KEY: ${{ secrets.ENTMOOT_OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
