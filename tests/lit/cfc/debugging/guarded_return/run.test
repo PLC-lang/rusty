@@ -1,0 +1,28 @@
+RUN: %COMPILE_IR %S/guarded_return.cfc | %CHECK_IR %s
+
+The diagram, with execution orders in parentheses:
+
+guard --> RETURN (0)
+42 -----> result (1)
+
+Each ordered element must get a debug location in the diagram's own file,
+at line = order + 1, so a debugger can break on it.
+
+Debug file per area: declaration text vs. diagram `guarded_return`.
+CHECK-DAG: ![[#FILE_DECLARATION:]] = !DIFile(filename: "guarded_return.cfc", directory:
+CHECK-DAG: ![[#FILE_DIAGRAM:]] = !DIFile(filename: "guarded_return.cfc.guarded_return", directory:
+
+The function lives in the declaration; a lexical block inside it is bound to the diagram file.
+CHECK-DAG: ![[#SCOPE_FUNCTION:]] = distinct !DISubprogram(name: "guarded_return", {{.*}}, file: ![[#FILE_DECLARATION]], line: 1,
+CHECK-DAG: ![[#SCOPE_DIAGRAM:]] = distinct !DILexicalBlock(scope: ![[#SCOPE_FUNCTION]], file: ![[#FILE_DIAGRAM]])
+
+Diagram statements are scoped to that block, line = execution order + 1 (0 is reserved).
+CHECK-DAG: ![[#LOCATION_RETURN:]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]])
+CHECK-DAG: ![[#LOCATION_RESULT:]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]])
+
+Guard load, branch and return are one element (order 0); the store is the sink (order 1).
+CHECK-DAG: define void @guarded_return(ptr %0) !dbg ![[#SCOPE_FUNCTION]]
+CHECK-DAG: %load_guard = load i8, ptr %guard, {{.*}}!dbg ![[#LOCATION_RETURN]]
+CHECK-DAG: br i1 {{.*}}, !dbg ![[#LOCATION_RETURN]]
+CHECK-DAG: ret void, !dbg ![[#LOCATION_RETURN]]
+CHECK-DAG: store i32 42, ptr %result, {{.*}}!dbg ![[#LOCATION_RESULT]]
