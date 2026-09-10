@@ -1,0 +1,7 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+A block element is located by the diagram it sits in and its execution order:
+`<file>.cfc.<diagram>:<order>`. The block itself is the fault, so no pin index
+follows the order.
+CHECK: {{.*}}unknown_type.cfc.unknown_type:0: error[E146]: Block `counter` refers to an undeclared POU
+CHECK: error: Compilation aborted due to critical errors

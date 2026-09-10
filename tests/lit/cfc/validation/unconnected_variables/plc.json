@@ -1,0 +1,10 @@
+{
+	"name" : "cfc_unconnected_variables",
+	"files" : [
+		"unconnected_variables.cfc",
+		"main.st"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

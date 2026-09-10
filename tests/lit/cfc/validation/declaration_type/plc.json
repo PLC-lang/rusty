@@ -1,0 +1,10 @@
+{
+	"name" : "cfc_declaration_type",
+	"files" : [
+		"declaration_type.cfc",
+		"myAdd.st"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
