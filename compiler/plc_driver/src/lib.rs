@@ -32,6 +32,7 @@ use plc_index::GlobalContext;
 use project::project::Project;
 use source_code::SourceContainer;
 
+pub mod artifacts;
 pub mod cli;
 pub mod pipelines;
 

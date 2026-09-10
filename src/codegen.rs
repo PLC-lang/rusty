@@ -487,7 +487,7 @@ impl<'ink> GeneratedModule<'ink> {
         target: &Target,
         optimization_level: OptimizationLevel,
     ) -> Result<PathBuf, CodegenError> {
-        let output = Self::get_output_file(output_dir, output_name, target);
+        let output = Self::get_output_file(output_dir, output_name);
         //ensure output exists
         if let Some(parent) = output.parent() {
             std::fs::create_dir_all(parent)?;
@@ -528,14 +528,10 @@ impl<'ink> GeneratedModule<'ink> {
         }
     }
 
-    fn get_output_file(output_dir: Option<&Path>, output_name: &str, target: &Target) -> PathBuf {
-        let output_dir = output_dir.map(Path::to_path_buf).unwrap_or_else(|| PathBuf::from(""));
-        let output = if let Some(name) = target.try_get_name() {
-            output_dir.join(name).join(output_name)
-        } else {
-            output_dir.join(output_name)
-        };
-        output
+    /// The caller decides where the artifacts of a target land, see `target_compile_dir`
+    /// in the driver.
+    fn get_output_file(output_dir: Option<&Path>, output_name: &str) -> PathBuf {
+        output_dir.map(Path::to_path_buf).unwrap_or_default().join(output_name)
     }
 
     pub fn get_unit_location(&self) -> &Path {
