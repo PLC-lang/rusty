@@ -221,7 +221,7 @@ impl AstVisitor for AstSerializer<'_> {
                 }
             }
             DataTypeDeclaration::Definition { data_type, .. } => {
-                data_type.as_ref().walk(self);
+                self.visit_data_type(data_type);
             }
             DataTypeDeclaration::Aggregate { referenced_type, .. } => {
                 self.result.push_str(referenced_type);

@@ -275,7 +275,8 @@ fn method_with_var_inout_blocks() {
     let vblock2 = &method_pou.variable_blocks[1];
     let vblock3 = &method_pou.variable_blocks[2];
 
-    assert_eq!(vblock1.constant, true);
+    // CONSTANT is accepted on VAR_INPUT but has no effect, so the flag stays false
+    assert_eq!(vblock1.constant, false);
     assert_eq!(vblock1.kind, VariableBlockType::Input(ArgumentProperty::ByVal));
 
     assert_eq!(vblock2.constant, false);

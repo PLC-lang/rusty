@@ -29,7 +29,7 @@ entry:
   %load_double = load double, ptr %double, align [filtered]
   %load_integer = load i16, ptr %integer, align [filtered]
   %2 = sext i16 %load_integer to i32
-  %call = call i32 (ptr, ...) @printf(ptr %s, double 3.000000e+00, double %1, double %load_double, i32 %2)
+  %call = call i32 (ptr, ...) @printf(ptr %s, double 3.000000e+00, double %1, double %load_double, i32 %2, ptr null)
   ret void
 }
 
