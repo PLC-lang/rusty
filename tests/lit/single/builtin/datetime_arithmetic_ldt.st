@@ -14,13 +14,13 @@ FUNCTION main
     ldt1 := LDT#2024-01-15-12:30:00;
     lt1 := LTIME#5s;
     ldt_result := ADD_LDT_LTIME(ldt1, lt1);
-    printf('%s$N', REF(LDT_TO_STRING(ldt_result)));                                 // CHECK: 2024-01-15-12:30:05
+    printf('%s$N', REF(LDT_TO_STRING(ldt_result)));                                 // CHECK: LDT#2024-01-15-12:30:05
 
     // SUB_LDT_LTIME: LDT - LTIME -> LDT (i64)
     ldt1 := LDT#2024-01-15-12:30:05;
     lt1 := LTIME#3s;
     ldt_result := SUB_LDT_LTIME(ldt1, lt1);
-    printf('%s$N', REF(LDT_TO_STRING(ldt_result)));                                 // CHECK: 2024-01-15-12:30:02
+    printf('%s$N', REF(LDT_TO_STRING(ldt_result)));                                 // CHECK: LDT#2024-01-15-12:30:02
 
     // SUB_LDT_LDT: LDT - LDT -> LTIME (i64, result is difference in nanoseconds)
     ldt1 := LDT#2024-01-15-12:30:10;

@@ -16,7 +16,7 @@ FUNCTION main
     // TO_LDT
     // Updated checks for short datetime unit behavior after migration.
     printf('%s$N', REF(TIME_TO_STRING(TO_LDT(DT#2024-11-12-16:36:15.100))));        // CHECK: T#40d21h14m29s760ms
-    printf('%s$N', REF(LDT_TO_STRING(TO_LDT(LDT#2024-11-12-16:36:15.100))));        // CHECK: 2024-11-12-16:36:15.100
+    printf('%s$N', REF(LDT_TO_STRING(TO_LDT(LDT#2024-11-12-16:36:15.100))));        // CHECK: LDT#2024-11-12-16:36:15.100
 
     // TO_DATE
     // Updated checks for short datetime unit behavior after migration.
