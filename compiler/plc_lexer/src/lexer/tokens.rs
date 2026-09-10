@@ -417,7 +417,7 @@ pub enum Token {
     #[regex("(TIME_OF_DAY|LTIME_OF_DAY|TOD|LTOD)#\\d+:\\d+(:\\d+(\\.\\d+)?)?", ignore(case))]
     LiteralTimeOfDay,
 
-    #[regex("(LTIME|LT|TIME|T)#-?(\\d+(\\.\\d+)?(d|h|ms|m|s|us|ns))+", ignore(case))]
+    #[regex("(LTIME|LT|TIME|T)#[+-]?(\\d+(_\\d+)*(\\.\\d+(_\\d+)*)?(d|h|ms|m|s|us|ns))+", ignore(case))]
     LiteralTime,
 
     #[regex("%(B|b|D|d|W|w|L|l|X|x)", super::parse_access_type)]

@@ -89,29 +89,13 @@ pub fn visit_statement<T: AnnotationMap>(
             );
         }
         AstStatement::Literal(AstLiteral::Time(time)) => {
-            // Time::value() uses f64 arithmetic and casts to i64 with saturation, so an
-            // out-of-range value silently becomes i64::MAX/MIN. Compute the raw f64 nanoseconds
-            // up-front and pass a directional Err before the cast can hide the overflow.
-            let raw_nanos: f64 = {
-                let hours = time.day * 24.0 + time.hour;
-                let mins = hours * 60.0 + time.min;
-                let secs = mins * 60.0 + time.sec;
-                let millis = secs * 1_000.0 + time.milli;
-                let micros = millis * 1_000.0 + time.micro;
-                let nanos = micros * 1_000.0 + time.nano as f64;
-                if time.negative {
-                    -nanos
+            let lit_value = time.value().map_err(|_| {
+                if time.is_negative() {
+                    BoundError::Underflow
                 } else {
-                    nanos
+                    BoundError::Overflow
                 }
-            };
-            let lit_value: Result<i64, BoundError> = if raw_nanos > i64::MAX as f64 {
-                Err(BoundError::Overflow)
-            } else if raw_nanos < i64::MIN as f64 {
-                Err(BoundError::Underflow)
-            } else {
-                Ok(time.value())
-            };
+            });
             validate_temporal_literal_bounds(
                 validator,
                 lit_value,
