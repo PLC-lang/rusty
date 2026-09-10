@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-2d958ec2.js";
+            window.path_to_searchindex_js = "searchindex-5aa388eb.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-11748e21.js"></script>
@@ -238,7 +238,21 @@ We are aiming towards an open-source industry-grade ST compiler supporting at le
 </ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="build--install"><a class="header" href="#build--install">Build &amp; Install</a></h1>
-<p>We provide a <a href="https://containers.dev/"><code>devcontainer.json</code></a> and a <code>Dockerfile</code> for development. For native development, refer to the following sections.</p>
+<p>We provide a <a href="https://containers.dev/">dev container</a> for development. For native development, refer to the sections after it.</p>
+<h2 id="dev-container"><a class="header" href="#dev-container">Dev Container</a></h2>
+<p>Open the repository in <a href="https://code.visualstudio.com/docs/devcontainers/containers">VS Code</a> and choose “Reopen in Container”. The container is defined in <code>.devcontainer/</code> and is based on Ubuntu 26.04.</p>
+<p>The container runs with a read-only root filesystem and without <code>sudo</code>. The workspace is mounted at <code>/workspace</code>, and the home directory and the <code>target/</code> directory live on named volumes, so builds and tools installed with <code>cargo install</code> persist across container rebuilds. The <code>.devcontainer/</code> directory is mounted read-only.</p>
+<h2 id="ubuntu-2604"><a class="header" href="#ubuntu-2604">Ubuntu 26.04</a></h2>
+<p>Ubuntu 26.04 ships LLVM 21 in its own package archive, so there is no need for the LLVM apt repository:</p>
+<pre><code class="language-bash"># Install pre-requisites
+sudo apt install build-essential clang lld zlib1g-dev libzstd-dev llvm-21-dev llvm-21-tools libpolly-21-dev
+
+# Install Rust, see https://rust-lang.org/tools/install/
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# lit is shipped with llvm-21-tools, make it available as `lit`
+sudo ln -s /usr/lib/llvm-21/bin/lit /usr/local/bin/lit
+</code></pre>
 <h2 id="ubuntu-2404"><a class="header" href="#ubuntu-2404">Ubuntu 24.04</a></h2>
 <pre><code class="language-bash"># Install pre-requisites
 sudo apt install lsb-release wget software-properties-common gnupg build-essential zlib1g-dev libzstd-dev lld clang
