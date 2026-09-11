@@ -18,6 +18,7 @@ plc_diagnostics = { path = "../plc_diagnostics/", version = "1.1.0-dev" }
 plc_index = { path = "../plc_index", version = "1.1.0-dev" }
 plc_lowering = { path = "../plc_lowering", version = "1.1.0-dev" }
 plc_header_generator = { path = "../plc_header_generator", version = "1.1.0-dev" }
+plc_llvm = { path = "../plc_llvm", version = "1.1.0-dev" }
 
 serde.workspace = true
 serde_json.workspace = true
