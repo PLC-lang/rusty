@@ -1,8 +1,8 @@
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 
 use serde::{Deserialize, Serialize};
 
-use crate::ast::AstNode;
+use crate::ast::{AstNode, AstStatement};
 use derive_more::TryInto;
 
 macro_rules! impl_getters {
@@ -120,12 +120,32 @@ impl DateAndTime {
     }
 }
 
+impl Display for DateAndTime {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "DATE_AND_TIME#{}-{}-{}-{}:{}:{}",
+            self.year, self.month, self.day, self.hour, self.min, self.sec
+        )
+    }
+}
+
 impl Time {
     /// the signed nanoseconds represented by the time period, or an error if the magnitude
     /// exceeds what an `i64` holds
     pub fn value(&self) -> Result<i64, String> {
         plc_literals::Duration { negative: self.negative, nanos: self.nanos }.signed_nanos().ok_or_else(
             || format!("Out of range TIME {}{}ns", if self.negative { "-" } else { "" }, self.nanos),
+        )
+    }
+}
+
+impl Display for Time {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "LTIME#{}D{}H{}M{}S{}MS{}US{}NS",
+            self.day, self.hour, self.min, self.sec, self.milli, self.micro, self.nano
         )
     }
 }
@@ -137,11 +157,23 @@ impl TimeOfDay {
     }
 }
 
+impl Display for TimeOfDay {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TIME_OF_DAY#{}:{}:{}", self.hour, self.min, self.sec) //nano not supported? https://infosys.beckhoff.com/english.php?content=../content/1033/tcplccontrol/925615243.html&id=
+    }
+}
+
 impl Date {
     /// the value of the date in nanoseconds since 1970-01-01-00:00:00
     /// the time-part of the returned value is set to 00:00:00
     pub fn value(&self) -> Result<i64, String> {
         calculate_date_time(self.year, self.month, self.day, 0, 0, 0, 0)
+    }
+}
+
+impl Display for Date {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "LDATE#{}-{}-{}", self.year, self.month, self.day)
     }
 }
 
@@ -190,6 +222,25 @@ impl TimeOfDay {
 impl Array {
     pub fn elements(&self) -> Option<&AstNode> {
         self.elements.as_ref().map(|it| it.as_ref())
+    }
+}
+
+impl Display for Array {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let reduced = self
+            .elements
+            .iter()
+            .filter(|a| matches!(&a.stmt, AstStatement::Literal(_)))
+            .map(|b| match &b.stmt {
+                AstStatement::Literal(item) => item.to_string(),
+                _ => panic!("only literals should be taken!"),
+            })
+            .reduce(|c, d| format!("{}, {}", c, d));
+
+        match reduced {
+            Some(item) => write!(f, "[{}]", item),
+            None => write!(f, "[]"),
+        }
     }
 }
 
@@ -361,6 +412,23 @@ impl Debug for AstLiteral {
             AstLiteral::Array(Array { elements, .. }) => {
                 f.debug_struct("LiteralArray").field("elements", elements).finish()
             }
+        }
+    }
+}
+
+impl Display for AstLiteral {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AstLiteral::Null => Ok(()),
+            AstLiteral::Integer(int_value) => write!(f, "{}", int_value),
+            AstLiteral::Date(date) => write!(f, "{}", date),
+            AstLiteral::DateAndTime(date_and_time) => write!(f, "{}", date_and_time),
+            AstLiteral::TimeOfDay(time_of_day) => write!(f, "{}", time_of_day),
+            AstLiteral::Time(time) => write!(f, "{}", time),
+            AstLiteral::Real(real_value) => write!(f, "{}", real_value),
+            AstLiteral::Bool(bool_value) => write!(f, "{}", bool_value),
+            AstLiteral::String(string_value) => write!(f, "{}", string_value.value),
+            AstLiteral::Array(array) => write!(f, "{}", array),
         }
     }
 }

@@ -98,7 +98,7 @@ impl<T: AsRef<Path> + Sync + Send> SourceContainer for T {
 
             Ok(SourceCode { source, path: Some(self.as_ref().to_owned()) })
         } else {
-            Err(format!("{} is not a source file", &self.as_ref().to_string_lossy()))
+            Err(format!("{} is not a source file", self.as_ref().to_string_lossy()))
         }
     }
 

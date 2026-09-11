@@ -133,6 +133,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                                 build_enum_initializer(&last_name, &location, &mut id_provider, enum_name)
                             });
                             last_name = Some(element_name.to_string());
+
                             AstFactory::create_assignment(
                                 AstFactory::create_member_reference(
                                     AstFactory::create_identifier(
@@ -490,7 +491,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
     let linkage = pou.linkage;
     if let Some(return_type) = &pou.return_type {
         if should_generate_implicit(return_type) {
-            let type_name = format!("__{}_return", &pou.name); // TODO: Naming convention (see plc_util/src/convention.rs)
+            let type_name = format!("__{}_return", pou.name); // TODO: Naming convention (see plc_util/src/convention.rs)
             let type_ref = DataTypeDeclaration::Reference {
                 referenced_type: type_name.clone(),
                 location: return_type.get_location(),

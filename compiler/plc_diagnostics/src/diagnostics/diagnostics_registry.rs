@@ -207,7 +207,6 @@ lazy_static! {
         E103,   Error,      include_str!("./error_codes/E103.md"),  // Immutable Hardware Binding
         E104,   Error,      include_str!("./error_codes/E104.md"),  // Config Variable With Incomplete Address
         E105,   Error,      include_str!("./error_codes/E105.md"),  // CONSTANT keyword in POU
-        E106,   Warning,    include_str!("./error_codes/E106.md"),  // VAR_EXTERNAL have no effect
         E107,   Error,      include_str!("./error_codes/E107.md"),  // Missing configuration for template variable
         E108,   Error,      include_str!("./error_codes/E108.md"),  // Template variable is configured multiple times
         E109,   Error,      include_str!("./error_codes/E109.md"),  // Stateful pointer variable initialized with temporary value
@@ -257,6 +256,7 @@ lazy_static! {
         E153,   Error,      include_str!("./error_codes/E153.md"),  // CFC ENO cycle
         E154,   Error,      include_str!("./error_codes/E154.md"),  // Negated CFC reference assignment
         E155,   Error,      include_str!("./error_codes/E155.md"),  // Duplicate CFC return pin
+        E156,   Error,      include_str!("./error_codes/E156.md"),  // Unsupported syntax for the chosen XML target
     );
 }
 

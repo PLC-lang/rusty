@@ -135,9 +135,22 @@ pub fn compile_and_load<T: Compilable>(context: &CodegenContext, source: T, incl
         Command::new("cl")
             .args([
                 "/LD",
+                "/MD",
                 obj_path.to_str().unwrap(),
                 stdlib_path.to_str().unwrap(),
                 &format!("/Fe:{}", so_path.to_str().unwrap()),
+                "/link",
+                "/DEFAULTLIB:msvcrt",
+                "/EXPORT:main",
+                "/EXPORT:__mock_time_set_ns",
+                "/EXPORT:__mock_time_advance_ns",
+                "/EXPORT:__mock_time_set_u32",
+                "/EXPORT:__mock_time_advance_u32",
+                "kernel32.lib",
+                "ntdll.lib",
+                "userenv.lib",
+                "ws2_32.lib",
+                "dbghelp.lib",
             ])
             .status()
             .expect("Failed to run cl.exe")

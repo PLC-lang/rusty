@@ -193,7 +193,7 @@ impl AstVisitorMut for InheritanceLowerer {
         };
 
         let base_var = Variable {
-            name: format!("__{}", &base_name.name),
+            name: format!("__{}", base_name.name),
             data_type_declaration: DataTypeDeclaration::Reference {
                 referenced_type: base_name.name.clone(),
                 location: SourceLocation::internal(),

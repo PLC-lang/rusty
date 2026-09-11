@@ -2469,7 +2469,7 @@ impl<'i> TypeAnnotator<'i> {
                 if let Some(base_type) = base.and_then(|base| self.annotation_map.get_type(base, self.index))
                 {
                     // if base is an enum, we need to look for members of this specific enum
-                    let optional_enum_qualifier = Some(qualifier.as_str()).filter(|_| base_type.is_enum());
+                    let optional_enum_qualifier = base_type.is_enum().then_some(qualifier.as_str());
                     if ctx.is_in_a_body() {
                         accept_cast_string_literal(&mut self.string_literals, base_type, target);
                     }
