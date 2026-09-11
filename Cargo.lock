@@ -1447,10 +1447,8 @@ dependencies = [
  "num",
  "paste",
  "plc-compiler",
- "plc_ast",
  "plc_driver",
- "plc_lexer",
- "plc_parser",
+ "plc_literals",
  "plc_source",
  "tempfile",
 ]
@@ -2310,8 +2308,8 @@ dependencies = [
 name = "plc_ast"
 version = "1.1.0-dev"
 dependencies = [
- "chrono",
  "derive_more",
+ "plc_literals",
  "plc_source",
  "plc_util",
  "rustc-hash",
@@ -2436,6 +2434,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_literals"
+version = "1.1.0-dev"
+
+[[package]]
 name = "plc_llvm"
 version = "1.1.0-dev"
 dependencies = [
@@ -2465,6 +2467,7 @@ dependencies = [
  "plc_ast",
  "plc_diagnostics",
  "plc_lexer",
+ "plc_literals",
  "plc_source",
 ]
 

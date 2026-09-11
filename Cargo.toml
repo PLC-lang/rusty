@@ -76,6 +76,7 @@ members = [
     "compiler/plc_driver",
     "compiler/plc_ast",
     "compiler/plc_lexer",
+    "compiler/plc_literals",
     "compiler/plc_parser",
     "compiler/plc_diagnostics",
     "compiler/plc_project",
