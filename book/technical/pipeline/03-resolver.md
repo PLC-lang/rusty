@@ -187,7 +187,7 @@ For a function block call, the operator is a variable of the block's type. Argum
 
 ## Literals and generated types
 
-Integer literals use `DINT` if they fit 32 bits and `LINT` otherwise. Real literals use `REAL` or `LREAL` by the same size rule. Typed literals use their prefix, as in `INT#5`. String literals get types sized to their contents: `'hello'` has type `__STRING_5`, even when assigned to an unsized `STRING` (i.e. `STRING[5]`).
+Integer literals use `DINT` if they fit 32 bits and `LINT` otherwise. Real literals use `REAL` or `LREAL` by the same size rule. Typed literals use their prefix, as in `INT#5`. String literals get types sized to their contents: `'hello'` has type `__STRING_5`, a `STRING[5]`, even when it is assigned to a `STRING` that was declared without a size.
 
 That sized type does not exist in the index, so the resolver registers it in a small index of its own. After all units are annotated, these generated types, together with the on-demand pointer types, are imported into the global index, where codegen finds them like any declared type. String literals found in bodies are also collected per unit, because codegen emits them as global constants. For
 

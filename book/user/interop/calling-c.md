@@ -101,6 +101,7 @@ The typed forms keep exactly the argument list of the caller, so their callees m
 > [!NOTE]
 > Arguments of the untyped form follow the promotion rules of C: values smaller than 32 bits arrive as 32-bit values.
 
+
 ## What's next
 
 A declaration must match what the other side expects. The [next chapter](c-interface.md) gives the C type of every construct.
