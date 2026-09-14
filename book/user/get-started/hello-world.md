@@ -5,7 +5,7 @@ You write one file, compile it, and run it.
 
 ## The program
 
-A program needs a place to start. The compiler starts at the function `main`.
+A program needs a place to start. The compiler does not choose one; the C runtime calls the function `main`.
 
 Printing needs a function that writes to the terminal, and `puts` from the C library does that. The `{external}` attribute tells the compiler that the implementation is somewhere else and that the linker will find it.
 
@@ -20,11 +20,11 @@ FUNCTION puts: DINT
 END_FUNCTION
 
 FUNCTION main: DINT
-    puts('hello, world!$N');
+    puts('hello, world!');
 END_FUNCTION
 ```
 
-Two details of the language show up already. A string literal stands between single quotation marks, and `$N` inside it is the escape for a new line.
+Two details of the language show up already. A string literal stands between single quotation marks, and a `$` inside it starts an escape, such as `$N` for a new line. This literal needs no `$N`, because `puts` writes a new line after the text.
 
 
 ## Compile and run
@@ -38,14 +38,14 @@ plc hello_world.st -o hello_world --linker=cc
 hello, world!
 ```
 
-The compiler translated the file into an object file and then called `cc` to link that object with the C library into an executable. `-o` names the result. `--linker=cc` names the program that links; use `--linker=clang` on macOS and on Windows, where `cc` usually does not exist.
+The compiler translated the file into an object file and then called `cc` to link that object with the C library into an executable. `-o` names the result. `--linker=cc` names the program that links; [Install](install.md) says which one your system has.
 
-Leave out `-o` and the executable is named after the input file, here `hello_world.st.out`. Add `-c` and the compiler stops after the object file.
+Leave out `-o` and the executable is named after the input file, here `hello_world.st.out`. Add `-c` and the compiler stops after the object file, `hello_world.st.o`.
 
 
 ## When something is wrong
 
-Change the body to an assignment that cannot work:
+Now make a mistake on purpose. Write this into `hello_world.st` instead:
 
 ```iecst
 FUNCTION main: DINT
@@ -68,7 +68,7 @@ error: Compilation aborted due to critical errors.
 Hint: You can use `plc explain <ErrorCode>` for more information
 ```
 
-Every message has a code. `plc explain E037` prints what the code means, with an example. The compiler also returns a non-zero exit code, so a script sees the failure.
+The first line carries the code of the message. `plc explain E037` prints what the code means, with an example. The compiler also returns a non-zero exit code, so a script sees the failure.
 
 To check the file without producing anything, use `plc --check hello_world.st`.
 
