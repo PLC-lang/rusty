@@ -159,8 +159,8 @@ Index {
             "counter": Struct {
                 name: "Counter",
                 members: [
-                    { name: "step",  qualified_name: "Counter.step",  data_type_name: "DINT", argument_type: Input,  location_in_parent: 0, initial_value: ConstId(0) },
-                    { name: "count", qualified_name: "Counter.count", data_type_name: "DINT", argument_type: Output, location_in_parent: 1, initial_value: None },
+                    { name: "step",  qualified_name: "Counter.step",  data_type_name: "DINT", argument_type: ByVal(Input),  location_in_parent: 0, initial_value: ConstId(0) },
+                    { name: "count", qualified_name: "Counter.count", data_type_name: "DINT", argument_type: ByVal(Output), location_in_parent: 1, initial_value: None },
                 ],
             },
         },
@@ -169,10 +169,10 @@ Index {
         "__counter__init": { name: "__Counter__init", data_type_name: "Counter" },
     },
     implementations: {
-        "counter": { call_name: "Counter", type_name: "Counter", kind: FunctionBlock },
+        "counter": { call_name: "Counter", type_name: "Counter", implementation_type: FunctionBlock },
     },
     constant_expressions: [
-        ConstId(0): { expression: 1, target_type: "DINT", state: Unresolved },
+        ConstId(0): { expression: 1, target_type_name: "DINT", state: Unresolved },
     ],
 }
 ```
@@ -222,7 +222,7 @@ VAR_GLOBAL CONSTANT
 END_VAR
 ```
 
-the constant store holds one expression per initializer, plus the address `__PI_0_0` that pre-processing gave `sensor`. The evaluator works through them as a queue and tries to fold each into a literal. An expression that depends on a name that is not resolved yet goes to the back of the queue; every other expression is marked resolved, or unresolvable with a reason. The first pass over the example:
+the constant store holds one expression per initializer, plus the address `__PI_0_0` that pre-processing gave `sensor` and one expression per segment of that address. The evaluator works through them as a queue and tries to fold each into a literal. An expression that depends on a name that is not resolved yet goes to the back of the queue; every other expression is marked resolved, or unresolvable with a reason. The first pass over the example:
 
 1. `MAX_ITEMS + 1`: `MAX_ITEMS` is not resolved yet, back of the queue.
 2. `3`: already a literal, resolved.
@@ -238,23 +238,23 @@ Visualized:
 ```
 VAR_GLOBAL CONSTANT
     SCALE_FACTOR: DINT := MAX_ITEMS + 1;
-                          ^^^^^^^^^^^^^   { target_type: "DINT", Resolved(4) }
+                          ^^^^^^^^^^^^^   { target_type_name: "DINT", Resolved(4) }
     MAX_ITEMS: DINT := 3;
-                       ^                  { target_type: "DINT", Resolved(3) }
+                       ^                  { target_type_name: "DINT", Resolved(3) }
     TOO_BIG: SINT := 300;
-                     ^^^                  { target_type: "SINT", Unresolvable("This will overflow for type SINT") }
+                     ^^^                  { target_type_name: "SINT", Unresolvable("This will overflow for type SINT") }
 END_VAR
 
 VAR_GLOBAL
     sensor AT %IX0.0: BOOL;
-              ^^^^^^                       { target_type: "__global_sensor", Unresolvable("Try to re-resolve during codegen") }
+              ^^^^^^                       { target_type_name: "__global_sensor", Unresolvable("Try to re-resolve during codegen") }
     NOT_CONST: DINT := 5;
-                       ^                  { target_type: "DINT", Resolved(5) }
+                       ^                  { target_type_name: "DINT", Resolved(5) }
 END_VAR
 
 VAR_GLOBAL CONSTANT
     C: DINT := NOT_CONST + 1;
-               ^^^^^^^^^^^^^              { target_type: "DINT", Unresolvable("NOT_CONST is no const reference") }
+               ^^^^^^^^^^^^^              { target_type_name: "DINT", Unresolvable("NOT_CONST is no const reference") }
 END_VAR
 ```
 
