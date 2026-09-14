@@ -20,7 +20,7 @@ flowchart LR
     parse[Parse] --> index[Index] --> annotate[Annotate] --> validate[Validate] --> codegen[Codegen] --> link[Link]
 ```
 
-Each stage takes the result of the stage before it by value and returns a new value:
+The result of one stage is the input of the next:
 
 | Stage | Result |
 |---|---|
@@ -28,29 +28,29 @@ Each stage takes the result of the stage before it by value and returns a new va
 | Index | The units plus the global symbol table |
 | Annotate | The units, the symbol table, and the annotation map with the resolved type of every expression |
 | Validate | No new data; aborts the run if any diagnostic reached error severity |
-| Codegen | One LLVM module per unit, persisted as object files |
+| Codegen | One LLVM module per unit, written to object files |
 | Link | The final artifact: executable, shared object, relocatable object, LLVM IR, or bitcode |
 
-Before the pipeline runs, the driver loads the source files into memory. Later stages use these copies. It selects the diagnostic renderer (`--error-format`) and linker (`--linker`). Parsing is sequential. Indexing, annotation, and codegen process units in parallel, with the thread count set by `--threads`.
+Before the pipeline runs, the driver loads the source files into memory and selects the diagnostic renderer (`--error-format`) and the linker (`--linker`). Later stages use the loaded copies. Parsing is sequential. Indexing, annotation, and codegen process units in parallel, with the thread count set by `--threads`.
 
-By default, codegen creates one LLVM module and object file per unit. The output path mirrors the source path under the build location. With `--single-module` or `-c`, the units are merged into one module. The output format then decides the final step: merge IR or bitcode, copy a single object, or run the linker.
+By default, codegen creates one LLVM module and object file per unit. The output path mirrors the source path under the build location. With `--single-module` or `-c`, the units are merged into one module, one after the other. The output format then decides the final step: merge IR or bitcode, copy a single object, or run the linker.
 
 
 ## Participants
 
-Participants lower language features by rewriting the AST. They receive the project at fixed *hooks*, points where the driver gives them access to the current result. A participant can read the project or return a rewritten one.
+The stages do not run back to back. At fixed points called *hooks*, the driver stops and hands the current result to the registered participants. They use these hooks to lower language features by rewriting the AST. A participant can read the project or return a rewritten one.
 
 ```mermaid
 flowchart LR
-    A[...] -- pre_index --> index[Index] -- post_index, pre_annotate --> annotate[Annotate] -- post_annotate --> B[...]
+    parse[Parse] -- pre_index --> index[Index] -- post_index, pre_annotate --> annotate[Annotate] -- post_annotate --> validate[Validate] -- pre_generate --> codegen[Codegen] -- post_generate --> link[Link]
     annotate -. rewrite .-> index
 ```
 
-The solid edges name the hooks. Each stage has one hook before it and one hook after it. `pre_index` and `post_index` surround indexing. `pre_annotate` and `post_annotate` surround annotation. `pre_generate` and `post_generate` surround code generation. A participant implements only the hooks it needs. The dashed edge shows that a rewrite makes the index and the annotations stale, so the participant must run both stages again before it returns.
+The solid edges name the hooks. Indexing, annotation, and code generation each have one hook before them and one after; parsing, validation, and linking have none. A participant implements only the hooks it needs. The dashed edge shows that a rewrite makes the index and the annotations stale. Each participant that rewrites the tree runs the affected stages again before it returns.
 
 There are two kinds of participants:
 
-- **Mutating participants** take the project by value and return a new one. They are the lowerers above and use the four hooks around index and annotate. The diagnostics they collect while they rewrite are gathered after the last `post_annotate` hook and reported with the validation diagnostics.
+- **Mutating participants** take the project by value and return a new one. They are the lowerers, and they can use the four hooks around indexing and annotation. The diagnostics they collect while they rewrite are gathered after the last `post_annotate` hook and reported with the validation diagnostics.
 - **Read-only participants** get a shared reference and cannot change the project. They see all six hooks, plus one call per generated module. The only one by default is the codegen participant, which writes the modules to disk and links them.
 
 The driver registers twelve mutating participants. Hook order determines when they run; registration order determines their order within a hook. Later participants can depend on earlier rewrites. The [Participants](../participants/README.md) chapters follow the registration order.
@@ -63,11 +63,11 @@ The driver registers twelve mutating participants. Hook order determines when th
 >
 > - **Order dependence.** All participants change one tree, and each one can depend on the rewrites before it. A different registration order can change the behavior of the program.
 > - **Generated nodes.** Lowering adds constructors, normalized loops, and result parameters. Validation, diagnostics, and debug information must distinguish these nodes from source constructs through locations and metadata.
-> - **Repeated analysis.** A rewrite can make a new index or a new annotation map necessary for the whole project. A plain build runs both stages nine times each; nested generics add more rounds.
+> - **Repeated analysis.** A rewrite can make a new index or a new annotation map necessary for the whole project. A plain build runs both stages nine times each; generic calls add more rounds.
 > - **One tree, two forms.** The AST must hold both source constructs and their lowered forms. Each stage must know which form it gets.
 > - **No fixed boundary.** Codegen uses the combined result of all participants, not a separate representation with a stable contract.
 >
-> Retrospectively a dedicated intermediate representation (IR) would have been the better fit. Today this is a big refactor and depending on whether or not we can allocate time to this, it may change.
+> A dedicated intermediate representation (IR) would have been the better fit. Replacing the model today is a large refactor.
 
 
 ## Where it lives
@@ -76,7 +76,8 @@ The driver is the `plc_driver` crate under `compiler/` and produces the `plc` bi
 
 | What | Where |
 |---|---|
-| Driver | `compiler/plc_driver` |
+| Command line | `compiler/plc_driver/src/cli.rs` |
+| Stages and hooks | `compiler/plc_driver/src/pipelines.rs`, `compiler/plc_driver/src/pipelines/` |
 | Participants | `compiler/plc_lowering`, `compiler/plc_cfc`, `src/lowering/` |
 | Project model | `compiler/plc_project` |
 
