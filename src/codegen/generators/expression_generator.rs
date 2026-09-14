@@ -245,9 +245,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn register_debug_location(&self, statement: &AstNode) {
         let function_context =
             self.function_context.expect("Cannot generate debug info without function context");
-        let line = statement.get_location().get_line_plus_one();
-        let column = statement.get_location().get_column();
-        self.debug.set_debug_location(self.llvm, function_context, line, column);
+        self.debug.set_debug_location(self.llvm, function_context, &statement.get_location());
     }
 
     pub fn generate_expression_value(

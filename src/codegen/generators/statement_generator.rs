@@ -421,9 +421,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     fn register_debug_location(&self, statement: &AstNode) {
-        let line = statement.get_location().get_line_plus_one();
-        let column = statement.get_location().get_column();
-        self.debug.set_debug_location(self.llvm, self.function_context, line, column);
+        self.debug.set_debug_location(self.llvm, self.function_context, &statement.get_location());
     }
 
     fn generate_assignment_statement_direct_access(
@@ -514,12 +512,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             builder.position_at_end(case_block);
             self.generate_body(&conditional_block.body)?;
             //Add debug location to the end of the case
-            self.debug.set_debug_location(
-                self.llvm,
-                self.function_context,
-                stmt.end_location.get_line_plus_one(),
-                stmt.end_location.get_column(),
-            );
+            self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
             // skip all other case-bodies
             builder.build_unconditional_branch(continue_block)?;
         }
@@ -527,12 +520,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(current_else_block);
         self.generate_body(&stmt.else_block)?;
         //Add debug location to the end of the case
-        self.debug.set_debug_location(
-            self.llvm,
-            self.function_context,
-            stmt.end_location.get_line_plus_one(),
-            stmt.end_location.get_column(),
-        );
+        self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
         builder.build_unconditional_branch(continue_block)?;
         continue_block.move_after(current_else_block).expect(INTERNAL_LLVM_ERROR);
 
@@ -636,12 +624,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
         body_generator.generate_body(&stmt.body)?;
 
-        self.debug.set_debug_location(
-            self.llvm,
-            self.function_context,
-            stmt.end_location.get_line_plus_one(),
-            stmt.end_location.get_column(),
-        );
+        self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
         builder.build_unconditional_branch(while_body)?;
 
         builder.position_at_end(continue_block);
@@ -696,12 +679,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             builder.position_at_end(conditional_block);
             self.generate_body(&block.body)?;
             // Place debug location to end of if
-            self.debug.set_debug_location(
-                self.llvm,
-                self.function_context,
-                stmt.end_location.get_line_plus_one(),
-                stmt.end_location.get_column(),
-            );
+            self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
             builder.build_unconditional_branch(continue_block)?;
         }
         //Else
@@ -710,12 +688,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             builder.position_at_end(else_block);
             self.generate_body(&stmt.else_block)?;
             // Place debug location to end of if
-            self.debug.set_debug_location(
-                self.llvm,
-                self.function_context,
-                stmt.end_location.get_line_plus_one(),
-                stmt.end_location.get_column(),
-            );
+            self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
             builder.build_unconditional_branch(continue_block)?;
         }
         //Continue
