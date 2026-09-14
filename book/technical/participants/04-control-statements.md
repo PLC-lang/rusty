@@ -55,7 +55,7 @@ Without an `ELSE`, the innermost `IF` has no `ELSE` body. The conditions and the
 The [aggregate-return lowerer](09-aggregate-return.md) inserts extracted calls immediately before their containing statement. In the example, the second call now belongs inside the `ELSE`:
 
 ```diff
-+alloca __foo0: __foo_return;
++alloca __foo0: STRING;
 +foo(__foo0, counter);
 -IF foo(counter) = 'Hello' THEN
 +IF __foo0 = 'Hello' THEN
@@ -63,7 +63,7 @@ The [aggregate-return lowerer](09-aggregate-return.md) inserts extracted calls i
 -ELSIF foo(counter) = 'Goodbye' THEN
 -    ;
 +ELSE
-+    alloca __foo1: __foo_return;
++    alloca __foo1: STRING;
 +    foo(__foo1, counter);
 +    IF __foo1 = 'Goodbye' THEN
 +        ;
