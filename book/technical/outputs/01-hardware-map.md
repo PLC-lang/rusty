@@ -24,7 +24,7 @@ When requested, the map is written after validation and before codegen. It uses 
 
 ## The map
 
-The chapter follows one project with every kind of binding:
+The chapter follows one project with the main forms of binding:
 
 ```iecst
 FUNCTION_BLOCK Sensor
@@ -53,7 +53,7 @@ PROGRAM main
 END_PROGRAM
 ```
 
-Each entry has five fields: the source path (`name`), generated global (`mangled_name`), source address (`address`), direction, and access width. For this project:
+Each entry has five fields: the source path (`name`), generated global (`mangled_name`), source address (`address`), direction, and access width. `direction` is `Input`, `Output`, `Memory`, or `Global`; `access_type` is `Bit`, `Byte`, `Word`, `DWord`, or `LWord`. For this project:
 
 ```json
 {
@@ -73,23 +73,23 @@ Each entry has five fields: the source path (`name`), generated global (`mangled
 
 `speed` and `speedCopy` share an address and the global `__PI_2_5`. Both names appear in the map. The two `alarm` members also share one global, `__PI_3_1`, because their address belongs to the function block declaration rather than to an individual instance.
 
-Generated names combine a direction prefix with address segments separated by underscores. Inputs and outputs use `__PI_` for the process image; memory uses `__M_`; `%G` uses `__G_`. The width is absent, so `%QW2.5` and `%QX2.5` would collide. Pre-processing and map generation use the same naming function.
+Generated names combine a direction prefix with the address segments, separated by underscores. `%I` and `%Q` both use `__PI_` for the process image, `%M` uses `__M_`, and `%G` uses `__G_`. The size letter is absent, so `%QW2.5` and `%QX2.5` give the same name and collide. Pre-processing and map generation use the same naming function.
 
 
 ## Collecting the entries
 
-The map uses the index's variable-instance iterator in two passes. This iterator visits program instances, global function block instances, and their members.
+Finding the variables is the other half of the work. The map walks the index's variable-instance iterator twice. That iterator starts at every global variable and every program instance, then goes into their members, level by level.
 
 The first pass takes every instance whose declaration carries a direct address, and skips the templates (`AT %I*`), because a template has no address until a `VAR_CONFIG` block gives it one. The address segments are constant expressions in the index: they went through the constant evaluator, so `AT %IX0.0` is stored as two evaluated integers.
 
 The instance path is expanded over every array dimension. The one declaration `alarm` in `Sensor` therefore gives `sensors[0].alarm` and `sensors[1].alarm`, because `sensors` has two elements, and a three-dimensional array of blocks gives one name per element, in `[i,j,k]` form.
 
-The second pass reads `VAR_CONFIG` entries, which supply concrete addresses for template variables. It uses each configured instance path and the global created during pre-processing. The passes cover different declarations, but the map still removes duplicate pairs of source name and generated global.
+The second pass reads the `VAR_CONFIG` entries, which give a concrete address to a template variable. The source path is the path written in the block, and the generated global comes from the configured address, so it matches the global that pre-processing created. The passes cover different declarations, but the map still removes duplicate pairs of source name and generated global.
 
 
 ## Files and formats
 
-`--hwmap-file=<path>` selects JSON or TOML by the extension; any other extension is E134. Without a value, the map is written next to the output as `<output>.hwmap.json`, so `plc main.st -o main.so --hwmap-file` gives `main.so.hwmap.json`. The `=` is required: `--hwmap-file map.json` makes `map.json` a source file. The TOML form is the same list as an array of tables:
+The collected list is then written to one file. `--hwmap-file=<path>` selects JSON or TOML by the extension; any other extension is E134. Without a value, the map is written next to the output as `<output>.hwmap.json`, so `plc main.st -o main.so --hwmap-file` gives `main.so.hwmap.json`. The `=` is required: `--hwmap-file map.json` makes `map.json` a source file. The TOML form is the same list as an array of tables:
 
 ```toml
 [[VariableMap]]
@@ -101,7 +101,7 @@ access_type = "Bit"
 ```
 
 > [!NOTE]
-> **Developer note.** `--hardware-conf=<path>` is the older form of the same idea and is deprecated. It writes a `HardwareConfiguration` list without the generated names and with the address as a list of segment strings, and it lists templates with an empty address, which the new map leaves out because a template maps to nothing. It prints a deprecation warning and will be removed.
+> **Developer note.** `--hardware-conf=<path>` is the older form of the same idea and is deprecated. It writes a `HardwareConfiguration` list without the generated names and with the address as a list of segment strings, and it lists templates with an empty address, which the new map leaves out because a template maps to nothing. It prints a deprecation warning that points to `--hwmap-file`.
 
 
 ## Where it lives
