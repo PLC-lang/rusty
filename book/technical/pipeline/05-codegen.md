@@ -229,6 +229,8 @@ entry:
 
 define void @Buffer(ptr %0) {
 entry:
+  %this = alloca ptr                                                     ; the instance pointer, for THIS
+  store ptr %0, ptr %this
   %__vtable = getelementptr inbounds nuw %Buffer, ptr %0, i32 0, i32 0   ; address of member 0 in the instance
   %limit    = getelementptr inbounds nuw %Buffer, ptr %0, i32 0, i32 1   ; member 1
   %count    = getelementptr inbounds nuw %Buffer, ptr %0, i32 0, i32 2   ; member 2
@@ -250,9 +252,9 @@ Two rules drive almost everything the expression generator does.
 `p.x` is one `getelementptr` per member step, `values[count]` a pointer computation into the array. On the left of an assignment the address is the target of a store; as an operand, its value is loaded. For `p.x := i`:
 
 ```llvm
-%x      = getelementptr inbounds nuw %Point, ptr %p, i32 0, i32 0   ; address of p.x: member 0 of p
-%load_i = load i32, ptr %i                                          ; read i
-store i32 %load_i, ptr %x                                           ; write it to p.x
+%x       = getelementptr inbounds nuw %Point, ptr %p, i32 0, i32 0   ; address of p.x: member 0 of p
+%load_i2 = load i32, ptr %i                                          ; read i
+store i32 %load_i2, ptr %x                                           ; write it to p.x
 ```
 
 An array index becomes an offset first: the index minus the lower bound, times the stride of the dimension. For `values[count] := count`, with lower bound `0` and one dimension, both corrections do nothing and are still emitted:
