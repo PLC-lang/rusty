@@ -1,6 +1,6 @@
 # Functions
 
-A function computes a result from its arguments and forgets everything else. Two calls with the same arguments give the same answer.
+A function computes a result from its arguments and forgets everything else. Two calls with the same arguments give the same answer, as long as the function does not read a global variable.
 
 ```iecst
 FUNCTION Scale: DINT
@@ -33,7 +33,7 @@ END_FUNCTION
 
 Both calls of `Counter()` return `1`. When you need the value of the previous call, use a [function block](function-blocks.md).
 
-A function may call itself. The compiler does not limit the depth, and the stack of the target does.
+A function may call itself. The compiler sets no limit on the depth, but the stack of the target does.
 
 
 ## Parameters
@@ -77,13 +77,13 @@ r := Measure(raw, 'sensor', total, valid);
 r := Measure(raw := raw, label := 'sensor', total := total, valid => valid);
 ```
 
-`:=` gives a value to an input or to an in-out, `=>` takes a value out of an output. A missing argument is an error:
+`:=` gives a value to an input or to an in-out, `=>` takes a value out of an output. A missing argument is an error, in both forms:
 
 ```
 error[E032]: this POU takes 4 arguments but 2 arguments were supplied
 ```
 
-A default value in the declaration (`factor: DINT := 2;`) does not make the parameter optional in a call of a function. It decides the value when the parameter is not written at all, which is the case in a call of a function block instance.
+An input with a default value (`factor: DINT := 2;`) is the exception: you can leave it out and get the default. This applies to the inputs at the end of the list only. When a parameter without a default comes after it, you must supply both. A call of a [function block](function-blocks.md) instance may leave out any parameter, because the instance keeps what the previous call gave it.
 
 
 ## Arrays of any size
@@ -105,7 +105,11 @@ FUNCTION Sum: DINT
 END_FUNCTION
 ```
 
-The second argument of the two functions is the number of the dimension. Such a parameter is always passed by reference, also in a `VAR_INPUT` block, and the compiler reports `E047` to make that visible.
+The second argument of the two functions is the number of the dimension. They accept a parameter of this kind only, not an array of a fixed size. Such a parameter is always passed by reference, also in a `VAR_INPUT` block, and the compiler says so:
+
+```
+warning[E047]: Variable Length Arrays are always by-ref, even when declared in a by-value block
+```
 
 
 ## Results that are not a number
@@ -122,7 +126,7 @@ FUNCTION Describe: STRING[20]
 END_FUNCTION
 ```
 
-The caller provides the memory for such a result, so there is no limit on its size and nothing is copied twice.
+The caller provides the memory for such a result. The compiler makes the result a hidden first parameter, a pointer to a variable of the caller, and the function writes the result through it.
 
 
 ## What's next
