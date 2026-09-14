@@ -10,7 +10,11 @@ FUNCTION_BLOCK Counter
     VAR_OUTPUT
         total: DINT;
     END_VAR
+    VAR
+        calls: DINT;
+    END_VAR
 
+    calls := calls + 1;
     total := total + step;
 END_FUNCTION_BLOCK
 ```
@@ -24,6 +28,7 @@ An instance is declared like any other variable, and it is called by its own nam
 VAR
     fast: Counter;
     slow: Counter;
+    value: DINT;
 END_VAR
 
 fast(step := 2);
@@ -33,9 +38,9 @@ slow(step := 1);
 
 `fast.total` is now `4` and `slow.total` is `1`. The two instances share the code and nothing else.
 
-A call passes as many inputs as you want to change. A parameter that the call does not name keeps the value from the declaration, or the value that the last call left in the instance. This is the opposite of a [function](functions.md), where every call names every parameter.
+A call passes as many inputs as you want to change. A parameter that the call does not name keeps the value from the declaration, or the value that the last call left in the instance. This is the opposite of a [function](functions.md), where every call supplies every parameter.
 
-Read a result after the call, or take it out during the call with `=>`:
+Read a result after the call, or take it out as part of the call with `=>`:
 
 ```iecst
 fast(step := 2);
@@ -61,26 +66,23 @@ END_FUNCTION_BLOCK
 
 ## What the outside may touch
 
-The variable blocks decide what a caller can do with an instance:
-
-| Block | From outside |
-|---|---|
-| `VAR_INPUT` | Read and write |
-| `VAR_OUTPUT` | Read only. A write is an error (`E037`) |
-| `VAR` | Neither. A read or a write is reported with `E049`, a warning |
+The variable blocks decide what a caller can do with an instance. A caller reads and writes an input, reads an output, and leaves a plain `VAR` alone:
 
 ```iecst
+fast.step := 3;        (* fine, an input *)
 value := fast.total;   (* fine, an output *)
-fast.total := 0;       (* error[E037]: VAR_OUTPUT variables cannot be assigned outside of their scope *)
-fast.state := 0;       (* warning[E049]: Illegal access to private member Counter.state *)
+fast.total := 0;       (* error[E037]: VAR_OUTPUT variables cannot be assigned outside of their scope. *)
+fast.calls := 0;       (* warning[E049]: Illegal access to private member Counter.calls *)
 ```
 
-So the inputs and the outputs are the interface of the block, and a plain `VAR` is its own business. When something else must reach such a value, give the block a [method or a property](methods-and-properties.md). Access modifiers are described in the [inheritance](inheritance.md#access-modifiers) chapter.
+The write to an output stops the build; the access to a `VAR` is a warning only. The compiler reports that warning for every `VAR`, whatever [access modifier](inheritance.md#access-modifiers) the block gives it.
+
+So the inputs and the outputs are the interface of the block, and a `VAR` is its own business. When something else must reach such a value, give the block a [method or a property](methods-and-properties.md).
 
 
 ## Programs
 
-A program is a function block with exactly one instance, and that instance is global:
+A program is a function block whose instance the compiler creates itself. There is one instance, it is global, and it keeps its data between calls like every other instance:
 
 ```iecst
 PROGRAM Plant
@@ -93,7 +95,7 @@ PROGRAM Plant
 END_PROGRAM
 ```
 
-You call it by its own name, `Plant()`, because there is no other name to call. Use a program for the top level of an application, and a function block for everything that exists more than once.
+You call it by its own name, `Plant()`, because the instance has no name of its own. Use a program for the top level of an application, and a function block for everything that exists more than once.
 
 
 ## Actions
@@ -103,25 +105,25 @@ An action is a named piece of body that belongs to a POU and works on its data. 
 ```iecst
 FUNCTION_BLOCK Valve
     VAR
-        open: BOOL;
+        state: BOOL;
     END_VAR
 END_FUNCTION_BLOCK
 
 ACTION Valve.Open
-    open := TRUE;
+    state := TRUE;
 END_ACTION
 
 ACTION Valve.Close
-    open := FALSE;
+    state := FALSE;
 END_ACTION
 ```
 
-Call an action through the instance: `inlet.Open()`. Two other spellings exist, an `ACTIONS` container directly after the POU, and an `ACTIONS <name>` container anywhere in the project:
+Call an action through the instance: `inlet.Open()`. Two other spellings exist. An `ACTIONS` container directly after the POU takes the name of that POU, and an `ACTIONS <name>` container names its POU and stands anywhere in the project:
 
 ```iecst
 ACTIONS Valve
     ACTION Toggle
-        open := NOT open;
+        state := NOT state;
     END_ACTION
 END_ACTIONS
 ```
@@ -129,7 +131,7 @@ END_ACTIONS
 
 ## Initialization
 
-The initial values in the declaration apply to every instance. When an instance needs more than that, declare the method `FB_INIT`. The compiler calls it once per instance, before the program starts:
+The initial values in the declaration apply to every instance. When an instance needs more than that, declare the method `FB_INIT`:
 
 ```iecst
 FUNCTION_BLOCK Buffer
@@ -145,7 +147,7 @@ FUNCTION_BLOCK Buffer
 END_FUNCTION_BLOCK
 ```
 
-`FB_INIT` takes no parameters and returns nothing.
+The compiler calls `FB_INIT` once for each instance, when that instance is created. For a global instance and for a member of a program, that is before the program starts. Declare the method without parameters and without a return type, because the compiler calls it with no arguments.
 
 
 ## What's next
