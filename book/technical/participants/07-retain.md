@@ -78,7 +78,7 @@ The whole instance lands in `.retain`, its non-retained members and its method t
 
 ### Globals
 
-Globals A global in a plain `VAR_GLOBAL` block whose type retains transitively is moved into the retain block; a global declared in `VAR_GLOBAL RETAIN` stays where it is:
+A global in a plain `VAR_GLOBAL` block whose type retains transitively is moved into the retain block; a global declared in `VAR_GLOBAL RETAIN` stays where it is:
 
 ```diff
  VAR_GLOBAL RETAIN
