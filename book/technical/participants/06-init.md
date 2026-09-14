@@ -30,7 +30,7 @@ The participant appends constructor POUs and inserts stack initialization at the
 
 ### Stateful POUs
 
-Stateful POUs A program, function block, or class gets a `<Name>__ctor` function with an instance parameter named `self`. It visits members in declaration order. For each member, it calls the type constructor before applying the member's initializer. A function block or class then sets its method table pointer. An `FB_INIT` method declared by the POU runs last.
+A program, function block, or class gets a `<Name>__ctor` function with an instance parameter named `self`. It visits members in declaration order. For each member, it calls the type constructor before applying the member's initializer. A function block or class then sets its method table pointer. An `FB_INIT` method declared by the POU runs last.
 
 The constructor of the intro example holds `self.i := 1;` and `Counter__ctor(self.counterInstance);`. The constructor of its `Counter` function block, with a member `limit: INT := 10` and an `FB_INIT` method, is:
 
