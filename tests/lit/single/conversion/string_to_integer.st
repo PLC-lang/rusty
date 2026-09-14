@@ -44,6 +44,29 @@ FUNCTION main
     printf('lint_malformed=%d$N', STRING_TO_LINT('12abc'));   // CHECK-NEXT: lint_malformed=0
     printf('ulint_malformed=%d$N', STRING_TO_ULINT('12abc')); // CHECK-NEXT: ulint_malformed=0
 
+    // Values that do not fit the target yield zero instead of wrapping.
+    printf('byte_overflow=%d$N', STRING_TO_BYTE('256'));                   // CHECK-NEXT: byte_overflow=0
+    printf('sint_overflow=%d$N', STRING_TO_SINT('128'));                   // CHECK-NEXT: sint_overflow=0
+    printf('int_overflow=%d$N', STRING_TO_INT('32768'));                   // CHECK-NEXT: int_overflow=0
+    printf('dint_overflow=%d$N', STRING_TO_DINT('2147483648'));            // CHECK-NEXT: dint_overflow=0
+    printf('dint_underflow=%d$N', STRING_TO_DINT('-2147483649'));          // CHECK-NEXT: dint_underflow=0
+    printf('udint_overflow=%d$N', STRING_TO_UDINT('4294967296'));          // CHECK-NEXT: udint_overflow=0
+    printf('lint_overflow=%d$N', STRING_TO_LINT('9223372036854775808'));   // CHECK-NEXT: lint_overflow=0
+    printf('ulint_overflow=%d$N', STRING_TO_ULINT('18446744073709551616'));// CHECK-NEXT: ulint_overflow=0
+    printf('dint_max=%d$N', STRING_TO_DINT('2147483647'));                 // CHECK-NEXT: dint_max=2147483647
+    printf('dint_min=%d$N', STRING_TO_DINT('-2147483648'));                // CHECK-NEXT: dint_min=-2147483648
+
+    // Exponent forms are real literals and truncate like any other real.
+    printf('dint_exponent=%d$N', STRING_TO_DINT('1e3'));                   // CHECK-NEXT: dint_exponent=1000
+    printf('dint_real_exponent=%d$N', STRING_TO_DINT('1.5e2'));            // CHECK-NEXT: dint_real_exponent=150
+    printf('dint_negative_exponent=%d$N', STRING_TO_DINT('1e-3'));         // CHECK-NEXT: dint_negative_exponent=0
+    printf('dint_trailing_dot=%d$N', STRING_TO_DINT('123.'));              // CHECK-NEXT: dint_trailing_dot=0
+    printf('dint_leading_dot=%d$N', STRING_TO_DINT('.5'));                 // CHECK-NEXT: dint_leading_dot=0
+
+    // Nothing may follow the number, not even comment-like text.
+    printf('dint_trailing_comment=%d$N', STRING_TO_DINT('12//x'));         // CHECK-NEXT: dint_trailing_comment=0
+    printf('dint_trailing_pragma=%d$N', STRING_TO_DINT('12{x}'));          // CHECK-NEXT: dint_trailing_pragma=0
+
     // Fractional input truncates toward zero.
     printf('byte_fraction=%d$N', STRING_TO_BYTE('1.9'));      // CHECK-NEXT: byte_fraction=1
     printf('word_fraction=%d$N', STRING_TO_WORD('1.9'));      // CHECK-NEXT: word_fraction=1
