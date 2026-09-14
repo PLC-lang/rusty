@@ -48,6 +48,8 @@ The extension decides how a file is read: `.cfc`, `.fbd`, and `.xml` are graphic
 | `--ast` | The syntax tree after parsing | standard output |
 | `--ast-lowered` | The syntax tree after every rewrite | standard output |
 
+The default name comes from the first argument as it was written, so a glob pattern gives a file whose name holds the pattern. Give `-o` with a pattern.
+
 | Option | Effect |
 |---|---|
 | `-o`, `--output <file>` | Name of the artifact |

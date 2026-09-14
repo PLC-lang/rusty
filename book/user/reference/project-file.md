@@ -118,6 +118,6 @@ The compiler validates the file against a JSON schema before the build starts. T
 plc config schema > plc-json.schema
 ```
 
-Give that file to your editor to get completion and validation while you write the project file.
+Give that file to your editor to get completion and validation while you write the project file. The schema is stricter than the compiler in one place: it marks `compile_type` as necessary, and the compiler takes the default instead.
 
 The project file itself takes no `$schema` key, because the compiler rejects every key that it does not know.

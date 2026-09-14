@@ -1,6 +1,6 @@
 # Diagnostics
 
-Every message of the compiler has a code, a severity, and a position. This chapter explains how to read them, how to look them up, and how to change their severity for a project.
+A diagnostic of the compiler has a code, a severity, and a position. This chapter explains how to read one, how to look up its code, and how to change its severity for a project.
 
 
 ## Read a diagnostic
