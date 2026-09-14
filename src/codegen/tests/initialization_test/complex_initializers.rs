@@ -3933,3 +3933,135 @@ fn constructors_only_emits_only_ctor_definitions() {
     }
     "#);
 }
+
+#[test]
+fn array_of_structs_with_sized_string_member_initializer() {
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            TYPE Motor : STRUCT
+                name  : STRING[20];
+                speed : REAL;
+            END_STRUCT END_TYPE
+
+            PROGRAM prg
+            VAR
+                motors : ARRAY[0..1] OF Motor := [
+                    (name := 'Motor1', speed := 10.5),
+                    (name := 'Motor2', speed := 20.5)
+                ];
+            END_VAR
+            END_PROGRAM
+            "#,
+        )],
+    )
+    .unwrap();
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %prg = type { [2 x %Motor] }
+    %Motor = type { [21 x i8], float }
+
+    @prg_instance = global %prg zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
+    @utf08_literal_0 = private unnamed_addr constant [7 x i8] c"Motor1\00"
+    @utf08_literal_1 = private unnamed_addr constant [7 x i8] c"Motor2\00"
+    @.const_init = private unnamed_addr constant %Motor { [21 x i8] c"Motor1\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", float 1.050000e+01 }
+    @.const_init.1 = private unnamed_addr constant %Motor { [21 x i8] c"Motor2\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", float 2.050000e+01 }
+
+    define void @prg(ptr %0) {
+    entry:
+      %motors = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @prg__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %motors = getelementptr inbounds nuw %prg, ptr %deref, i32 0, i32 0
+      call void @__prg_motors__ctor(ptr %motors)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %motors2 = getelementptr inbounds nuw %prg, ptr %deref1, i32 0, i32 0
+      %tmpVar = getelementptr inbounds [2 x %Motor], ptr %motors2, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %tmpVar, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr (%Motor, ptr null, i32 1) to i64), i1 false)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %motors4 = getelementptr inbounds nuw %prg, ptr %deref3, i32 0, i32 0
+      %tmpVar5 = getelementptr inbounds [2 x %Motor], ptr %motors4, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %tmpVar5, ptr align [filtered] @.const_init.1, i64 ptrtoint (ptr getelementptr (%Motor, ptr null, i32 1) to i64), i1 false)
+      ret void
+    }
+
+    define void @Motor__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %name = getelementptr inbounds nuw %Motor, ptr %deref, i32 0, i32 0
+      call void @__Motor_name__ctor(ptr %name)
+      ret void
+    }
+
+    define void @__prg_motors__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %__prg_motors__idx0 = alloca i32, align [filtered]
+      store i32 0, ptr %__prg_motors__idx0, align [filtered]
+      store i32 0, ptr %__prg_motors__idx0, align [filtered]
+      br label %while_body
+
+    while_body:                                       ; preds = %continue1, %entry
+      %load___prg_motors__idx0 = load i32, ptr %__prg_motors__idx0, align [filtered]
+      %tmpVar = icmp sgt i32 %load___prg_motors__idx0, 1
+      %1 = zext i1 %tmpVar to i8
+      %2 = icmp ne i8 %1, 0
+      br i1 %2, label %condition_body, label %continue1
+
+    continue:                                         ; preds = %condition_body
+      ret void
+
+    condition_body:                                   ; preds = %while_body
+      br label %continue
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue1
+
+    continue1:                                        ; preds = %buffer_block, %while_body
+      %deref = load ptr, ptr %self, align [filtered]
+      %load___prg_motors__idx02 = load i32, ptr %__prg_motors__idx0, align [filtered]
+      %tmpVar3 = mul i32 1, %load___prg_motors__idx02
+      %tmpVar4 = add i32 %tmpVar3, 0
+      %tmpVar5 = getelementptr inbounds [2 x %Motor], ptr %deref, i32 0, i32 %tmpVar4
+      call void @Motor__ctor(ptr %tmpVar5)
+      %load___prg_motors__idx06 = load i32, ptr %__prg_motors__idx0, align [filtered]
+      %tmpVar7 = add i32 %load___prg_motors__idx06, 1
+      store i32 %tmpVar7, ptr %__prg_motors__idx0, align [filtered]
+      br label %while_body
+    }
+
+    define void @__Motor_name__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal___[ctor-hash]__ctor() {
+    entry:
+      call void @prg__ctor(ptr @prg_instance)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    "#);
+}
