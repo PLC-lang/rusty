@@ -129,7 +129,7 @@ A `PROGRAM` has the same shape, but exactly one instance exists. Do not use prog
 
 Layout and alignment follow the rules of C. In C, declare a normal struct. In another language, force the C layout, for example with `#[repr(C)]` in Rust:
 
-```rust
+```rust,noplayground
 use std::ffi::{c_char, c_void};
 
 #[repr(C)]

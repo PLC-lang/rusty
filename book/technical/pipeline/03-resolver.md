@@ -34,7 +34,7 @@ Annotations distinguish variable, function, type, and POU references from plain 
 
 Trimmed to its fields, the annotation map looks like this:
 
-```rust
+```rust,noplayground
 pub struct AnnotationMapImpl {
     /// What each expression is, keyed by node id
     type_map: FxIndexMap<AstId, StatementAnnotation>,

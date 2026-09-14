@@ -135,7 +135,7 @@ Each entry below shows its fields, an example, and the stages that use it.
 
 ### Value
 
-```rust
+```rust,noplayground
 Value {
     /// The type the expression evaluates to
     resulting_type: String,
@@ -158,7 +158,7 @@ Consumers read the type through [`get_type`](#deriving-a-type). `Value` alone do
 
 ### Variable
 
-```rust
+```rust,noplayground
 Variable {
     /// The type name of the variable
     resulting_type: String,
@@ -201,7 +201,7 @@ Validation uses variable annotations for constant assignments (E036), private-me
 
 ### Function
 
-```rust
+```rust,noplayground
 Function {
     /// The declared return type, or VOID
     return_type: String,
@@ -231,7 +231,7 @@ The resolver uses the return type to annotate the call result. Generic lowering 
 
 ### FunctionPointer
 
-```rust
+```rust,noplayground
 FunctionPointer {
     /// The return type of the referenced function
     return_type: String,
@@ -254,7 +254,7 @@ Codegen generates an indirect call through the loaded pointer and takes the para
 
 ### Type
 
-```rust
+```rust,noplayground
 Type {
     /// The name of the type
     type_name: String,
@@ -275,7 +275,7 @@ The resolver reads it to type the right side of the cast. The validator reads it
 
 ### Program
 
-```rust
+```rust,noplayground
 Program {
     /// The program, class, or action
     qualified_name: String,
@@ -294,7 +294,7 @@ Codegen loads the global instance of the program by `qualified_name` and passes 
 
 ### Argument
 
-```rust
+```rust,noplayground
 Argument {
     /// The declared type of the parameter
     resulting_type: String,
@@ -329,7 +329,7 @@ Codegen uses `pou` and `position` to find the member of the instance struct that
 
 ### Property
 
-```rust
+```rust,noplayground
 Property {
     /// The accessor to call: "__get_<name>" or "__set_<name>"
     name: String,
@@ -348,7 +348,7 @@ Only the property lowerer reads it: at `post_annotate` it replaces every such re
 
 ### ReplacementAst
 
-```rust
+```rust,noplayground
 ReplacementAst {
     /// The statement to generate instead of the annotated one
     statement: AstNode,
@@ -369,7 +369,7 @@ Codegen checks every expression for this kind first and generates the replacemen
 
 ### Label
 
-```rust
+```rust,noplayground
 Label {
     /// The label the jump targets
     name: String,
@@ -381,7 +381,7 @@ The kind for a jump statement. Structured Text has no spelling for jumps and lab
 
 ### MethodDeclarations and Override
 
-```rust
+```rust,noplayground
 MethodDeclarations {
     /// Method name to every declaration of it in the block, its bases, and its interfaces
     declarations: FxHashMap<String, Vec<MethodDeclarationType>>,

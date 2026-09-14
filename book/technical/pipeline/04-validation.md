@@ -31,7 +31,7 @@ The index describes declarations, such as parameter lists, constant variables, a
 
 The validator carries both, with the name of the POU it is in, in a small context that travels down the walk:
 
-```rust
+```rust,noplayground
 pub struct ValidationContext<'s, T: AnnotationMap> {
     /// What every expression is and what it should become
     annotations: &'s T,
@@ -48,7 +48,7 @@ pub struct ValidationContext<'s, T: AnnotationMap> {
 
 Every failed check produces a diagnostic. Trimmed to what matters here, it is a message, an error code, and where in the source it applies:
 
-```rust
+```rust,noplayground
 pub struct Diagnostic {
     /// The description of the problem, as shown to the user
     message: String,

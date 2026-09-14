@@ -66,7 +66,7 @@ An array literal is a literal node whose elements are an expression list. The re
 
 The type index holds one record per array type. Trimmed to the array variant of the type information:
 
-```rust
+```rust,noplayground
 Array {
     /// The type of the elements, as a name; for an array of arrays the inner generated type
     inner_type_name: TypeId,

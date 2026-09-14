@@ -95,7 +95,7 @@ A cast takes only the name that follows the `#`, and the chain goes on from the 
 
 The index does not record body references. It supplies their declarations and types, including the pointer types used for explicit and automatic dereferencing:
 
-```rust
+```rust,noplayground
 Pointer {
     /// The type pointed to, by name
     inner_type_name: TypeId,

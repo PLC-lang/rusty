@@ -99,7 +99,7 @@ A method has its own POU declaration, such as `Counter.reset`, with a reference 
 
 The index records POU declarations, implementations, and variable layouts. Actions reuse the parent's layout. The POU entry identifies the kind:
 
-```rust
+```rust,noplayground
 pub enum PouIndexEntry {
     /// One static instance, held in instance_variable, of the struct instance_struct_name
     Program { name, instance_struct_name, instance_variable, .. },
@@ -123,7 +123,7 @@ pub enum PouIndexEntry {
 
 The implementation entry connects a callable name with the body and its kind:
 
-```rust
+```rust,noplayground
 pub struct ImplementationIndexEntry {
     /// The name a call uses, "Counter.reset" for a method
     call_name: String,

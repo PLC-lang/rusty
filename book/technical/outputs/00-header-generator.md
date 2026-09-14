@@ -47,7 +47,7 @@ Only C is implemented; `--header-language rust` is accepted by the command line 
 
 The generator first collects declarations in a template model, then renders that model as text:
 
-```rust
+```rust,noplayground
 pub struct TemplateData {
     /// Aliases (typedefs), structs, and enums
     pub user_defined_types: UserDefinedTypes,

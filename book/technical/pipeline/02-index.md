@@ -79,7 +79,7 @@ Generated helper names often use a double underscore prefix. This is a naming co
 
 This is what the index holds, trimmed to its fields:
 
-```rust
+```rust,noplayground
 pub struct Index {
     /// Variables declared in VAR_GLOBAL blocks
     global_variables: SymbolMap<String, VariableIndexEntry>,

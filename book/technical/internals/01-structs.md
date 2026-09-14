@@ -58,7 +58,7 @@ A struct literal `(x := 10, y := 10)` is not a node kind of its own. The parser 
 
 The type index holds one record per struct. Trimmed to the struct variant of the type information:
 
-```rust
+```rust,noplayground
 Struct {
     /// The type name, `Rect`
     name: TypeId,

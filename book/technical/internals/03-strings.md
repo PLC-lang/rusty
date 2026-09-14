@@ -43,7 +43,7 @@ Only `STRING[SIZE]` and `WSTRING[10]` are inline type definitions. Pre-processin
 
 The type index holds one record per string type. Trimmed to the string variant of the type information:
 
-```rust
+```rust,noplayground
 String {
     /// Capacity in characters plus one for the terminator, as a literal or a constant expression
     size: TypeSize,

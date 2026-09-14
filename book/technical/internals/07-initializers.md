@@ -70,7 +70,7 @@ Pre-processing at the start of the index stage moves inline types such as `ARRAY
 
 Initializers share the index's constant store with array bounds and string sizes. A variable or type entry keeps the ID of its expression. Each store entry records whether evaluation succeeded and, if not, why:
 
-```rust
+```rust,noplayground
 pub enum ConstExpression {
     /// Not evaluated yet; scope is the POU the expression was written in, lhs the variable it initializes
     Unresolved { statement: AstNode, scope: Option<String>, lhs: Option<String> },

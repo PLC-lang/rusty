@@ -61,7 +61,7 @@ From here on no stage has to count variants; every value is an expression like a
 
 The type index holds one record per enum type. Trimmed to the enum variant of the type information:
 
-```rust
+```rust,noplayground
 Enum {
     /// The enum's own name
     name: TypeId,

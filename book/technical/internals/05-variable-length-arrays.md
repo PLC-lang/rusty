@@ -52,7 +52,7 @@ Pre-processing names these inline types `__sum_values` and `__fill_grid`, as it 
 
 A VLA does not become an array in the index. The indexer registers it as a struct with two members and a source marker that says what the struct stands for:
 
-```rust
+```rust,noplayground
 Struct {
     /// The pre-processed type name, __sum_values
     name: String,

@@ -112,7 +112,7 @@ Codegen builds a module in dependency order: types, globals, function declaratio
 
 The global index describes declarations by name. A second index connects those names to LLVM types, values, and addresses. Each generation step adds entries for later steps:
 
-```rust
+```rust,noplayground
 pub struct LlvmTypedIndex<'ink> {
     /// Lookups that fail here continue in the parent index
     parent_index: Option<&'ink LlvmTypedIndex<'ink>>,
