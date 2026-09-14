@@ -1,4 +1,4 @@
-# External Declarations
+# Calling C
 
 A POU marked `{external}` has its implementation somewhere else. The compiler takes the declaration, generates no body, and leaves the symbol for the linker.
 

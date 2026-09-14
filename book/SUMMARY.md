@@ -22,7 +22,7 @@
         - [Inheritance and Interfaces](user/language/inheritance.md)
         - [Generic Functions](user/language/generics.md)
         - [Pointers and References](user/language/pointers.md)
-        - [Hardware Access](user/language/hardware-access.md)
+        - [Direct and Hardware Access](user/language/hardware-access.md)
         - [Graphical Programs](user/language/cfc.md)
     - [Building](user/building/README.md)
         - [Compiling](user/building/compiling.md)
