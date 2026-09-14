@@ -35,9 +35,9 @@ END_VAR
 value := inlet.Fill(amount := 3);
 ```
 
-A method follows the call rules of a [function](functions.md#calling): every parameter is supplied, by position or by name. The body of the block and its methods share the data of the instance.
+`value` is now `3`, the new level. A method is called like a [function](functions.md#calling): the arguments come by position, in the order of the declaration, or by name. Give every parameter a value, because a parameter that the call leaves out takes the default value of its declaration, and a parameter without a default holds no defined value. The body of the block and its methods share the data of the instance, but a local variable of a method does not survive the call.
 
-Inside a method, `THIS^` names the instance itself. You need it when a parameter and a member have the same name, and it makes the intention clear in the other cases:
+Inside a method, `THIS^` names the instance itself. You need it when a parameter and a member have the same name, because the parameter hides the member:
 
 ```iecst
 METHOD SetLevel
@@ -49,12 +49,12 @@ METHOD SetLevel
 END_METHOD
 ```
 
-`THIS` works in a function block, in its methods, and in its actions. A `CLASS` does not have it, and the compiler reports `E120` there.
+`THIS` works in a function block, in its methods, and in its actions. A `CLASS` does not have it, and a use of `THIS` there is rejected.
 
 
 ## Properties
 
-A property is a value with code behind it. It has a getter, a setter, or both. Inside an accessor, the name of the property is the value, exactly as the name of a function is its result:
+Where a method is called, a property is read and written. It is a value with code behind it, and it has a getter, a setter, or both. Inside an accessor, the name of the property is the value, exactly as the name of a function is its result:
 
 ```iecst
 FUNCTION_BLOCK Tank
@@ -75,20 +75,29 @@ END_FUNCTION_BLOCK
 From outside, the property is used like a member, and the accessor runs:
 
 ```iecst
+VAR
+    inlet: Tank;
+    reading: DINT;
+END_VAR
+
 inlet.Percent := 50;      (* runs the setter, level becomes 5 *)
 reading := inlet.Percent; (* runs the getter, 50 *)
 ```
 
-A property with a getter only is read-only. A write to it is reported:
+When a property has both accessors, both must name the same type. A property with a getter only is read-only, and a write to it is reported:
 
 ```
 error[E048]: PROPERTY_SET for property `Percent` is not defined
 ```
 
+A property with a setter only is write-only, and a read of it is reported the same way.
+
+A `CLASS` declares a property like a function block does. An `INTERFACE` declares one without bodies, and every block that implements the interface must supply the accessors that the interface names.
+
 
 ## Method or property
 
-Use a property when the caller thinks of the thing as a value: a level, a limit, a state. Use a method when the caller thinks of it as an action, when it needs arguments, or when it is expensive, because a property that hides work surprises the reader.
+Use a property when the caller thinks of the thing as a value: a level, a limit, a state. Use a method when the caller thinks of it as an action. An accessor takes no parameters, so an operation that needs arguments is always a method. Keep the work behind a property small, because the caller reads it as a plain variable.
 
 
 ## What's next
