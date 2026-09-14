@@ -1,9 +1,11 @@
 # Control Flow
 
-Five statements decide what runs: two that choose, and three that repeat.
+Five statements decide what runs: two that choose, and three that repeat. Three more end a pass, a loop, or a POU early.
 
 
 ## IF
+
+`IF` tests a condition and runs the block of the first test that is true:
 
 ```iecst
 IF level > high THEN
@@ -57,7 +59,7 @@ Only the matching branch runs. There is no fall-through between branches.
 
 ## FOR
 
-`FOR` counts a variable from one value to another. `BY` sets the step, which can be negative:
+`IF` and `CASE` choose once. The next three statements repeat. `FOR` counts a variable from one value to another, and `BY` sets the step, which can be negative:
 
 ```iecst
 FOR i := 1 TO 10 DO
@@ -69,12 +71,12 @@ FOR i := 10 TO 1 BY -3 DO   (* 10, 7, 4, 1: four passes *)
 END_FOR
 ```
 
-The end value is included. The counter is an ordinary variable of the POU, and it keeps the value that ended the loop, which is the first value past the end: after `FOR i := 1 TO 3`, `i` is `4`.
+The end value is included. The counter is an ordinary variable of the POU, and after the loop it keeps the value that ended it: after `FOR i := 1 TO 3`, `i` is `4`, and after `FOR i := 10 TO 1 BY -3`, `i` is `-2`. When the body never runs, the counter keeps the start value.
 
 
 ## WHILE and REPEAT
 
-`WHILE` tests before the body, so the body can run zero times. `REPEAT` tests after it, so the body always runs at least once, and `UNTIL` states when to stop:
+`FOR` needs the number of passes in advance. `WHILE` and `REPEAT` test a condition instead. `WHILE` tests before the body, so the body can run zero times. `REPEAT` tests after it, so the body always runs at least once. `UNTIL` states when to stop, and its condition takes no semicolon:
 
 ```iecst
 WHILE remaining > 0 DO
