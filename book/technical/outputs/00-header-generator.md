@@ -33,14 +33,12 @@ These commands request headers and stop the pipeline after validation:
 | Command | Headers | Name |
 |---|---|---|
 | `plc --generate-headers a.st b.st` | one per source file, next to it | `a.h`, `b.h` |
-| `plc --generate-headers a.st b.st -o api` | one combined header | `api.h` |
-| `plc generate plc.json headers` | one per file of the build description | source name |
+| `plc --generate-headers a.st b.st -o api` | one combined header, next to the first source with declarations | `api.h` |
+| `plc generate plc.json headers` | one per source of the build description, next to it | source name |
 
-`--header-prefix <name>` names the header after the prefix instead of after the source. Every unit then writes to the same file, so only the declarations of the last unit survive. `--header-output <dir>` moves the headers into a directory, which is created when it is missing.
+`--header-output <dir>` moves the headers into a directory, which is created when it is missing. It works with both commands. The three remaining options belong to the `generate` subcommand only. `--header-prefix <name>` names the header after the prefix instead of after the source, so every unit writes to the same file and only the declarations of the last unit survive. `--header-language rust` is accepted by the command line and rejected by the generator, because only C is implemented. `--include-stubs` is parsed and ignored.
 
-A unit whose declarations are all external or included, such as an `-i` include file, produces an empty model and no file. The include guard is the header path in upper case with every other character turned into `_`, so `motor.h` gets `MOTOR_H_`.
-
-Only C is implemented; `--header-language rust` is accepted by the command line and rejected by the generator. The `--include-stubs` flag is parsed and ignored.
+A unit whose declarations are all external or included, such as an `-i` include file, produces an empty model and no file. The include guard is built from the path of the header, relative to the working directory when the header is inside it: each `/` and `.` becomes `_`, a character that is not a letter, a digit, or `_` is dropped, the result is upper case, and one `_` is appended. So `include/motor.h` gets `INCLUDE_MOTOR_H_`. A combined header is the exception, because its guard is built before the `.h` is appended: `-o api` gets `API_`.
 
 
 ## From declarations to a template
@@ -65,16 +63,16 @@ pub struct Variable {
 
     pub name: String,
 
-    /// Default, Array(size), MultidimensionalArray(sizes), Declaration(value), Variadic, or Struct
+    /// Default, Array(size), Declaration(value), Variadic, Struct, or MultidimensionalArray(sizes)
     pub variable_type: VariableType,
 }
 ```
 
-The generator visits globals, user types, POUs, and implementations. It skips external and included declarations, generated constructors, and types with names that start with `__`. It keeps the anonymous helper array types needed to recover multi-dimensional array sizes.
+The generator visits globals, user types, POUs, and implementations. It skips external and included declarations, generated constructors, and types with names that start with `__`. The sizes of an inline array declaration, such as `a: ARRAY[0..1, 0..2] OF DINT` inside a POU, are read from the helper type that the pre-processor created for it.
 
-Built-in types are translated from their index records. Integers use `intN_t` or `uintN_t`; `BOOL` uses `bool`; `REAL` and `LREAL` use `float_t` and `double_t`. Date and time types use `time_t`. Strings become arrays of `char` or `int16_t`, including a terminator slot. User type names stay unchanged.
+Built-in types are translated from the compiler's table of built-in types. Integers use `intN_t` or `uintN_t`; `BOOL` uses `bool`; `REAL` and `LREAL` use `float_t` and `double_t`. Date and time types use `time_t`. Strings become arrays of `char` or `int16_t`, including a terminator slot. User type names stay unchanged.
 
-Array bounds and string lengths that are constant expressions rather than literals are evaluated through the index, so `STRING[MESSAGE_LEN]` with `MESSAGE_LEN: DINT := 80` becomes `char[81]`. A bound that is not constant stops the run with an error.
+Array bounds and string lengths that are constant expressions rather than literals are evaluated through the index, so `STRING[MESSAGE_LEN]` with a constant `MESSAGE_LEN := 80` becomes `char[81]`. A bound that is not constant stops the run with an error.
 
 
 ## The example, rendered
@@ -157,13 +155,13 @@ END_PROGRAM
 
 ### Named types
 
-Named types become typedefs. An enum is a typedef of its numeric type plus one `#define` per variant, named `Type_Variant` so that variants of different enums cannot clash. A variant without a value gets the previous value plus one, which is the same rule the index pre-processor applies:
+Named types become typedefs. An enum is a typedef of its numeric type plus one `#define` per variant, named `Type_Variant` so that variants of different enums cannot clash. The index pre-processor has already given every variant a value, but the generator reads back only a literal one and counts one up from the variant before it for the rest. A variant with a computed value, such as `A := 2+3`, therefore gets the wrong number:
 
 ```c
-typedef char Message[81];
 typedef int16_t Percent;
 typedef Point* PointRef;
 typedef int32_t Grid[2][3];
+typedef char Message[81];
 
 typedef int32_t Speed;
 #define Speed_Slow ((Speed)0)
@@ -229,12 +227,15 @@ extern Point origin;
 extern scale_ptr callback;
 ```
 
-The generator sorts aliases by dependency and drops unused generated aliases. The template writes the include guard and standard headers, then aliases, enums, structs, globals, and functions. It uses an `extern "C"` block.
+The generator sorts aliases by dependency, so `TYPE Msgs: ARRAY[0..1] OF Msg` is written after `Msg` even when it is declared before it, and it drops the generated aliases that nothing names. The template writes the include guard, `<stdint.h>`, `<stdbool.h>`, `<math.h>`, `<time.h>`, and `<dependencies.plc.h>`, a file the compiler never writes and the C side must supply, then aliases, enums, structs, globals, and functions, inside an `extern "C"` block.
+
+> [!NOTE]
+> **Developer note.** That order is not a C declaration order. Aliases come first, and the structs keep their declaration order, so a typedef that names a struct (`PointRef`, `scale_ptr`) and a struct that names a later struct both refer to a type C has not seen yet. The header of the project above does not compile for this reason.
 
 
 ## Combining headers
 
-With `-o`, the generator combines the per-unit models in unit order and renders one header. It writes to `--header-output` or the directory of the first unit with declarations. Lists are joined without deduplication.
+With `-o`, the generator appends the per-unit models in unit order and renders one header. It writes to `--header-output` or the directory of the first unit with declarations.
 
 
 ## Where it lives
