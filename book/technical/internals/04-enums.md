@@ -117,11 +117,11 @@ A variant in a body resolves to its variable entry, and the annotation records t
     flag := paint = Green;
             ^^^^^^^^^^^^^    { kind: Value,                                    resulting_type: "BOOL",  hint: "BOOL" }
             ^^^^^            { kind: Variable, qualified_name: "main.paint",   resulting_type: "Color", hint: None }
-                    ^^^^^    { kind: Variable, qualified_name: "Color.Green",  resulting_type: "Color", hint: None }
+                    ^^^^^    { kind: Variable, qualified_name: "Color.Green",  resulting_type: "Color", hint: None,    constant: true }
 
     flag := state <> Idle;
             ^^^^^            { kind: Variable, qualified_name: "main.state",   resulting_type: "State", hint: "UDINT" }
-                     ^^^^    { kind: Variable, qualified_name: "State.Idle",   resulting_type: "State", hint: "UDINT" }
+                     ^^^^    { kind: Variable, qualified_name: "State.Idle",   resulting_type: "State", hint: "UDINT", constant: true }
 ```
 
 The example uses three forms of variant access: `Color#Red`, `Color.Green`, and the unqualified `Closed`.
