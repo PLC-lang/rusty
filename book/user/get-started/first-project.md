@@ -35,7 +35,9 @@ END_FUNCTION_BLOCK
 
 ## A program that uses it
 
-A program is a function block with exactly one instance, which makes it the natural place for the state of the plant.
+A program is a function block whose instance the compiler creates itself. There is one, and it is global, which makes a program the natural place for the state of the plant.
+
+The program prints numbers, so it uses `printf` from the C library. The `...` declares a variadic parameter, so a call passes one value for each `%d` in the format string.
 
 Write `src/main.st`:
 
@@ -69,14 +71,14 @@ FUNCTION main: DINT
 END_FUNCTION
 ```
 
-`left` and `right` are two instances of the same function block. `left(inflow := 4)` calls the instance and gives its input a value. After the call, `left.level` reads its output.
+`left` and `right` are two instances of the same function block. `left(inflow := 4)` calls the instance and gives its input a value. After the call, `left.level` reads its output. `Plant()` calls the program, because its instance has no name of its own.
 
-The two files know each other without an import. Everything that a project declares is visible in the whole project.
+The two files know each other without an import. What one file declares at the top level, the whole project can use.
 
 
 ## The project file
 
-Put the inputs and the kind of artifact into `plc.json`, next to the `src` directory:
+A command line that names every file grows with each new file. A project file says it once. Put the inputs and the kind of artifact into `plc.json`, next to the `src` directory:
 
 ```json
 {
@@ -85,6 +87,8 @@ Put the inputs and the kind of artifact into `plc.json`, next to the `src` direc
     "compile_type": "Static"
 }
 ```
+
+`compile_type` is `Static` here, which produces an executable. The [Project File](../reference/project-file.md) reference lists every key.
 
 `plc build` reads that file:
 
@@ -100,7 +104,7 @@ cycle 2: left=8 right=10 full=1
 
 The output shows what a function block is for. Each instance kept its own level between the two cycles, and the right tank reached its capacity in the second one.
 
-The build wrote everything into `build/`: one object file per source file, and the artifact `tank.out`, which is named after the project because the file sets no `output`.
+The build wrote everything into `build/`: the artifact `tank.out`, and one object file per source file under the path of the source, so `src/tank.st` became `build/src/tank.st.o`. The artifact carries the name of the project, because the file sets no `output`.
 
 
 ## What's next
