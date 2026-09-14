@@ -62,7 +62,7 @@ The extension decides how a file is read: `.cfc`, `.fbd`, and `.xml` are graphic
 | `-O`, `--optimization <level>` | `none`, `less`, `default` (the default), `aggressive` |
 | `--target <triple>` | Build for this LLVM target instead of the host |
 | `--sysroot <dir>` | Root for the headers and libraries of that target |
-| `-j`, `--threads <n>` | Use `n` threads. `0` or no value means every core |
+| `-j`, `--threads <n>` | Use `n` threads. Without the option the compiler uses every core |
 | `--single-module` | Build one LLVM module for the whole project |
 | `--fpic` | Force position-independent code |
 | `--fno-pic` | Force code that is not position-independent |
@@ -79,7 +79,6 @@ The extension decides how a file is read: `.cfc`, `.fbd`, and `.xml` are graphic
 | `-l`, `--library <name>` | Link `lib<name>`. Also `-l:libfoo.so.1` and a full path |
 | `-L`, `--library-path <dir>` | Add a directory to the library search |
 | `--script <file>` | Give the linker a linker script |
-| `--no-linker-script` | Use no linker script, which is the default |
 | `--nocrt` | Do not link the C runtime startup files |
 | `--nolibc` | Do not link the default C libraries |
 | `--allow-undefined-symbols` | Allow undefined symbols in a shared object |
@@ -126,4 +125,5 @@ The extension decides how a file is read: `.cfc`, `.fbd`, and `.xml` are graphic
 |---|---|
 | `--pic` | `--shared --fpic` |
 | `--no-pic` | `--shared --fno-pic` |
-| `--hardware-conf <file>` | `--hwmap-file=<file>` |
+| `--hardware-conf <file>` | `--hwmap-file=<file>`, which also carries the mangled symbol names |
+| `--no-linker-script` | Nothing. No script is used unless `--script` names one |

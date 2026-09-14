@@ -24,7 +24,7 @@ plc build src/plc.json    # reads the given file
 | `version` | no | none | Free text, for your own use |
 | `format_version` | no | none | Free text, for your own use |
 
-Any other key is an error. The message names the keys that the compiler accepts.
+Any other key is an error, and the message names the keys that the compiler accepts. Two of those keys are not in the table above, because they do nothing: `package_commands` is read and never used, and `format-version` is a second spelling of `format_version`.
 
 ```json
 {
@@ -62,7 +62,7 @@ A library entry adds the declarations of a precompiled library to the project, a
         "path": "libs/",
         "link_path": "libiec61131std.so.1",
         "package": "Copy",
-        "include_path": [ "libs/include/*.st" ]
+        "include_path": [ "include/*.st" ]
     }
 ]
 ```
@@ -72,8 +72,9 @@ A library entry adds the declarations of a precompiled library to the project, a
 | `name` | yes | The name for the linker. `mylib` links `libmylib.so` |
 | `path` | yes | The directory of the library, absolute or relative to the project |
 | `package` | yes | How the library reaches the target system |
-| `include_path` | yes | The declaration files of the library. Their bodies are ignored |
+| `include_path` | yes | The declaration files of the library, resolved against `path`. Their bodies are ignored |
 | `link_path` | no | An exact file to link instead of the name, for example `libmylib.so.1`. A relative value resolves against `path` |
+| `architectures` | no | Accepted and never used |
 
 `package` takes these values:
 
@@ -91,7 +92,7 @@ A library entry adds the declarations of a precompiled library to the project, a
 | Intermediate objects and the artifact | `build`, next to the project file | `--build-location <dir>` |
 | Copied libraries | the build location | `--lib-location <dir>` |
 
-`--lib-location` exists on `build` only. Outside `build`, the compiler writes intermediate objects to the temporary directory of the operating system unless `--build-location` is given, and `-o` always resolves against the current directory.
+`--lib-location` exists on `build` only, and the directory must exist already. Outside `build`, the compiler writes intermediate objects to the temporary directory of the operating system unless `--build-location` is given, and `-o` always resolves against the current directory.
 
 
 ## Environment variables
@@ -117,6 +118,6 @@ The compiler validates the file against a JSON schema before the build starts. T
 plc config schema > plc-json.schema
 ```
 
-Give that file to your editor to get completion and validation while you write the project file. A release also installs it as `/usr/share/plc/schema/plc-json.schema`.
+Give that file to your editor to get completion and validation while you write the project file.
 
 The project file itself takes no `$schema` key, because the compiler rejects every key that it does not know.

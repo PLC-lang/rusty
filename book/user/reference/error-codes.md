@@ -1,6 +1,6 @@
 # Error Codes
 
-Every diagnostic of the compiler has a code. The pages below explain one code each: what it reports, why it is reported, and what a correct program looks like.
+Every diagnostic of the compiler has a code. The pages below hold one code each. Most of them say what the code reports, why it is reported, and what a correct program looks like; the rest carry a title and nothing more.
 
 The same text is available on the command line:
 
