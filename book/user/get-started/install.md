@@ -1,6 +1,6 @@
 # Install
 
-You build the compiler from source and get a binary that you can run from anywhere. The binary is called `plc`.
+You build the compiler from source and get a binary that you can run from anywhere. The binary is called `plc`. On Windows you can download it instead, see [Windows](#windows).
 
 The build needs Rust and a full LLVM installation. `plc` also needs a linker on the system to produce executables and shared objects. Use the compiler driver of the system: `cc` on Linux, and `clang` on macOS and Windows.
 
@@ -84,7 +84,9 @@ ln -svf /opt/homebrew/opt/llvm@21/bin/FileCheck /opt/homebrew/opt/llvm@21/bin/Fi
 
 ## Windows
 
-Install [Rust](https://www.rust-lang.org/tools/install) and the matching LLVM build from the [llvm-package-windows releases](https://github.com/PLC-lang/llvm-package-windows/releases). Extract it and add its `bin/` directory to your `PATH`.
+The [releases page](https://github.com/PLC-lang/rusty/releases) publishes `plc.exe` together with `iec61131std.lib` and `iec61131std.dll`, the two parts of the standard library. Put them into a directory of your `PATH`. LLVM is inside the binary, so this way needs neither Rust nor LLVM, and you can go straight to [Verify the installation](#verify-the-installation).
+
+Build from source when you want to work on the compiler itself. Install [Rust](https://www.rust-lang.org/tools/install) and the matching LLVM build from the [llvm-package-windows releases](https://github.com/PLC-lang/llvm-package-windows/releases). Extract it and add its `bin/` directory to your `PATH`.
 
 Rust needs the C++ build tools. A full Visual Studio installation gives them, but the [build tools alone](https://aka.ms/vs/stable/vs_BuildTools.exe) are smaller and faster to install.
 

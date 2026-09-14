@@ -38,7 +38,7 @@ cargo fmt --all && cargo clippy --workspace
 
 ## Documentation
 
-- The technical book in `book-new/technical/` describes how the compiler works. Code and book MUST stay in sync: a change that makes a chapter outdated MUST update that chapter in the same change, following `book-new/GUIDE.md`.
+- The book in `book/` has two parts: `book/user/` explains how to use the compiler, `book/technical/` explains how it works inside. Code and book MUST stay in sync: a change that makes a page outdated MUST update that page in the same change, in the style of the pages around it.
 - Before opening a PR, check the diff against the book with the `doc-sync` skill.
 
 
