@@ -14,7 +14,7 @@ plc main.st -o app --linker=clang     # macOS, Windows
 
 Without the option, the compiler takes the first of `cc`, `clang`, `ld.lld`, and `ld` that exists and supports the target. A compiler driver, `cc` or `clang`, is the better choice, because it knows the startup files and the default libraries of the platform. A bare linker cannot produce an executable that starts.
 
-Two options adjust the driver: `--fuse-ld=<name>` selects its back end linker, for example `mold`, and `--linker-arg=<argument>` passes one argument through to the linker.
+Two options adjust the driver. `--fuse-ld=<name>` selects the back end linker of the driver, for example `mold`; when `ld.lld` is on the machine, the compiler selects it already. `--linker-arg=<argument>` passes one argument through to the linker, and you repeat the option for each argument.
 
 
 ## Using a library
@@ -49,7 +49,13 @@ Some language features call it as well, for example `**` and the comparison of t
 
 ## Missing symbols
 
-A shared object is linked with `--no-undefined`, so a symbol that nothing defines fails the build instead of failing later, when someone loads the library. `--allow-undefined-symbols` turns that off, for the case where the host program provides the symbols.
+A shared object is linked with `--no-undefined`, so a symbol that nothing defines fails the build instead of failing later, when someone loads the library. The linker names the symbol:
+
+```
+ld.lld: error: undefined symbol: host_log
+```
+
+`--allow-undefined-symbols` turns that off, for the case where the host program provides the symbols.
 
 
 ## Position-independent code
@@ -79,7 +85,11 @@ clang hello_world.o --shared -l iec61131std -l ws2_32 -l ntdll -l userenv ^
 
 ## Bare metal
 
-`--nocrt` leaves out the C runtime startup files, and `--nolibc` leaves out the default C libraries. Both are for targets that bring their own startup code. `--script <file>` gives the linker a linker script.
+`--nocrt` leaves out the C runtime startup files, and `--nolibc` leaves out the default C libraries. With a driver they become `-nostartfiles` and `-nodefaultlibs`. Both are for targets that bring their own startup code. `--script <file>` gives the linker a linker script:
+
+```bash
+plc main.st -o app --linker=cc --nocrt --nolibc --script link.ld
+```
 
 
 ## What's next
