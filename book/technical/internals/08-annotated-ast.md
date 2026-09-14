@@ -98,7 +98,7 @@ PROGRAM main
 END_PROGRAM
 ```
 
-The annotations below are the ones after the first resolver pass, with the accessor methods of the property lowerer already in place. Later participants rewrite some of these statements and the resolver runs again, but the kinds stay the same.
+The annotations below are the ones after the first resolver pass, with the accessor methods of the property lowerer already in place. Later participants rewrite some of these statements and the resolver runs again. A rewrite can change which kind a node gets, but not the set of kinds described below.
 
 Entries store type names, which consumers resolve through the index. Most entries describe expressions; method and POU declarations also receive annotations for validation.
 
@@ -114,12 +114,12 @@ A hint is a second entry for the same node. It usually uses `Value` or `Argument
            ^          Variable "DINT"   hint Argument "INT", position 0, pou CheckRangeSigned
 ```
 
-The second line shows a hint that was replaced: `pct` is a subrange of `INT`, so the value is not hinted to `Percent` but to the parameter of the range check function the hidden call below inserts. Codegen compares annotation and hint and emits the conversion (see [Codegen](../pipeline/05-codegen.md), Expressions and statements); the validator compares them to report the implicit downcast (E067).
+The second line shows a hint that was replaced: `pct` is a subrange of `INT`, so the value is not hinted to `Percent` but to the parameter of the range check function the hidden call below inserts. Codegen compares annotation and hint and emits the conversion (see [Codegen](../pipeline/05-codegen.md#the-type-hint-decides-the-conversion)); the validator compares them to report the implicit downcast (E067).
 
 
 ## Hidden function calls
 
-An assignment to a subrange such as `INT(0..100)` can call a range-check function. If the project declares `CheckRangeSigned` or `CheckRangeUnsigned`, the resolver builds a call with the value and bounds. It annotates the call and stores it under the assigned value's node ID. The original value keeps its annotation.
+An assignment to a subrange such as `INT(0..100)` can call a range-check function. The signedness and the width of the type choose the name: `CheckRangeSigned` and `CheckRangeUnsigned` up to 32 bits, `CheckLRangeSigned` and `CheckLRangeUnsigned` above. If the project declares that function, the resolver builds a call with the value and bounds. It annotates the call and stores it under the assigned value's node ID. The original value keeps its annotation.
 
 When codegen stores into a subrange variable, it asks the table and generates the call in place of the value. Without the function declared, the store is plain.
 
@@ -155,7 +155,6 @@ Value {
 
 Consumers read the type through [`get_type`](#deriving-a-type). `Value` alone does not determine whether an expression has an address: an array element does, while `i + 1` does not. The AST form also matters to codegen.
 
-
 ### Variable
 
 ```rust,noplayground
@@ -169,7 +168,7 @@ Variable {
     /// Declared in a CONSTANT block, or an enum variant
     constant: bool,
 
-    /// Input, Output, InOut, Local, Temp, Global, Return, by value or by reference
+    /// Which variable block declares it, and whether it is held by value or by reference
     argument_type: ArgumentType,
 
     /// Set when reading the variable reads through a pointer: REFERENCE TO, AT alias, or VAR_IN_OUT
@@ -192,12 +191,11 @@ The kind for a reference that resolves to a declared variable, wherever it is de
     ^                Variable "DINT",  main.r,      auto_deref: Reference("__main_r")
 ```
 
-`r` is declared as `REFERENCE TO DINT`, and its type is reported as `DINT`, the type behind the reference. `auto_deref` records that one load through the pointer type `__main_r` is needed to reach that `DINT`, and the same holds for an `AT` alias and for a `VAR_IN_OUT` parameter.
+`r` is declared as `REFERENCE TO DINT`, and its type is reported as `DINT`, the type behind the reference. `auto_deref` records that one load through the pointer type `__main_r` is needed to reach that `DINT`. An `AT` alias records its own pointer type the same way. A `VAR_IN_OUT` parameter is also read through a pointer, but the entry keeps no type name for it.
 
 This is the kind codegen uses most. It looks the address of a reference up in the LLVM index by `qualified_name`, replaces a constant variable of a scalar type by its evaluated value instead of a load, and adds the load through the pointer for `auto_deref`.
 
 Validation uses variable annotations for constant assignments (E036), private-member access (E049), and reference assignments (E098). It also checks constants passed by reference and references in `VAR_CONFIG`.
-
 
 ### Function
 
@@ -228,7 +226,6 @@ The kind for the operator of a call to a function or method, and for a bare refe
 
 The resolver uses the return type to annotate the call result. Generic lowering uses the callee and argument information to select an implementation. Aggregate-return lowering identifies calls that need result storage. Codegen uses `call_name` when present and `qualified_name` otherwise.
 
-
 ### FunctionPointer
 
 ```rust,noplayground
@@ -251,7 +248,6 @@ The kind for the operator of an indirect call: a dereferenced variable whose typ
 
 Codegen generates an indirect call through the loaded pointer and takes the parameter list from the declaration `qualified_name` names. The aggregate-return lowerer treats it like `Function`.
 
-
 ### Type
 
 ```rust,noplayground
@@ -272,7 +268,6 @@ The kind for a reference that names a type: the left side of a cast `INT#5` or `
 
 The resolver reads it to type the right side of the cast. The validator reads it to check a literal against the type it is cast to: a value that does not fit the type or a literal kind the type cannot take (E053, E054, E061).
 
-
 ### Program
 
 ```rust,noplayground
@@ -291,7 +286,6 @@ The kind for a reference to a program, and also for a reference to a class or to
 
 Codegen loads the global instance of the program by `qualified_name` and passes its address to the call. The validator uses it to report an action referenced without parentheses (E095).
 
-
 ### Argument
 
 ```rust,noplayground
@@ -299,7 +293,7 @@ Argument {
     /// The declared type of the parameter
     resulting_type: String,
 
-    /// The position of the parameter among the declared parameters of its POU
+    /// The position of the parameter among the members of the POU that declares it
     position: usize,
 
     /// How many EXTENDS steps lie between the called block and the block that declares the parameter
@@ -314,18 +308,17 @@ Argument {
 
 ```
     counter(limit := 3, step := 2, count => i);
-            ^^^^^^^^^^                 hint Argument "INT",  position 0, depth 1, pou Base
-                        ^^^^^^^^^      hint Argument "DINT", position 0, depth 0, pou Counter
-                                   ^^^^^^^^^^  hint Argument "DINT", position 1, depth 0, pou Counter
+            ^^^^^^^^^^                 hint Argument "INT",  position 1, depth 1, pou Base
+                        ^^^^^^^^^      hint Argument "DINT", position 1, depth 0, pou Counter
+                                   ^^^^^^^^^^  hint Argument "DINT", position 2, depth 0, pou Counter
     i := scale(i, factor := INT#5);
                ^                       hint Argument "DINT", position 0, depth 0, pou scale
                   ^^^^^^^^^^^^^^^      hint Argument "INT",  position 1, depth 0, pou scale
 ```
 
-`limit` is declared in `Base`, one `EXTENDS` step above `Counter`, so the hint says position 0 of `Base` at depth 1, not position 0 of `Counter`.
+`limit` is declared in `Base`, one `EXTENDS` step above `Counter`, so the hint says `Base` at depth 1, not `Counter` at depth 0. The position counts members, not parameters, inside the block that declares the parameter. `limit` is the first input of `Base` but sits at position 1, because the [`__vtable`](../participants/03-polymorphism.md) member takes position 0. `step` and `count` sit behind the [`__Base`](../participants/10-inheritance.md) member of `Counter` for the same reason. A function gets neither member, so the parameters of `scale` start at position 0.
 
 Codegen uses `pou` and `position` to find the member of the instance struct that receives the value, and `depth` to walk through the embedded base parts first. The aggregate-return lowerer reads `pou` and `position` to rewrite an output argument. The type is the hint for the conversion of the argument value, like any other hint.
-
 
 ### Property
 
@@ -344,7 +337,6 @@ The kind for a reference to a property, before it is lowered. The [property lowe
 ```
 
 Only the property lowerer reads it: at `post_annotate` it replaces every such reference by a call to the named accessor and annotates again. A `Property` entry that survives to codegen is an error; codegen has no case for it.
-
 
 ### ReplacementAst
 
@@ -366,7 +358,6 @@ ReplacementAst {
 
 Codegen checks every expression for this kind first and generates the replacement instead of the node. The type of the node is the type of its replacement; see [Deriving a type](#deriving-a-type).
 
-
 ### Label
 
 ```rust,noplayground
@@ -378,12 +369,11 @@ Label {
 
 The kind for a jump statement. Structured Text has no spelling for jumps and labels; they come from the [CFC participant](../participants/00-cfc.md), which renders a jump element into a jump statement and a label element into a label statement. The resolver collects every jump per POU and, once the labels of the POU are known, annotates each jump with the label it targets. Codegen looks the basic block of the label up by `name` and emits the branch.
 
-
 ### MethodDeclarations and Override
 
 ```rust,noplayground
 MethodDeclarations {
-    /// Method name to every declaration of it in the block, its bases, and its interfaces
+    /// Method name to the declarations of it that reach the block
     declarations: FxHashMap<String, Vec<MethodDeclarationType>>,
 }
 
@@ -393,7 +383,7 @@ Override {
 }
 ```
 
-These two kinds do not sit on expressions. `MethodDeclarations` is stored under the ID of a function block, class, or interface declaration. For every method name it lists where the method is declared, as `Concrete` or `Abstract`, from the block itself up its `EXTENDS` chain and through its interfaces. `Override` is stored under the ID of a method declaration and lists the methods it overrides.
+These two kinds do not sit on expressions. `MethodDeclarations` is stored under the ID of a function block, class, or interface declaration. For every method name it lists the declarations that reach the block: one `Concrete` entry for the declaration nearest the block in its `EXTENDS` chain, and one `Abstract` entry for each interface that declares the same method. A declaration that an entry further down the chain overrides is not listed. `Override` is stored under the ID of a method declaration and lists the methods it overrides.
 
 ```
 FUNCTION_BLOCK Base           MethodDeclarations { area: [Concrete Base.area] }
@@ -421,7 +411,7 @@ Codegen compares the annotated type with the expected type from the hint. The an
 | Kind | Produced for | Fields | Read by |
 |---|---|---|---|
 | `Value` | literals, expressions, casts, call results, element accesses | type | everyone, through `get_type` |
-| `Variable` | references to declared variables, members, globals, enum variants, return variables | type, qualified name, constant, argument type, auto-deref | codegen (address, constant folding, deref load), validator (E036, E049, E098, E067) |
+| `Variable` | references to declared variables, members, globals, enum variants, return variables | type, qualified name, constant, argument type, auto-deref | codegen (address, constant folding, deref load), validator (E036, E049, E098) |
 | `Function` | call operators and references naming a function or method | return type, qualified name, generic name, call name | resolver, generic lowerer, aggregate-return lowerer, codegen |
 | `FunctionPointer` | dereferenced pointer-to-method operators | return type, qualified name | aggregate-return lowerer, codegen (indirect call) |
 | `Type` | the type side of a cast, a type used as qualifier | type name | resolver, validator (literal casts) |
