@@ -55,13 +55,13 @@ A VLA does not become an array in the index. The indexer registers it as a struc
 ```rust,noplayground
 Struct {
     /// The pre-processed type name, __sum_values
-    name: String,
+    name: TypeId,
 
     /// Two members: a pointer to the array and the bounds array
     members: Vec<VariableIndexEntry>,
 
-    /// Marks the struct as a VLA of one element type with a fixed number of dimensions
-    source: StructSource::Internal(VariableLengthArray { inner_type_name, ndims }),
+    /// For a VLA: Internal(VariableLengthArray { inner_type_name, ndims })
+    source: StructSource,
 }
 ```
 
@@ -110,7 +110,7 @@ At the call site the argument is an ordinary fixed array, and it receives the ar
 
 ## Lowering
 
-No participant rewrites VLAs. The [loop desugarer](../participants/01-loop-desugar.md) turns the `FOR` of the example into a `WHILE TRUE` loop, which is why the bounds calls appear once before the loop and once per iteration in the IR below.
+No participant rewrites VLAs. The [loop desugarer](../participants/01-loop-desugar.md) turns the `FOR` of the example into a `WHILE TRUE` loop, which is why the IR below reads the lower bound once in front of the loop and the upper bound again on every iteration.
 
 
 ## Codegen
@@ -199,7 +199,10 @@ No bounds check is generated for an element access; an index outside the passed 
 
 ## Validation
 
-The validator keeps VLAs to the places where a struct of caller-owned storage makes sense. A VLA is accepted as `VAR_INPUT {ref}`, `VAR_OUTPUT`, or `VAR_IN_OUT` of a function or method, and as `VAR_IN_OUT` of a function block. It is rejected as a global variable, anywhere in a program, and as a local or other block of a function block (E044, "Variable Length Arrays are not allowed to be defined as ... variables inside a ..."). A by-value `VAR_INPUT` without `{ref}` in a function is a warning (E047) and is treated as by-reference.
+The validator keeps VLAs to the places where a struct of caller-owned storage makes sense. A VLA is accepted as `VAR_INPUT {ref}`, `VAR_OUTPUT`, or `VAR_IN_OUT` of a function or method, and as `VAR_IN_OUT` of a function block. Every other block of a function or a method is rejected with E044, `Variable Length Arrays are not allowed to be defined as Local variables inside a Function`. A by-value `VAR_INPUT` without `{ref}` in a function is only the warning E047, `Variable Length Arrays are always by-ref, even when declared in a by-value block`; the parameter is still passed as a pointer to the struct.
+
+> [!WARNING]
+> Three more forms never reach validation. A global VLA, a VLA anywhere in a program, and a VLA in a function block outside `VAR_IN_OUT` abort the resolver with `internal error: entered unreachable code`, so their E044 is never printed. The accepted `VAR_IN_OUT` of a function block is unsafe today as well: the caller stores the bare array address into the parameter instead of the wrapped struct, and the body then reads that address as a struct.
 
 At a call, the argument must match the parameter in element type and dimension count. `sum(ints)` with an `INT` array and `sum(grid)` with a two-dimensional array are invalid assignments (E037), reported with the array types in the message. Inside a body, a VLA cannot be assigned to another VLA (E037).
 
