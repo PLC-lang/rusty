@@ -64,13 +64,13 @@ A direct linker receives `--linker-arg` values unchanged. A compiler driver rece
 
 ## The command line
 
-The command starts with supplied objects, generated objects, `-L` paths, and `-l` libraries. The sysroot and implicit search paths follow, then linker options, mode, and output path. For the two-file example with a library:
+The command starts with the driver and the arguments it needs itself, then the supplied and generated objects, then the `-L` paths and the `-l` libraries. The sysroot and implicit search paths follow, then linker options, mode, and output path. For the two-file example with a library:
 
 ```
-cc -fuse-ld=lld build/main.st.o build/scale.st.o -L/opt/plc/lib -liec61131std -L. -Lbuild -o out
+cc -fuse-ld=lld build/scale.st.o build/main.st.o -L/opt/plc/lib -liec61131std -L. -Lbuild -o out
 ```
 
-The command is written to the debug log before it runs. The linker's own output goes to the terminal unchanged, and a non-zero exit code becomes the diagnostic E077, "An error occurred during linking". When the project comes from a build description, the `build` subcommand ends by copying every library marked as `Copy` next to the artifact, so that the result can be deployed as one directory.
+The command is written to the debug log before it runs, and `--log-level debug` shows it. The linker's own output goes to the terminal unchanged, and a non-zero exit code becomes the diagnostic E077, "An error occurred during linking". When the project comes from a build description, the `build` subcommand ends by copying every library marked as `Copy` next to the artifact, so that the result can be deployed as one directory.
 
 > [!NOTE]
 > **Developer note.** The linker is an external process, found on the `PATH` at run time. A working installation needs at least one of `cc`, `clang`, `ld.lld`, or `ld`, and the exact behavior of a link depends on which one is found. The `--script` and `--no-linker-script` flags are left over from a built-in linker script that is no longer used; a script is only added to the command when the user passes one.
