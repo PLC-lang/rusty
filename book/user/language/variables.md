@@ -1,5 +1,7 @@
 # Variables
 
+A variable holds a value while the program runs. Where you declare it decides how long the value lives and which code can see it.
+
 A variable is declared inside a variable block, with a name, a type, and an optional initial value. Several names can share one declaration:
 
 ```iecst
@@ -10,7 +12,7 @@ VAR
 END_VAR
 ```
 
-Assignment uses `:=`, and it works in one direction only. `a := b` writes the value of `b` into `a`; nothing in the language assigns the other way around.
+Assignment uses `:=`, and it works in one direction only. `a := b` writes the value of `b` into `a`, never the value of `a` into `b`.
 
 
 ## Where a variable lives
@@ -32,12 +34,12 @@ A global is visible everywhere, and the POU that uses it declares nothing.
 The blocks that declare parameters, `VAR_INPUT`, `VAR_OUTPUT`, and `VAR_IN_OUT`, belong to the POU that they are written in. The chapters on [functions](functions.md) and [function blocks](function-blocks.md) explain them.
 
 > [!NOTE]
-> `VAR_EXTERNAL` is parsed and has no effect. The compiler reports `E106`. It is not necessary, because a global is visible without it.
+> `VAR_EXTERNAL` is parsed, and the compiler warns that the block has no effect. It is not necessary, because a global is visible without it.
 
 
 ## Constants
 
-Write `CONSTANT` on the block and every variable in it becomes a constant. An assignment to one is reported as `E036`:
+Write `CONSTANT` on the block and every variable in it becomes a constant. An assignment to one is rejected:
 
 ```iecst
 VAR_GLOBAL CONSTANT
@@ -67,7 +69,7 @@ END_PROGRAM
 The compiler puts retained variables into a section of the binary that is called `.retain`, and leaves the rest to the target. `NON_RETAIN` states the normal behavior, which is also the default.
 
 > [!NOTE]
-> `RETAIN` needs explicit handling in the runtime that manages the project. The compiler only marks the storage and gives you the metadata. It does not save the section, it does not restore it, and it does not supply a runtime that does.
+> `RETAIN` needs explicit handling in the runtime that manages the project. The compiler only marks the storage. It does not save the section, it does not restore it, and the start-up code writes the declared initial value into the section at every start.
 
 
 ## Initial values
@@ -93,9 +95,9 @@ VAR
 END_VAR
 ```
 
-A list that is shorter than the array fills the rest with the default value of the element type, and the compiler reports `E127` so that you notice.
+A list that is shorter than the array fills the rest with the default value of the element type, and the compiler warns so that you notice.
 
-Values that are addresses, such as `REF(x)`, are not constants and cannot be written into the static data of a program. The compiler collects them and sets them before the first call of your code; the [pointers](pointers.md) chapter comes back to this.
+Values that are addresses, such as `REF(x)`, are not constants and cannot be written into the static data of a program. Such a variable starts as a null pointer, and the compiler emits start-up code that sets it before the first call of your code. The [pointers](pointers.md) chapter explains `REF` and the types that hold an address.
 
 
 ## What's next
