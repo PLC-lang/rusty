@@ -119,6 +119,7 @@ The constant initializer `'hi'` is written into the static data padded with zero
 ```llvm
 @utf08_literal_0 = private unnamed_addr constant [4 x i8] c"bob\00"
 @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"hello\00"
+@utf08_literal_2 = private unnamed_addr constant [3 x i8] c"hi\00"
 @utf16_literal_0 = private unnamed_addr constant [6 x i16] [i16 119, i16 111, i16 114, i16 108, i16 100, i16 0]
 ```
 
