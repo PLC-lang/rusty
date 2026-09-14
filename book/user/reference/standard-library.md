@@ -1,6 +1,6 @@
 # Standard Library
 
-`iec61131std` provides the functions and function blocks of IEC 61131-3. This page says what is in it and where each family is declared. For the signature of a single function, read the declaration file.
+`iec61131std` provides the functions and function blocks of IEC 61131-3. This page says what is in it and which file declares each family. For the signature of a single function, read that file.
 
 
 ## Using it
@@ -9,8 +9,8 @@ A release installs the library and its declarations:
 
 | File | Contents |
 |---|---|
-| `/usr/share/plc/include/*.st` | The declarations, one file per family |
-| `/usr/lib/<triplet>/libiec61131std.so` | The implementation |
+| `/usr/share/plc/include/*.st` | The declarations |
+| `/usr/lib/<triplet>/libiec61131std.so` | The implementation, also as `libiec61131std.a` |
 
 ```bash
 plc main.st -i "/usr/share/plc/include/*.st" -l iec61131std -o app --linker=cc
@@ -26,7 +26,7 @@ Some parts of the language call the library by themselves, so link it also when 
 
 | Family | Declared in | Contains |
 |---|---|---|
-| Arithmetic | `arithmetic_functions.st` | `SQRT`, `LN`, `LOG`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `EXPT`, and the variadic `ADD` and `MUL` |
+| Arithmetic | `arithmetic_functions.st` | `SQRT`, `LN`, `LOG`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `EXPT`, the variadic `ADD` and `MUL`, and the constants `PI_REAL`, `FRAC_PI_2_REAL`, `FRAC_PI_4_REAL`, `E_REAL`, `INF_REAL`, and `NAN_REAL`, each also in an `LREAL` form such as `PI_LREAL` |
 | Numerical | `numerical_functions.st` | `ABS` |
 | Selectors | `selectors.st` | `MAX`, `MIN`, `LIMIT` |
 | Bit shifts | `bit_shift_functions.st` | `ROL`, `ROR` |
@@ -35,22 +35,27 @@ Some parts of the language call the library by themselves, so link it also when 
 | Text | `string_functions.st` | `LEN`, `LEFT`, `RIGHT`, `MID`, `CONCAT`, `INSERT`, `DELETE`, `REPLACE`, `FIND`, and the comparisons |
 | Text conversion | `string_conversion.st` | Between `STRING`, `WSTRING`, `CHAR`, and `WCHAR` |
 | Timers | `timers.st` | `TP`, `TON`, `TOF`, each also in a `_TIME` and an `_LTIME` form |
-| Counters | `counters.st` | `CTU`, `CTD`, `CTUD`, each for every integer type |
+| Counters | `counters.st` | `CTU`, `CTD`, `CTUD`, each also with the suffix `_INT`, `_DINT`, `_UDINT`, `_LINT`, or `_ULINT` |
 | Edges | `flanks.st` | `R_TRIG`, `F_TRIG` |
 | Bistable | `bistable_functionblocks.st` | `SR`, `RS` |
-| Date and time | `date_time_numeric_functions.st` | Adding and subtracting durations, dates, and times of day |
+| Date and time | `date_time_numeric_functions.st` | Adding and subtracting durations, dates, and times of day, and `MUL_TIME` and `DIV_TIME` |
 | Date and time | `date_time_conversion.st` | Between the date and time types, and between the short and long families |
-| Date and time | `date_time_extra_functions.st` | `CONCAT_DATE`, `CONCAT_TOD`, and their variants |
+| Date and time | `date_time_extra_functions.st` | `CONCAT_DATE`, `CONCAT_TOD`, the `SPLIT_` family that takes such a value apart again, and `DAY_OF_WEEK` |
 | Numeric conversion | `num_conversion.st` | `<TYPE>_TO_<TYPE>` for every pair of numeric types |
-| Bit conversion | `bit_conversion.st` | Between the bit string types |
+| Bit conversion | `bit_conversion.st` | Between the bit string types and `BOOL`, and between them and `CHAR` and `WCHAR` |
 | Bit and number | `bit_num_conversion.st` | Between the bit string types and the numeric types |
-| Truncation | `trunc_int.st`, `real_trunc_int.st` | `TRUNC` and the `TRUNC_<TYPE>` family, which cut the fraction |
+| Truncation | `trunc_int.st` | `TRUNC_<TYPE>`, which cuts the fraction of a real |
+| Truncation | `real_trunc_int.st` | `REAL_TRUNC_<TYPE>` and `LREAL_TRUNC_<TYPE>`, the same for one source type each |
 | Generic conversion | `to_num.st`, `to_bit.st`, `to_string.st`, `to_date_time.st` | `TO_<TYPE>`, one generic function per target type |
-| Text output | `extra_functions.st` | `<TYPE>_TO_STRING` for every type |
+| Text output and input | `extra_functions.st` | `<TYPE>_TO_STRING` and `<TYPE>_TO_WSTRING`, the `STRING_TO_<TYPE>` family that reads a value back, `TRUNC`, and `TIME()`, which gives the time since midnight |
+
+The text conversion family covers eight of the twelve directions: each of the four text types converts to two of the other three. `STRING` to `WCHAR`, `WSTRING` to `CHAR`, `CHAR` to `WSTRING`, and `WCHAR` to `STRING` do not exist.
+
+`<TYPE>_TO_STRING` covers most types, but not all of them. There is no `INT_TO_STRING`, `SINT_TO_STRING`, `WORD_TO_STRING`, or `BOOL_TO_STRING`, and the generic `TO_STRING` has no version for those types either, so a call compiles and then fails at the link step. Convert such a value to a wider type first, for example with `INT_TO_DINT`. `<TYPE>_TO_WSTRING` covers the same types except the unsigned integers.
 
 
 ## Two forms of conversion
 
-The library provides the same conversion twice. `INT_TO_DINT(x)` names both types, and `TO_DINT(x)` is generic and takes the source type from the argument. Both compile to the same code; the generic form is shorter, and the explicit form is clearer in a long expression.
+The library provides the same conversion twice. `INT_TO_DINT(x)` names both types, and `TO_DINT(x)` is generic and takes the source type from the argument. The generic form calls the named one, so both give the same result, and the named one saves a call.
 
 Where a conversion can lose information, the name says so: `TRUNC_DINT` cuts the fraction of a real, and `REAL_TO_DINT` rounds it.
