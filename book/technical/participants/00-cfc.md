@@ -90,6 +90,7 @@ At `post_index` the participant transpiles every CFC document against the index,
 
 The CFC resolver converts the document into assignments, returns, jumps, labels, and calls, each with an evaluation priority. It also records temporary variables. The transpiler converts this intermediate list into AST nodes. The following sections describe the resolver's decisions, then the rendering step.
 
+
 ## Elements and wires
 
 Each element is classified by its `xsi:type`:
@@ -104,11 +105,11 @@ Each element is classified by its `xsi:type`:
 | `CfcJump`, `CfcLabel` | a conditional jump and its target | one jump, one label |
 | `Unconnected` | an element the user placed but never wired | a warning |
 
-The resolver first maps output pin IDs to their elements, connector labels to their connectors, and jump targets to labels. To read an input, it follows the referenced output pin until it reaches a value producer.
+The resolver first surveys the network. It maps every output pin ID to the element that owns it and every connector label to its connector, and it collects the label names and the jump targets, so each can check the other. To read an input, it follows the referenced output pin until it reaches a value producer.
 
-Two kinds of element are stepped over. A continuation is replaced by whatever feeds the connector of the same label, so a connector pair behaves like a wire. An `ENO` pin of a block is replaced by whatever feeds the `EN` pin of that block, because `ENO` mirrors the guard (see below). Both hops have a cycle guard: a continuation without a connector, a connector without an input, or a block whose `ENO` leads back to itself is a dead end, reported once per element however many consumers reach it.
+Two kinds of element are stepped over. A continuation is replaced by whatever feeds the connector of the same label, so a connector pair behaves like a wire. An `ENO` pin of a block is replaced by whatever feeds the `EN` pin of that block, because `ENO` mirrors the guard (see below). Both hops are cycle-guarded. A continuation without a connector, a connector without an input, or a block whose `ENO` leads back to itself is a dead end, reported once per element however many consumers reach it.
 
-A trace ends at a block output pin, which is read as described under blocks, or at a plain element, whose `identifier` text goes through the compiler's expression parser. The trace also collects the negation bubbles on the way: each bubble on the producer, on the consumer, or on a hopped pin wraps the value in one more `NOT`.
+A trace ends at a block output pin, which is read as described under blocks, or at a plain element, whose `identifier` text goes through the compiler's expression parser. The trace also collects the negation bubbles on the way. A bubble on the producer and one on the consumer each wrap the value in one more `NOT`. The bubble of a hopped `ENO` pin and the one of the `EN` pin behind it invert the same value, so a pair of them cancels.
 
 The rest of this section takes one element kind at a time. Each example shows the network the user drew, then the statements the transpiler renders from it. A number in parentheses is the evaluation priority of the element, a bubble `o-->` is a negation, and `[name |S]` is a sink with a storage mode.
 
@@ -150,7 +151,7 @@ bar := NOT foo;
 
 ### Data sink
 
-A data sink is a write. It traces its input back to a producer and assigns the value to its own identifier. This is the smallest network that renders anything:
+A data sink is a write. It traces its input back to a producer and assigns the value to its own identifier. A source wired to a sink is therefore one assignment:
 
 ```
 foo --> bar (0)
@@ -296,9 +297,10 @@ foo --> bar (0)
 bar := foo;
 ```
 
+
 ## Blocks
 
-The index decides how a block is rendered. A callee that is a function and has no instance name is stateless: its outputs exist only during the call. Every output that a consumer reads is therefore captured into a temporary named `__out_<pin>_<globalId>`, declared in a `VAR` block of the POU with the type the callee declares for that output. The return pin is captured by an assignment of the call, every other output with `=>`. A fan-out therefore calls once and reads twice:
+The index decides how a block is rendered. A callee that is a function and has no instance name is stateless: its outputs exist only during the call. Every output that a consumer reads is therefore captured into a temporary named `__out_<pin>_<globalId>`, declared in a `VAR` block of the POU with the type the callee declares for that output. The return pin carries no parameter name, so it contributes the name of the callee (`__out_myAdd_1` below); it is captured by an assignment of the call, every other output with `=>`. A fan-out then calls once and reads twice:
 
 ```
         myAdd (0)
@@ -352,21 +354,27 @@ done := trigger;
 
 The flag decides whether a pin named `EN` is the control pin; without the flag, `EN` and `ENO` are ordinary parameters.
 
+> [!NOTE]
+> **Developer note.** The export format does not say how to tell the control pin from a parameter of the same name that the callee declares itself. Two pins named `EN` on one block therefore stop the compiler with a panic instead of a guess.
+
+
 ## Order
 
-Statements and temporaries are sorted by evaluation priority. Elements without a priority come last, in document order. Wires do not determine execution order; the user's priorities do.
+Each element renders on its own. A whole network is a set of them, and the wires do not say which of them runs first. The user's priorities do: statements and temporaries are sorted by evaluation priority, and elements without a priority come last, in document order.
+
 
 ## Rendering
 
-The transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. Every statement carries a location of a kind that only this participant creates: the `globalId` of the element instead of a line and column. A diagnostic on such a node is printed as `file.cfc: Block 6` without a source snippet. The temporaries go into one additional `VAR` block, and the statement list replaces the empty body the parse step left.
+With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. Every statement carries a location of a kind that only this participant creates: the `globalId` of the element instead of a line and column. A diagnostic on such a node is printed as `file.cfc: Block 6` without a source snippet. The temporaries go into one additional `VAR` block, and the statement list replaces the empty body the parse step left.
+
 
 ## Generic temporaries
 
-A temporary initially takes its output parameter's declared type. For a generic function such as `myGenAdd<T: ANY_NUM>: T`, this is `__myGenAdd__T`. Codegen needs a concrete type. The compiler's expression resolver can derive it from the call arguments after transpilation.
+The rendered body is complete, except where a callee is generic. A temporary takes its output parameter's declared type, and for a generic function such as `myGenAdd<T: ANY_NUM>: T` that type is `__myGenAdd__T`. Codegen needs a concrete type. The compiler's expression resolver can derive it from the call arguments after transpilation.
 
 After indexing the new units, the participant runs type inference rounds. Each round annotates the unit and checks generic temporaries whose inputs already have concrete types. It updates their declarations and index entries with the inferred types. A chain of generic calls resolves one step per round:
 
-```
+```iecst
 __out_myGenAdd_1 := myGenAdd(a := a, b := b);                  (* a, b : INT   -> round 1: INT  *)
 __out_myGenAdd_5 := myGenAdd(a := __out_myGenAdd_1, b := c);   (* c : DINT     -> round 2: DINT *)
 ```
@@ -407,4 +415,4 @@ The participant checks the diagram before pins and wires disappear from the AST.
 | E154 | a negation bubble on a reference assignment |
 | E155 | a block with two unnamed return pins |
 
-Everything about the rendered statements themselves, unknown variables, type mismatches, wrong argument counts, is left to the validation stage, which reports it at the block location of the element.
+Everything about the rendered statements themselves (unknown variables, type mismatches, wrong argument counts) is left to the validation stage, which reports it at the block location of the element too.
