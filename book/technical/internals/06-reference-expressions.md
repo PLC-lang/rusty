@@ -2,7 +2,7 @@
 
 A reference expression connects a name to a variable, member, element, pointer target, or part of a value. In `pShape^.points[i].x`, each segment performs one step. The resolver identifies its declaration or type; codegen uses it to compute an address or value. This chapter connects the member and array accesses from the preceding chapters.
 
-The example combines member access, array indexing, pointers, casts, direct bit access, and an explicit global reference:
+The example combines member access, array indexing, pointers, casts, direct access, and an explicit global reference:
 
 ```iecst
 TYPE Point:
@@ -204,7 +204,7 @@ A plain name is the address the function setup registered for it: a member point
   %load_x = load i32, ptr %x9, align 4
 ```
 
-The struct positions come from the index. A program or function block struct also skips `VAR_TEMP` variables, which live on the stack, so the position is computed rather than read from the entry.
+The struct positions come from the index. A function block struct starts with the `__vtable` member, so `origin`, the first variable that `Shape` declares, is at position 1. A program or function block struct also skips `VAR_TEMP` variables, which live on the stack, so the position is computed rather than read from the entry.
 
 ### Index
 
@@ -271,9 +271,9 @@ A direct access is therefore a value, not an address. Assigning to one, `word.%X
 
 ## Validation
 
-[Validation](../pipeline/04-validation.md) checks each access kind. Missing `^` on a `POINTER TO` member access is E141. Dereferencing a non-pointer is E068; indexing a non-array is E059. Access to a private function block member from outside is E049. For `REF=`, the left side must be a pointer or auto-dereferenced variable, and the right side a reference (E098).
+[Validation](../pipeline/04-validation.md) checks each access kind. A member access through a pointer needs an explicit `^` unless the pointer is auto-dereferenced, so `pShape.points` is E141, for `REF_TO` as much as for `POINTER TO`. Dereferencing a non-pointer is E068; indexing a non-array is E059. Access to a private function block member from outside is E049. For `REF=`, the left side must be a pointer or auto-dereferenced variable, and the right side a reference (E098).
 
-The parser reports a `POINTER TO` declaration as type-unsafe (E015), but that code is registered as ignored, so nothing is printed. The validator checks an assignment between type-safe pointers for matching inner types (E090), where `POINTER TO` accepts any address.
+The parser reports a `POINTER TO` declaration as type-unsafe (E015), but that code is registered as ignored, so a normal run prints nothing and `--error-config` has to raise it. The validator compares the inner types of an assignment between type-safe pointers (E090). It compares the kind of type, not the exact name, so `REF_TO DINT` accepts a pointer to any integer but not a pointer to a struct. A `POINTER TO` accepts any address, except that a pointer to a function block or a class must point at a related one (E125).
 
 
 ## At a glance
