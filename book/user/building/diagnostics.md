@@ -16,6 +16,8 @@ error: Compilation aborted due to critical errors.
 Hint: You can use `plc explain <ErrorCode>` for more information
 ```
 
+The first line gives the severity, the code, and the problem. The second gives the position: the compiler writes the path of the file in full, and the examples in this book shorten it to the file name. The marker under the source line shows the part of the statement that the message is about.
+
 The compiler collects the diagnostics of a stage before it stops, so one run usually reports more than one problem. An error stops the run before code generation. A warning and an information message do not.
 
 
@@ -25,7 +27,7 @@ The compiler collects the diagnostics of a stage before it stops, so one run usu
 plc explain E037
 ```
 
-The command prints the description of the code with an example of the mistake and of the correct form. It works without a project, and the [error code reference](../reference/error-codes.md) has the same text.
+The command prints the explanation of the code: usually a description with an example of the mistake and of the correct form, and for a part of the codes a title and nothing more. It works without a project, and the [error code reference](../reference/error-codes.md) has the same text.
 
 
 ## Severity
@@ -76,7 +78,7 @@ plc config diagnostics --error-config severities.json
 |---|---|
 | `rich` | The default. Source snippet, position marker, and color |
 | `clang` | One line per diagnostic, in the format of `clang`, for tools that parse it |
-| `none` | No diagnostics at all |
+| `none` | No messages. A run that fails still reports that it was aborted |
 
 ```bash
 plc --check main.st --error-format=clang
@@ -84,6 +86,7 @@ plc --check main.st --error-format=clang
 
 ```
 main.st:6:5:{6:5-6:16}: error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
+error: Compilation aborted due to critical errors
 ```
 
 
