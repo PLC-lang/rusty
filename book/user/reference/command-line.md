@@ -88,10 +88,10 @@ The extension decides how a file is read: `.cfc`, `.fbd`, and `.xml` are graphic
 
 | Option | Effect |
 |---|---|
-| `-g`, `--debug` | Generate source-level debug information |
-| `--debug-variables` | Also for global variables |
-| `--gdwarf <2..5>` | Debug information with a fixed DWARF version |
-| `--gdwarf-variables <2..5>` | The same for global variables |
+| `-g`, `--debug` | Source lines, variables, and types, as DWARF 5 |
+| `--debug-variables` | The global variables only |
+| `--gdwarf <2..5>` | The same as `-g`, with a fixed DWARF version |
+| `--gdwarf-variables <2..5>` | The same as `--debug-variables`, with a fixed DWARF version |
 | `--file-prefix-map OLD=NEW` | Rewrite recorded paths. Repeatable. Alias `--debug-prefix-map` |
 | `--debug-compilation-dir <dir>` | Set the compilation directory in the debug information |
 

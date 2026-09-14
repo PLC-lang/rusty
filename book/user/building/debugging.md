@@ -7,16 +7,16 @@ The compiler writes DWARF debug information into the artifact, so that a debugge
 
 | Option | Effect |
 |---|---|
-| `-g`, `--debug` | Source-level debug information |
-| `--debug-variables` | Debug information for global variables as well |
-| `--gdwarf <2..5>` | Source-level debug information with a fixed DWARF version |
-| `--gdwarf-variables <2..5>` | The same for global variables |
+| `-g`, `--debug` | Source lines, variables, and types |
+| `--debug-variables` | The global variables only, without source lines |
+| `--gdwarf <2..5>` | The same as `-g`, with a fixed DWARF version |
+| `--gdwarf-variables <2..5>` | The same as `--debug-variables`, with a fixed DWARF version |
 
 ```bash
 plc -g main.st -o app --linker=cc
 ```
 
-Use a fixed version when the debugger or the runtime on the target accepts one version only.
+The four exclude each other, so give one of them. `-g` already covers the global variables, and the version it writes is DWARF 5. Use a fixed version when the debugger or the runtime on the target accepts one version only.
 
 
 ## Why paths matter
