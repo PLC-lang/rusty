@@ -117,7 +117,7 @@ The evaluator processes a queue. Literals resolve after a range check. Constant 
 
 A reference to a variable that is not constant is unresolvable, "`x` is no const reference", unless the target is a pointer type; then it is an address. `ADR`, `REF`, and a bare reference that initializes a `REFERENCE TO` are addresses too. A call to a user function is a plain unresolvable, because the compiler does not execute code at compile time.
 
-Struct and array literals keep their shape: every element is folded on its own, but the literal as a whole stays a list instead of one value. An element that is not constant makes the whole literal unresolvable, as `readings` shows. A variable without an initializer has no entry at all, and its value comes from its type: the type's own default (`n: MyInt` starts at `7`), or zero.
+Struct and array literals keep their shape: every element is folded on its own, but the literal as a whole stays a list instead of one value. An element that is not constant makes the whole literal unresolvable, as `readings` shows. Outside a `CONSTANT` block, a variable without an initializer has no entry at all, and its value comes from its type: the type's own default (`n: MyInt` starts at `7`), or zero.
 
 > [!NOTE]
 > **Developer note.** The index has an unused map of default-instance entries such as `__Point__init` and `__Counter__init`. These entries do not produce LLVM globals. Codegen reads defaults from the type index, while constructors provide runtime initialization.
@@ -153,7 +153,7 @@ TYPE MyInt: INT := 7; END_TYPE
 
 ## Lowering
 
-The [init participant](../participants/06-init.md) moves instance and type initialization into constructors such as `main__ctor` and `Point__ctor`. Function locals and `VAR_TEMP` variables get statements at the start of the body. It also removes the non-constant array literal from `readings`, so later index runs no longer retain that unresolved initializer.
+The [init participant](../participants/06-init.md) moves instance and type initialization into constructors such as `main__ctor` and `Point__ctor`. Function locals and `VAR_TEMP` variables get statements at the start of the body. It also removes the non-constant array literal from `readings`, so the rebuilt index no longer holds that unresolved initializer.
 
 The [array lowerer](../participants/11-array.md) then splits the assignment `self.readings := [pick(), 2]` in the constructor into one assignment per element. Everything else stays where it is: the resolved entries are still in the store, and codegen reads them for the static data.
 
@@ -176,18 +176,18 @@ For every local or temporary member of aggregate type with an initializer, codeg
 
 ### Constructor
 
-The generated constructor writes the same values again at start-up, and this is the only place where the three unresolvable initializers get their value. The relevant statements of `main__ctor`, trimmed:
+The generated constructor writes the same values again at start-up, and this is the only place where the three unresolvable initializers get their value. The stores and calls of `main__ctor`, without the address arithmetic and the empty constructors of the inline types:
 
 ```llvm
   store i32 4, ptr %i, align 4
   call void @MyInt__ctor(ptr %n)
   call void @Point__ctor(ptr %p)
   store i32 2, ptr %y, align 4
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %values, ptr align 1 @.const_init, i64 ptrtoint (ptr getelementptr ([3 x i32], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %values7, ptr align 1 @.const_init, i64 ptrtoint (ptr getelementptr ([3 x i32], ptr null, i32 1) to i64), i1 false)
   call void @Counter__ctor(ptr %counter)
   store i32 10, ptr %step, align 4
-  store ptr %i, ptr %ptr, align 8
-  store ptr %i, ptr %r, align 8
+  store ptr %i15, ptr %ptr13, align 8
+  store ptr %i21, ptr %r19, align 8
   %call = call i32 @pick()
   store i32 %call, ptr %tmpVar, align 4
   store i32 2, ptr %tmpVar27, align 4
@@ -210,14 +210,14 @@ entry:
   ...
 ```
 
-The example writes resolved initializers twice: in static data and a constructor, or twice at the start of a body. LLVM can remove redundant stores. Addresses and runtime calls still need executable initialization. A foreign program that links these objects must run the required constructors; static data alone does not perform that work.
+The example writes resolved initializers twice: in static data and a constructor, or twice at the start of a body. LLVM can remove redundant stores. Addresses and runtime calls still need executable initialization, and the `@llvm.global_ctors` entry of the unit constructor makes that work happen before the program starts, also for a C program that links the object.
 
 
 ## Validation
 
 The validator turns the states of the store into diagnostics. An `Unresolvable` entry with a `Misc` reason is an error at the initializer, "Unresolved constant `chosen` variable: Call-statement 'pick' in initializer is not constant." (E033). The same code is reported for an entry that is still `Unresolved` after evaluation, which happens when constants reference each other in a cycle, and for a `CONSTANT` variable whose type has no default that can be resolved. A `CONSTANT` without an initializer is otherwise fine: the parser gives it a default-value node that folds to the default of the type.
 
-An `Overflow` reason is a warning. An `Address` reason is not an error; the validator checks instead that the pointed-to type matches the declared pointer type. A separate rule rejects the address of a temporary kept in a member variable (E109), but it looks for the argument where the call held it before lowering, so it never fires in the pipeline.
+An `Overflow` reason is a warning. An `Address` reason is not an error; the validator checks instead that the pointed-to type matches the declared pointer type. A separate rule rejects the address of a temporary kept in a member variable (E109). It fires when the initializer names the temporary directly, as an `AT` alias or a `REF=` binding, but not for `ADR` or `REF`: it reads the argument of the call directly, and by then lowering has put that argument in an expression list.
 
 A scalar initializer containing a call is rejected. The same call inside an array literal can pass because init lowering removes that initializer before validation. Array lowering then turns it into element assignments.
 
@@ -227,14 +227,14 @@ A scalar initializer containing a call is rejected. The same call inside an arra
 | Initializer | Constant store | Static data | Constructor or body |
 |---|---|---|---|
 | `i: DINT := 1` | `Resolved(1)` | `i32 1` in the instance | `store i32 1` |
-| `i: DINT := MAX + 1` | `Resolved(4)`, folded in a later pass | `i32 4` | `store i32 4` |
+| `i: DINT := MAX + 1` | `Resolved(4)`, folded | `i32 4` | `store i32 4` |
 | `TYPE MyInt: INT := 7` | `Resolved(7)` on the type | default for every `MyInt` without its own initializer | `MyInt__ctor` stores 7 |
-| `p: Point := (y := 2)` | `Resolved`, literal kept as written | struct constant, type default for the other members | `Point__ctor(p)` then `store` per member |
+| `p: Point := (y := 2)` | `Resolved`, literal kept as written | struct constant, type default for the other members | `Point__ctor(p)`, then a `store` for `y` |
 | `values: ARRAY := [1, 2, 3]` | `Resolved`, literal kept | array constant | `memcpy` from a constant |
 | `counter: Counter := (step := 10)` | `Resolved`, literal kept | struct constant with the FB's defaults | `Counter__ctor` then `store` |
-| `ptr := ADR(i)` | `Unresolvable(Address)` | `ptr null` | `store ptr %i` |
-| `r REF= i` | `Unresolvable(Address)` | `ptr null` | `store ptr %i` |
+| `ptr := ADR(i)` | `Unresolvable(Address)` | `ptr null` | `store` of the address of `i` |
+| `r REF= i` | `Unresolvable(Address)` | `ptr null` | `store` of the address of `i` |
 | `readings := [pick(), 2]` | `Unresolvable(Misc)`, removed by lowering | `zeroinitializer` | one `store` per element, the call runs once |
 | `local: DINT := 5` in a function | `Resolved(5)` | none | two `store` at the start of the body |
 | `t: DINT := 4` in `VAR_TEMP` | `Resolved(4)` | none | two `store` at the start of the body |
-| `chosen: DINT := pick()` | `Unresolvable(Misc)` | rejected, E033 | |
+| `chosen: DINT := pick()` | `Unresolvable(Misc)` | none | none; E033 rejects the program |
