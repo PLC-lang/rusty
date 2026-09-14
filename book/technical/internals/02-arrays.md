@@ -2,7 +2,7 @@
 
 A fixed array has an element type and constant bounds for each dimension. Codegen combines the dimensions into one flat block and computes an offset for each access. For example, `ARRAY[3..5] OF DINT` has three elements, so source index 3 maps to offset 0.
 
-The example compares several dimensions with nested arrays and arrays of [structs](01-structs.md). It also shows initialization and parameter passing:
+The example puts a multi-dimensional array next to a nested array and an array of [structs](01-structs.md). It also shows initialization and parameter passing:
 
 ```iecst
 VAR_GLOBAL CONSTANT
@@ -189,6 +189,9 @@ define void @main__ctor(ptr %0) {
 
 A repetition written with a literal count, `[3(7)]`, is folded into the static data as well; only the constant-name spelling stays zero there. The constructor writes both, because it writes every variable initializer.
 
+> [!NOTE]
+> **Developer note.** A multi-dimensional array takes one flat initializer list. The nested form, `[[1, 2, 3], [4, 5, 6]]`, passes `--check` and then stops codegen with `Cannot generate literal initializer`. It is valid only for an array of arrays, which has an array type at each level.
+
 ### Element access
 
 An access is one address computation, `getelementptr`, with a first index of zero to step into the array and a second index that is the flattened offset. For one dimension the offset is the index minus the lower bound. With constant indices LLVM folds that at build time, so `b[4]` on `ARRAY[3..5]` becomes index 1 and `neg[-2]` becomes index 0. For a variable index the subtraction is emitted, followed by the multiplication and addition the general formula below needs even for one dimension:
@@ -204,7 +207,7 @@ An access is one address computation, `getelementptr`, with a first index of zer
   %tmpVar6 = getelementptr inbounds [5 x i16], ptr %neg, i32 0, i32 %tmpVar5
 ```
 
-For several dimensions, subtract each lower bound and multiply by the number of elements in the following dimensions. Add the results. Thus `grid[1, 2]` on `ARRAY[0..1, 0..2]` has offset `1 * 3 + 2 * 1 = 5`. Nested arrays use one `getelementptr` per level. Struct elements add a member access after the array access. Each index is converted to `DINT` before the arithmetic.
+For several dimensions, subtract each lower bound and multiply by the number of elements in the following dimensions. Add the results. The last dimension therefore varies fastest. Thus `grid[1, 2]` on `ARRAY[0..1, 0..2]` has offset `1 * 3 + 2 * 1 = 5`. The lower bound is subtracted in the type of the index, and the difference is converted to `DINT` for the multiplication. Nested arrays use one `getelementptr` per level. Struct elements add a member access after the array access.
 
 ```llvm
   %tmpVar3 = getelementptr inbounds [6 x i32], ptr %grid, i32 0, i32 5
@@ -218,7 +221,7 @@ No bounds are checked at run time. A constant index outside the declared range i
 
 ### Assignment
 
-Assignment between compatible array variables copies the target type's size. A constant literal first becomes a private global. A supported literal with runtime elements is split into stores by the array lowerer. In the example, `a := [9, 8, ...]` uses a copy, while `pair := [i, 2]` uses two stores:
+Assignment between compatible array variables copies the target type's size. A literal whose elements are all constant becomes a private global that is copied. A literal with a non-constant element is split into one store per element by the array lowerer. In the example, `a := [9, 8, ...]` uses a copy, while `pair := [i, 2]` uses two stores:
 
 ```llvm
   call void @llvm.memcpy.p0.p0.i64(ptr align 1 %a, ptr align 1 @.const_init, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
@@ -246,14 +249,14 @@ entry:
   %tmpVar7 = getelementptr inbounds [2 x i32], ptr %deref, i32 0, i32 0
 ```
 
-The caller passes the addresses of its own variables in both cases, `call i32 @sum(ptr %rep, ptr %pair)`. The copy in the callee uses the parameter's size, which is also the argument's size, because the validator requires equal dimensions for an array argument.
+The caller passes the addresses of its own variables in both cases, `call i32 @sum(ptr %rep, ptr %pair)`. The copy in the callee uses the parameter's size, which is also the argument's size, because the validator requires an argument of the same total size. A function block keeps its parameters in the instance, so the copy moves to the caller: a by-value array is copied into the member before the call, and a `VAR_IN_OUT` member holds the address of the argument.
 
 `LOWER_BOUND` and `UPPER_BOUND` accept [variable-length arrays](05-variable-length-arrays.md), which carry bounds at run time. A fixed array call produces E037, for example `cannot assign 'ARRAY[-2..2] OF INT' to 'VARIABLE LENGTH ARRAY'`.
 
 
 ## Validation
 
-The declaration is checked for bounds that are constant (E117), integer, and in ascending order (E097, `Invalid range 5..0`). An initializer with more elements than the array holds is rejected (E043). An access is checked for the number of dimensions (E045) and, for a constant index, against the declared range (E058, `Array access must be in the range 0..2`). Two arrays of different dimensions, or with different element types, are an invalid assignment (E037), and the same comparison of dimensions applies to an array argument.
+The declaration is checked for bounds that are constant (E117), integer (E008), and in ascending order (E097, ``Invalid range `5..0`, did you mean `0..5`?``). An initializer with more elements than the array holds is rejected (E043); one with fewer elements is a warning (E127). An access is checked for the number of dimensions (E045) and, for a constant index, against the declared range (E058, `Array access must be in the range 0..2`). Two arrays are assignable only when the element type is the same and both types have the same total size. The bounds and the number of dimensions are not compared, so an `ARRAY[0..1, 0..2] OF DINT` is assignable to an `ARRAY[0..5] OF DINT`. Anything else is an invalid assignment (E037), and the same comparison applies to an array argument.
 
 
 ## At a glance
