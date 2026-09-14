@@ -16,17 +16,13 @@ A type parameter can be the type of an input, of an output, and of the return va
 
 ## How a call is resolved
 
-A generic function is never called. Every call resolves to a concrete version, and the name of that version is the name of the function, two underscores, and the resolved type:
+A generic function is never called. Every call resolves to a concrete version, and the name of that version is the name of the function and then, for each type parameter, two underscores and the resolved type:
 
 ```iecst
 x := MAX(aDint, bDint);   (* calls MAX__DINT *)
 ```
 
-The compiler does not write the body of that version. One of three things must provide it:
-
-- a `FUNCTION` with the resolved name, written in Structured Text,
-- an implementation that the linker finds, for example in C or Rust,
-- a builtin of the compiler.
+The compiler does not write the body of that version. Either a `FUNCTION` with the resolved name provides it, written in Structured Text, or an object file or library that the linker finds does, for example [one written in C](../interop/calling-c.md).
 
 ```iecst
 FUNCTION MAX__DINT: DINT
@@ -45,6 +41,8 @@ END_FUNCTION
 
 When nothing in the project defines the name, the compiler writes an `{external}` declaration for it and leaves the symbol to the linker. If the linker finds nothing either, the build fails with an undefined symbol.
 
+The generic functions that the compiler knows itself work differently. A call to `ABS`, `ADD`, or `SEL` gets no version of its own, because the compiler writes the code at the place of the call.
+
 
 ## Constraints
 
@@ -62,9 +60,12 @@ FUNCTION main: DINT
         value: REAL := 1.0;
     END_VAR
 
-    main := Inc(value);   (* error[E062]: REAL is no ANY_INT *)
+    (* error[E062]: Invalid type nature for generic argument. REAL is no ANY_INT *)
+    main := Inc(value);
 END_FUNCTION
 ```
+
+An integer argument for an `ANY_REAL` constraint is the one exception. The compiler converts it to a floating-point type and resolves the call with that type, so a `<T: ANY_REAL>` function called with a `DINT` resolves to its `REAL` version.
 
 `ANY` accepts every type, so a call with a type that has no implementation passes the compiler and fails at the link step:
 
@@ -85,9 +86,9 @@ FUNCTION main: DINT
 END_FUNCTION
 ```
 
-The standard library uses this for its conversions: `TO_STRING <T: ANY>: STRING` has an implementation for every type that it supports, such as `TO_STRING__DINT` and `TO_STRING__REAL`.
+The standard library uses this for its conversions. `TO_STRING` declares `<T: ANY>` and the library provides an implementation for every type that it supports, such as `TO_STRING__DINT` and `TO_STRING__REAL`.
 
-The natures that a constraint can name are `ANY`, `ANY_DERIVED`, `ANY_ELEMENTARY`, `ANY_MAGNITUDE`, `ANY_NUM`, `ANY_REAL`, `ANY_INT`, `ANY_SIGNED`, `ANY_UNSIGNED`, `ANY_DURATION`, `ANY_BIT`, `ANY_CHARS`, `ANY_STRING`, `ANY_CHAR`, and `ANY_DATE`. They form a tree: `ANY_INT` is part of `ANY_NUM`, which is part of `ANY_MAGNITUDE`, and so on up to `ANY`.
+The natures that a constraint can name are `ANY`, `ANY_DERIVED`, `ANY_ELEMENTARY`, `ANY_MAGNITUDE`, `ANY_NUM`, `ANY_REAL`, `ANY_INT`, `ANY_SIGNED`, `ANY_UNSIGNED`, `ANY_DURATION`, `ANY_BIT`, `ANY_CHARS`, `ANY_STRING`, `ANY_CHAR`, and `ANY_DATE`. Any other name is rejected. They form a tree with `ANY` at the root: `ANY_SIGNED` is part of `ANY_INT`, `ANY_INT` is part of `ANY_NUM`, `ANY_NUM` is part of `ANY_MAGNITUDE`, and `ANY_MAGNITUDE` is part of `ANY_ELEMENTARY`. A constraint accepts every type below it, so `ANY_INT` takes a `DINT` and also a `UDINT`.
 
 
 ## What's next
