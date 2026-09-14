@@ -107,7 +107,7 @@ pub enum PouIndexEntry {
     /// Many instances; the struct is instance_struct_name; super_class and interfaces for polymorphism
     FunctionBlock { name, instance_struct_name, super_class, interfaces, .. },
 
-    /// Like a function block, but not callable as a whole
+    /// Like a function block, but it declares no parameters and has no body
     Class { name, instance_struct_name, super_class, interfaces, .. },
 
     /// No instance; the return type and whether the parameter list is variadic or generic
@@ -143,7 +143,7 @@ pub struct ImplementationIndexEntry {
 
 The type is the instance struct, registered under the name of the POU in the type index. It has one member per declared variable, in declaration order, whatever block the variable is in, and each member records its block as an argument type.
 
-Two rules change the type a member stores. A `VAR_IN_OUT`, and a `VAR_OUTPUT` of a function or method, is passed by reference, so the member gets an auto-dereferencing pointer type, `__auto_pointer_to_DINT`, that the indexer registers on demand. And a function with a return type gets one extra member named like the function, so `scale.scale` is a `DINT` member with argument type `Return`. For the example:
+Two rules change the type a member stores. A `VAR_IN_OUT`, and a `VAR_OUTPUT` of a function or method, is passed by reference, so the member gets an auto-dereferencing pointer type, `__auto_pointer_to_DINT`, that the indexer registers on demand. And a function or method with a return type gets one extra member named like the POU, so `scale.scale` and `Limits.exceeded.exceeded` carry argument type `Return`. For the example:
 
 ```
 scale            Function, return_type "DINT"
@@ -177,14 +177,14 @@ main             Program, instance variable "main_instance" of type "main"
     main.flag         BOOL                     ByVal(Local)     3
 ```
 
-The struct of a function exists only so that `scale.tmp` can be looked up like any other member; no instance is ever created. A `VAR_OUTPUT` of a function block is a by-value member, because the instance keeps it; in a function it is a by-reference parameter, because there is no instance to keep it in.
+The struct of a function exists only so that `scale.tmp` can be looked up like any other member; no instance is ever created. A `VAR_OUTPUT` of a function block is a by-value member, because the instance keeps it; in a function or method it is a by-reference parameter, because no instance keeps it.
 
 A program also records its single instance as a global variable entry named `main_instance`. A function block or class registers a default-instance entry `__Counter__init` as well, which no later stage reads (see the [Initializers](07-initializers.md) chapter).
 
 
 ## Annotations
 
-Function and method names receive `Function` annotations with return types. Program and action names receive `Program` annotations. Function block and class instances are variables of the corresponding POU type. Member references use the declaring POU in their qualified name, including parameters and return variables:
+With the index in place, the resolver gives every name in a body its meaning. Function and method names receive `Function` annotations with return types. Program and action names receive `Program` annotations. Function block and class instances are variables of the corresponding POU type. Member references use the declaring POU in their qualified name, including parameters and return variables:
 
 ```
     counter(step := 5, total => hits);
@@ -208,19 +208,21 @@ Function and method names receive `Function` annotations with return types. Prog
               ^^^^^^^^             { kind: Function, qualified_name: "Limits.exceeded", return_type: "BOOL" }
 ```
 
-An argument hint carries the position of the parameter in the declaration of the callee and the POU that declares it. Codegen uses the position to find the struct member or the argument slot, and the POU to walk an `EXTENDS` chain when the parameter belongs to a base.
+An argument hint carries the position of the parameter in the declaration of the callee, the POU that declares it, and the number of `EXTENDS` steps between the two. Codegen uses the position to find the struct member or the argument slot, the POU to read the declaration, and the step count to reach the base part of the instance.
 
 Inside the callee the return member is an ordinary variable: `scale := tmp` in `scale` annotates the left side as `scale.scale` with argument type `Return`, and `exceeded := candidate > max` as `Limits.exceeded.exceeded`. The `VAR_IN_OUT` member `count` carries the auto-dereference marker, which is what makes `count := count + 1` in the body read and write through the pointer without a `^`.
 
 
 ## Lowering
 
-Several participants change POU declarations. The [polymorphism lowerer](../participants/03-polymorphism.md) adds method tables and a `__vtable` member to root classes and function blocks. Derived types access that member through the base inserted by the [inheritance lowerer](../participants/10-inheritance.md). The [init participant](../participants/06-init.md) creates constructors. The [aggregate-return lowerer](../participants/09-aggregate-return.md) adds result parameters for strings, arrays, and structs.
+The index and the annotations above describe the POUs as the parser read them. Several participants then change the declarations, and each one runs the affected stages again before the next one sees the tree. The [polymorphism lowerer](../participants/03-polymorphism.md) adds method tables and a `__vtable` member to root classes and function blocks. Derived types access that member through the base inserted by the [inheritance lowerer](../participants/10-inheritance.md). The [init participant](../participants/06-init.md) creates constructors. The [aggregate-return lowerer](../participants/09-aggregate-return.md) adds result parameters for strings, arrays, and structs.
 
 After lowering, `Counter` has four instance fields instead of three. `scratch` remains a stack variable. The unit also contains ten type and POU constructors of kind `Init`, plus one unit constructor.
 
 
 ## Codegen
+
+Codegen reads the lowered tree and the rebuilt index. The layout comes first, because every signature and every call refers to it.
 
 ### Layout
 
@@ -269,9 +271,9 @@ entry:
 }
 ```
 
-The `%this` slot provides the instance pointer for `THIS^` in function blocks and their methods and actions. Classes do not get this slot. A method or action of `Counter` computes the same member pointers, so `reset` writes directly to the instance. Parent `VAR_TEMP` variables get fresh stack slots in each method.
+The `%this` slot provides the instance pointer for `THIS^` in function blocks and their methods and actions. Programs and classes do not get this slot. A method or action of `Counter` computes the same member pointers, so `reset` writes directly to the instance. An action also gets a fresh stack slot for each `VAR_TEMP` of its owner, so a temp never carries a value from one call to the next. A method cannot reach a `VAR_TEMP` of its owner at all.
 
-A function allocates stack slots for its parameters, locals, and return variable. It stores incoming arguments in those slots and zeroes the return variable:
+A function allocates stack slots for its parameters, locals, and return variable. It stores the incoming arguments in those slots, gives each local its initial value, and zeroes the return variable:
 
 ```llvm
 define i32 @scale(i32 %0, i16 %1, ptr %2, ptr %3) {
@@ -325,9 +327,9 @@ Aggregate `VAR_INPUT` parameters (strings, arrays, structs) are passed as pointe
 
 ## Validation
 
-The rules that concern the POU as a whole live in the POU validator. A program, function block, or class must not declare a return type (E026). A class must not declare `VAR_INPUT`, `VAR_OUTPUT`, or `VAR_IN_OUT` (E019) and must not have a body (E017). An `ACTIONS` block must name its container (E022). `EXTENDS` and `IMPLEMENTS` are allowed on classes and function blocks only (E110), the base and the interfaces must exist (E048), and an implementing method must match the declared signature (E112, E118).
+Codegen only sees a POU that the validator accepted. The rules that concern the POU as a whole live in the POU validator. A program, function block, or class must not declare a return type (E026). A class must not declare `VAR_INPUT`, `VAR_OUTPUT`, or `VAR_IN_OUT` (E019) and must not have a body (E017). An `ACTIONS` block with no container name takes the POU above it; with no POU above it, the block is reported (E022). `EXTENDS` and `IMPLEMENTS` are allowed on classes and function blocks only (E110), the base and the interfaces must exist (E048), and an implementing method must match the declared signature (E112, E118).
 
-Calls are checked in the statement validator: every `VAR_IN_OUT` of the callee must receive an argument (E030), and a reference to an action without the call parentheses is reported (E095). A bare reference to a program is accepted. Duplicate POU names are found by the global validation of the index (E004).
+Calls and bodies are checked in the statement validator. A call of a program, function block, or method must pass an argument for every `VAR_IN_OUT` (E030); a function call with too few arguments is reported by the argument count instead (E032). A reference to an action without the call parentheses is reported (E095), while a bare reference to a program is accepted. A method that names a `VAR_TEMP` of its owner is rejected (E137). Duplicate POU names are found by the global validation of the index (E004).
 
 
 ## At a glance
@@ -341,6 +343,6 @@ Calls are checked in the statement validator: every `VAR_IN_OUT` of the callee m
 | `METHOD reset` | `Method` entry, struct `Counter.reset` for its parameters | `Function` | `void @Counter__reset(ptr, ...)` |
 | `ACTION double` | `Action` entry, parent's struct | `Program` | `void @Counter__double(ptr)` |
 | `VAR_INPUT x` | `ByVal(Input)` member | | struct field, or a by-value argument in a function |
-| `VAR_OUTPUT x` | `ByVal(Output)` member, `ByRef(Output)` in a function | | struct field copied out after the call, or a pointer argument |
+| `VAR_OUTPUT x` | `ByVal(Output)` member, `ByRef(Output)` in a function or method | | struct field copied out after the call, or a pointer argument |
 | `VAR_IN_OUT x` | `ByRef(InOut)` member of type `__auto_pointer_to_T` | `auto_deref: Default` | `ptr` field or argument, loaded before every access |
-| `VAR_TEMP x` | `ByVal(Temp)` member | | stack slot in every body of the POU, not a struct field |
+| `VAR_TEMP x` | `ByVal(Temp)` member | | stack slot in the body and in each action, not a struct field |
