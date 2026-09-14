@@ -35,22 +35,22 @@ the lexer emits:
 |---|---|---|
 | KeywordFunction | 0..8 | `FUNCTION` |
 | Identifier | 9..16 | `compute` |
-| KeywordColon | 17..18 | `:` |
-| Identifier | 19..23 | `DINT` |
-| Identifier | 28..35 | `compute` |
-| KeywordAssignment | 36..38 | `:=` |
-| LiteralInteger | 39..40 | `1` |
-| OperatorPlus | 41..42 | `+` |
-| LiteralInteger | 43..44 | `2` |
-| OperatorMultiplication | 45..46 | `*` |
-| Identifier | 47..52 | `scale` |
-| KeywordParensOpen | 52..53 | `(` |
-| Identifier | 53..56 | `bar` |
-| KeywordComma | 56..57 | `,` |
-| LiteralInteger | 58..59 | `3` |
-| KeywordParensClose | 59..60 | `)` |
-| KeywordSemicolon | 60..61 | `;` |
-| KeywordEndFunction | 62..74 | `END_FUNCTION` |
+| KeywordColon | 16..17 | `:` |
+| Identifier | 18..22 | `DINT` |
+| Identifier | 27..34 | `compute` |
+| KeywordAssignment | 35..37 | `:=` |
+| LiteralInteger | 38..39 | `1` |
+| OperatorPlus | 40..41 | `+` |
+| LiteralInteger | 42..43 | `2` |
+| OperatorMultiplication | 44..45 | `*` |
+| Identifier | 46..51 | `scale` |
+| KeywordParensOpen | 51..52 | `(` |
+| Identifier | 52..55 | `bar` |
+| KeywordComma | 55..56 | `,` |
+| LiteralInteger | 57..58 | `3` |
+| KeywordParensClose | 58..59 | `)` |
+| KeywordSemicolon | 59..60 | `;` |
+| KeywordEndFunction | 61..73 | `END_FUNCTION` |
 | End | 74..74 | |
 
 Ranges are byte offsets into the file; the gap between `DINT` and the second `compute` is the newline and the indentation. `DINT` is an identifier, not a keyword, because type names are resolved later. An offset becomes a line and a column only when a node's location is created, through a table of newline offsets that the session builds once per file.
@@ -60,7 +60,7 @@ Ranges are byte offsets into the file; the gap between `DINT` and the second `co
 
 The parser builds a compilation unit through recursive descent: a parsing function calls other parsing functions for the constructs it contains. A POU declaration can contain a variable block, which contains a variable declaration, which contains a type. The call stack follows this nesting.
 
-The top-level parser dispatches on the current token. POU keywords start POU declarations. `TYPE`, `VAR_GLOBAL`, `VAR_CONFIG`, and `INTERFACE` start their corresponding declaration blocks. `ACTIONS` and `ACTION` start action bodies. A pragma such as `{external}` sets the next construct's linkage. Unexpected tokens are reported and skipped.
+The top-level parser dispatches on the current token. POU keywords start POU declarations. `TYPE`, `VAR_GLOBAL`, `VAR_CONFIG`, and `INTERFACE` start their corresponding declaration blocks. `ACTIONS` and `ACTION` start action bodies. A pragma marks the construct that follows: `{external}` sets its linkage, `{constant}` marks it as constant. Unexpected tokens are reported and skipped.
 
 A POU becomes two separate things: the declaration (name, kind, return type, variable blocks, methods, properties) and the implementation (the statement list of the body). Later stages treat them as different objects. In pseudocode, the top level is:
 
@@ -74,10 +74,11 @@ loop {
         Interface                                  => parse_interface(),
         Actions                                    => parse_actions(),
         Action                                     => parse_action(),
-        End                                        => return unit,
+        External | Constant                        => tag_next_construct(),
+        EndActions | End                           => return unit,
 
         other => {
-            report("Unexpected token {other}, expected one of PROGRAM, FUNCTION, ...");
+            report("Unexpected token: expected StartKeyword but found {other}");
             advance();
         }
     }
@@ -123,20 +124,20 @@ END_VAR
 END_FUNCTION
 ```
 
-the parser functions are called in this order and nesting. Each line names the function and the token under the cursor when it is entered:
+the parser functions are called in this order and nesting. Each line names the function and the token under the cursor when it is entered. The stack is trimmed: a function that only hands the call down to the next level is not shown.
 
 ```
-                                                       Parsing "FUNCTION compute : DINT"
+                                                       Parsing "FUNCTION compute: DINT"
 parse_pou                                              at "FUNCTION"
   parse_return_type                                    at ":"
     parse_data_type_definition                         at "DINT"
 
-                                                       Parsing "VAR_INPUT bar : DINT; END_VAR"
+                                                       Parsing "VAR_INPUT bar: DINT; END_VAR"
   parse_variable_block                                 at "VAR_INPUT"
     parse_variable_line                                at "bar"
       parse_data_type_definition                       at "DINT"
 
-                                                       Parsing "VAR foo : DINT; END_VAR"
+                                                       Parsing "VAR foo: DINT; END_VAR"
   parse_variable_block                                 at "VAR"
     parse_variable_line                                at "foo"
       parse_data_type_definition                       at "DINT"
@@ -173,8 +174,8 @@ CompilationUnit {
             pou_type: Function,
             return_type: DataTypeReference "DINT",
             variable_blocks: [
-                VariableBlock { kind: Input(ByVal), variables: [ bar : DINT ] },
-                VariableBlock { kind: Local,        variables: [ foo : DINT ] },
+                VariableBlock { variable_block_type: Input(ByVal), variables: [ bar: DINT ] },
+                VariableBlock { variable_block_type: Local,        variables: [ foo: DINT ] },
             ],
         },
     ],
@@ -210,7 +211,7 @@ CompilationUnit {
 }
 ```
 
-`plc --ast <file>` prints the full form of this tree, including locations, and stops before any later stage runs.
+`plc --ast <file>` prints this tree and stops before any later stage runs. The dump has more fields than the example above, but it does not print the ID or the location of a statement.
 
 Graphical sources in XML (CFC, Continuous Function Chart) are not handled here. A separate crate reads the XML and produces the same compilation unit type, so from the index stage on both kinds of source look alike.
 
@@ -257,15 +258,17 @@ FUNCTION scale: DINT
 END_FUNCTION
 ```
 
-the parser expects a semicolon after `i: DINT` and finds `text: STRING` instead. It reports the tokens it skips, continues with the body of `main`, and therefore also finds the missing operand in `scale`. One run reports both problems:
+the parser expects a semicolon after `i: DINT` and finds `text: STRING` instead. It reports the tokens it skips, continues with the body of `main`, and therefore also finds the missing operand in `scale`. One run reports both problems, here in the one-line format of `--error-format=clang`:
 
 ```
-broken.st:4:9: error[E007]: Unexpected token: expected KeywordSemicolon but found 'text : STRING'
-broken.st:11:17: error[E007]: Unexpected token: expected expression but found ;
+broken.st:4:9:{4:9-4:21}: error[E007]: Unexpected token: expected KeywordSemicolon but found 'text: STRING'
+broken.st:11:17:{11:17-11:18}: error[E007]: Unexpected token: expected expression but found ;
 error: Compilation aborted due to critical parse errors
+Unexpected token: expected KeywordSemicolon but found 'text: STRING' at: broken.st:3:8:{3:8-3:20}:
+Unexpected token: expected expression but found ; at: broken.st:10:16:{10:16-10:17}:
 ```
 
-After a file is parsed, its diagnostics go to the diagnostician. If one of them has error severity, the stage aborts the whole run with "Compilation aborted due to critical parse errors". No unit reaches the index stage, not even the units of the files that parsed cleanly.
+After a file is parsed, its diagnostics go to the diagnostician. If one of them has error severity, the stage aborts the whole run with "Compilation aborted due to critical parse errors". The abort carries the diagnostics of the file, which the last two lines print again. No unit reaches the index stage, not even the units of the files that parsed cleanly.
 
 
 ## Where it lives
