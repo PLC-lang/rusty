@@ -3,9 +3,9 @@
 A generic function declares an interface with type parameters. Each concrete implementation is a separate function. In
 
 ```iecst
-FUNCTION times_two<T: ANY_NUM> : T
+FUNCTION times_two<T: ANY_NUM>: T
     VAR_INPUT
-        val : T;
+        val: T;
     END_VAR
 END_FUNCTION
 ```
@@ -49,16 +49,16 @@ A call without an implementation causes the participant to declare one. It copie
 +c := times_two__DINT(DINT#7);
 +
 +{external}
-+FUNCTION times_two__DINT : DINT
++FUNCTION times_two__DINT: DINT
 +    VAR_INPUT
-+        val : DINT;
++        val: DINT;
 +    END_VAR
 +END_FUNCTION
 ```
 
 Later index runs keep the new declaration. Codegen emits `declare i32 @times_two__DINT(i32)`, and the linker must find its definition.
 
-This is how library generics work. The standard library header declares `{external} FUNCTION LEN<T: ANY_STRING> : DINT` and nothing else. A call `LEN('abc')` becomes `LEN__STRING`, the participant declares it, and the linker resolves it against the library. A template marked `{external}` itself changes nothing: its implementations are external whether a hand or this participant declared them. Where the header provides a Structured Text implementation, such as `LEFT__STRING`, that one is used and nothing is declared.
+This is how library generics work. The standard library header declares `{external} FUNCTION LEN<T: ANY_STRING>: DINT` and nothing else. A call `LEN('abc')` becomes `LEN__STRING`, the participant declares it, and the linker resolves it against the library. A template marked `{external}` itself changes nothing: its implementations are external whether a hand or this participant declared them. Where the header provides a Structured Text implementation, such as `LEFT__STRING`, that one is used and nothing is declared.
 
 > [!NOTE]
 > The rewritten operator keeps the location of the original call, so diagnostics and debug information still point at `times_two(DINT#7)` in the source. The declared implementation takes the location of the template.
@@ -88,7 +88,7 @@ Pre-processing gives each type parameter a scoped name and constraint. The index
 
 The resolver and this participant share the same derivation of the concrete types and of the implementation name, so a built-in and a user generic resolve by the same rules. The CFC participant, which runs first, also uses that derivation to infer the types of the temporaries wired to generic blocks.
 
-The [aggregate-return lowerer](09-aggregate-return.md) runs next and expects concrete signatures. It handles generated external declarations like user functions. For example, `MID__STRING : STRING` receives a result-buffer parameter and becomes `declare void @MID__STRING(ptr, ptr, i32, i32)`.
+The [aggregate-return lowerer](09-aggregate-return.md) runs next and expects concrete signatures. It handles generated external declarations like user functions. For example, `MID__STRING: STRING` receives a result-buffer parameter and becomes `declare void @MID__STRING(ptr, ptr, i32, i32)`.
 
 Codegen defines no function for a generic or external implementation and emits a declaration for every external one that is called. The uniqueness check of the validator skips generic functions, so several templates can share a name and differ only in their type parameters.
 

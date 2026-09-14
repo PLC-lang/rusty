@@ -6,12 +6,12 @@ Strings use the array storage described in [Arrays](02-arrays.md), with special 
 
 ```iecst
 VAR_GLOBAL CONSTANT
-    SIZE : DINT := 5;
+    SIZE: DINT := 5;
 END_VAR
 
-FUNCTION greet : STRING
+FUNCTION greet: STRING
     VAR_INPUT
-        who : STRING;
+        who: STRING;
     END_VAR
 
     greet := who;
@@ -19,9 +19,9 @@ END_FUNCTION
 
 PROGRAM main
     VAR
-        text : STRING;
-        short : STRING[SIZE] := 'hi';
-        wide : WSTRING[10];
+        text: STRING;
+        short: STRING[SIZE] := 'hi';
+        wide: WSTRING[10];
     END_VAR
 
     text := 'hello';
@@ -34,7 +34,7 @@ END_PROGRAM
 
 ## Declaration
 
-The parser produces a string type node with two facts and no name: whether the type is wide, and the length expression if one was written. `text : STRING` is not such a node; it is a plain reference to the built-in type `STRING`.
+The parser produces a string type node with two facts and no name: whether the type is wide, and the length expression if one was written. `text: STRING` is not such a node; it is a plain reference to the built-in type `STRING`.
 
 Only `STRING[SIZE]` and `WSTRING[10]` are inline type definitions. Pre-processing at the start of the index stage moves them out into named types scoped to `main`, `__main_short` and `__main_wide`, and replaces the declaration with a reference to that name (see [Index](../pipeline/02-index.md), Pre-processing). A string literal is a literal node with the text and a wide flag: `'hello'` is narrow, `"world"` is wide.
 
@@ -99,7 +99,7 @@ For a comparison such as `text = 'hello'`, the resolver attaches a replacement e
 
 ## Lowering
 
-No participant rewrites strings themselves, but two rewrite the places they appear in. The [aggregate-return lowerer](../participants/09-aggregate-return.md) turns `greet` into a void function with a `VAR_IN_OUT greet : STRING` parameter and gives the call site a temporary, so by codegen the last statement of `main` reads `greet(__greet0, 'bob'); text := __greet0;`. The [init participant](../participants/06-init.md) moves the initializer `'hi'` out of the declaration into the constructor of `main`, as `self.short := 'hi'`. Codegen sees only assignments, calls, and pointer parameters.
+No participant rewrites strings themselves, but two rewrite the places they appear in. The [aggregate-return lowerer](../participants/09-aggregate-return.md) turns `greet` into a void function with a `VAR_IN_OUT greet: STRING` parameter and gives the call site a temporary, so by codegen the last statement of `main` reads `greet(__greet0, 'bob'); text := __greet0;`. The [init participant](../participants/06-init.md) moves the initializer `'hi'` out of the declaration into the constructor of `main`, as `self.short := 'hi'`. Codegen sees only assignments, calls, and pointer parameters.
 
 
 ## Codegen

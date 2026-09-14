@@ -5,8 +5,8 @@ Codegen can place constant initial values in a global instance's static data. Ot
 ```iecst
 PROGRAM main
     VAR
-        i : DINT := 1;
-        counterInstance : Counter;
+        i: DINT := 1;
+        counterInstance: Counter;
     END_VAR
 END_PROGRAM
 ```
@@ -32,12 +32,12 @@ The participant appends constructor POUs and inserts stack initialization at the
 
 Stateful POUs A program, function block, or class gets a `<Name>__ctor` function with an instance parameter named `self`. It visits members in declaration order. For each member, it calls the type constructor before applying the member's initializer. A function block or class then sets its method table pointer. An `FB_INIT` method declared by the POU runs last.
 
-The constructor of the intro example holds `self.i := 1;` and `Counter__ctor(self.counterInstance);`. The constructor of its `Counter` function block, with a member `limit : INT := 10` and an `FB_INIT` method, is:
+The constructor of the intro example holds `self.i := 1;` and `Counter__ctor(self.counterInstance);`. The constructor of its `Counter` function block, with a member `limit: INT := 10` and an `FB_INIT` method, is:
 
 ```diff
 +FUNCTION Counter__ctor
 +    VAR_IN_OUT
-+        self : Counter;
++        self: Counter;
 +    END_VAR
 +
 +    __Counter___vtable__ctor(self.__vtable);
@@ -66,12 +66,12 @@ The method table instances are global variables that the polymorphism lowerer ad
 
 ### Types
 
-Every user type gets a constructor as well. A struct constructs and initializes its fields exactly like a POU does its members, and an enum, a subrange, or a renamed scalar with a default assigns `self` directly. An alias type such as `TYPE MyPoint : Point; END_TYPE` calls the constructor of the type it renames. A struct literal is decomposed into one assignment per leaf; for a struct `Line` with the fields `start : Point;` and `stop : Point := (x := 5);` the constructor is:
+Every user type gets a constructor as well. A struct constructs and initializes its fields exactly like a POU does its members, and an enum, a subrange, or a renamed scalar with a default assigns `self` directly. An alias type such as `TYPE MyPoint: Point; END_TYPE` calls the constructor of the type it renames. A struct literal is decomposed into one assignment per leaf; for a struct `Line` with the fields `start: Point;` and `stop: Point := (x := 5);` the constructor is:
 
 ```diff
 +FUNCTION Line__ctor
 +    VAR_IN_OUT
-+        self : Line;
++        self: Line;
 +    END_VAR
 +
 +    Point__ctor(self.start);
@@ -89,14 +89,14 @@ A `REFERENCE TO` variable, an `AT` alias, and a hardware-mapped variable are ini
 ```diff
  FUNCTION_BLOCK Refs
      VAR
-         x : DINT;
-         r : REFERENCE TO DINT REF= x;
-         p : POINTER TO DINT := ADR(x);
+         x: DINT;
+         r: REFERENCE TO DINT REF= x;
+         p: POINTER TO DINT := ADR(x);
      END_VAR
  END_FUNCTION_BLOCK
 +FUNCTION Refs__ctor
 +    VAR_IN_OUT
-+        self : Refs;
++        self: Refs;
 +    END_VAR
 +
 +    __Refs___vtable__ctor(self.__vtable);
@@ -108,7 +108,7 @@ A `REFERENCE TO` variable, an `AT` alias, and a hardware-mapped variable are ini
 +END_FUNCTION
 ```
 
-An alias `px AT x : DINT` gets `self.px REF= self.x` in the same way. For a variable declared `AT %IX1.2` the pre-processor has already injected the initializer `__PI_1_2`, the backing global of that address, so it gets `REF= __PI_1_2` here. A template address such as `%I*` gets no assignment in the POU constructor; the `VAR_CONFIG` entry that binds it becomes the assignment in the unit constructor shown above.
+An alias `px AT x: DINT` gets `self.px REF= self.x` in the same way. For a variable declared `AT %IX1.2` the pre-processor has already injected the initializer `__PI_1_2`, the backing global of that address, so it gets `REF= __PI_1_2` here. A template address such as `%I*` gets no assignment in the POU constructor; the `VAR_CONFIG` entry that binds it becomes the assignment in the unit constructor shown above.
 
 ### Arrays
 
@@ -117,15 +117,15 @@ An array whose element type has a constructor gets a loop that constructs every 
 ```diff
  PROGRAM main
      VAR
-         motors : ARRAY[0..3] OF Motor;
+         motors: ARRAY[0..3] OF Motor;
      END_VAR
  END_PROGRAM
 +FUNCTION __main_motors__ctor
 +    VAR_IN_OUT
-+        self : __main_motors;
++        self: __main_motors;
 +    END_VAR
 +
-+    alloca __main_motors__idx0 : DINT;
++    alloca __main_motors__idx0: DINT;
 +    __main_motors__idx0 := 0;
 +    WHILE TRUE DO
 +        IF __main_motors__idx0 > 3 THEN
@@ -141,7 +141,7 @@ An array of a built-in type gets an empty constructor. An array literal that is 
 
 ### Stack variables
 
-Function and method locals, and `VAR_TEMP` variables in any POU, are initialized at the start of the POU body. These statements use no `self.` prefix. A function also constructs its return value when needed: `FUNCTION useLine : Point` with `localLine : Line` starts with `Line__ctor(localLine);` and `Point__ctor(useLine);`. `VAR_IN_OUT` variables use caller-owned storage and get no constructor call.
+Function and method locals, and `VAR_TEMP` variables in any POU, are initialized at the start of the POU body. These statements use no `self.` prefix. A function also constructs its return value when needed: `FUNCTION useLine: Point` with `localLine: Line` starts with `Line__ctor(localLine);` and `Point__ctor(useLine);`. `VAR_IN_OUT` variables use caller-owned storage and get no constructor call.
 
 ### Linkage
 

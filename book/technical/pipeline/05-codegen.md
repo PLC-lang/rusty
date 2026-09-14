@@ -5,8 +5,8 @@ Codegen turns the validated and fully lowered tree into LLVM IR, the input of th
 ```iecst
 PROGRAM main
     VAR
-        sintVar : SINT;
-        dintVar : DINT;
+        sintVar: SINT;
+        dintVar: DINT;
     END_VAR
 
     sintVar := dintVar;
@@ -34,27 +34,29 @@ The stage receives the annotated project and produces one LLVM module per compil
 The following project connects the mechanisms in this chapter. Each section shows the relevant source operation and trimmed LLVM IR. `plc --ir` writes the complete module.
 
 ```iecst
-TYPE Speed : (Slow, Fast); END_TYPE
+TYPE Speed: (Slow, Fast); END_TYPE
 
-TYPE Point : STRUCT
-    x : DINT;
-    y : DINT;
-END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x: DINT;
+        y: DINT;
+    END_STRUCT
+END_TYPE
 
 VAR_GLOBAL
-    counter : DINT := 7;
+    counter: DINT := 7;
 END_VAR
 
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        value : DINT;
-        factor : INT;
+        value: DINT;
+        factor: INT;
     END_VAR
     VAR_IN_OUT
-        total : DINT;
+        total: DINT;
     END_VAR
     VAR_OUTPUT
-        overflow : BOOL;
+        overflow: BOOL;
     END_VAR
 
     scale := value * factor;
@@ -64,11 +66,11 @@ END_FUNCTION
 
 FUNCTION_BLOCK Buffer
     VAR_INPUT
-        limit : INT;
+        limit: INT;
     END_VAR
     VAR
-        count : DINT;
-        values : ARRAY[0..3] OF DINT;
+        count: DINT;
+        values: ARRAY[0..3] OF DINT;
     END_VAR
 
     IF count < limit THEN
@@ -79,14 +81,14 @@ END_FUNCTION_BLOCK
 
 PROGRAM main
     VAR
-        bufferInstance : Buffer;
-        i : DINT := 1;
-        sintVar : SINT;
-        text : STRING := 'hello';
-        p : Point;
-        speed : Speed;
-        ptr : REF_TO DINT;
-        flag : BOOL;
+        bufferInstance: Buffer;
+        i: DINT := 1;
+        sintVar: SINT;
+        text: STRING := 'hello';
+        p: Point;
+        speed: Speed;
+        ptr: REF_TO DINT;
+        flag: BOOL;
     END_VAR
 
     bufferInstance(limit := 5);

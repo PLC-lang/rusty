@@ -1,4 +1,4 @@
-# A First Project
+# Your First Project
 
 You build something small but real: a plant with two tanks, in two files, driven by a project file.
 
@@ -12,14 +12,14 @@ Write `src/tank.st`:
 ```iecst
 FUNCTION_BLOCK Tank
     VAR_INPUT
-        inflow : DINT;
+        inflow: DINT;
     END_VAR
     VAR_OUTPUT
-        level : DINT;
-        full : BOOL;
+        level: DINT;
+        full: BOOL;
     END_VAR
     VAR CONSTANT
-        CAPACITY : DINT := 10;
+        CAPACITY: DINT := 10;
     END_VAR
 
     level := level + inflow;
@@ -41,20 +41,20 @@ Write `src/main.st`:
 
 ```iecst
 {external}
-FUNCTION printf : DINT
+FUNCTION printf: DINT
     VAR_INPUT {ref}
-        format : STRING;
+        format: STRING;
     END_VAR
     VAR_INPUT
-        args : ...;
+        args: ...;
     END_VAR
 END_FUNCTION
 
 PROGRAM Plant
     VAR
-        left  : Tank;
-        right : Tank;
-        cycle : DINT;
+        left: Tank;
+        right: Tank;
+        cycle: DINT;
     END_VAR
 
     cycle := cycle + 1;
@@ -63,7 +63,7 @@ PROGRAM Plant
     printf('cycle %d: left=%d right=%d full=%d$N', cycle, left.level, right.level, right.full);
 END_PROGRAM
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     Plant();
     Plant();
 END_FUNCTION

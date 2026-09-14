@@ -24,7 +24,7 @@ The lexer is also where the parser's cursor lives. The parser holds a session th
 For this file:
 
 ```iecst
-FUNCTION compute : DINT
+FUNCTION compute: DINT
     compute := 1 + 2 * scale(bar, 3);
 END_FUNCTION
 ```
@@ -111,12 +111,12 @@ Assignment {                                    // id: 7
 For this function:
 
 ```iecst
-FUNCTION compute : DINT
+FUNCTION compute: DINT
 VAR_INPUT
-    bar : DINT;
+    bar: DINT;
 END_VAR
 VAR
-    foo : DINT;
+    foo: DINT;
 END_VAR
     foo := 1 + 2 * scale(bar, 3);
     compute := foo;
@@ -220,7 +220,7 @@ Graphical sources in XML (CFC, Continuous Function Chart) are not handled here. 
 > ```iecst
 > FUNCTION_BLOCK Counter
 >     VAR
->         count : DINT;
+>         count: DINT;
 >     END_VAR
 >
 >     count := count + 1;
@@ -245,19 +245,19 @@ Recovery works on regions. When a function starts a construct with a known end, 
 ```iecst
 PROGRAM main
     VAR
-        i : DINT
-        text : STRING;
+        i: DINT
+        text: STRING;
     END_VAR
 
     i := 1;
 END_PROGRAM
 
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     scale := 2 *;
 END_FUNCTION
 ```
 
-the parser expects a semicolon after `i : DINT` and finds `text : STRING` instead. It reports the tokens it skips, continues with the body of `main`, and therefore also finds the missing operand in `scale`. One run reports both problems:
+the parser expects a semicolon after `i: DINT` and finds `text: STRING` instead. It reports the tokens it skips, continues with the body of `main`, and therefore also finds the missing operand in `scale`. One run reports both problems:
 
 ```
 broken.st:4:9: error[E007]: Unexpected token: expected KeywordSemicolon but found 'text : STRING'

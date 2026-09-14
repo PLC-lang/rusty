@@ -2,19 +2,19 @@
 
 Polymorphism is part of object-oriented programming in Structured Text. There are two kinds:
 
-1. Pointer variables to a class or function block, for example `refMyFb : POINTER TO MyFb;` or `refMyFb : REF_TO MyFb;`
-2. Interface-typed variables, for example `refMyInterface : MyInterface;`
+1. Pointer variables to a class or function block, for example `refMyFb: POINTER TO MyFb;` or `refMyFb: REF_TO MyFb;`
+2. Interface-typed variables, for example `refMyInterface: MyInterface;`
 
 In case (1), any instance of a type derived from the base type can be assigned to the reference. In case (2), any instance of a class or function block that implements the interface can be assigned. In both cases, calling a method executes the implementation defined by the **actual (run-time) type** of the assigned instance, not the statically declared type of the variable. Consider
 
 ```iecst
 VAR
-    instanceA : FbA; // Has methods foo and bar
-    instanceB : FbB; // Extends FbA; inherits foo, overrides bar, adds baz
-    instanceC : FbC; // Has method foo
+    instanceA: FbA; // Has methods foo and bar
+    instanceB: FbB; // Extends FbA; inherits foo, overrides bar, adds baz
+    instanceC: FbC; // Has method foo
 
-    refInstance : POINTER TO FbA;
-    refInterface : InterfaceAC; // Defines method foo; both FbA and FbC implement it
+    refInstance: POINTER TO FbA;
+    refInterface: InterfaceAC; // Defines method foo; both FbA and FbC implement it
 END_VAR
 
 // Base type
@@ -80,11 +80,11 @@ As mentioned in the introduction, any derived POU instance can be assigned to a 
 
 ```iecst
 VAR
-    instanceA : FbA; // Has method foo
-    instanceB : FbB; // Has methods bar, baz
-    instanceC : FbC; // Has method qux
+    instanceA: FbA; // Has method foo
+    instanceB: FbB; // Has methods bar, baz
+    instanceC: FbC; // Has method qux
 
-    refInstanceA : POINTER TO FbA;
+    refInstanceA: POINTER TO FbA;
 END_VAR
 
 // All of these assignments are valid, because inheritance guarantees that A, B and C
@@ -111,7 +111,7 @@ That in turn requires that classes and function blocks have a `__vtable` member 
 ```diff
  FUNCTION_BLOCK FbA
 +    VAR
-+        __vtable : POINTER TO __VOID;
++        __vtable: POINTER TO __VOID;
 +    END_VAR
      VAR
          // ...other member fields
@@ -122,11 +122,11 @@ That in turn requires that classes and function blocks have a `__vtable` member 
 The `__vtable` field is initialized at construction time by the init participant, which assigns it to `ADR(__vtable_FbA_instance)`. That in turn requires a `__vtable_FbA` struct definition whose members carry default initializers, each pointing to the corresponding method implementation. Function blocks also include a `__body` entry for their callable body (classes do not, since they cannot be called directly). For clarity, the ASCII diagrams in this chapter omit `__body` and show only named methods:
 
 ```diff
-+TYPE __vtable_FbA :
++TYPE __vtable_FbA:
 +    STRUCT
-+        __body : __FPOINTER FbA := ADR(FbA);
-+        foo : __FPOINTER FbA.foo := ADR(FbA.foo);
-+        bar : __FPOINTER FbA.bar := ADR(FbA.bar);
++        __body: __FPOINTER FbA := ADR(FbA);
++        foo: __FPOINTER FbA.foo := ADR(FbA.foo);
++        bar: __FPOINTER FbA.bar := ADR(FbA.bar);
 +    END_STRUCT
 +END_TYPE
 ```
@@ -135,7 +135,7 @@ And finally a global instance of that struct, one per POU:
 
 ```diff
  VAR_GLOBAL
-+    __vtable_FbA_instance : __vtable_FbA;
++    __vtable_FbA_instance: __vtable_FbA;
  END_VAR
 ```
 
@@ -146,19 +146,19 @@ For derived POUs the process is the same, except that they do not get their own 
 ```diff
  FUNCTION_BLOCK FbA
      VAR
-+        __vtable : POINTER TO __VOID; // Initialized to ADR(__vtable_FbA_instance)
++        __vtable: POINTER TO __VOID; // Initialized to ADR(__vtable_FbA_instance)
      END_VAR
  END_FUNCTION_BLOCK
 
  FUNCTION_BLOCK FbB
      VAR
-+        __FbA : FbA; // Parent, with __vtable overridden to ADR(__vtable_FbB_instance)
++        __FbA: FbA; // Parent, with __vtable overridden to ADR(__vtable_FbB_instance)
      END_VAR
  END_FUNCTION_BLOCK
 
  FUNCTION_BLOCK FbC
      VAR
-+        __FbB : FbB; // Parent, with __FbA.__vtable overridden to ADR(__vtable_FbC_instance)
++        __FbB: FbB; // Parent, with __FbA.__vtable overridden to ADR(__vtable_FbC_instance)
      END_VAR
  END_FUNCTION_BLOCK
 ```
@@ -211,10 +211,10 @@ Again, as mentioned in the introduction, an interface can be used as a variable 
 
 ```iecst
 VAR
-    instanceFbA : FbA; // Implements interface IA (method foo)
-    instanceFbB : FbB; // Implements interfaces IA (method foo) and IB (method bar)
+    instanceFbA: FbA; // Implements interface IA (method foo)
+    instanceFbB: FbB; // Implements interfaces IA (method foo) and IB (method bar)
 
-    refInterface : IA;
+    refInterface: IA;
 END_VAR
 
 refInterface := instanceFbA;
@@ -246,10 +246,10 @@ and some function blocks that implement them, plus code that makes use of polymo
 
 ```iecst
 VAR
-    instanceD : FbD; // Implements interface ID (foo, bar, baz, qux)
+    instanceD: FbD; // Implements interface ID (foo, bar, baz, qux)
 
-    refInterfaceB : IB;
-    refInterfaceC : IC;
+    refInterfaceB: IB;
+    refInterfaceC: IC;
 END_VAR
 
 refInterfaceB := instanceD;
@@ -297,37 +297,37 @@ The solution is a separate data structure: interface tables, or short itables. T
 For our diamond hierarchy, the compiler generates the following itable struct definitions:
 
 ```diff
-+TYPE __itable_IA :
++TYPE __itable_IA:
 +    STRUCT
-+        foo : __FPOINTER IA.foo;
++        foo: __FPOINTER IA.foo;
 +    END_STRUCT
 +END_TYPE
 +
-+TYPE __itable_IB :
++TYPE __itable_IB:
 +    STRUCT
-+        __upcast_IA : POINTER TO __VOID;
-+        foo : __FPOINTER IA.foo;
-+        bar : __FPOINTER IB.bar;
++        __upcast_IA: POINTER TO __VOID;
++        foo: __FPOINTER IA.foo;
++        bar: __FPOINTER IB.bar;
 +    END_STRUCT
 +END_TYPE
 +
-+TYPE __itable_IC :
++TYPE __itable_IC:
 +    STRUCT
-+        __upcast_IA : POINTER TO __VOID;
-+        foo : __FPOINTER IA.foo;
-+        baz : __FPOINTER IC.baz;
++        __upcast_IA: POINTER TO __VOID;
++        foo: __FPOINTER IA.foo;
++        baz: __FPOINTER IC.baz;
 +    END_STRUCT
 +END_TYPE
 +
-+TYPE __itable_ID :
++TYPE __itable_ID:
 +    STRUCT
-+        __upcast_IA : POINTER TO __VOID;
-+        __upcast_IB : POINTER TO __VOID;
-+        __upcast_IC : POINTER TO __VOID;
-+        foo : __FPOINTER IA.foo;
-+        bar : __FPOINTER IB.bar;
-+        baz : __FPOINTER IC.baz;
-+        qux : __FPOINTER ID.qux;
++        __upcast_IA: POINTER TO __VOID;
++        __upcast_IB: POINTER TO __VOID;
++        __upcast_IC: POINTER TO __VOID;
++        foo: __FPOINTER IA.foo;
++        bar: __FPOINTER IB.bar;
++        baz: __FPOINTER IC.baz;
++        qux: __FPOINTER ID.qux;
 +    END_STRUCT
 +END_TYPE
 ```
@@ -341,22 +341,22 @@ Then, the compiler generates global instances for every (interface, POU) combina
 ```diff
 +VAR_GLOBAL
 +    // FbA implements IA directly
-+    __itable_IA_FbA_instance : __itable_IA := (foo := ADR(FbA.foo));
++    __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo));
 +
 +    // FbB implements IB, which extends IA, so two instances are needed
-+    __itable_IA_FbB_instance : __itable_IA := (foo := ADR(FbB.foo));
-+    __itable_IB_FbB_instance : __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbB.foo), bar := ADR(FbB.bar));
++    __itable_IA_FbB_instance: __itable_IA := (foo := ADR(FbB.foo));
++    __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbB.foo), bar := ADR(FbB.bar));
 +
 +    // Similarly for FbC: implements IC, which extends IA
-+    __itable_IA_FbC_instance : __itable_IA := (foo := ADR(FbC.foo));
-+    __itable_IC_FbC_instance : __itable_IC := (__upcast_IA := ADR(__itable_IA_FbC_instance), foo := ADR(FbC.foo), baz := ADR(FbC.baz));
++    __itable_IA_FbC_instance: __itable_IA := (foo := ADR(FbC.foo));
++    __itable_IC_FbC_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbC_instance), foo := ADR(FbC.foo), baz := ADR(FbC.baz));
 +
 +    // FbD implements ID, which extends IB and IC, both of which extend IA.
 +    // Four instances are needed, one per unique interface in the hierarchy.
-+    __itable_IA_FbD_instance : __itable_IA := (foo := ADR(FbD.foo));
-+    __itable_IB_FbD_instance : __itable_IB := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar));
-+    __itable_IC_FbD_instance : __itable_IC := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), baz := ADR(FbD.baz));
-+    __itable_ID_FbD_instance : __itable_ID := (__upcast_IA := ADR(__itable_IA_FbD_instance), __upcast_IB := ADR(__itable_IB_FbD_instance), __upcast_IC := ADR(__itable_IC_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar), baz := ADR(FbD.baz), qux := ADR(FbD.qux));
++    __itable_IA_FbD_instance: __itable_IA := (foo := ADR(FbD.foo));
++    __itable_IB_FbD_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar));
++    __itable_IC_FbD_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), baz := ADR(FbD.baz));
++    __itable_ID_FbD_instance: __itable_ID := (__upcast_IA := ADR(__itable_IA_FbD_instance), __upcast_IB := ADR(__itable_IB_FbD_instance), __upcast_IC := ADR(__itable_IC_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar), baz := ADR(FbD.baz), qux := ADR(FbD.qux));
 +END_VAR
 ```
 
@@ -378,10 +378,10 @@ With itables solving the function pointer lookup problem, we still need to answe
 This leads to the fat pointer struct:
 
 ```diff
-+TYPE __FATPOINTER :
++TYPE __FATPOINTER:
 +    STRUCT
-+        data : POINTER TO __VOID;
-+        table : POINTER TO __VOID;
++        data: POINTER TO __VOID;
++        table: POINTER TO __VOID;
 +    END_STRUCT
 +END_TYPE
 ```
@@ -392,24 +392,24 @@ The compiler replaces every interface type reference with `__FATPOINTER`. This h
 
 ```diff
  VAR
--    reference : IA;
-+    reference : __FATPOINTER;
+-    reference: IA;
++    reference: __FATPOINTER;
  END_VAR
 
  VAR_INPUT
--    param : IA;
-+    param : __FATPOINTER;
+-    param: IA;
++    param: __FATPOINTER;
  END_VAR
 
  // Also works for arrays
  VAR
--    refs : ARRAY[1..3] OF IA;
-+    refs : ARRAY[1..3] OF __FATPOINTER;
+-    refs: ARRAY[1..3] OF IA;
++    refs: ARRAY[1..3] OF __FATPOINTER;
  END_VAR
 
  // And function return types
--FUNCTION producer : IA
-+FUNCTION producer : __FATPOINTER
+-FUNCTION producer: IA
++FUNCTION producer: __FATPOINTER
 ```
 
 The `__FATPOINTER` struct is generated on demand: it is added to the first compilation unit of the project only when at least one interface is used as a type. If no code uses interface types, no fat pointer struct is emitted. A function that returns `__FATPOINTER` returns an aggregate, so the aggregate-return lowerer later turns its return into a `VAR_IN_OUT` parameter like for any struct.
@@ -491,7 +491,7 @@ And with nested interface calls, which are lowered bottom up:
 
 ```diff
 -consumer(instanceFbA);
-+alloca __fatpointer_0 : __FATPOINTER;
++alloca __fatpointer_0: __FATPOINTER;
 +__fatpointer_0.data := ADR(instanceFbA);
 +__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
 +consumer(__fatpointer_0);
@@ -501,7 +501,7 @@ This works with named arguments too:
 
 ```diff
 -consumer(in := instanceFbA);
-+alloca __fatpointer_0 : __FATPOINTER;
++alloca __fatpointer_0: __FATPOINTER;
 +__fatpointer_0.data := ADR(instanceFbA);
 +__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
 +consumer(in := __fatpointer_0);
@@ -511,13 +511,13 @@ Multiple interface arguments in a single call each get their own temporary; the 
 
 ```diff
 -consumer(instanceA, instanceB, instanceC);
-+alloca __fatpointer_0 : __FATPOINTER;
++alloca __fatpointer_0: __FATPOINTER;
 +__fatpointer_0.data := ADR(instanceA);
 +__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
-+alloca __fatpointer_1 : __FATPOINTER;
++alloca __fatpointer_1: __FATPOINTER;
 +__fatpointer_1.data := ADR(instanceB);
 +__fatpointer_1.table := ADR(__itable_IA_FbB_instance);
-+alloca __fatpointer_2 : __FATPOINTER;
++alloca __fatpointer_2: __FATPOINTER;
 +__fatpointer_2.data := ADR(instanceC);
 +__fatpointer_2.table := ADR(__itable_IA_FbC_instance);
 +consumer(__fatpointer_0, __fatpointer_1, __fatpointer_2);
@@ -539,7 +539,7 @@ The same transformation applies when a child interface is passed as a call argum
 
 ```diff
 -consumer(refIB);
-+alloca __fatpointer_0 : __FATPOINTER;
++alloca __fatpointer_0: __FATPOINTER;
 +__fatpointer_0.data := refIB.data;
 +__fatpointer_0.table := __itable_IB#(refIB.table^).__upcast_IA;
 +consumer(__fatpointer_0);
@@ -557,13 +557,13 @@ To tie everything together, let's trace a complete example from user code to low
 ```iecst
 // ia.st
 INTERFACE IA
-    METHOD describe : DINT
+    METHOD describe: DINT
     END_METHOD
 END_INTERFACE
 
 // fb_a.st
 FUNCTION_BLOCK FbA IMPLEMENTS IA
-    METHOD describe : DINT
+    METHOD describe: DINT
         printf('FbA$N');
         describe := 1;
     END_METHOD
@@ -571,7 +571,7 @@ END_FUNCTION_BLOCK
 
 // fb_b.st
 FUNCTION_BLOCK FbB IMPLEMENTS IA
-    METHOD describe : DINT
+    METHOD describe: DINT
         printf('FbB$N');
         describe := 2;
     END_METHOD
@@ -580,10 +580,10 @@ END_FUNCTION_BLOCK
 // main.st
 FUNCTION main
     VAR
-        instA : FbA;
-        instB : FbB;
-        refs : ARRAY[1..2] OF IA;
-        i : DINT;
+        instA: FbA;
+        instB: FbB;
+        refs: ARRAY[1..2] OF IA;
+        i: DINT;
     END_VAR
 
     refs[1] := instA;
@@ -598,9 +598,9 @@ END_FUNCTION
 **After table generation** (`post_index`), the following artifacts are added. In the compilation unit of `ia.st`:
 
 ```iecst
-TYPE __itable_IA :
+TYPE __itable_IA:
     STRUCT
-        describe : __FPOINTER IA.describe;
+        describe: __FPOINTER IA.describe;
     END_STRUCT
 END_TYPE
 ```
@@ -609,7 +609,7 @@ In the compilation unit of `fb_a.st`:
 
 ```iecst
 VAR_GLOBAL
-    __itable_IA_FbA_instance : __itable_IA := (describe := ADR(FbA.describe));
+    __itable_IA_FbA_instance: __itable_IA := (describe := ADR(FbA.describe));
 END_VAR
 ```
 
@@ -617,7 +617,7 @@ In the compilation unit of `fb_b.st`:
 
 ```iecst
 VAR_GLOBAL
-    __itable_IA_FbB_instance : __itable_IA := (describe := ADR(FbB.describe));
+    __itable_IA_FbB_instance: __itable_IA := (describe := ADR(FbB.describe));
 END_VAR
 ```
 
@@ -628,10 +628,10 @@ END_VAR
 ```iecst
 FUNCTION main
     VAR
-        instA : FbA;
-        instB : FbB;
-        refs : ARRAY[1..2] OF __FATPOINTER;
-        i : DINT;
+        instA: FbA;
+        instB: FbB;
+        refs: ARRAY[1..2] OF __FATPOINTER;
+        i: DINT;
     END_VAR
 
     // refs[1] := instA becomes two field assignments
@@ -674,16 +674,16 @@ The [aggregate-return lowerer](09-aggregate-return.md) runs after this participa
 -result := reference.foo(instance);
 
  // After interface dispatch lowering:
-+alloca __fatpointer_0 : __FATPOINTER;
++alloca __fatpointer_0: __FATPOINTER;
 +__fatpointer_0.data := ADR(instance);
 +__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
 +result := __itable_IA#(reference.table^).foo^(reference.data^, __fatpointer_0);
 
  // After aggregate return lowering:
-+alloca __fatpointer_0 : __FATPOINTER;
++alloca __fatpointer_0: __FATPOINTER;
 +__fatpointer_0.data := ADR(instance);
 +__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
-+alloca __foo0 : STRING;
++alloca __foo0: STRING;
 +__itable_IA#(reference.table^).foo^(reference.data^, __foo0, __fatpointer_0);
 +result := __foo0;
 ```

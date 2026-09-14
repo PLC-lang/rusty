@@ -38,10 +38,10 @@ In a project file, the `libraries` key holds the same information and adds packa
 
 ## The standard library
 
-The functions of IEC 61131-3, the timers, the counters, and the string operations live in `iec61131std`. A release installs it, and a project that uses any of them links it:
+The functions of IEC 61131-3, the timers, the counters, and the string operations live in `iec61131std`. [Install](../get-started/install.md) shows how to build it. The build writes the libraries into `output/lib` and the declarations into `output/include`, and a project that uses any of the functions needs both:
 
 ```bash
-plc main.st -i "/usr/share/plc/include/*.st" -l iec61131std -o app --linker=cc
+plc main.st -i "output/include/*.st" -L output/lib -l iec61131std -o app --linker=cc
 ```
 
 Some language features call it as well, for example `**` and the comparison of text, so link it whenever you are not sure.

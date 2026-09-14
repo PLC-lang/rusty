@@ -3,10 +3,10 @@
 A function computes a result from its arguments and forgets everything else. Two calls with the same arguments give the same answer.
 
 ```iecst
-FUNCTION Scale : DINT
+FUNCTION Scale: DINT
     VAR_INPUT
-        value : DINT;
-        factor : DINT;
+        value: DINT;
+        factor: DINT;
     END_VAR
 
     Scale := value * factor;
@@ -21,9 +21,9 @@ The type after the colon is the result type. Inside the body, the name of the fu
 Every local variable of a function is temporary, also in a `VAR` block:
 
 ```iecst
-FUNCTION Counter : DINT
+FUNCTION Counter: DINT
     VAR
-        n : DINT;
+        n: DINT;
     END_VAR
 
     n := n + 1;
@@ -41,18 +41,18 @@ A function may call itself. The compiler does not limit the depth, and the stack
 Four blocks describe what goes in and what comes out:
 
 ```iecst
-FUNCTION Measure : DINT
+FUNCTION Measure: DINT
     VAR_INPUT
-        raw : INT;            (* a copy for the function *)
+        raw: INT;            (* a copy for the function *)
     END_VAR
     VAR_INPUT {ref}
-        label : STRING;       (* the caller's text, not a copy *)
+        label: STRING;       (* the caller's text, not a copy *)
     END_VAR
     VAR_IN_OUT
-        total : DINT;         (* read and written in the caller *)
+        total: DINT;         (* read and written in the caller *)
     END_VAR
     VAR_OUTPUT
-        valid : BOOL;         (* a second result *)
+        valid: BOOL;         (* a second result *)
     END_VAR
 
     (* ... *)
@@ -83,7 +83,7 @@ r := Measure(raw := raw, label := 'sensor', total := total, valid => valid);
 error[E032]: this POU takes 4 arguments but 2 arguments were supplied
 ```
 
-A default value in the declaration (`factor : DINT := 2;`) does not make the parameter optional in a call of a function. It decides the value when the parameter is not written at all, which is the case in a call of a function block instance.
+A default value in the declaration (`factor: DINT := 2;`) does not make the parameter optional in a call of a function. It decides the value when the parameter is not written at all, which is the case in a call of a function block instance.
 
 
 ## Arrays of any size
@@ -91,12 +91,12 @@ A default value in the declaration (`factor : DINT := 2;`) does not make the par
 A function that works on an array of any length declares the parameter with `*` instead of a range, one `*` per dimension. `LOWER_BOUND` and `UPPER_BOUND` then give the bounds of the array that the caller passed:
 
 ```iecst
-FUNCTION Sum : DINT
+FUNCTION Sum: DINT
     VAR_INPUT
-        values : ARRAY[*] OF DINT;
+        values: ARRAY[*] OF DINT;
     END_VAR
     VAR
-        i : DINT;
+        i: DINT;
     END_VAR
 
     FOR i := LOWER_BOUND(values, 1) TO UPPER_BOUND(values, 1) DO
@@ -113,9 +113,9 @@ The second argument of the two functions is the number of the dimension. Such a 
 A result type can be a string, an array, or a struct:
 
 ```iecst
-FUNCTION Describe : STRING[20]
+FUNCTION Describe: STRING[20]
     VAR_INPUT
-        code : DINT;
+        code: DINT;
     END_VAR
 
     Describe := 'code ';

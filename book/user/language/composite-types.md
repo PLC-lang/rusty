@@ -3,8 +3,9 @@
 A `TYPE` block declares a type of your own. Everything in this chapter lives in such a block, or directly in the declaration of a variable.
 
 ```iecst
-TYPE Point : STRUCT
-        x, y : DINT;
+TYPE Point:
+    STRUCT
+        x, y: DINT;
     END_STRUCT
 END_TYPE
 ```
@@ -16,8 +17,8 @@ An array holds a fixed number of elements of one type. You write the range of th
 
 ```iecst
 VAR
-    samples : ARRAY[1..3] OF DINT := [10, 20, 30];
-    grid    : ARRAY[0..1, 0..2] OF DINT := [[1, 2, 3], [4, 5, 6]];
+    samples: ARRAY[1..3] OF DINT := [10, 20, 30];
+    grid: ARRAY[0..1, 0..2] OF DINT := [[1, 2, 3], [4, 5, 6]];
 END_VAR
 
 samples[2] := 25;
@@ -30,11 +31,11 @@ The bounds must be known while the program is compiled, so they are literals or 
 
 ```iecst
 VAR CONSTANT
-    COUNT : INT := 16;
+    COUNT: INT := 16;
 END_VAR
 
 VAR
-    buffer : ARRAY[0..COUNT - 1] OF BYTE;
+    buffer: ARRAY[0..COUNT - 1] OF BYTE;
 END_VAR
 ```
 
@@ -48,16 +49,17 @@ A function can take an array of any size. That form, `ARRAY[*]`, is explained wi
 A struct groups values that belong together. Its members are read and written through a dot:
 
 ```iecst
-TYPE Motor : STRUCT
-        speed   : INT;
-        running : BOOL;
-        name    : STRING[20];
+TYPE Motor:
+    STRUCT
+        speed: INT;
+        running: BOOL;
+        name: STRING[20];
     END_STRUCT
 END_TYPE
 
 PROGRAM Plant
     VAR
-        pump : Motor := (speed := 100, running := FALSE, name := 'pump');
+        pump: Motor := (speed := 100, running := FALSE, name := 'pump');
     END_VAR
 
     pump.speed := 120;
@@ -74,12 +76,12 @@ Assigning one struct to another copies every member.
 An enumeration is a list of names. Each name stands for a number, counting from zero, and a name can set its own value, after which counting continues from there:
 
 ```iecst
-TYPE State : (Idle, Running := 5, Stopped);   (* 0, 5, 6 *)
+TYPE State: (Idle, Running := 5, Stopped);   (* 0, 5, 6 *)
 END_TYPE
 
 PROGRAM Machine
     VAR
-        current : State := Idle;
+        current: State := Idle;
     END_VAR
 
     IF current = Running THEN
@@ -102,18 +104,18 @@ An enumeration is an integer underneath, so it fits everywhere an integer fits, 
 A subrange is an integer type that carries a range:
 
 ```iecst
-TYPE Percent : INT (0..100);
+TYPE Percent: INT (0..100);
 END_TYPE
 ```
 
 The compiler does not enforce the range by itself. It enforces it when the project provides a check function, and then every assignment to such a variable goes through that function, which decides what happens:
 
 ```iecst
-FUNCTION CheckRangeSigned : DINT
+FUNCTION CheckRangeSigned: DINT
     VAR_INPUT
-        value : DINT;
-        lower : DINT;
-        upper : DINT;
+        value: DINT;
+        lower: DINT;
+        upper: DINT;
     END_VAR
 
     IF value < lower THEN
@@ -134,17 +136,17 @@ With that function in the project, an assignment of `200` to a `Percent` stores 
 A type declaration that names an existing type makes an alias, and the alias can carry an initial value:
 
 ```iecst
-TYPE Signal : INT := -1;
+TYPE Signal: INT := -1;
 END_TYPE
 
 PROGRAM Reader
     VAR
-        reading : Signal;   (* an INT that starts at -1 *)
+        reading: Signal;   (* an INT that starts at -1 *)
     END_VAR
 END_PROGRAM
 ```
 
-Use an alias to give a meaning to a plain type, for example `TYPE Celsius : INT; END_TYPE`.
+Use an alias to give a meaning to a plain type, for example `TYPE Celsius: INT; END_TYPE`.
 
 
 ## What's next

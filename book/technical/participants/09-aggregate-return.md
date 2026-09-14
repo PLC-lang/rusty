@@ -3,9 +3,9 @@
 A function or method can return a string, array, or struct. Such a result can occupy many bytes. The compiler passes it through caller-owned storage. In
 
 ```iecst
-FUNCTION greet : STRING
+FUNCTION greet: STRING
     VAR_INPUT
-        who : STRING;
+        who: STRING;
     END_VAR
 
     greet := who;
@@ -32,20 +32,20 @@ For each unit, the participant rewrites POU declarations, implementation bodies,
 The callee gets a leading `VAR_IN_OUT` parameter with the POU's name. The AST keeps the return type but marks it as aggregate; the diff below shows the equivalent signature. The index no longer creates a separate return variable. Assignments to `greet` now write through the result parameter:
 
 ```diff
--FUNCTION greet : STRING
+-FUNCTION greet: STRING
 +FUNCTION greet
 +    VAR_IN_OUT
-+        greet : STRING;
++        greet: STRING;
 +    END_VAR
      VAR_INPUT
-         who : STRING;
+         who: STRING;
      END_VAR
 
      greet := who;
  END_FUNCTION
 ```
 
-Methods and interface methods are rewritten the same way, so a method `Named.getName : STRING` gets an in-out variable `getName`. Generic functions are skipped; only their concrete instances, which the generic lowerer created before, are rewritten. An inline return type such as `ARRAY[0..1] OF DINT` has already been replaced by the index pre-processing with a reference to a generated type, `__pair_return`, and that is the type the in-out variable gets.
+Methods and interface methods are rewritten the same way, so a method `Named.getName: STRING` gets an in-out variable `getName`. Generic functions are skipped; only their concrete instances, which the generic lowerer created before, are rewritten. An inline return type such as `ARRAY[0..1] OF DINT` has already been replaced by the index pre-processing with a reference to a generated type, `__pair_return`, and that is the type the in-out variable gets.
 
 ### The caller
 
@@ -53,7 +53,7 @@ The caller gets one temporary of the return type per call. The containing statem
 
 ```diff
 -s := greet('world');
-+alloca __greet0 : STRING;
++alloca __greet0: STRING;
 +greet(__greet0, 'world');
 +s := __greet0;
 ```
@@ -68,9 +68,9 @@ Nested calls are moved out from the inside out, because a call walks its argumen
 
 ```diff
 -s := shout(greet('x'));
-+alloca __greet1 : STRING;
++alloca __greet1: STRING;
 +greet(__greet1, 'x');
-+alloca __shout2 : STRING;
++alloca __shout2: STRING;
 +shout(__shout2, __greet1);
 +s := __shout2;
 ```
@@ -81,7 +81,7 @@ When any argument of the call is written with `:=`, the temporary is passed by n
 
 ```diff
 -greet(who := 'formal');
-+alloca __greet3 : STRING;
++alloca __greet3: STRING;
 +greet(greet := __greet3, who := 'formal');
 +__greet3;
 ```
@@ -96,7 +96,7 @@ When the address of the result leaves the statement, inside an argument of `ADR`
 
 ```diff
 -ptr := ADR(greet('pin'));
-+alloca __greet5 : STRING;
++alloca __greet5: STRING;
 +greet(__greet5, 'pin');
 +ptr := ADR(__greet5);
 ```
@@ -109,7 +109,7 @@ In these cases the argument is replaced by a temporary of the parameter's type, 
 
 ```diff
 -libFunction(inVar1 := 0, result => i1);
-+alloca __libFunction_result6 : REAL;
++alloca __libFunction_result6: REAL;
 +libFunction(inVar1 := 0, result => __libFunction_result6);
 +i1 := __libFunction_result6;
 ```
@@ -125,7 +125,7 @@ The participant depends on most of the participants before it. The [loop desugar
 
 The [reference-to-return participant](05-reference-to-return.md) has already removed reference returns, so they are skipped here. The [init participant](06-init.md) has added calls such as `Point__ctor(origin)` for struct results. After this rewrite, that constructor fills the caller's buffer through the in-out parameter. Codegen only zero-fills the temporary before the call.
 
-The generic lowerer has replaced a generic call by a call to a concrete instance, so `LEFT(s, 2)` reaches this participant as `LEFT__STRING`. Its return type `STRING[__STRING_LENGTH]` gives a 2049-byte temporary `__LEFT__STRING7 : __LEFT__STRING_return`, and the copy into `s` is cut to the length of `s` like any string assignment.
+The generic lowerer has replaced a generic call by a call to a concrete instance, so `LEFT(s, 2)` reaches this participant as `LEFT__STRING`. Its return type `STRING[__STRING_LENGTH]` gives a 2049-byte temporary `__LEFT__STRING7: __LEFT__STRING_return`, and the copy into `s` is cut to the length of `s` like any string assignment.
 
 Later stages see an ordinary void function with a pointer parameter. The index registers no return variable for a POU whose return type is marked as aggregate, and the in-out variable is its first declared parameter. Codegen passes `VAR_IN_OUT` parameters as pointers (see [Codegen](../pipeline/05-codegen.md), Functions), so a method `Named.getName` compiles to `void @Named__getName(ptr instance, ptr getName)` and the callee writes its result through the pointer like any in-out variable.
 

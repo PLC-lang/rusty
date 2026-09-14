@@ -1,19 +1,19 @@
 # Enums
 
-An enum gives names to integer values. `TYPE Color : (Red, Green, Blue := 5); END_TYPE` defines three variants of `Color`. Codegen uses the underlying integer type, `DINT` by default, and folds variant references into constant values.
+An enum gives names to integer values. `TYPE Color: (Red, Green, Blue := 5); END_TYPE` defines three variants of `Color`. Codegen uses the underlying integer type, `DINT` by default, and folds variant references into constant values.
 
 The example shows explicit values, type defaults, and different ways to name a variant. It also includes a cross-enum assignment to show the validation rules:
 
 ```iecst
-TYPE Color : (Red, Green, Blue := 5); END_TYPE
+TYPE Color: (Red, Green, Blue := 5); END_TYPE
 
-TYPE State : (Open := 1, Closed := 4, Idle, Running) BYTE := Closed; END_TYPE
+TYPE State: (Open := 1, Closed := 4, Idle, Running) BYTE := Closed; END_TYPE
 
-TYPE Door : (Open := 8, Closed := 16); END_TYPE
+TYPE Door: (Open := 8, Closed := 16); END_TYPE
 
-FUNCTION isGreen : BOOL
+FUNCTION isGreen: BOOL
     VAR_INPUT
-        color : Color;
+        color: Color;
     END_VAR
 
     isGreen := color = Green;
@@ -21,10 +21,10 @@ END_FUNCTION
 
 PROGRAM main
     VAR
-        paint : Color;
-        state : State;
-        mode : (Manual, Auto) := Auto;
-        flag : BOOL;
+        paint: Color;
+        state: State;
+        mode: (Manual, Auto) := Auto;
+        flag: BOOL;
     END_VAR
 
     paint := Blue;
@@ -43,15 +43,15 @@ END_PROGRAM
 
 The enum node records its name, underlying integer type, and variant list. The default underlying type is `DINT`. Each variant is either an identifier such as `Red` or an assignment such as `Blue := 5`.
 
-The two spellings of the underlying type, `: BYTE (...)` in the standard and `(...) BYTE` after the list, produce the same node. A default written after the list, `:= Closed`, becomes the initializer of the type declaration. `mode : (Manual, Auto)` is an inline type, which pre-processing at the start of the index stage moves out as `__main_mode` (see [Index](../pipeline/02-index.md), Pre-processing).
+The two spellings of the underlying type, `: BYTE (...)` in the standard and `(...) BYTE` after the list, produce the same node. A default written after the list, `:= Closed`, becomes the initializer of the type declaration. `mode: (Manual, Auto)` is an inline type, which pre-processing at the start of the index stage moves out as `__main_mode` (see [Index](../pipeline/02-index.md), Pre-processing).
 
 Pre-processing also rewrites every variant list so that each variant has an explicit value. A bare first variant gets the literal `0`, and every later bare variant gets the expression `<Enum>#<previous> + 1`, a typed reference to the variant before it:
 
 ```diff
--TYPE Color : (Red, Green, Blue := 5); END_TYPE
-+TYPE Color : (Red := 0, Green := Color#Red + 1, Blue := 5); END_TYPE
--TYPE State : (Open := 1, Closed := 4, Idle, Running) BYTE := Closed; END_TYPE
-+TYPE State : (Open := 1, Closed := 4, Idle := State#Closed + 1, Running := State#Idle + 1) BYTE := Closed; END_TYPE
+-TYPE Color: (Red, Green, Blue := 5); END_TYPE
++TYPE Color: (Red := 0, Green := Color#Red + 1, Blue := 5); END_TYPE
+-TYPE State: (Open := 1, Closed := 4, Idle, Running) BYTE := Closed; END_TYPE
++TYPE State: (Open := 1, Closed := 4, Idle := State#Closed + 1, Running := State#Idle + 1) BYTE := Closed; END_TYPE
 ```
 
 From here on no stage has to count variants; every value is an expression like any other initializer.
@@ -133,7 +133,7 @@ The example uses three forms of variant access: `Color#Red`, `Color.Green`, and 
 Comparisons are promoted through the underlying type. `paint = Green` compares two `DINT` values and needs no hints. `state <> Idle` compares two `BYTE` values, and the resolver promotes both to the bigger of the underlying type and `DINT`, which for the unsigned `BYTE` is `UDINT`. The argument `paint` in `isGreen(paint)` is hinted to the parameter type `Color` like any argument, and the variant initializers are annotated too, with the underlying type as hint, so the values of `State` are hinted `BYTE`.
 
 > [!NOTE]
-> Names are case-insensitive, so a variable `color : Color` shadows the type name in `Color.Green`: the base resolves to the variable `main.color`, and the variant is then found through the variable's type. The result is the same entry, which is why the example uses `paint` for the variable.
+> Names are case-insensitive, so a variable `color: Color` shadows the type name in `Color.Green`: the base resolves to the variable `main.color`, and the variant is then found through the variable's type. The result is the same entry, which is why the example uses `paint` for the variable.
 
 
 ## Lowering
@@ -203,11 +203,11 @@ Two enum types are the same type only when their names are equal, so a copy of a
 
 | Structured Text | Index | Annotation | LLVM |
 |---|---|---|---|
-| `TYPE Color : (Red, Green); END_TYPE` | enum type, underlying `DINT`, two variants with constant-store values | | none; variables are `i32` |
+| `TYPE Color: (Red, Green); END_TYPE` | enum type, underlying `DINT`, two variants with constant-store values | | none; variables are `i32` |
 | `(...) BYTE` or `: BYTE (...)` | underlying `BYTE` | | `i8` |
 | `Red` as a variant | constant global entry `Color.Red`, also findable by bare name | Variable `Color.Red`, constant, type `Color` | `@Color.Red = constant i32 0`, folded to an immediate |
 | `Color#Red` | | base Type `Color`, whole a Value of type `Color` | immediate |
 | `Color.Red` | | base Type `Color`, member Variable `Color.Red` | immediate |
-| `mode : (Manual, Auto)` | pre-processed type `__main_mode` | | `i32`, constants `@__main_mode.Manual` |
-| `x : Color` without initializer | type default: zero variant, else the first | | initial value of the type's default |
+| `mode: (Manual, Auto)` | pre-processed type `__main_mode` | | `i32`, constants `@__main_mode.Manual` |
+| `x: Color` without initializer | type default: zero variant, else the first | | initial value of the type's default |
 | `a = b` on enums | | operands hinted to the promoted underlying type | `icmp` on the underlying integer |

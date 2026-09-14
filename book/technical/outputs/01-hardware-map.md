@@ -4,7 +4,7 @@ A variable bound to a hardware address does not own its storage. For
 
 ```iecst
 VAR_GLOBAL
-    start AT %IX0.0 : BOOL;
+    start AT %IX0.0: BOOL;
 END_VAR
 ```
 
@@ -29,26 +29,26 @@ The chapter follows one project with every kind of binding:
 ```iecst
 FUNCTION_BLOCK Sensor
     VAR
-        raw AT %I* : INT;
-        alarm AT %QX3.1 : BOOL;
+        raw AT %I*: INT;
+        alarm AT %QX3.1: BOOL;
     END_VAR
 END_FUNCTION_BLOCK
 
 VAR_GLOBAL
-    start AT %IX0.0 : BOOL;
-    speed, speedCopy AT %QW2.5 : WORD;
-    counter AT %MD1 : DWORD;
-    sensors : ARRAY[0..1] OF Sensor;
+    start AT %IX0.0: BOOL;
+    speed, speedCopy AT %QW2.5: WORD;
+    counter AT %MD1: DWORD;
+    sensors: ARRAY[0..1] OF Sensor;
 END_VAR
 
 VAR_CONFIG
-    sensors[0].raw AT %IW5.0 : INT;
-    sensors[1].raw AT %IW5.1 : INT;
+    sensors[0].raw AT %IW5.0: INT;
+    sensors[1].raw AT %IW5.1: INT;
 END_VAR
 
 PROGRAM main
     VAR
-        stop AT %IX0.1 : BOOL;
+        stop AT %IX0.1: BOOL;
     END_VAR
 END_PROGRAM
 ```

@@ -3,9 +3,9 @@
 A function or method may declare `REFERENCE TO` as its return type. In
 
 ```iecst
-FUNCTION referenceFunc : REFERENCE TO INT
+FUNCTION referenceFunc: REFERENCE TO INT
     VAR_INPUT
-        in : REFERENCE TO INT;
+        in: REFERENCE TO INT;
     END_VAR
 
     in := in + 1;
@@ -34,11 +34,11 @@ At `post_annotate`, annotations identify callees and assignment targets. The ind
 The callee loses its return type and gets a by-value `VAR_INPUT` variable named `__<pou>_return_val` at the front of its by-value input block. The variable's type is a generated named pointer type, `__referenceFunc__referenceFunc_return_val` here, that is a `REFERENCE TO` the original referenced type and is appended to the unit's type list. The `REF=` that assigns the return variable becomes a plain assignment, so the callee writes the value through the reference into the caller's storage:
 
 ```diff
--FUNCTION referenceFunc : REFERENCE TO INT
+-FUNCTION referenceFunc: REFERENCE TO INT
 +FUNCTION referenceFunc
      VAR_INPUT
-+        __referenceFunc_return_val : REFERENCE TO INT;
-         in : REFERENCE TO INT;
++        __referenceFunc_return_val: REFERENCE TO INT;
+         in: REFERENCE TO INT;
      END_VAR
 
      in := in + 1;
@@ -58,12 +58,12 @@ The caller gets two `VAR_TEMP` variables per call site: a reference and storage 
 ```diff
  FUNCTION main
      VAR
-         refVal : REFERENCE TO INT;
-         tmpVal : INT;
+         refVal: REFERENCE TO INT;
+         tmpVal: INT;
      END_VAR
 +    VAR_TEMP
-+        __referenceFunc_return_val_1 : REFERENCE TO INT;
-+        __referenceFunc_return_val_store_1 : INT;
++        __referenceFunc_return_val_1: REFERENCE TO INT;
++        __referenceFunc_return_val_store_1: INT;
 +    END_VAR
 
      refVal REF= tmpVal;
@@ -93,16 +93,16 @@ Nested calls are set up from the outside in and called from the inside out, beca
 
 ### Property getters
 
-Property getters already exist as methods. For `PROPERTY_GET value : REFERENCE TO INT`, property lowering keeps `value REF= _value` and appends `__get_value := value`. This participant recognizes `value` as the getter's result. It changes the reference binding into a value copy through the result parameter and removes the appended return assignment:
+Property getters already exist as methods. For `PROPERTY_GET value: REFERENCE TO INT`, property lowering keeps `value REF= _value` and appends `__get_value := value`. This participant recognizes `value` as the getter's result. It changes the reference binding into a value copy through the result parameter and removes the appended return assignment:
 
 ```diff
--METHOD __get_value : REFERENCE TO INT
+-METHOD __get_value: REFERENCE TO INT
 +METHOD __get_value
      VAR
-         value : REFERENCE TO INT;
+         value: REFERENCE TO INT;
      END_VAR
 +    VAR_INPUT
-+        __fb___get_value_return_val : REFERENCE TO INT;
++        __fb___get_value_return_val: REFERENCE TO INT;
 +    END_VAR
 
 -    value REF= _value;

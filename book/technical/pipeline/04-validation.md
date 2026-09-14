@@ -5,8 +5,8 @@ After resolution, the index describes declarations and the annotation map descri
 ```iecst
 PROGRAM main
     VAR
-        sintVar : SINT;
-        dintVar : DINT;
+        sintVar: SINT;
+        dintVar: DINT;
     END_VAR
 
     sintVar := dintVar;
@@ -75,11 +75,11 @@ Some rules concern the project as a whole and cannot be checked file by file. Fo
 
 ```iecst
 (* a.st *)
-FUNCTION scale : DINT
+FUNCTION scale: DINT
 END_FUNCTION
 
 (* b.st *)
-FUNCTION scale : DINT
+FUNCTION scale: DINT
 END_FUNCTION
 ```
 
@@ -88,7 +88,7 @@ neither file is wrong on its own; the conflict only exists in the merged index. 
 - **Names are unique** within their group: callables, types, and global variables. Every declaration of a duplicate is reported, with the others as secondary locations. Built-in names such as `ADD` count too.
 - **Data structures are finite.** A struct that contains itself by value, an alias chain that loops, or interfaces that extend each other are reported.
 - **Template variables** (`AT %I*`) are configured exactly once in a `VAR_CONFIG` block.
-- **Overflowing constants**, such as `TOO_BIG : SINT := 300`, get the reason the index stored reported as a warning.
+- **Overflowing constants**, such as `TOO_BIG: SINT := 300`, get the reason the index stored reported as a warning.
 
 
 ## Per-unit validation
@@ -104,13 +104,13 @@ An implementation is walked statement by statement. The visitor is recursive and
 ```iecst
 FUNCTION_BLOCK Buffer
     VAR_INPUT
-        limit : INT;
+        limit: INT;
     END_VAR
     VAR_IN_OUT
-        target : DINT;
+        target: DINT;
     END_VAR
     VAR
-        count : DINT;
+        count: DINT;
     END_VAR
 END_FUNCTION_BLOCK
 
@@ -122,12 +122,12 @@ END_ACTIONS
 
 PROGRAM main
     VAR CONSTANT
-        MAX : DINT := 10;
+        MAX: DINT := 10;
     END_VAR
     VAR
-        bufferInstance : Buffer;
-        i : DINT;
-        text : STRING;
+        bufferInstance: Buffer;
+        i: DINT;
+        text: STRING;
     END_VAR
 
     MAX := 11;

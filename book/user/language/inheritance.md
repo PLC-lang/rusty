@@ -10,16 +10,16 @@ Two mechanisms let one piece of code work with many types: a function block can 
 ```iecst
 FUNCTION_BLOCK Sensor
     VAR
-        raw : DINT;
+        raw: DINT;
     END_VAR
 
-    METHOD Read : DINT
+    METHOD Read: DINT
         Read := raw;
     END_METHOD
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK ScaledSensor EXTENDS Sensor
-    METHOD OVERRIDE Read : DINT
+    METHOD OVERRIDE Read: DINT
         Read := SUPER^.Read() * 10;
     END_METHOD
 END_FUNCTION_BLOCK
@@ -36,8 +36,8 @@ A call through a variable of the base type runs the method of the actual instanc
 
 ```iecst
 VAR
-    scaled : ScaledSensor;
-    any : REF_TO Sensor;
+    scaled: ScaledSensor;
+    any: REF_TO Sensor;
 END_VAR
 
 any := REF(scaled);
@@ -53,16 +53,16 @@ An interface is a set of method declarations without bodies. A function block th
 
 ```iecst
 INTERFACE ISensor
-    METHOD Read : DINT
+    METHOD Read: DINT
     END_METHOD
 END_INTERFACE
 
 FUNCTION_BLOCK Analog IMPLEMENTS ISensor
     VAR
-        raw : DINT;
+        raw: DINT;
     END_VAR
 
-    METHOD Read : DINT
+    METHOD Read: DINT
         Read := raw;
     END_METHOD
 END_FUNCTION_BLOCK
@@ -72,8 +72,8 @@ A variable of the interface type holds any instance that implements it, and a ca
 
 ```iecst
 VAR
-    analog : Analog;
-    sensor : ISensor;
+    analog: Analog;
+    sensor: ISensor;
 END_VAR
 
 sensor := analog;
@@ -83,9 +83,9 @@ value := sensor.Read();
 A parameter of an interface type is the usual way to write code that works with every implementation:
 
 ```iecst
-FUNCTION Report : DINT
+FUNCTION Report: DINT
     VAR_INPUT
-        device : ISensor;
+        device: ISensor;
     END_VAR
 
     Report := device.Read();
@@ -102,10 +102,10 @@ A `CLASS` is a function block without a body. It holds members and methods, and 
 ```iecst
 CLASS Formatter
     VAR
-        width : DINT;
+        width: DINT;
     END_VAR
 
-    METHOD Pad : DINT
+    METHOD Pad: DINT
         Pad := width;
     END_METHOD
 END_CLASS
@@ -121,10 +121,10 @@ A member or a method can carry `PUBLIC`, `PRIVATE`, `PROTECTED`, or `INTERNAL`, 
 ```iecst
 FUNCTION_BLOCK Box
     VAR PROTECTED
-        state : DINT;
+        state: DINT;
     END_VAR
 
-    METHOD PUBLIC Open : DINT
+    METHOD PUBLIC Open: DINT
         Open := state;
     END_METHOD
 END_FUNCTION_BLOCK

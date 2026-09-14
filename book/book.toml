@@ -10,6 +10,7 @@ build-dir = "book"
 create-missing = false
 
 [output.html]
+additional-css = ["assets/custom.css"]
 additional-js = ["assets/iecst.min.js", "assets/llvm.min.js", "assets/custom.js", "assets/highlight.js", "assets/mermaid.min.js", "assets/mermaid-init.js"]
 git-repository-url = "https://github.com/PLC-lang/rusty"
 edit-url-template = "https://github.com/PLC-lang/rusty/edit/master/book/{path}"
@@ -20,7 +21,7 @@ level = 1
 
 # The pages of the previous book, so that existing links keep working
 [output.html.redirect]
-"/intro_1.html" = "user/reference/supported-features.html"
+"/intro_1.html" = "user/language/README.html"
 "/build_and_install.html" = "user/get-started/install.html"
 "/using_rusty.html" = "user/building/compiling.html"
 "/using_rusty/build_configuration.html" = "../user/reference/project-file.html"

@@ -11,6 +11,7 @@ Each entry uses this format:
 // Reproducible example:
 <minimal ST program that shows the problem, with comments for observed and expected behavior>
 ```
+
 ```
 
 Severity: P0 wrong code or data loss, P1 crash or compile abort on valid input, P2 wrong diagnostic or missing diagnostic, P3 confusing behavior or inconsistent CLI, P4 cosmetic.
@@ -20,23 +21,23 @@ Entries are ordered by severity, P0 first. Add a new entry at the end of its sev
 ---
 
 P0 src/validation/variable.rs:390:1: User names with the reserved double underscore prefix are accepted without a diagnostic
-Placed at the top of the file on the maintainer's request (Volkan, 2026-09-11), so that it is not forgotten; by the severity scale it would be a P2. Every name the compiler generates starts with `__` (`__PI_0_0`, `__describe_return`, `__main_ptr__ctor`, `__vtable_Buffer`, ...), and the prefix is the only thing that keeps generated names apart from user names, but no validation checks user identifiers for it. A program that declares `__Buffer`, `__limit`, `__Speed`, `__global`, `__main`, and `__foo` passes `plc --check` and codegen without a single diagnostic. When a user name collides with a generated one, the failure is indirect and confusing: a user type `__describe_return` next to `FUNCTION describe : STRING[80]` is reported as E004 "Ambiguous datatype" at both locations, and a user global `__PI_0_0` next to `sensor AT %IX0.0 : BOOL` produces E037 "cannot assign 'DINT' to ': BOOL'" with no source location at all. Expected: at least a warning for every user-declared identifier (variable, type, POU, enum variant) that starts with `__`, so that the reserved prefix is visible to the user before a collision happens.
+Placed at the top of the file on the maintainer's request (Volkan, 2026-09-11), so that it is not forgotten; by the severity scale it would be a P2. Every name the compiler generates starts with `__` (`__PI_0_0`, `__describe_return`, `__main_ptr__ctor`, `__vtable_Buffer`, ...), and the prefix is the only thing that keeps generated names apart from user names, but no validation checks user identifiers for it. A program that declares `__Buffer`, `__limit`, `__Speed`, `__global`, `__main`, and `__foo` passes `plc --check` and codegen without a single diagnostic. When a user name collides with a generated one, the failure is indirect and confusing: a user type `__describe_return` next to `FUNCTION describe: STRING[80]` is reported as E004 "Ambiguous datatype" at both locations, and a user global `__PI_0_0` next to `sensor AT %IX0.0: BOOL` produces E037 "cannot assign 'DINT' to ': BOOL'" with no source location at all. Expected: at least a warning for every user-declared identifier (variable, type, POU, enum variant) that starts with `__`, so that the reserved prefix is visible to the user before a collision happens.
 ```
 // Reproducible example:
-TYPE __describe_return : DINT; END_TYPE
+TYPE __describe_return: DINT; END_TYPE
 
-FUNCTION describe : STRING[80]
+FUNCTION describe: STRING[80]
     describe := 'x';
 END_FUNCTION
 
 VAR_GLOBAL
-    __PI_0_0 : DINT;
-    sensor AT %IX0.0 : BOOL;
+    __PI_0_0: DINT;
+    sensor AT %IX0.0: BOOL;
 END_VAR
 
 PROGRAM __main
     VAR
-        __foo : DINT;   // accepted silently; expected a warning about the reserved prefix
+        __foo: DINT;   // accepted silently; expected a warning about the reserved prefix
     END_VAR
 
     __foo := __PI_0_0;
@@ -46,20 +47,20 @@ END_PROGRAM
 ```
 
 P0 compiler/plc_lowering/src/reference_to_return.rs:475:5: Call to a REFERENCE TO function in an IF or WHILE condition is moved into the body
-`IF pick(v) > 2 THEN r := 1; END_IF`, where `pick : REFERENCE TO INT`, lowers to a condition that reads `__pick_return_val_1` while the `REF=` setup and the call `pick(__pick_return_val_1, v)` are placed in front of the first body statement (visible with `--ast-lowered`). The condition dereferences the null-initialized temporary; a binary built with `-O none` segfaults, optimized builds fold the undefined load and print `0`. Cause: `visit_statement_list` wraps the statement it visits with the pre-statements queued so far, and the statements queued while walking the enclosing `IF`'s condition are still pending when the first body statement is visited. A `WHILE` condition shows the same inside the desugared guard `IF`. Expected: the generated statements in front of the enclosing `IF` or `WHILE`, as the aggregate-return lowerer does.
+`IF pick(v) > 2 THEN r := 1; END_IF`, where `pick: REFERENCE TO INT`, lowers to a condition that reads `__pick_return_val_1` while the `REF=` setup and the call `pick(__pick_return_val_1, v)` are placed in front of the first body statement (visible with `--ast-lowered`). The condition dereferences the null-initialized temporary; a binary built with `-O none` segfaults, optimized builds fold the undefined load and print `0`. Cause: `visit_statement_list` wraps the statement it visits with the pre-statements queued so far, and the statements queued while walking the enclosing `IF`'s condition are still pending when the first body statement is visited. A `WHILE` condition shows the same inside the desugared guard `IF`. Expected: the generated statements in front of the enclosing `IF` or `WHILE`, as the aggregate-return lowerer does.
 ```
 // Reproducible example:
-FUNCTION pick : REFERENCE TO INT
+FUNCTION pick: REFERENCE TO INT
 VAR_IN_OUT
-    v : INT;
+    v: INT;
 END_VAR
     pick REF= v;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    v : INT := 5;
-    r : DINT := 0;
+    v: INT := 5;
+    r: DINT := 0;
 END_VAR
     IF pick(v) > 2 THEN
         r := 1;
@@ -70,24 +71,24 @@ END_FUNCTION
 ```
 
 P0 compiler/plc_lowering/src/reference_to_return.rs:377:21: Return-value parameter is not the first parameter when the input block is not first
-For `FUNCTION pick : REFERENCE TO INT VAR_IN_OUT a : INT; END_VAR VAR_INPUT b : INT; END_VAR`, the generated `__pick_return_val` is inserted at position 0 of the `VAR_INPUT` block, which is the second block, or appended as a new block when no `VAR_INPUT` exists (line 361), so the function's parameter list is `(a, __pick_return_val, b)`. The rewritten call passes the temporary first: `pick(__pick_return_val_1, v, 10)`. Both `a` and the temporary are pointers, so no diagnostic is reported; `v` receives the address of the temporary and `b` receives `v`, and the program prints `v=10 r=10` instead of `v=13 r=13`. Expected: the parameter position matches the argument position, for example by inserting the return variable into the first parameter block.
+For `FUNCTION pick: REFERENCE TO INT VAR_IN_OUT a: INT; END_VAR VAR_INPUT b: INT; END_VAR`, the generated `__pick_return_val` is inserted at position 0 of the `VAR_INPUT` block, which is the second block, or appended as a new block when no `VAR_INPUT` exists (line 361), so the function's parameter list is `(a, __pick_return_val, b)`. The rewritten call passes the temporary first: `pick(__pick_return_val_1, v, 10)`. Both `a` and the temporary are pointers, so no diagnostic is reported; `v` receives the address of the temporary and `b` receives `v`, and the program prints `v=10 r=10` instead of `v=13 r=13`. Expected: the parameter position matches the argument position, for example by inserting the return variable into the first parameter block.
 ```
 // Reproducible example:
-FUNCTION pick : REFERENCE TO INT
+FUNCTION pick: REFERENCE TO INT
 VAR_IN_OUT
-    a : INT;
+    a: INT;
 END_VAR
 VAR_INPUT
-    b : INT;
+    b: INT;
 END_VAR
     a := a + b;
     pick REF= a;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    v : INT := 3;
-    r : INT;
+    v: INT := 3;
+    r: INT;
 END_VAR
     r := pick(v, 10);
     printf('v=%d r=%d$N', v, r);
@@ -96,20 +97,20 @@ END_FUNCTION
 ```
 
 P0 src/codegen/generators/expression_generator.rs:1698:9: A fixed array passed to a function block's VLA parameter is not wrapped
-For `FUNCTION_BLOCK fb VAR_IN_OUT io : ARRAY[*] OF DINT; END_VAR io[0] := 1; END_FUNCTION_BLOCK` called as `inst(io := arr)` or `inst(arr)` with `arr : ARRAY[0..2] OF DINT`, the caller stores the raw array address into the `io` member (`store ptr %arr, ptr %1`), while the body reads that member as a pointer to the VLA struct `%__fb_io = type { ptr, [2 x i32] }` and dereferences the first `ptr` field. The array's first two elements are read as a data pointer and the next two as bounds, so `io[0] := 1` writes through a garbage address and the program segfaults. Calls to functions and methods with the same parameter wrap the array into a stack-allocated VLA struct first (`%vla_struct`, the `is_vla` branch in `generate_argument_by_ref`, see the `pass` test in `src/tests/adr/vla_adr.rs`); the stateful call path (`generate_stateful_pou_arguments` to `generate_call_struct_argument_assignment`) stores the argument without the wrap. The validator accepts `VAR_IN_OUT` VLAs in function blocks (`validate_vla` allows `(FunctionBlock, InOut)`, E044 is not raised), so this is valid input. Expected: the same wrap as for functions, or E044 for function blocks.
+For `FUNCTION_BLOCK fb VAR_IN_OUT io: ARRAY[*] OF DINT; END_VAR io[0] := 1; END_FUNCTION_BLOCK` called as `inst(io := arr)` or `inst(arr)` with `arr: ARRAY[0..2] OF DINT`, the caller stores the raw array address into the `io` member (`store ptr %arr, ptr %1`), while the body reads that member as a pointer to the VLA struct `%__fb_io = type { ptr, [2 x i32] }` and dereferences the first `ptr` field. The array's first two elements are read as a data pointer and the next two as bounds, so `io[0] := 1` writes through a garbage address and the program segfaults. Calls to functions and methods with the same parameter wrap the array into a stack-allocated VLA struct first (`%vla_struct`, the `is_vla` branch in `generate_argument_by_ref`, see the `pass` test in `src/tests/adr/vla_adr.rs`); the stateful call path (`generate_stateful_pou_arguments` to `generate_call_struct_argument_assignment`) stores the argument without the wrap. The validator accepts `VAR_IN_OUT` VLAs in function blocks (`validate_vla` allows `(FunctionBlock, InOut)`, E044 is not raised), so this is valid input. Expected: the same wrap as for functions, or E044 for function blocks.
 ```
 // Reproducible example:
 FUNCTION_BLOCK fb
 VAR_IN_OUT
-    io : ARRAY[*] OF DINT;
+    io: ARRAY[*] OF DINT;
 END_VAR
     io[0] := 1;
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    inst : fb;
-    arr : ARRAY[0..2] OF DINT;
+    inst: fb;
+    arr: ARRAY[0..2] OF DINT;
 END_VAR
     inst(io := arr);
     printf('%d$N', arr[0]);
@@ -119,13 +120,13 @@ END_FUNCTION
 ```
 
 P0 compiler/plc_lowering/src/loops.rs:358:17: FOR loop whose end bound is the maximum of the counter type never terminates
-`FOR u := 253 TO 255 DO n := n + 1; END_FOR` with `u : USINT`, and likewise `FOR s := 125 TO 127 DO` with `s : SINT` or `FOR s := -126 TO -128 BY -1 DO`, loop forever; a guard `IF n > 10 THEN EXIT; END_IF` in the body shows that the body runs more than three times (the program prints `11`), and without the guard the program hangs. The desugarer increments the counter at the top of every iteration after the first (line 317) and then exits on `counter > end` (line 358) or `counter < end` for the decrementing direction. When the counter holds the end value, the increment wraps to the minimum of the type, `255 + 1` becomes `0`, so the exit comparison is never true. A loop over the full range of a small integer type, `FOR i := 0 TO 255` over a `USINT` table index, is common in PLC code. Expected: the loop runs three times and stops, for example by comparing the counter against the end before adding the step.
+`FOR u := 253 TO 255 DO n := n + 1; END_FOR` with `u: USINT`, and likewise `FOR s := 125 TO 127 DO` with `s: SINT` or `FOR s := -126 TO -128 BY -1 DO`, loop forever; a guard `IF n > 10 THEN EXIT; END_IF` in the body shows that the body runs more than three times (the program prints `11`), and without the guard the program hangs. The desugarer increments the counter at the top of every iteration after the first (line 317) and then exits on `counter > end` (line 358) or `counter < end` for the decrementing direction. When the counter holds the end value, the increment wraps to the minimum of the type, `255 + 1` becomes `0`, so the exit comparison is never true. A loop over the full range of a small integer type, `FOR i := 0 TO 255` over a `USINT` table index, is common in PLC code. Expected: the loop runs three times and stops, for example by comparing the counter against the end before adding the step.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    u : USINT;
-    n : DINT := 0;
+    u: USINT;
+    n: DINT := 0;
 END_VAR
     FOR u := 253 TO 255 DO
         n := n + 1;
@@ -139,20 +140,20 @@ END_FUNCTION
 ```
 
 P0 src/validation/statement.rs:1258:8: Shorter string passed to a by-reference STRING parameter is overwritten past its end
-`FUNCTION grow : DINT VAR_IN_OUT s : STRING; END_VAR s := 'abcdefghij'; END_FUNCTION` called as `grow(io)` with `io : STRING[4]` passes `--check` without a diagnostic and writes the ten characters plus terminator (`memcpy ... i32 11`) into the five-byte variable, so the neighbouring locals in `main` are overwritten; depending on the stack layout and optimization level the program prints the overflowed string, shows a corrupted neighbour, or dies with a bus error (observed at `-O none`). `VAR_INPUT {ref} s : STRING` and a `VAR_IN_OUT` of a function block behave the same; a `VAR_OUTPUT` string is copied out bounded and is fine. The callee stores with its declared type, so an assignment inside `grow` is bounded by the capacity of `STRING`, 80, whatever the caller's size. The by-reference argument check that rejects `ARRAY[0..2] OF DINT` for an `ARRAY[0..9] OF DINT` parameter returns early for every aggregate type (line 1258) and leaves strings to the general assignment rule, which accepts any two strings of the same encoding because a by-value copy stops at the smaller capacity. Expected: E037 for a by-reference string argument whose size differs from the parameter's size, as for arrays.
+`FUNCTION grow: DINT VAR_IN_OUT s: STRING; END_VAR s := 'abcdefghij'; END_FUNCTION` called as `grow(io)` with `io: STRING[4]` passes `--check` without a diagnostic and writes the ten characters plus terminator (`memcpy ... i32 11`) into the five-byte variable, so the neighbouring locals in `main` are overwritten; depending on the stack layout and optimization level the program prints the overflowed string, shows a corrupted neighbour, or dies with a bus error (observed at `-O none`). `VAR_INPUT {ref} s: STRING` and a `VAR_IN_OUT` of a function block behave the same; a `VAR_OUTPUT` string is copied out bounded and is fine. The callee stores with its declared type, so an assignment inside `grow` is bounded by the capacity of `STRING`, 80, whatever the caller's size. The by-reference argument check that rejects `ARRAY[0..2] OF DINT` for an `ARRAY[0..9] OF DINT` parameter returns early for every aggregate type (line 1258) and leaves strings to the general assignment rule, which accepts any two strings of the same encoding because a by-value copy stops at the smaller capacity. Expected: E037 for a by-reference string argument whose size differs from the parameter's size, as for arrays.
 ```
 // Reproducible example:
-FUNCTION grow : DINT
+FUNCTION grow: DINT
 VAR_IN_OUT
-    s : STRING;
+    s: STRING;
 END_VAR
     s := 'abcdefghij';
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    io : STRING[4];
-    str : STRING[3];
+    io: STRING[4];
+    str: STRING[3];
 END_VAR
     str := 'xyz';
     grow(io);
@@ -163,14 +164,14 @@ END_FUNCTION
 ```
 
 P0 src/codegen/generators/statement_generator.rs:572:17: CASE range on an unsigned selector is compared as signed
-`CASE b OF 100..200: ... ELSE ... END_CASE` with `b : BYTE := 150` takes the `ELSE` branch; the same with `u : USINT := 150`, and `CASE w OF 30000..50000` with `w : WORD := 40000`, also take `ELSE`, while a `DINT` selector matches. The IR shows `icmp sge i8 %load_b, 100` and `icmp sle i8 %load_b, -56` (and `icmp sle i16 %load_w, -15536` for the `WORD`): the range bounds are generated in the selector's type and compared with signed predicates, so `150` is `-106` and `200` is `-56`. `generate_case_range_condition` calls `create_llvm_int_binary_expression` with `None` for the signedness (lines 572 and 588), and the helper emits signed predicates (it does so for every ordering compare, see the separate entry on unsigned comparisons). Single case values are matched by a `switch` on the bit pattern and are correct, as are `>=` and `<=` written in an `IF` on operands promoted to `DINT`. Expected: `range ok`; the compare must use unsigned predicates for unsigned selectors.
+`CASE b OF 100..200: ... ELSE ... END_CASE` with `b: BYTE := 150` takes the `ELSE` branch; the same with `u: USINT := 150`, and `CASE w OF 30000..50000` with `w: WORD := 40000`, also take `ELSE`, while a `DINT` selector matches. The IR shows `icmp sge i8 %load_b, 100` and `icmp sle i8 %load_b, -56` (and `icmp sle i16 %load_w, -15536` for the `WORD`): the range bounds are generated in the selector's type and compared with signed predicates, so `150` is `-106` and `200` is `-56`. `generate_case_range_condition` calls `create_llvm_int_binary_expression` with `None` for the signedness (lines 572 and 588), and the helper emits signed predicates (it does so for every ordering compare, see the separate entry on unsigned comparisons). Single case values are matched by a `switch` on the bit pattern and are correct, as are `>=` and `<=` written in an `IF` on operands promoted to `DINT`. Expected: `range ok`; the compare must use unsigned predicates for unsigned selectors.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    b : BYTE := 150;
-    w : WORD := 40000;
-    d : DINT := 150;
+    b: BYTE := 150;
+    w: WORD := 40000;
+    d: DINT := 150;
 END_VAR
     CASE b OF
         100..200: printf('b range ok$N');
@@ -189,15 +190,15 @@ END_FUNCTION
 ```
 
 P0 src/codegen/generators/expression_generator.rs:2351:17: Ordering comparison of unsigned integers is compiled as a signed compare
-`ud > ud2` with `ud : UDINT := 4000000000` and `ud2 : UDINT := 5` is `FALSE`, and so are `l > l2` with `l : ULINT := 18446744073709551615` and `l2 : ULINT := 5`, `ud > 2147483647`, and `l > 1`; `ud > 3000000000` is `TRUE` only because the 64-bit literal widens both sides to `LINT`. The IR reads `icmp sgt i32 %load_ud, %load_ud2` and `icmp sgt i64 %load_l, %load_l2`. `generate_binary_expression` computes whether the operands are signed (line 393) and passes it to `create_llvm_int_binary_expression`, but the helper uses the signed predicates `SLT`, `SGT`, `SLE`, and `SGE` unconditionally (lines 2351 to 2363) and only consults the flag for division and modulo. `USINT`, `BYTE`, `UINT`, and `WORD` operands are not affected because the resolver promotes them to `DINT` first; every comparison between `UDINT`, `DWORD`, `ULINT`, or `LWORD` values above the signed maximum of their width is wrong. Expected: `ULT`, `UGT`, `ULE`, and `UGE` when neither operand is signed.
+`ud > ud2` with `ud: UDINT := 4000000000` and `ud2: UDINT := 5` is `FALSE`, and so are `l > l2` with `l: ULINT := 18446744073709551615` and `l2: ULINT := 5`, `ud > 2147483647`, and `l > 1`; `ud > 3000000000` is `TRUE` only because the 64-bit literal widens both sides to `LINT`. The IR reads `icmp sgt i32 %load_ud, %load_ud2` and `icmp sgt i64 %load_l, %load_l2`. `generate_binary_expression` computes whether the operands are signed (line 393) and passes it to `create_llvm_int_binary_expression`, but the helper uses the signed predicates `SLT`, `SGT`, `SLE`, and `SGE` unconditionally (lines 2351 to 2363) and only consults the flag for division and modulo. `USINT`, `BYTE`, `UINT`, and `WORD` operands are not affected because the resolver promotes them to `DINT` first; every comparison between `UDINT`, `DWORD`, `ULINT`, or `LWORD` values above the signed maximum of their width is wrong. Expected: `ULT`, `UGT`, `ULE`, and `UGE` when neither operand is signed.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    ud : UDINT := 4000000000;
-    ud2 : UDINT := 5;
-    l : ULINT := 18446744073709551615;
-    l2 : ULINT := 5;
+    ud: UDINT := 4000000000;
+    ud2: UDINT := 5;
+    l: ULINT := 18446744073709551615;
+    l2: ULINT := 5;
 END_VAR
     printf('%d %d %d %d %d$N', ud > ud2, l > l2, ud > 2147483647, l > 1, ud > 3000000000);
     // prints 0 0 0 0 1, expected 1 1 1 1 1
@@ -205,13 +206,13 @@ END_FUNCTION
 ```
 
 P0 src/codegen/generators/expression_generator.rs:393:29: Division or modulo of an unsigned value by a literal is signed
-`ud / 2` with `ud : UDINT := 4000000000` yields `4147483648` instead of `2000000000`; the IR reads `sdiv i32 %load_ud, 2`, while `ud / ud2` with an `UDINT` divisor yields `udiv` and the correct result. The literal `2` is a `DINT` value, and `generate_binary_expression` treats the operation as signed as soon as either operand type is signed (line 393), so the unsigned dividend is reinterpreted as `-294967296`. `ULINT` is not affected: `l / 2` for the maximum `ULINT` emits `udiv i64` and yields the correct `9223372036854775807`, because the literal takes the 64-bit unsigned type as hint, while for `UDINT` the 32-bit `DINT` literal type wins. `MOD` uses the same flag: `ud MOD 3` yields `0` instead of `1` and additionally reports the warning E067 `Implicit downcast from 'UDINT' to 'DINT'`, which `/` does not report. Expected: a non-negative literal takes the signedness of the unsigned operand, or the operation is performed in a type wide enough for both, as the promotion rules for the smaller unsigned types already do.
+`ud / 2` with `ud: UDINT := 4000000000` yields `4147483648` instead of `2000000000`; the IR reads `sdiv i32 %load_ud, 2`, while `ud / ud2` with an `UDINT` divisor yields `udiv` and the correct result. The literal `2` is a `DINT` value, and `generate_binary_expression` treats the operation as signed as soon as either operand type is signed (line 393), so the unsigned dividend is reinterpreted as `-294967296`. `ULINT` is not affected: `l / 2` for the maximum `ULINT` emits `udiv i64` and yields the correct `9223372036854775807`, because the literal takes the 64-bit unsigned type as hint, while for `UDINT` the 32-bit `DINT` literal type wins. `MOD` uses the same flag: `ud MOD 3` yields `0` instead of `1` and additionally reports the warning E067 `Implicit downcast from 'UDINT' to 'DINT'`, which `/` does not report. Expected: a non-negative literal takes the signedness of the unsigned operand, or the operation is performed in a type wide enough for both, as the promotion rules for the smaller unsigned types already do.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    ud : UDINT := 4000000000;
-    ud2 : UDINT := 2;
+    ud: UDINT := 4000000000;
+    ud2: UDINT := 2;
 END_VAR
     printf('%u %u %u$N', ud / 2, ud / ud2, ud MOD 3);
     // prints 4147483648 2000000000 0, expected 2000000000 2000000000 1
@@ -223,14 +224,14 @@ P0 src/validation/statement.rs:279:15: TIME and DATE literals between 2^31 and 2
 `t := T#25d` stores `-2134967296` and `T#24d20h31m23s648ms` stores `-2147483648`, one past `T#24d20h31m23s647ms` which stores `2147483647`; `d := D#2050-01-01` stores `-1770359296`. No diagnostic is reported by `--check` or the build, and the values misbehave at run time: `T#25d > T#1s` is `FALSE`, `T#20d + T#10d` is `-1702967296`, and `D#2050-01-01 > D#2020-01-01` is `FALSE`. Codegen represents `TIME` and `DATE` as `i32` (`%t = alloca i32`, milliseconds and seconds), but the literal bound check in `validate_date_literal_bounds` accepts every value up to `u32::MAX` and reports E148 only above that (line 279), or for negative values, so the range between `2^31` and `2^32` is accepted and then truncated by the `i32` store. Expected: E148 for every literal that the 32-bit signed representation cannot hold, or a representation that matches the check.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    t : TIME := T#25d;
-    t2 : TIME := T#24d20h31m23s648ms;
-    t3 : TIME := T#24d20h31m23s647ms;
-    d : DATE := D#2050-01-01;
-    d2 : DATE := D#2020-01-01;
-    s : TIME;
+    t: TIME := T#25d;
+    t2: TIME := T#24d20h31m23s648ms;
+    t3: TIME := T#24d20h31m23s647ms;
+    d: DATE := D#2050-01-01;
+    d2: DATE := D#2020-01-01;
+    s: TIME;
 END_VAR
     s := T#20d + T#10d;
     printf('%d %d %d %d %d$N', t, t2, t3, d, s);
@@ -241,29 +242,29 @@ END_FUNCTION
 ```
 
 P0 compiler/plc_lowering/src/array_lowering.rs:458:1: Array literal of function block instances clears the method table pointer of the listed elements
-`fbs : ARRAY[0..2] OF Acc := [(total := 1)]`, where `Acc` has a method `get`, passes `--check`, but `viaBase(ADR(fbs[0]))` with `FUNCTION viaBase : DINT VAR_INPUT p : POINTER TO Acc; END_VAR viaBase := p^.get();` segfaults; the same call on the unlisted element `fbs[2]`, on an array without a literal, or on a single instance `f : Acc := (total := 1)` works, and the direct call `fbs[0].get()` works because it does not go through the table. The full literal `[(total := 1), (total := 2), (total := 3)]` crashes for every element, in a function, a program, and for a global. The IR of `main` shows `call @__main_fbs__ctor(ptr %fbs)`, which sets the `__vtable` pointer of every element, followed by `memcpy(%fbs[0], @.const_init, sizeof(%Acc))` with `@.const_init = constant %Acc { ptr null, i32 1 }`. `lower_array_elements` turns the literal into one assignment per listed element, `fbs[0] := (total := 1)`, and places them after the constructor call; codegen materializes the struct literal as a complete constant whose unmentioned `__vtable` member takes its default `null` (`src/codegen/generators/expression_generator.rs:2705`), and the copy overwrites the table pointer. An array of structs that contain a function block, `ha : ARRAY[0..1] OF H := [(n := 1), (n := 2)]` with `H` holding an `Acc`, crashes the same way, while the single struct `h : H := (n := 5)` is correct because its constant is copied before `H__ctor` runs. Expected: the element assignment sets only the listed members, or the table pointer is written after the literal is copied.
+`fbs: ARRAY[0..2] OF Acc := [(total := 1)]`, where `Acc` has a method `get`, passes `--check`, but `viaBase(ADR(fbs[0]))` with `FUNCTION viaBase: DINT VAR_INPUT p: POINTER TO Acc; END_VAR viaBase := p^.get();` segfaults; the same call on the unlisted element `fbs[2]`, on an array without a literal, or on a single instance `f: Acc := (total := 1)` works, and the direct call `fbs[0].get()` works because it does not go through the table. The full literal `[(total := 1), (total := 2), (total := 3)]` crashes for every element, in a function, a program, and for a global. The IR of `main` shows `call @__main_fbs__ctor(ptr %fbs)`, which sets the `__vtable` pointer of every element, followed by `memcpy(%fbs[0], @.const_init, sizeof(%Acc))` with `@.const_init = constant %Acc { ptr null, i32 1 }`. `lower_array_elements` turns the literal into one assignment per listed element, `fbs[0] := (total := 1)`, and places them after the constructor call; codegen materializes the struct literal as a complete constant whose unmentioned `__vtable` member takes its default `null` (`src/codegen/generators/expression_generator.rs:2705`), and the copy overwrites the table pointer. An array of structs that contain a function block, `ha: ARRAY[0..1] OF H := [(n := 1), (n := 2)]` with `H` holding an `Acc`, crashes the same way, while the single struct `h: H := (n := 5)` is correct because its constant is copied before `H__ctor` runs. Expected: the element assignment sets only the listed members, or the table pointer is written after the literal is copied.
 ```
 // Reproducible example:
 FUNCTION_BLOCK Acc
 VAR_INPUT
-    total : DINT;
+    total: DINT;
 END_VAR
-    METHOD get : DINT
+    METHOD get: DINT
         get := total;
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION viaBase : DINT
+FUNCTION viaBase: DINT
 VAR_INPUT
-    p : POINTER TO Acc;
+    p: POINTER TO Acc;
 END_VAR
     viaBase := p^.get();
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    fbs : ARRAY[0..2] OF Acc := [(total := 1)];
-    f : Acc := (total := 1);
+    fbs: ARRAY[0..2] OF Acc := [(total := 1)];
+    f: Acc := (total := 1);
 END_VAR
     printf('%d$N', fbs[0].get());
     // prints 1
@@ -281,15 +282,15 @@ P0 src/codegen/generators/statement_generator.rs:567:32: CASE selector with side
 ```
 // Reproducible example:
 VAR_GLOBAL
-    counter : DINT := 0;
+    counter: DINT := 0;
 END_VAR
 
-FUNCTION next : DINT
+FUNCTION next: DINT
     counter := counter + 1;
     next := counter;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     CASE next() OF
         1..2: printf('one-two$N');
         3..4: printf('three-four$N');
@@ -302,19 +303,19 @@ END_FUNCTION
 ```
 
 P0 src/codegen/generators/expression_generator.rs:369:9: Reading a REAL constant initialized from a negative integer constant yields the value interpreted as unsigned
-A `VAR_GLOBAL CONSTANT R : REAL := A;` where `A : DINT := -7` is another constant (also `R : REAL := A / B`, `R : REAL := A + B`, `R : LREAL := A`, or from an INT constant) is defined correctly in the IR as `float -7.0`, but every read of `R` in a POU body is replaced by constant propagation with the folded integer literal of the initializer and then converted to float as an unsigned value: `REAL := A` prints 4294967296.0 (2^32 - 7 rounded to float), `LREAL := A / B` prints 4294967293.0, and `REAL := I1` with `I1 : INT := -7` prints 65529.0 (2^16 - 7). Expected -7.0, -3.0 and -7.0. A literal initializer (`R : REAL := -7`) and a non-CONSTANT global with the same initializer are correct because they are not propagated. The cause is in `generate_expression_value`: for a constant variable it calls `generate_constant_expression`, which fetches the resolved (folded) constant statement of the REAL variable, an integer literal node created by the const evaluator, and generates it with `generate_expression_value(const_expression)` (line 369); the caller then casts that i32/i16 constant to the REAL target via `cast_if_needed`, and because the folded literal node has no signed integer annotation, `cast_constant` in `src/codegen/llvm_typesystem.rs:272` takes the zero-extended (unsigned) path. Reproduce with the standard link command at any optimization level.
+A `VAR_GLOBAL CONSTANT R: REAL := A;` where `A: DINT := -7` is another constant (also `R: REAL := A / B`, `R: REAL := A + B`, `R: LREAL := A`, or from an INT constant) is defined correctly in the IR as `float -7.0`, but every read of `R` in a POU body is replaced by constant propagation with the folded integer literal of the initializer and then converted to float as an unsigned value: `REAL := A` prints 4294967296.0 (2^32 - 7 rounded to float), `LREAL := A / B` prints 4294967293.0, and `REAL := I1` with `I1: INT := -7` prints 65529.0 (2^16 - 7). Expected -7.0, -3.0 and -7.0. A literal initializer (`R: REAL := -7`) and a non-CONSTANT global with the same initializer are correct because they are not propagated. The cause is in `generate_expression_value`: for a constant variable it calls `generate_constant_expression`, which fetches the resolved (folded) constant statement of the REAL variable, an integer literal node created by the const evaluator, and generates it with `generate_expression_value(const_expression)` (line 369); the caller then casts that i32/i16 constant to the REAL target via `cast_if_needed`, and because the folded literal node has no signed integer annotation, `cast_constant` in `src/codegen/llvm_typesystem.rs:272` takes the zero-extended (unsigned) path. Reproduce with the standard link command at any optimization level.
 ```
 // Reproducible example:
 VAR_GLOBAL CONSTANT
-    A : DINT := -7;
-    B : DINT := 2;
-    I1 : INT := -7;
-    R3 : REAL := A;
-    R4 : LREAL := A / B;
-    R8 : REAL := I1;
+    A: DINT := -7;
+    B: DINT := 2;
+    I1: INT := -7;
+    R3: REAL := A;
+    R4: LREAL := A / B;
+    R8: REAL := I1;
 END_VAR
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     printf('%f %f %f$N', REAL_TO_LREAL(R3), R4, REAL_TO_LREAL(R8));
     main := 0;
 END_FUNCTION
@@ -323,30 +324,32 @@ END_FUNCTION
 ```
 
 P0 compiler/plc_lowering/src/initializer.rs:387:9: Enum members of function blocks and stack structs are initialized to 0 instead of the first enumerator
-For `TYPE Color : (Red := 1, Green := 5, Blue := 10); END_TYPE` (no explicit type default), a variable of type Color that has no initializer gets the first enumerator (Red = 1) when it is a global, a global struct member, a PROGRAM member or a plain function local, but it gets 0 (a value that is not a member of the enum) when it is a member of a function block instance, a struct nested in a function block, or a struct allocated in a function's VAR block. Expected: the same value (1) everywhere. The static initializer path in codegen (`llvm_index::find_associated_initial_value`, fed by `data_type_generator`) uses the first enumerator when the enum type has no explicit default, but the lowered constructor path does not: `visit_user_type_declaration` only emits `self := <default>` in the enum's `__ctor` when `user_type.initializer` is `Some` (line 387), so `Color__ctor` is empty, and stack instances are `memset` to 0 before `Fb__ctor` / `S__ctor` call that empty constructor. Reproduce with the standard link command at any optimization level; the IR shows `@g = global i32 1` next to an empty `define void @Color__ctor`.
+For `TYPE Color: (Red := 1, Green := 5, Blue := 10); END_TYPE` (no explicit type default), a variable of type Color that has no initializer gets the first enumerator (Red = 1) when it is a global, a global struct member, a PROGRAM member or a plain function local, but it gets 0 (a value that is not a member of the enum) when it is a member of a function block instance, a struct nested in a function block, or a struct allocated in a function's VAR block. Expected: the same value (1) everywhere. The static initializer path in codegen (`llvm_index::find_associated_initial_value`, fed by `data_type_generator`) uses the first enumerator when the enum type has no explicit default, but the lowered constructor path does not: `visit_user_type_declaration` only emits `self := <default>` in the enum's `__ctor` when `user_type.initializer` is `Some` (line 387), so `Color__ctor` is empty, and stack instances are `memset` to 0 before `Fb__ctor` / `S__ctor` call that empty constructor. Reproduce with the standard link command at any optimization level; the IR shows `@g = global i32 1` next to an empty `define void @Color__ctor`.
 ```
 // Reproducible example:
-TYPE Color : (Red := 1, Green := 5, Blue := 10); END_TYPE
-TYPE S : STRUCT
-    c : Color;
-END_STRUCT END_TYPE
+TYPE Color: (Red := 1, Green := 5, Blue := 10); END_TYPE
+TYPE S:
+    STRUCT
+        c: Color;
+    END_STRUCT
+END_TYPE
 
 VAR_GLOBAL
-    g : Color;
+    g: Color;
 END_VAR
 
 FUNCTION_BLOCK Fb
 VAR
-    col : Color;
-    s : S;
+    col: Color;
+    s: S;
 END_VAR
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    fb : Fb;
-    loc : Color;
-    ls : S;
+    fb: Fb;
+    loc: Color;
+    ls: S;
 END_VAR
     printf('global=%d fb=%d fbstruct=%d local=%d localstruct=%d$N', g, fb.col, fb.s.c, loc, ls.c);
     main := 0;
@@ -356,15 +359,15 @@ END_FUNCTION
 ```
 
 P0 src/typesystem.rs:1576:16: Power operator on two DINT operands is computed in single-precision REAL
-`d := b7 ** e11` with `b7 : DINT := 7`, `e11 : DINT := 11` and `d : DINT` prints `1977326720` instead of `1977326743`, and `d := big ** 1` with `big : DINT := 123456789` prints `123456792`; no diagnostic is reported. The parser rewrites `a ** b` into a call to the generic stdlib function `EXPT<T: ANY_REAL, U: ANY_NUM> : T`. The generic binder seeds `T` with `REAL` and folds the concrete argument type into it with `get_bigger_type`; that rule promotes a mixed integer and real pair to `LREAL` only when one side is wider than 32 bits, so `DINT` and `REAL` yield `REAL`, and the IR calls `EXPT__REAL__DINT(float, i32)` and converts the result back with `fptosi`. A `REAL` has a 24-bit mantissa, so every integer result above 16777216 is rounded. `LINT` operands take the `LREAL` path and are exact. Expected: an integer base selects `LREAL` when the integer type has 32 bits or more (a `REAL` cannot represent every `DINT`), or `**` on integer operands is rejected with a diagnostic, as IEC 61131-3 defines the base of `**` as `ANY_REAL`. Reproduce with the default command line at any optimization level.
+`d := b7 ** e11` with `b7: DINT := 7`, `e11: DINT := 11` and `d: DINT` prints `1977326720` instead of `1977326743`, and `d := big ** 1` with `big: DINT := 123456789` prints `123456792`; no diagnostic is reported. The parser rewrites `a ** b` into a call to the generic stdlib function `EXPT<T: ANY_REAL, U: ANY_NUM>: T`. The generic binder seeds `T` with `REAL` and folds the concrete argument type into it with `get_bigger_type`; that rule promotes a mixed integer and real pair to `LREAL` only when one side is wider than 32 bits, so `DINT` and `REAL` yield `REAL`, and the IR calls `EXPT__REAL__DINT(float, i32)` and converts the result back with `fptosi`. A `REAL` has a 24-bit mantissa, so every integer result above 16777216 is rounded. `LINT` operands take the `LREAL` path and are exact. Expected: an integer base selects `LREAL` when the integer type has 32 bits or more (a `REAL` cannot represent every `DINT`), or `**` on integer operands is rejected with a diagnostic, as IEC 61131-3 defines the base of `**` as `ANY_REAL`. Reproduce with the default command line at any optimization level.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    d : DINT;
-    b7 : DINT := 7;
-    e11 : DINT := 11;
-    big : DINT := 123456789;
+    d: DINT;
+    b7: DINT := 7;
+    e11: DINT := 11;
+    big: DINT := 123456789;
 END_VAR
     d := b7 ** e11;
     printf('%d$N', d); // prints 1977326720, expected 1977326743
@@ -378,10 +381,10 @@ P0 src/codegen/generators/expression_generator.rs:3042:18: TIME literal multipli
 `t := T#1s * 2` stores `2000000000`, `t := T#1s * n` (n : INT := 2) stores `2000000000`, `t := T#1s / 2` stores `500000000` and `t := T#3s / 2` stores `3647483648` (the i32 wrap of 1.5e9 + garbage), where 2000, 2000, 500 and 1500 are expected. `t + T#1s`, `t * 3` and `T#1s + T#500ms` are correct, so only a temporal literal that is a direct operand of `*` or `/` with a numeric operand is affected. The compiler stores short `TIME` and `TOD` as 32-bit milliseconds and scales the parsed nanosecond literal in `create_temporal_const_int` according to the literal's type hint; in `T#1s * 2` the resolver gives the literal the numeric hint of the arithmetic result (a DINT), so the match falls into the `_ => value_in_nanos` arm at line 3042 and the raw nanosecond count is emitted and truncated to i32. Every TIME-scaling pattern common in PLC code (`T#100ms * count`, `cycle / 2`) silently produces a value 1000000 times too large modulo 2^32. Reproduce with the default command line at any optimization level; `--ir` shows `mul i32 1000000000, %load_n` for `T#1s * n`.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    t : TIME;
-    n : INT := 2;
+    t: TIME;
+    n: INT := 2;
 END_VAR
     t := T#1s * 2;
     printf('%u$N', t);      // prints 2000000000, expected 2000
@@ -400,10 +403,10 @@ P0 src/resolver.rs:2888:49: Arithmetic between two real literals assigned to an 
 `lr := 1.0 / 3.0` stores `0.33333334326744080` (the f32 quotient widened to double, IR constant `0x3FD5555560000000`), `lr := 100000000.0 + 1.0` stores `100000000.0`, `lr := 22.0 / 7.0` stores `3.14285707473754883` and `lr := 1.0E10 * 1.0E10 * 1.0E10 * 1.0E10` stores `inf`, where `0.33333333333333331`, `100000001.0`, `3.14285714285714279` and `1e40` are expected because the target is LREAL. `lr := 0.1` alone and `lr := x / 3.0` with x : LREAL are correct. The resolver types every real literal that fits in f32 as REAL through `get_real_type_name_for` (resolver.rs:3048), and the LREAL context override on the line above it only consults `ctx.lhs`, which is set for a direct assignment but not for the operands of a binary expression; the expression therefore gets type REAL, codegen emits the operation on `float` and widens the rounded result with `fpext`. Real PLC code such as scaling constants (`lr := 4.0 * 3.14159265358979 / 180.0`) silently loses precision or overflows. Reproduce with the default command line at any optimization level.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    lr : LREAL;
-    x : LREAL := 100000000.0 + 1.0;
+    lr: LREAL;
+    x: LREAL := 100000000.0 + 1.0;
 END_VAR
     lr := 1.0 / 3.0;
     printf('%.17f$N', lr);   // prints 0.33333334326744080, expected 0.33333333333333331
@@ -416,19 +419,19 @@ END_FUNCTION
 ```
 
 P0 src/codegen/generators/llvm.rs:459:9: WSTRING initializer longer than the declared size is emitted untruncated and overflows the variable
-`gw : WSTRING[4] := "wideglobal";` produces `@gw = global [5 x i16] [i16 119, ... 10 elements]`, a ten-element constant for a five-element global, and the program prints `LEN(gw) = 12`, the whole literal followed by the neighbouring global's bytes; a local `lw : WSTRING[4] := "widelocal"` gets a nine-element `@__main.lw__init` constant and prints `LEN(lw) = 6` with no terminator inside the variable. The equivalent `gs : STRING[4] := 'narrowglobal'` is truncated to `narr` as IEC 61131-3 requires. `create_const_utf16_string` collects the full `encode_utf16()` output and only pads with zeros up to `len`; it never cuts the vector to `len - 1` characters, unlike `create_const_utf8_string` at line 442, which slices `value.as_bytes()[..min(value.len(), len - 1)]`. The caller in `generate_string_literal_for_type` computes the bounded `str_len` correctly, so only the helper is wrong. Expected: the constant has exactly `len` elements, the first `len - 1` characters of the literal plus the terminator, and `LEN(gw)` prints 4. Reproduce with the default command line at any optimization level, or with `plc --ir` which fails with `constant expression type mismatch: got type '[10 x i16]' but expected '[5 x i16]'`.
+`gw: WSTRING[4] := "wideglobal";` produces `@gw = global [5 x i16] [i16 119, ... 10 elements]`, a ten-element constant for a five-element global, and the program prints `LEN(gw) = 12`, the whole literal followed by the neighbouring global's bytes; a local `lw: WSTRING[4] := "widelocal"` gets a nine-element `@__main.lw__init` constant and prints `LEN(lw) = 6` with no terminator inside the variable. The equivalent `gs: STRING[4] := 'narrowglobal'` is truncated to `narr` as IEC 61131-3 requires. `create_const_utf16_string` collects the full `encode_utf16()` output and only pads with zeros up to `len`; it never cuts the vector to `len - 1` characters, unlike `create_const_utf8_string` at line 442, which slices `value.as_bytes()[..min(value.len(), len - 1)]`. The caller in `generate_string_literal_for_type` computes the bounded `str_len` correctly, so only the helper is wrong. Expected: the constant has exactly `len` elements, the first `len - 1` characters of the literal plus the terminator, and `LEN(gw)` prints 4. Reproduce with the default command line at any optimization level, or with `plc --ir` which fails with `constant expression type mismatch: got type '[10 x i16]' but expected '[5 x i16]'`.
 ```
 // Reproducible example:
 // observed: 12 4 6 7   (LEN(gw), LEN(gs), LEN(lw), guard)
 // expected: 4 4 4 7
 VAR_GLOBAL
-    gw : WSTRING[4] := "wideglobal";
-    gs : STRING[4] := 'narrowglobal';
+    gw: WSTRING[4] := "wideglobal";
+    gs: STRING[4] := 'narrowglobal';
 END_VAR
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    lw : WSTRING[4] := "widelocal";
-    guard : DINT := 7;
+    lw: WSTRING[4] := "widelocal";
+    guard: DINT := 7;
 END_VAR
     printf('%d %d %d %d$N', LEN(gw), LEN(gs), LEN(lw), guard);
     main := 0;
@@ -436,23 +439,23 @@ END_FUNCTION
 ```
 
 P0 src/resolver/const_evaluator.rs:723:9: Sized string initialized from a longer STRING constant receives the constant's full-size value
-With `VAR_GLOBAL CONSTANT CSTR : STRING := 'constant_text'; END_VAR`, a local `c3 : STRING[3] := CSTR;` gets the initializer constant `@__main.c3__init = unnamed_addr constant [4 x i8] c"constant_text\00...\00"`, an 81-byte value in a 4-byte constant, and prints `cons` with `LEN(c3) = 4` (no terminator inside the variable; the optimized build prints `cons` followed by garbage and `LEN = 8`). A global `g3 : STRING[3] := CSTR;` becomes `@g3 = global [4 x i8] c"constant_text\00..."` and prints the whole `constant_text` with `LEN = 13`. The run-time assignment `a3 := CSTR;` and a struct member `m : STRING[3] := CSTR` correctly yield `con`. `resolve_const_reference` returns `statement.clone()` of the constant's own resolved literal, so the cloned node keeps the AST id of CSTR's initializer; in codegen `generate_string_literal_for_type` asks `get_type_hint_info_for` for that id and receives CSTR's type `STRING` (size 80), so it builds an 81-byte constant for a variable of type `STRING[3]`. Expected: the initializer is truncated to the declared size, `con` with `LEN = 3`, as IEC 61131-3 requires for string assignment. Reproduce with the default command line at any optimization level, or `plc --ir`, which fails with `constant expression type mismatch: got type '[81 x i8]' but expected '[4 x i8]'`.
+With `VAR_GLOBAL CONSTANT CSTR: STRING := 'constant_text'; END_VAR`, a local `c3: STRING[3] := CSTR;` gets the initializer constant `@__main.c3__init = unnamed_addr constant [4 x i8] c"constant_text\00...\00"`, an 81-byte value in a 4-byte constant, and prints `cons` with `LEN(c3) = 4` (no terminator inside the variable; the optimized build prints `cons` followed by garbage and `LEN = 8`). A global `g3: STRING[3] := CSTR;` becomes `@g3 = global [4 x i8] c"constant_text\00..."` and prints the whole `constant_text` with `LEN = 13`. The run-time assignment `a3 := CSTR;` and a struct member `m: STRING[3] := CSTR` correctly yield `con`. `resolve_const_reference` returns `statement.clone()` of the constant's own resolved literal, so the cloned node keeps the AST id of CSTR's initializer; in codegen `generate_string_literal_for_type` asks `get_type_hint_info_for` for that id and receives CSTR's type `STRING` (size 80), so it builds an 81-byte constant for a variable of type `STRING[3]`. Expected: the initializer is truncated to the declared size, `con` with `LEN = 3`, as IEC 61131-3 requires for string assignment. Reproduce with the default command line at any optimization level, or `plc --ir`, which fails with `constant expression type mismatch: got type '[81 x i8]' but expected '[4 x i8]'`.
 ```
 // Reproducible example:
 // observed (-O none): cons|4|5  then  constant_text|13|6
 // observed (default): cons<garbage>|8|5  then  constant_text|13|6
 // expected:           con|3|5  then  con|3|6
 VAR_GLOBAL CONSTANT
-    CSTR : STRING := 'constant_text';
+    CSTR: STRING := 'constant_text';
 END_VAR
 VAR_GLOBAL
-    g3 : STRING[3] := CSTR;
-    gguard : DINT := 6;
+    g3: STRING[3] := CSTR;
+    gguard: DINT := 6;
 END_VAR
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    c3 : STRING[3] := CSTR;
-    guard : DINT := 5;
+    c3: STRING[3] := CSTR;
+    guard: DINT := 5;
 END_VAR
     printf('%s|%d|%d$N', REF(c3), LEN(c3), guard);
     printf('%s|%d|%d$N', REF(g3), LEN(g3), gguard);
@@ -461,13 +464,13 @@ END_FUNCTION
 ```
 
 P0 compiler/plc_lowering/src/array_lowering.rs:504:29: Aggregate-returning call inside an array literal reads its result from a null pointer
-`arr : ARRAY[0..1] OF STRING := [g(), 'b']`, where `g` returns a `STRING`, passes `--check` without a diagnostic and generates code that never reads the returned value: the constructor emits `call void @g(ptr %1)` into a temporary and then `call void @llvm.memcpy.p0.p4.i32(ptr align 1 %tmpVar, ptr addrspace(4) align 1 null, i32 80, i1 false)`, so the element is filled from address zero. A struct return behaves the same. The cause is the participant order: the aggregate-return lowerer runs tenth and does not descend into array literals, so the call keeps its source form, and the array lowerer runs twelfth and builds the element assignment `self.arr[0] := g();` out of that untouched call, which no later participant rewrites. Expected: the element assignment is lowered like every other aggregate-returning call, with the element passed as the result parameter.
+`arr: ARRAY[0..1] OF STRING := [g(), 'b']`, where `g` returns a `STRING`, passes `--check` without a diagnostic and generates code that never reads the returned value: the constructor emits `call void @g(ptr %1)` into a temporary and then `call void @llvm.memcpy.p0.p4.i32(ptr align 1 %tmpVar, ptr addrspace(4) align 1 null, i32 80, i1 false)`, so the element is filled from address zero. A struct return behaves the same. The cause is the participant order: the aggregate-return lowerer runs tenth and does not descend into array literals, so the call keeps its source form, and the array lowerer runs twelfth and builds the element assignment `self.arr[0] := g();` out of that untouched call, which no later participant rewrites. Expected: the element assignment is lowered like every other aggregate-returning call, with the element passed as the result parameter.
 ```
 // Reproducible example:
 // plc --check: no diagnostic, exit 0
 // plc --ir:    call void @g(ptr %1)
 //              call void @llvm.memcpy.p0.p4.i32(ptr align 1 %tmpVar, ptr addrspace(4) align 1 null, i32 80, i1 false)
-FUNCTION g : STRING
+FUNCTION g: STRING
     g := 'hi';
 END_FUNCTION
 
@@ -475,7 +478,7 @@ PROGRAM main
     VAR
         // observed: arr[0] is copied from a null pointer
         // expected: arr[0] is 'hi'
-        arr : ARRAY[0..1] OF STRING := [g(), 'b'];
+        arr: ARRAY[0..1] OF STRING := [g(), 'b'];
     END_VAR
 END_PROGRAM
 ```
@@ -487,27 +490,28 @@ P0 compiler/plc_header_generator/src/header_generator/type_helper/type_helper_c.
 // plc --generate-headers times.pli --header-output out
 // observed: time_t p; time_t q; time_t r; time_t s;   (all 64 bit)
 // expected: a 32-bit type for p, r and s, and a 64-bit type for q
-TYPE Times : STRUCT
-        p : TIME;
-        q : LTIME;
-        r : DATE;
-        s : TIME_OF_DAY;
+TYPE Times:
+    STRUCT
+        p: TIME;
+        q: LTIME;
+        r: DATE;
+        s: TIME_OF_DAY;
     END_STRUCT
 END_TYPE
 ```
 
 P0 compiler/plc_header_generator/src/header_generator/header_generator_c.rs:641:13: The generated C header declares a `VAR_INPUT {ref}` string as a pointer to a pointer
-`VAR_INPUT {ref} s : STRING` is passed as the address of the string data: a C function `int take(const char* s)` declared `{external}` with that block and called as `take('hello')` returns 5. The generated header declares `char** s` instead. The `{ref}` block sets `is_reference`, which appends one `*` to the type name at `header_generator_c.rs:641`, and the string then gets a second `*` when the parameter is rendered, because a string is already an array type. A C implementation written against that header dereferences a value that is not a pointer. Scalars are correct (`{ref} n : DINT` gives `int32_t*`), and so are arrays (`int32_t*`). Expected: `char*` for a `{ref}` string, as for a string passed by value.
+`VAR_INPUT {ref} s: STRING` is passed as the address of the string data: a C function `int take(const char* s)` declared `{external}` with that block and called as `take('hello')` returns 5. The generated header declares `char** s` instead. The `{ref}` block sets `is_reference`, which appends one `*` to the type name at `header_generator_c.rs:641`, and the string then gets a second `*` when the parameter is rendered, because a string is already an array type. A C implementation written against that header dereferences a value that is not a pointer. Scalars are correct (`{ref} n: DINT` gives `int32_t*`), and so are arrays (`int32_t*`). Expected: `char*` for a `{ref}` string, as for a string passed by value.
 ```
 // Reproducible example:
 // plc --generate-headers ref.pli --header-output out
 // observed: int32_t F3(int32_t* n, char** s, int32_t* a);
 // expected: int32_t F3(int32_t* n, char* s, int32_t* a);
-FUNCTION F3 : DINT
+FUNCTION F3: DINT
     VAR_INPUT {ref}
-        n : DINT;
-        s : STRING;
-        a : ARRAY[0..2] OF DINT;
+        n: DINT;
+        s: STRING;
+        a: ARRAY[0..2] OF DINT;
     END_VAR
 END_FUNCTION
 ```
@@ -518,9 +522,9 @@ P0 libs/stdlib/src/num_conversion.rs:6:13: Real to integer conversion rounds the
 // Reproducible example:
 // observed: 2.5=3 3.5=4 -2.5=-3
 // expected: 2.5=2 3.5=4 -2.5=-2
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        b : REAL := 2.5;
+        b: REAL := 2.5;
     END_VAR
 
     main := REAL_TO_DINT(b);
@@ -528,18 +532,54 @@ END_FUNCTION
 ```
 
 P0 src/parser/expressions_parser.rs:137:5: Unary minus binds tighter than the power operator
-`r := -2 ** 2` with `r : REAL` yields `4`, and `r := - x ** 2` with `x : DINT := 2` yields `4` as well. `parse_exponent_expression` collects its operands with `parse_unary_expression`, so the sign is part of the base and the expression is `(-2) ** 2`. The operator table of IEC 61131-3 ranks `**` directly under function evaluation and above negation, so a standard-conforming reading is `-(2 ** 2)`, which is `-4`. Every other precedence level of the parser matches the table, and `**` is left associative (`2 ** 3 ** 2` is `64`), which the standard's left-to-right rule allows. No diagnostic makes the difference visible. Expected: the unary operators bind weaker than `**`.
+`r := -2 ** 2` with `r: REAL` yields `4`, and `r := - x ** 2` with `x: DINT := 2` yields `4` as well. `parse_exponent_expression` collects its operands with `parse_unary_expression`, so the sign is part of the base and the expression is `(-2) ** 2`. The operator table of IEC 61131-3 ranks `**` directly under function evaluation and above negation, so a standard-conforming reading is `-(2 ** 2)`, which is `-4`. Every other precedence level of the parser matches the table, and `**` is left associative (`2 ** 3 ** 2` is `64`), which the standard's left-to-right rule allows. No diagnostic makes the difference visible. Expected: the unary operators bind weaker than `**`.
 ```
 // Reproducible example:
 // observed: neg_pow=4
 // expected: neg_pow=-4
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        r : REAL;
+        r: REAL;
     END_VAR
 
     r := -2 ** 2;
 END_FUNCTION
+```
+
+P0 libs/stdlib/src/string_functions.rs:663:9: CONCAT_EXT writes up to 2048 characters into the caller's output buffer, whatever its declared size
+`CONCAT_EXT` takes its destination as `VAR_IN_OUT OUT: T`, so the caller supplies a buffer of its own size, but `concat_transparent` starts with `remaining = STRING_RESULT_LEN` (2048) and copies until the inputs are exhausted or that counter runs out. The declared capacity of the argument never reaches the function, because a `VAR_IN_OUT` string is passed as a bare pointer. `CONCAT_EXT(out, big, big)` with `out: STRING[10]` and two 100 character inputs writes 200 characters plus the terminator into an 11 byte stack slot and overruns the neighboring variables; the example below ends with a bus error. `CONCAT` is not affected, because the compiler allocates a `STRING[2048]` temporary for its return value and then truncates the copy into the target. Expected: the length of the destination is passed with it, and the copy stops at that length.
+```
+// Reproducible example:
+// plc --check: no diagnostic, exit 0
+// observed: the program crashes (bus error), the guard variable is overwritten
+// expected: out holds the first 10 characters, guard is unchanged
+FUNCTION main: DINT
+    VAR
+        out: STRING[10];
+        guard: STRING[10] := 'GUARD';
+        big: STRING[200] := 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        n: DINT;
+    END_VAR
+
+    n := CONCAT_EXT(out, big, big);
+END_FUNCTION
+```
+
+P0 compiler/plc_diagnostics/src/diagnostics/error_codes/E009.md:1:1: The explanation files of the diagnostics are incomplete and follow no common shape
+Placed at P0 on the maintainer's request (Volkan, 2026-09-14), so that it is not forgotten; by the severity scale it would be a P4. The directory holds one markdown file per diagnostic, 155 of them, and a run that reports an error ends with the hint "You can use `plc explain <ErrorCode>` for more information". For 68 of the 155 codes there is no more information: the file holds the title line and nothing else, so `plc explain` repeats the message the user has already read, and the generated page in the book carries one heading and an empty body. The 87 files that do have content disagree on every point of shape. The heading is `# E037: Invalid assignment` in 9 files and a bare title such as `# Mismatched Parantheses` in the other 146, so the code itself is missing from the page in most of them. The 106 code blocks carry five different languages for Structured Text, `iecst` (45), `st` (43), `iec61131st` (6), `iecstd` (1, a typo) and none at all (7); the book registers `iecst` only, so the majority of the examples are not highlighted. Some files show the wrong form only, some show the wrong form and the correct one, and some explain in prose without an example. Expected: one shape for every file (`# <code>: <title>`, one paragraph on the cause, one example of the rejected form and one of the accepted form, `iecst` on every Structured Text block), and content for all 155 codes.
+```
+// Reproducible example:
+// observed: the explanation is the title again, nothing more
+// expected: a cause and an example, as E037.md has
+$ plc explain E009
+Explanation for error E009:
+# Mismatched Parantheses
+
+$ plc explain E037
+Explanation for error E037:
+# E037: Invalid assignment
+
+This error is reported for assignments or accesses that are not allowed, ...
 ```
 
 P1 compiler/plc_driver/src/pipelines/property.rs:21:5: Property read through a property passes --check but aborts codegen
@@ -550,26 +590,26 @@ P1 compiler/plc_driver/src/pipelines/property.rs:21:5: Property read through a p
 // plc --ir: error: Could not resolve reference to value
 FUNCTION_BLOCK Inner
 VAR
-    v : DINT := 5;
+    v: DINT := 5;
 END_VAR
-    PROPERTY_GET value : DINT
+    PROPERTY_GET value: DINT
         value := v;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK Outer
 VAR
-    inner : Inner;
+    inner: Inner;
 END_VAR
-    PROPERTY_GET kid : Inner
+    PROPERTY_GET kid: Inner
         kid := inner;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    a : Outer;
-    n : DINT;
+    a: Outer;
+    n: DINT;
 END_VAR
     n := a.kid.value;
     printf('%d$N', n);
@@ -577,140 +617,142 @@ END_FUNCTION
 ```
 
 P1 compiler/plc_lowering/src/initializer.rs:200:5: VAR_EXTERNAL variable of a struct type aborts codegen
-`FUNCTION_BLOCK Fb VAR_EXTERNAL gS : S; END_VAR END_FUNCTION_BLOCK` with `S` a struct passes `--check` (only the warning E106 "VAR_EXTERNAL blocks have no effect"), but `--ir` aborts with `error: Could not resolve reference to Fb.gS` and the note "error occurred while generating initialization code for type 'Fb'". A scalar `VAR_EXTERNAL gS : DINT;` compiles. The init participant skips only constant blocks and global include or external blocks; a `VAR_EXTERNAL` block inside a POU is walked, and the struct member gets `S__ctor(self.gS)` although `gS` is not a member of the instance. Expected: `VAR_EXTERNAL` blocks are skipped, as the validator says they have no effect.
+`FUNCTION_BLOCK Fb VAR_EXTERNAL gS: S; END_VAR END_FUNCTION_BLOCK` with `S` a struct passes `--check` (only the warning E106 "VAR_EXTERNAL blocks have no effect"), but `--ir` aborts with `error: Could not resolve reference to Fb.gS` and the note "error occurred while generating initialization code for type 'Fb'". A scalar `VAR_EXTERNAL gS: DINT;` compiles. The init participant skips only constant blocks and global include or external blocks; a `VAR_EXTERNAL` block inside a POU is walked, and the struct member gets `S__ctor(self.gS)` although `gS` is not a member of the instance. Expected: `VAR_EXTERNAL` blocks are skipped, as the validator says they have no effect.
 ```
 // Reproducible example:
 // plc --check: only warning E106
 // plc --ir: error: Could not resolve reference to Fb.gS
-TYPE S : STRUCT
-    x : DINT;
-END_STRUCT END_TYPE
+TYPE S:
+    STRUCT
+        x: DINT;
+    END_STRUCT
+END_TYPE
 
 VAR_GLOBAL
-    gS : S;
+    gS: S;
 END_VAR
 
 FUNCTION_BLOCK Fb
 VAR_EXTERNAL
-    gS : S;
+    gS: S;
 END_VAR
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    fb : Fb;
+    fb: Fb;
 END_VAR
     fb();
 END_FUNCTION
 ```
 
 P1 src/validation/variable.rs:632:5: Retained program variable named like its type is rejected with E099
-`PROGRAM Main VAR fb : Fb; END_VAR END_PROGRAM`, where `Fb` has a `VAR RETAIN` block, or `VAR RETAIN int : INT;`, fails with `error[E099]: REFERENCE TO variables can not reference other variables`; renaming the variable to `inst` compiles. The retain participant replaces the variable's type with a generated alias pointer type to `__Main_fb__retain : Fb`; the validator then looks up the pointer's target type name `Fb` among the members of `Main` with `find_member`, ignoring case, and finds the variable `fb` itself. Expected: compiles; the check must not apply to the generated pointer types, or must compare against variables only when the target is not a type.
+`PROGRAM Main VAR fb: Fb; END_VAR END_PROGRAM`, where `Fb` has a `VAR RETAIN` block, or `VAR RETAIN int: INT;`, fails with `error[E099]: REFERENCE TO variables can not reference other variables`; renaming the variable to `inst` compiles. The retain participant replaces the variable's type with a generated alias pointer type to `__Main_fb__retain: Fb`; the validator then looks up the pointer's target type name `Fb` among the members of `Main` with `find_member`, ignoring case, and finds the variable `fb` itself. Expected: compiles; the check must not apply to the generated pointer types, or must compare against variables only when the target is not a type.
 ```
 // Reproducible example:
 // plc --check: error[E099]: REFERENCE TO variables can not reference other variables (at `fb : Fb`)
 // the same error for: PROGRAM Main VAR RETAIN int : INT; END_VAR END_PROGRAM
 FUNCTION_BLOCK Fb
 VAR RETAIN
-    x : INT;
+    x: INT;
 END_VAR
 END_FUNCTION_BLOCK
 
 PROGRAM Main
 VAR
-    fb : Fb;
+    fb: Fb;
 END_VAR
 END_PROGRAM
 ```
 
 P1 compiler/plc_lowering/src/retain.rs:103:25: Retain global is defined by an include unit
-With `-i hdr.st`, where `hdr.st` declares `PROGRAM Prog VAR RETAIN x : INT := 7; END_VAR END_PROGRAM`, the object generated from `main.st` defines `__Prog_x__retain` (`nm` shows `D`, the IR has `@__Prog_x__retain = global i16 7, section ".retain"`), while `Prog_instance` stays a declaration (`U`, `external global`). The retain block the participant creates always has internal linkage, whatever the linkage of the unit, although the generated pointer type does take the container linkage. Expected: in an include unit the header contributes only a declaration; the definition belongs to the library that implements `Prog`. Two definitions result when linked against that library.
+With `-i hdr.st`, where `hdr.st` declares `PROGRAM Prog VAR RETAIN x: INT := 7; END_VAR END_PROGRAM`, the object generated from `main.st` defines `__Prog_x__retain` (`nm` shows `D`, the IR has `@__Prog_x__retain = global i16 7, section ".retain"`), while `Prog_instance` stays a declaration (`U`, `external global`). The retain block the participant creates always has internal linkage, whatever the linkage of the unit, although the generated pointer type does take the container linkage. Expected: in an include unit the header contributes only a declaration; the definition belongs to the library that implements `Prog`. Two definitions result when linked against that library.
 ```
 // Reproducible example:
 // plc -c main.st -i hdr.st -o main.o; nm main.o shows "D __Prog_x__retain" and "U Prog_instance"
 // --- file: hdr.st ---
 PROGRAM Prog
 VAR RETAIN
-    x : INT := 7;
+    x: INT := 7;
 END_VAR
 END_PROGRAM
 
 // --- file: main.st ---
-FUNCTION main : DINT
+FUNCTION main: DINT
     Prog();
     main := Prog.x;
 END_FUNCTION
 ```
 
 P1 src/lowering/calls.rs:120:13: Global initializer that calls an aggregate-returning function panics the compiler
-`VAR_GLOBAL g : STRING := greet(); END_VAR`, where `greet` returns a `STRING`, aborts with `internal error: entered unreachable code: Statement lists should exist at this point` instead of a diagnostic, already with `--check`. The aggregate-return lowerer walks global variable blocks, meets the call, and tries to queue the allocation in front of the current statement, but no statement scope exists outside an implementation. The scalar case `g : DINT := getInt();` reports `E033 Unresolved constant ... Call-statement 'getInt' in initializer is not constant`. Expected: the same E033 diagnostic for the aggregate case.
+`VAR_GLOBAL g: STRING := greet(); END_VAR`, where `greet` returns a `STRING`, aborts with `internal error: entered unreachable code: Statement lists should exist at this point` instead of a diagnostic, already with `--check`. The aggregate-return lowerer walks global variable blocks, meets the call, and tries to queue the allocation in front of the current statement, but no statement scope exists outside an implementation. The scalar case `g: DINT := getInt();` reports `E033 Unresolved constant ... Call-statement 'getInt' in initializer is not constant`. Expected: the same E033 diagnostic for the aggregate case.
 ```
 // Reproducible example:
 // plc --check: thread 'main' panicked at src/lowering/calls.rs:120:13:
 // internal error: entered unreachable code: Statement lists should exist at this point
-FUNCTION greet : STRING
+FUNCTION greet: STRING
     greet := 'hi';
 END_FUNCTION
 
 VAR_GLOBAL
-    g : STRING := greet();
+    g: STRING := greet();
 END_VAR
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     main := 0;
 END_FUNCTION
 ```
 
 P1 compiler/plc_lowering/src/initializer.rs:280:5: Bare member names inside an array literal initializer are not qualified with self
-`PROGRAM prog VAR seed : DINT := 7; vars : ARRAY[0..2] OF DINT := [seed, 2, seed]; END_VAR END_PROGRAM` passes `--check`, but `--ir` fails with `Could not resolve reference to seed` while generating the constructor of `prog`. The init participant qualifies a flat reference initializer with `self.`, but not the elements of an array literal, so the array lowerer produces `self.vars[0] := seed` inside `prog__ctor`, where `seed` does not resolve. The same happens for a function block. Expected: `self.vars[0] := self.seed;`.
+`PROGRAM prog VAR seed: DINT := 7; vars: ARRAY[0..2] OF DINT := [seed, 2, seed]; END_VAR END_PROGRAM` passes `--check`, but `--ir` fails with `Could not resolve reference to seed` while generating the constructor of `prog`. The init participant qualifies a flat reference initializer with `self.`, but not the elements of an array literal, so the array lowerer produces `self.vars[0] := seed` inside `prog__ctor`, where `seed` does not resolve. The same happens for a function block. Expected: `self.vars[0] := self.seed;`.
 ```
 // Reproducible example:
 // plc --check: no diagnostic
 // plc --ir: error: Could not resolve reference to seed (initialization code for type 'prog')
 PROGRAM prog
 VAR
-    seed : DINT := 7;
-    vars : ARRAY[0..2] OF DINT := [seed, 2, seed];
+    seed: DINT := 7;
+    vars: ARRAY[0..2] OF DINT := [seed, 2, seed];
 END_VAR
 END_PROGRAM
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     printf('%d %d %d$N', prog.vars[0], prog.vars[1], prog.vars[2]);
 END_FUNCTION
 ```
 
 P1 compiler/plc_lowering/src/array_lowering.rs:435:17: Global array with a runtime element is not lowered in the unit constructor
-`VAR_GLOBAL gseed : DINT := 1; garr : ARRAY[0..2] OF DINT := [gseed, 2, 3]; END_VAR` passes `--check`, but `--ir` fails with `Builder error: ... invalid use of function-local name` on `@.const_init = private unnamed_addr constant [3 x i32] [i32 %load_gseed, i32 2, i32 3]`. The left side of the assignment in the unit constructor is a bare name, and the bare-name branch of `find_lhs_type_name` searches only the members of the enclosing POU with `find_member`, not the globals, so the literal is not lowered and codegen tries to build a constant from a variable load. Expected: `garr[0] := gseed;` and the remaining element assignments in the unit constructor.
+`VAR_GLOBAL gseed: DINT := 1; garr: ARRAY[0..2] OF DINT := [gseed, 2, 3]; END_VAR` passes `--check`, but `--ir` fails with `Builder error: ... invalid use of function-local name` on `@.const_init = private unnamed_addr constant [3 x i32] [i32 %load_gseed, i32 2, i32 3]`. The left side of the assignment in the unit constructor is a bare name, and the bare-name branch of `find_lhs_type_name` searches only the members of the enclosing POU with `find_member`, not the globals, so the literal is not lowered and codegen tries to build a constant from a variable load. Expected: `garr[0] := gseed;` and the remaining element assignments in the unit constructor.
 ```
 // Reproducible example:
 // plc --check: no diagnostic
 // plc --ir: error: Builder error: invalid use of function-local name
 VAR_GLOBAL
-    gseed : DINT := 1;
-    garr : ARRAY[0..2] OF DINT := [gseed, 2, 3];
+    gseed: DINT := 1;
+    garr: ARRAY[0..2] OF DINT := [gseed, 2, 3];
 END_VAR
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     printf('%d %d %d$N', garr[0], garr[1], garr[2]);
 END_FUNCTION
 ```
 
 P1 compiler/plc_lowering/src/array_lowering.rs:232:5: Constant repeat count from a POU-local constant is not rewritten in the constructor
-`PROGRAM prog VAR CONSTANT N : DINT := 3; END_VAR VAR arr : ARRAY[0..2] OF DINT := [(N)(1)]; END_VAR END_PROGRAM` passes `--check`, but `--ir` fails with `cannot generate call statement for ParenExpression { expression: ReferenceExpr { kind: Member(Identifier { name: "N" }) ... }`. The body pass of `rewrite_const_multiplied_initializers` resolves the multiplier as a member of `implementation.type_name`, which for the generated constructor is `prog__ctor`, not `prog`, so the `(N)(1)` call node stays. A global constant, or a local constant inside a `FUNCTION`, works and prints `1 1 1`. Expected: the node is rewritten to the repetition `3(1)`.
+`PROGRAM prog VAR CONSTANT N: DINT := 3; END_VAR VAR arr: ARRAY[0..2] OF DINT := [(N)(1)]; END_VAR END_PROGRAM` passes `--check`, but `--ir` fails with `cannot generate call statement for ParenExpression { expression: ReferenceExpr { kind: Member(Identifier { name: "N" }) ... }`. The body pass of `rewrite_const_multiplied_initializers` resolves the multiplier as a member of `implementation.type_name`, which for the generated constructor is `prog__ctor`, not `prog`, so the `(N)(1)` call node stays. A global constant, or a local constant inside a `FUNCTION`, works and prints `1 1 1`. Expected: the node is rewritten to the repetition `3(1)`.
 ```
 // Reproducible example:
 // plc --check: no diagnostic
 // plc --ir: error: cannot generate call statement for ParenExpression (initialization code for type 'prog')
 PROGRAM prog
 VAR CONSTANT
-    N : DINT := 3;
+    N: DINT := 3;
 END_VAR
 VAR
-    arr : ARRAY[0..2] OF DINT := [(N)(1)];
+    arr: ARRAY[0..2] OF DINT := [(N)(1)];
 END_VAR
 END_PROGRAM
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     printf('%d %d %d$N', prog.arr[0], prog.arr[1], prog.arr[2]);
 END_FUNCTION
 ```
@@ -722,12 +764,12 @@ P1 compiler/plc_lowering/src/array_lowering.rs:170:9: Array literal assignment i
 // plc --check: no diagnostic
 // plc --ir: error: Builder error: invalid use of function-local name
 VAR_GLOBAL
-    gseed : DINT := 4;
+    gseed: DINT := 4;
 END_VAR
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    loc : ARRAY[0..2] OF DINT;
+    loc: ARRAY[0..2] OF DINT;
 END_VAR
     IF TRUE THEN
         loc := [gseed, 5, 6];
@@ -737,12 +779,12 @@ END_FUNCTION
 ```
 
 P1 src/resolver/const_evaluator.rs:488:21: Member initializer that names an inherited constant fails with E033
-`FUNCTION_BLOCK X VAR CONSTANT c : DINT := 10; END_VAR END_FUNCTION_BLOCK FUNCTION_BLOCK Y EXTENDS X VAR o : DINT := c; END_VAR END_FUNCTION_BLOCK` aborts with `error[E033]: Unresolved constant `o` variable` at the initializer, while the same initializer inside one block compiles. The inheritance lowerer rewrites the initializer to `__X.c` in `post_annotate` (visible in `--ast-lowered`), the array lowerer and the init participant then re-index the project, which runs `evaluate_constants` again, and the constant evaluator takes the flat name of the base, `__X`, as the scope for `find_variable`; `__X` is a member of `Y`, not a POU, so the lookup finds nothing, the initializer stays unresolved and validation reports E033. Expected: the constant resolves as before the rewrite, for example by resolving the base `__X` to its type `X` before the member lookup.
+`FUNCTION_BLOCK X VAR CONSTANT c: DINT := 10; END_VAR END_FUNCTION_BLOCK FUNCTION_BLOCK Y EXTENDS X VAR o: DINT := c; END_VAR END_FUNCTION_BLOCK` aborts with `error[E033]: Unresolved constant `o` variable` at the initializer, while the same initializer inside one block compiles. The inheritance lowerer rewrites the initializer to `__X.c` in `post_annotate` (visible in `--ast-lowered`), the array lowerer and the init participant then re-index the project, which runs `evaluate_constants` again, and the constant evaluator takes the flat name of the base, `__X`, as the scope for `find_variable`; `__X` is a member of `Y`, not a POU, so the lookup finds nothing, the initializer stays unresolved and validation reports E033. Expected: the constant resolves as before the rewrite, for example by resolving the base `__X` to its type `X` before the member lookup.
 ```
 // Reproducible example:
 FUNCTION_BLOCK X
     VAR CONSTANT
-        c : DINT := 10;
+        c: DINT := 10;
     END_VAR
 END_FUNCTION_BLOCK
 
@@ -752,20 +794,20 @@ FUNCTION_BLOCK Y EXTENDS X
     END_VAR
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        y : Y;
+        y: Y;
     END_VAR
     printf('%d$N', y.o);    // expected: 10
 END_FUNCTION
 ```
 
 P1 src/lowering/polymorphism/dispatch/pou.rs:143:13: Method calls inside ACTION bodies bypass the method table
-`FUNCTION_BLOCK Base METHOD name : DINT name := 1; END_METHOD END_FUNCTION_BLOCK ACTIONS ACTION show printf('%d$N', name()); END_ACTION END_ACTIONS`, with `FUNCTION_BLOCK Child EXTENDS Base` overriding `name` to return `2`, prints `1` for `child.show()`, while a method of `Base` with the same call `name()` prints `2`. In `visit_implementation` the dispatch lowerer sets `in_method_or_function_block` only for `PouType::FunctionBlock` and `PouType::Method`; `PouType::Action` falls into the `_ => None` arm, so the candidate check for calls inside bodies never fires, the call stays direct and is bound to `Base.name` at compile time. Expected: the call in the action goes through the method table like the call in the method, since an action body runs on the same instance as the function block body.
+`FUNCTION_BLOCK Base METHOD name: DINT name := 1; END_METHOD END_FUNCTION_BLOCK ACTIONS ACTION show printf('%d$N', name()); END_ACTION END_ACTIONS`, with `FUNCTION_BLOCK Child EXTENDS Base` overriding `name` to return `2`, prints `1` for `child.show()`, while a method of `Base` with the same call `name()` prints `2`. In `visit_implementation` the dispatch lowerer sets `in_method_or_function_block` only for `PouType::FunctionBlock` and `PouType::Method`; `PouType::Action` falls into the `_ => None` arm, so the candidate check for calls inside bodies never fires, the call stays direct and is bound to `Base.name` at compile time. Expected: the call in the action goes through the method table like the call in the method, since an action body runs on the same instance as the function block body.
 ```
 // Reproducible example:
 FUNCTION_BLOCK Base
-    METHOD name : DINT
+    METHOD name: DINT
         name := 1;
     END_METHOD
     METHOD viaMethod
@@ -779,14 +821,14 @@ ACTIONS
 END_ACTIONS
 
 FUNCTION_BLOCK Child EXTENDS Base
-    METHOD name : DINT
+    METHOD name: DINT
         name := 2;
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        child : Child;
+        child: Child;
     END_VAR
     child.show();         // prints 1, expected 2
     child.viaMethod();    // prints 2
@@ -794,41 +836,41 @@ END_FUNCTION
 ```
 
 P1 src/lowering/polymorphism/dispatch/pou.rs:287:13: Method call on a `VAR_IN_OUT` parameter of a function block type is bound statically
-`FUNCTION viaInOut : DINT VAR_IN_OUT r : Rect; END_VAR viaInOut := r.area(); END_FUNCTION` called with a `Square EXTENDS Rect` whose `area` is overridden returns the result of `Rect.area` (`6` instead of `9` for `w := 3`), while the same call through a `VAR_INPUT r : REFERENCE TO Rect` parameter returns `9`. The candidate check accepts a plain member base (`Member(member), None`) only when its annotation `is_reference_to`, that is when the auto-deref kind is `AutoDerefType::Reference`; `VAR_IN_OUT` parameters are auto-deref pointers of the `Default` kind and are not dispatched. Expected: a call through any by-reference parameter of a class or function block type goes through the method table, because the compiler accepts a derived instance for the parameter.
+`FUNCTION viaInOut: DINT VAR_IN_OUT r: Rect; END_VAR viaInOut := r.area(); END_FUNCTION` called with a `Square EXTENDS Rect` whose `area` is overridden returns the result of `Rect.area` (`6` instead of `9` for `w := 3`), while the same call through a `VAR_INPUT r: REFERENCE TO Rect` parameter returns `9`. The candidate check accepts a plain member base (`Member(member), None`) only when its annotation `is_reference_to`, that is when the auto-deref kind is `AutoDerefType::Reference`; `VAR_IN_OUT` parameters are auto-deref pointers of the `Default` kind and are not dispatched. Expected: a call through any by-reference parameter of a class or function block type goes through the method table, because the compiler accepts a derived instance for the parameter.
 ```
 // Reproducible example:
 FUNCTION_BLOCK Rect
     VAR
-        w : DINT := 3;
+        w: DINT := 3;
     END_VAR
-    METHOD area : DINT
+    METHOD area: DINT
         area := w * 2;
     END_METHOD
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK Square EXTENDS Rect
-    METHOD area : DINT
+    METHOD area: DINT
         area := w * w;
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION viaInOut : DINT
+FUNCTION viaInOut: DINT
     VAR_IN_OUT
-        r : Rect;
+        r: Rect;
     END_VAR
     viaInOut := r.area();
 END_FUNCTION
 
-FUNCTION viaRef : DINT
+FUNCTION viaRef: DINT
     VAR_INPUT
-        r : REFERENCE TO Rect;
+        r: REFERENCE TO Rect;
     END_VAR
     viaRef := r.area();
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        s : Square;
+        s: Square;
     END_VAR
     printf('%d$N', viaInOut(s));    // prints 6, expected 9
     printf('%d$N', viaRef(s));      // prints 9
@@ -843,24 +885,24 @@ With `INTERFACE Shape` in `shape.st`, `FUNCTION_BLOCK Rect IMPLEMENTS Shape` in 
 // plc main.st -i rect.st -i shape.st librect.o    (ld.lld: duplicate symbol: __itable_Shape__ctor, ____itable_Shape_area__ctor)
 // --- file: shape.st ---
 INTERFACE Shape
-    METHOD area : DINT
+    METHOD area: DINT
     END_METHOD
 END_INTERFACE
 
 // --- file: rect.st ---
 FUNCTION_BLOCK Rect IMPLEMENTS Shape
     VAR
-        w : DINT := 3;
+        w: DINT := 3;
     END_VAR
-    METHOD area : DINT
+    METHOD area: DINT
         area := w * 2;
     END_METHOD
 END_FUNCTION_BLOCK
 
 // --- file: main.st ---
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        r : Rect;
+        r: Rect;
     END_VAR
     printf('%d$N', r.area());    // expected: 6
 END_FUNCTION
@@ -874,7 +916,7 @@ A `.cfc` function block whose text declaration reads `FUNCTION_BLOCK CfcChild EX
 // --- file: main.st ---
 FUNCTION_BLOCK Base
     VAR_OUTPUT
-        baseOut : DINT;
+        baseOut: DINT;
     END_VAR
 END_FUNCTION_BLOCK
 
@@ -882,10 +924,10 @@ FUNCTION_BLOCK StChild EXTENDS Base
     baseOut := 42;
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        c : CfcChild;
-        s : StChild;
+        c: CfcChild;
+        s: StChild;
     END_VAR
     c();
     s();
@@ -930,24 +972,24 @@ END_FUNCTION
 ```
 
 P1 src/codegen/generators/pou_generator.rs:771:33: A function reads past the end of a shorter string argument
-For `FUNCTION greet : STRING VAR_INPUT who : STRING; END_VAR` called as `greet('bob')`, the caller passes the literal's own constant, `@utf08_literal_1 = [4 x i8] c"bob\00"`, and the callee copies `(size - 1) * char_width` bytes of the parameter type into its local: `call void @llvm.memcpy.p0.p0.i64(ptr %who, ptr %1, i64 80, ...)`. The copy length in the by-value aggregate prologue comes from the declared parameter type, never from the argument, so 76 bytes past the end of the constant are read. The same happens for a `STRING[5]` variable passed to a `STRING` parameter (`call void @greet(ptr %__greet1, ptr %s)` followed by the same 80 byte copy). The result is correct as long as the bytes after the terminator are ignored and the read does not cross into an unmapped page. Reproduce with `plc --ir` on the snippet. Expected: copy the smaller of the argument's and the parameter's size, or pass the literal in a buffer of the parameter's size.
+For `FUNCTION greet: STRING VAR_INPUT who: STRING; END_VAR` called as `greet('bob')`, the caller passes the literal's own constant, `@utf08_literal_1 = [4 x i8] c"bob\00"`, and the callee copies `(size - 1) * char_width` bytes of the parameter type into its local: `call void @llvm.memcpy.p0.p0.i64(ptr %who, ptr %1, i64 80, ...)`. The copy length in the by-value aggregate prologue comes from the declared parameter type, never from the argument, so 76 bytes past the end of the constant are read. The same happens for a `STRING[5]` variable passed to a `STRING` parameter (`call void @greet(ptr %__greet1, ptr %s)` followed by the same 80 byte copy). The result is correct as long as the bytes after the terminator are ignored and the read does not cross into an unmapped page. Reproduce with `plc --ir` on the snippet. Expected: copy the smaller of the argument's and the parameter's size, or pass the literal in a buffer of the parameter's size.
 ```
 // Reproducible example:
 // plc main.st --ir -o -
 // observed in greet: call void @llvm.memcpy.p0.p0.i64(ptr align 1 %who, ptr align 1 %1, i64 80, i1 false)
 // callers: call void @greet(ptr %__greet0, ptr @utf08_literal_1)   ; [4 x i8] c"bob\00"
 //          call void @greet(ptr %__greet1, ptr %s)                 ; s is STRING[5], 6 bytes
-FUNCTION greet : STRING
+FUNCTION greet: STRING
     VAR_INPUT
-        who : STRING;
+        who: STRING;
     END_VAR
     greet := who;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        s : STRING[5] := 'hi';
-        r : STRING;
+        s: STRING[5] := 'hi';
+        r: STRING;
     END_VAR
     r := greet('bob');
     r := greet(s);
@@ -956,16 +998,16 @@ END_FUNCTION
 ```
 
 P1 compiler/plc_lowering/src/array_lowering.rs:282:9: Repeated array initializer with a bare constant count aborts codegen
-`VAR_GLOBAL CONSTANT MAX : DINT := 3; END_VAR` and `rep : ARRAY[1..MAX] OF DINT := [MAX(7)];` pass `--check` but abort codegen: inside a POU with `error: Unknown type: __MAX__T.` (note "error occurred while generating initialization code for type 'main'"), and as a global with `error: Cannot generate Literal for CallStatement { operator: ReferenceExpr { kind: Member(Identifier { name: "MAX" }) ... }`. The parser produces a call node `MAX(7)` for the repetition; `try_rewrite_call_as_multiplied` in the array lowerer rewrites such calls into `MultipliedStatement`s only when the operator is a `ParenExpression`, `[(MAX)(7)]`, and leaves the bare spelling as a call to a nonexistent POU `MAX` that codegen cannot handle. `[3(7)]` and `[(MAX)(7)]` compile and run. Expected: both spellings compile, or the bare spelling is rejected by the validator with a message that names the accepted form.
+`VAR_GLOBAL CONSTANT MAX: DINT := 3; END_VAR` and `rep: ARRAY[1..MAX] OF DINT := [MAX(7)];` pass `--check` but abort codegen: inside a POU with `error: Unknown type: __MAX__T.` (note "error occurred while generating initialization code for type 'main'"), and as a global with `error: Cannot generate Literal for CallStatement { operator: ReferenceExpr { kind: Member(Identifier { name: "MAX" }) ... }`. The parser produces a call node `MAX(7)` for the repetition; `try_rewrite_call_as_multiplied` in the array lowerer rewrites such calls into `MultipliedStatement`s only when the operator is a `ParenExpression`, `[(MAX)(7)]`, and leaves the bare spelling as a call to a nonexistent POU `MAX` that codegen cannot handle. `[3(7)]` and `[(MAX)(7)]` compile and run. Expected: both spellings compile, or the bare spelling is rejected by the validator with a message that names the accepted form.
 ```
 // Reproducible example:
 VAR_GLOBAL CONSTANT
-    MAX : DINT := 3;
+    MAX: DINT := 3;
 END_VAR
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        rep : ARRAY[1..MAX] OF DINT := [MAX(7)];    // error: Unknown type: __MAX__T.
+        rep: ARRAY[1..MAX] OF DINT := [MAX(7)];    // error: Unknown type: __MAX__T.
         // rep : ARRAY[1..MAX] OF DINT := [(MAX)(7)];    compiles, prints 7
         // rep : ARRAY[1..MAX] OF DINT := [3(7)];        compiles, prints 7
     END_VAR
@@ -974,22 +1016,22 @@ END_FUNCTION
 ```
 
 P1 src/resolver.rs:2672:17: Compiler panics when a VLA variable is referenced outside its declaring POU
-The resolver hints every reference to a VLA with the array type behind the struct and looks the variable up by name among the members of the current POU (`get_pou_members(pou)` filtered by name); when the name is not a member, it hits `unreachable!()` and the compiler aborts with `thread '<unnamed>' panicked at src/resolver.rs:2672:17: internal error: entered unreachable code`, under `--check` as well as when building. Three inputs reach it: a global `VAR_GLOBAL g : ARRAY[*] OF DINT; END_VAR` (the unit constructor calls `__global_g__ctor(g)`), a function block or program with a VLA in a block other than `VAR_IN_OUT` (the constructor generated by the init participant references `self.inp`), and, on valid input, the caller reading the parameter back with `total := inst.io[0]` after `inst(io := arr)`. In the first two cases the validator would report E044 (Invalid POU for VLA), but the panic happens during annotation and the diagnostic is never shown. Expected: no panic; resolve the VLA through the annotation's qualified name, or fall back to no hint, and let validation report the misplaced declarations.
+The resolver hints every reference to a VLA with the array type behind the struct and looks the variable up by name among the members of the current POU (`get_pou_members(pou)` filtered by name); when the name is not a member, it hits `unreachable!()` and the compiler aborts with `thread '<unnamed>' panicked at src/resolver.rs:2672:17: internal error: entered unreachable code`, under `--check` as well as when building. Three inputs reach it: a global `VAR_GLOBAL g: ARRAY[*] OF DINT; END_VAR` (the unit constructor calls `__global_g__ctor(g)`), a function block or program with a VLA in a block other than `VAR_IN_OUT` (the constructor generated by the init participant references `self.inp`), and, on valid input, the caller reading the parameter back with `total := inst.io[0]` after `inst(io := arr)`. In the first two cases the validator would report E044 (Invalid POU for VLA), but the panic happens during annotation and the diagnostic is never shown. Expected: no panic; resolve the VLA through the annotation's qualified name, or fall back to no hint, and let validation report the misplaced declarations.
 ```
 // Reproducible example:
 // Case 3 (valid input): plc --check main.st -> panicked at src/resolver.rs:2672:17
 FUNCTION_BLOCK FB
     VAR_IN_OUT
-        io : ARRAY[*] OF DINT;
+        io: ARRAY[*] OF DINT;
     END_VAR
     io[0] := 5;
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        inst : FB;
-        arr : ARRAY[0..2] OF DINT;
-        total : DINT;
+        inst: FB;
+        arr: ARRAY[0..2] OF DINT;
+        total: DINT;
     END_VAR
     inst(io := arr);
     total := inst.io[0];
@@ -1010,51 +1052,51 @@ END_FUNCTION
 ```
 
 P1 src/codegen/generators/expression_generator.rs:2705:13: Struct literal for a function block with an initialized VAR_TEMP aborts codegen
-`FUNCTION_BLOCK Acc VAR total : DINT := 100; END_VAR VAR_TEMP t : DINT := 4; END_VAR END_FUNCTION_BLOCK` used in `FUNCTION_BLOCK Outer VAR a : ARRAY[0..1] OF Acc := [(total := 1), (total := 2)]; END_VAR END_FUNCTION_BLOCK` passes `--check`, but building aborts with `error: Cannot generate literal initializer for 'Acc.t': Value cannot be derived` and the note "error occurred while generating initialization code for type 'Outer'". The same block without the array literal, and the same literal without the `VAR_TEMP` initializer, compile and run correctly. `generate_literal_struct` starts from every member of the `DataTypeInformation::Struct` of `Acc`, which includes the temporary `t`, and for each member the literal does not mention it looks up an LLVM initial value; a temporary has no slot in the instance struct (the LLVM type generation filters `VariableType::Temp`) and no associated value, so the lookup fails and the error is raised. Expected: members that are not part of the instance struct (temporaries) are skipped, as the LLVM type generation already skips them.
+`FUNCTION_BLOCK Acc VAR total: DINT := 100; END_VAR VAR_TEMP t: DINT := 4; END_VAR END_FUNCTION_BLOCK` used in `FUNCTION_BLOCK Outer VAR a: ARRAY[0..1] OF Acc := [(total := 1), (total := 2)]; END_VAR END_FUNCTION_BLOCK` passes `--check`, but building aborts with `error: Cannot generate literal initializer for 'Acc.t': Value cannot be derived` and the note "error occurred while generating initialization code for type 'Outer'". The same block without the array literal, and the same literal without the `VAR_TEMP` initializer, compile and run correctly. `generate_literal_struct` starts from every member of the `DataTypeInformation::Struct` of `Acc`, which includes the temporary `t`, and for each member the literal does not mention it looks up an LLVM initial value; a temporary has no slot in the instance struct (the LLVM type generation filters `VariableType::Temp`) and no associated value, so the lookup fails and the error is raised. Expected: members that are not part of the instance struct (temporaries) are skipped, as the LLVM type generation already skips them.
 ```
 // Reproducible example:
 FUNCTION_BLOCK Acc
     VAR
-        total : DINT := 100;
+        total: DINT := 100;
     END_VAR
     VAR_TEMP
-        t : DINT := 4;    // remove the initializer and the build succeeds
+        t: DINT := 4;    // remove the initializer and the build succeeds
     END_VAR
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK Outer
     VAR
-        a : ARRAY[0..1] OF Acc := [(total := 1), (total := 2)];    // error: Cannot generate literal initializer for 'Acc.t'
+        a: ARRAY[0..1] OF Acc := [(total := 1), (total := 2)];    // error: Cannot generate literal initializer for 'Acc.t'
     END_VAR
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        o : Outer;
+        o: Outer;
     END_VAR
     printf('%d$N', o.a[1].total);    // expected: 2
 END_FUNCTION
 ```
 
 P1 src/codegen/generators/expression_generator.rs:2747:25: Struct literal that names an inherited member of a function block aborts codegen
-`c : Child := (x := 7)`, where `x` is declared in `Base` and `Child EXTENDS Base`, passes `--check` (with only E049 warnings) and aborts codegen with `error: Expected 2 fields for Struct Child, but found 3.` The inheritance lowerer turns the member into `__Base.x` for statements, but the assignments inside an initializer literal are not rewritten (the lowered AST still holds `x` with no base), so the literal generator counts `x` as a third field next to `__Base` and the child's own member. Expected: the literal initializes the member inside `__Base`, or a diagnostic says that inherited members cannot be set in a literal.
+`c: Child := (x := 7)`, where `x` is declared in `Base` and `Child EXTENDS Base`, passes `--check` (with only E049 warnings) and aborts codegen with `error: Expected 2 fields for Struct Child, but found 3.` The inheritance lowerer turns the member into `__Base.x` for statements, but the assignments inside an initializer literal are not rewritten (the lowered AST still holds `x` with no base), so the literal generator counts `x` as a third field next to `__Base` and the child's own member. Expected: the literal initializes the member inside `__Base`, or a diagnostic says that inherited members cannot be set in a literal.
 ```
 // Reproducible example:
 FUNCTION_BLOCK Base
 VAR
-    x : DINT;
+    x: DINT;
 END_VAR
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK Child EXTENDS Base
 VAR
-    y : DINT;
+    y: DINT;
 END_VAR
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    c : Child := (x := 7);
+    c: Child := (x := 7);
 END_VAR
     // --check passes; build aborts with
     // error: Expected 2 fields for Struct Child, but found 3.
@@ -1063,34 +1105,34 @@ END_FUNCTION
 ```
 
 P1 src/codegen/generators/expression_generator.rs:2659:21: Default value on an interface method parameter aborts codegen when a call omits that parameter
-`INTERFACE Calc METHOD compute : DINT VAR_INPUT a : DINT; b : DINT := 10; END_VAR END_METHOD END_INTERFACE`, implemented by `Adder`, called through `c : Calc` as `c.compute(a := 3)`, passes `--check` but the build aborts with `error: no type hint available for 10` at the location of the literal. The same call with `b` passed explicitly, and a program that declares the interface without calling it, build without error. The dispatch lowerer builds the argument list of the interface call from the interface method's parameters, and for the omitted `b` it takes the initializer from the interface declaration; that initializer belongs to a method without a body, so it was never annotated, and the type hint lookup fails. Expected: initializers of interface method parameters are used with a type, or rejected with a diagnostic.
+`INTERFACE Calc METHOD compute: DINT VAR_INPUT a: DINT; b: DINT := 10; END_VAR END_METHOD END_INTERFACE`, implemented by `Adder`, called through `c: Calc` as `c.compute(a := 3)`, passes `--check` but the build aborts with `error: no type hint available for 10` at the location of the literal. The same call with `b` passed explicitly, and a program that declares the interface without calling it, build without error. The dispatch lowerer builds the argument list of the interface call from the interface method's parameters, and for the omitted `b` it takes the initializer from the interface declaration; that initializer belongs to a method without a body, so it was never annotated, and the type hint lookup fails. Expected: initializers of interface method parameters are used with a type, or rejected with a diagnostic.
 ```
 // Reproducible example:
 // plc --check: no diagnostic
 // build: error: no type hint available for 10 at main.st:5:16
 INTERFACE Calc
-    METHOD compute : DINT
+    METHOD compute: DINT
     VAR_INPUT
-        a : DINT;
-        b : DINT := 10;
+        a: DINT;
+        b: DINT := 10;
     END_VAR
     END_METHOD
 END_INTERFACE
 
 FUNCTION_BLOCK Adder IMPLEMENTS Calc
-    METHOD compute : DINT
+    METHOD compute: DINT
     VAR_INPUT
-        a : DINT;
-        b : DINT;
+        a: DINT;
+        b: DINT;
     END_VAR
         compute := a + b;
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    ad : Adder;
-    c : Calc;
+    ad: Adder;
+    c: Calc;
 END_VAR
     c := ad;
     printf('%d$N', c.compute(a := 3));
@@ -1099,13 +1141,13 @@ END_FUNCTION
 ```
 
 P1 src/codegen/generators/expression_generator.rs:3090:89: MOVE on a string panics the compiler
-`s3 := MOVE(s);` with `s : STRING` and `s3 : STRING[3]` passes `--check` and panics codegen with `Found ArrayValue(...) but expected PointerValue variant` at expression_generator.rs:3090:89. The `MOVE` builtin (src/builtins.rs:275) returns `generate_expression(actual_param)` as an RValue, that is the loaded `[81 x i8]` value; for an aggregate, `generate_store` expects the address of the source for the bounded memcpy and calls `into_pointer_value()` on it. Expected: `MOVE` returns the address for aggregates, as a plain reference does, or a diagnostic restricts `MOVE` to scalars.
+`s3 := MOVE(s);` with `s: STRING` and `s3: STRING[3]` passes `--check` and panics codegen with `Found ArrayValue(...) but expected PointerValue variant` at expression_generator.rs:3090:89. The `MOVE` builtin (src/builtins.rs:275) returns `generate_expression(actual_param)` as an RValue, that is the loaded `[81 x i8]` value; for an aggregate, `generate_store` expects the address of the source for the bounded memcpy and calls `into_pointer_value()` on it. Expected: `MOVE` returns the address for aggregates, as a plain reference does, or a diagnostic restricts `MOVE` to scalars.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    s : STRING := 'hello';
-    s3 : STRING[3];
+    s: STRING := 'hello';
+    s3: STRING[3];
 END_VAR
     // --check passes; build panics:
     // thread panicked at src/codegen/generators/expression_generator.rs:3090:89:
@@ -1119,9 +1161,9 @@ P1 src/codegen/generators/expression_generator.rs:2821:17: Nested array literal 
 A variable declared as `ARRAY[0..1, 0..1] OF INT := [[1, 2], [3, 4]]` passes `--check` without any diagnostic, but code generation aborts with `error: Expected array type but found: INT`. The same nested literal works for an array of arrays (`ARRAY[0..1] OF ARRAY[0..1] OF INT`) and the flat form `[1, 2, 3, 4]` works for the multi-dimensional array, so the user expects either generated code or a proper diagnostic. The cause is a mismatch between validation and codegen: `statement_to_array_length` in `src/validation/array.rs:175` counts the nested literals recursively (4 elements, no E043/E127), but `generate_literal_array_value` in `src/codegen/generators/expression_generator.rs:2821` flattens the initializer with `flatten_expression_list`, which only flattens `ExpressionList`, `MultipliedStatement` and `ParenExpression` nodes and leaves the inner `[1, 2]` literals as elements. Each inner literal is then generated with the element type INT as type hint, and the array-type check at line 2801 fails. Reproduce with `plc main.st -i "/workspace/tests/lit/util/*.pli" -liec61131std -L/workspace/output/lib -i "/workspace/output/include/*.st" --linker cc -o main.out` (any optimization level); `plc main.st --check` reports nothing.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    m : ARRAY[0..1, 0..1] OF INT := [[1, 2], [3, 4]];
+    m: ARRAY[0..1, 0..1] OF INT := [[1, 2], [3, 4]];
 END_VAR
     // observed: error: Expected array type but found: INT at main.st:3:37 (--check passes)
     // expected: prints 1 2 3 4, or a validation diagnostic
@@ -1136,21 +1178,21 @@ A method call `acc.add(1)` on a function block instance, where the method `add` 
 // Reproducible example:
 FUNCTION_BLOCK Acc
 VAR
-    total : DINT;
+    total: DINT;
 END_VAR
-METHOD add : DINT
+METHOD add: DINT
 VAR_INPUT
-    p : DINT;
+    p: DINT;
 END_VAR
     total := total + p;
     add := total;
 END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    acc : Acc;
-    r : DINT;
+    acc: Acc;
+    r: DINT;
 END_VAR
     r := acc.add(1);
     r := acc.add(2);
@@ -1162,15 +1204,15 @@ END_FUNCTION
 ```
 
 P1 src/codegen/generators/expression_generator.rs:2201:25: Pointer minus pointer passes --check but aborts codegen
-`diff := p - q;` with `p, q : POINTER TO INT` passes `plc main.st --check` with exit code 0 and no diagnostic, but a full build stops with `error: '-' operation must contain one int type` and no object file is produced. `generate_binary_expression` (line 409) routes every pointer/pointer binary expression to `create_llvm_binary_expression_for_pointer`, which only handles `Plus` and `Minus` when exactly one operand is an integer and otherwise returns the codegen error at line 2200; the validator has no rule for a pointer/pointer `+` or `-`, so the program reaches codegen. Expected: either a validation diagnostic reported by `--check` or a pointer difference in elements. Reproduce with the default command line at any optimization level.
+`diff := p - q;` with `p, q: POINTER TO INT` passes `plc main.st --check` with exit code 0 and no diagnostic, but a full build stops with `error: '-' operation must contain one int type` and no object file is produced. `generate_binary_expression` (line 409) routes every pointer/pointer binary expression to `create_llvm_binary_expression_for_pointer`, which only handles `Plus` and `Minus` when exactly one operand is an integer and otherwise returns the codegen error at line 2200; the validator has no rule for a pointer/pointer `+` or `-`, so the program reaches codegen. Expected: either a validation diagnostic reported by `--check` or a pointer difference in elements. Reproduce with the default command line at any optimization level.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    arr : ARRAY[0..9] OF INT;
-    p : POINTER TO INT;
-    q : POINTER TO INT;
-    diff : LINT;
+    arr: ARRAY[0..9] OF INT;
+    p: POINTER TO INT;
+    q: POINTER TO INT;
+    diff: LINT;
 END_VAR
     p := ADR(arr[3]);
     q := ADR(arr[0]);
@@ -1181,13 +1223,13 @@ END_FUNCTION
 ```
 
 P1 src/resolver.rs:2896:21: Comparing a pointer with NULL passes --check but aborts codegen
-`IF p = NULL THEN ... END_IF`, `b := p = NULL;`, `b := NULL = p;` and `IF p <> NULL THEN` with `p : POINTER TO INT` pass `plc main.st --check` with exit code 0, but a full build stops with `error: no type hint available for NULL` and produces no output. The resolver ignores the `NULL` literal (`_ => {}` at line 2896) and the binary-expression visitor does not hint its operands with the other side's pointer type, so the literal carries neither a type nor a type hint; `generate_binary_expression` (src/codegen/generators/expression_generator.rs:385 and 387) calls `get_type_hint_for` on both operands and fails. Only `p := NULL` works, because the assignment hints the right side with the left type. A null check before a dereference is one of the most common pointer patterns in PLC code. Expected: the compare is generated as an `icmp eq` against a null pointer, or `--check` rejects the expression. Reproduce with the default command line at any optimization level.
+`IF p = NULL THEN ... END_IF`, `b := p = NULL;`, `b := NULL = p;` and `IF p <> NULL THEN` with `p: POINTER TO INT` pass `plc main.st --check` with exit code 0, but a full build stops with `error: no type hint available for NULL` and produces no output. The resolver ignores the `NULL` literal (`_ => {}` at line 2896) and the binary-expression visitor does not hint its operands with the other side's pointer type, so the literal carries neither a type nor a type hint; `generate_binary_expression` (src/codegen/generators/expression_generator.rs:385 and 387) calls `get_type_hint_for` on both operands and fails. Only `p := NULL` works, because the assignment hints the right side with the left type. A null check before a dereference is one of the most common pointer patterns in PLC code. Expected: the compare is generated as an `icmp eq` against a null pointer, or `--check` rejects the expression. Reproduce with the default command line at any optimization level.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    p : POINTER TO INT;
-    b : BOOL;
+    p: POINTER TO INT;
+    b: BOOL;
 END_VAR
     p := NULL;
     IF p = NULL THEN
@@ -1199,14 +1241,14 @@ END_FUNCTION
 ```
 
 P1 src/codegen/generators/variable_generator.rs:154:29: Global initializer expression that overflows its type aborts codegen with "Builder position is not set"
-A global variable such as `X : SINT := 100 + 100;` (with or without CONSTANT) produces the expected E039 overflow warning and then codegen aborts with `error: Builder error: Builder position is not set.` instead of producing a binary. The expected behavior is either a hard error at validation or a wrapped constant like the one emitted for the literal `X : SINT := 200` (which compiles to `i8 -56`). The cause is that `const_evaluator::evaluate_with_target_hint` returns `UnresolvableKind::Overflow` for the folded result, so the constant expression stays as the unevaluated `100 + 100` binary expression; `generate_global_variable` then calls `generate_expression` through a context-free `ExpressionCodeGenerator` on that binary expression, which needs an instruction builder positioned in a basic block, and inkwell fails because there is none. Reproduce with `plc main.st --ir -o -` or the full link command at any optimization level.
+A global variable such as `X: SINT := 100 + 100;` (with or without CONSTANT) produces the expected E039 overflow warning and then codegen aborts with `error: Builder error: Builder position is not set.` instead of producing a binary. The expected behavior is either a hard error at validation or a wrapped constant like the one emitted for the literal `X: SINT := 200` (which compiles to `i8 -56`). The cause is that `const_evaluator::evaluate_with_target_hint` returns `UnresolvableKind::Overflow` for the folded result, so the constant expression stays as the unevaluated `100 + 100` binary expression; `generate_global_variable` then calls `generate_expression` through a context-free `ExpressionCodeGenerator` on that binary expression, which needs an instruction builder positioned in a basic block, and inkwell fails because there is none. Reproduce with `plc main.st --ir -o -` or the full link command at any optimization level.
 ```
 // Reproducible example:
 VAR_GLOBAL
-    X : SINT := 100 + 100;
+    X: SINT := 100 + 100;
 END_VAR
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     printf('%d$N', X);
     main := 0;
 END_FUNCTION
@@ -1216,13 +1258,13 @@ END_FUNCTION
 ```
 
 P1 src/resolver/const_evaluator.rs:837:18: TIME literal multiplied or divided by a number in an initializer aborts with E033
-`t : TIME := T#1s * 2;` (or `T#1s / 2`, or a `VAR_GLOBAL CONSTANT` of the same form) aborts compilation with `error[E033]: Unresolved constant 't' variable: Cannot evaluate LiteralTime { nanos: 1000000000, negative: false } * LiteralInteger { value: 2 }` at `--check` and at build time, while `t : TIME := T#1s + T#500ms` compiles. The `arithmetic_expression!` macro in the constant evaluator only has arms for Integer and Real literal pairs, so a `Time` (or `Date`, `TimeOfDay`, `DateAndTime`) literal combined with an integer or real literal falls into the `_ => cannot_eval_error!` arm at line 837 and the unresolved initializer becomes a hard error. Expected: the initializer evaluates to `T#2s` (2000 ms), as `TIME * ANY_NUM` is a valid IEC 61131-3 operation and compiles in statement position. Reproduce with `plc main.st --check`.
+`t: TIME := T#1s * 2;` (or `T#1s / 2`, or a `VAR_GLOBAL CONSTANT` of the same form) aborts compilation with `error[E033]: Unresolved constant 't' variable: Cannot evaluate LiteralTime { nanos: 1000000000, negative: false } * LiteralInteger { value: 2 }` at `--check` and at build time, while `t: TIME := T#1s + T#500ms` compiles. The `arithmetic_expression!` macro in the constant evaluator only has arms for Integer and Real literal pairs, so a `Time` (or `Date`, `TimeOfDay`, `DateAndTime`) literal combined with an integer or real literal falls into the `_ => cannot_eval_error!` arm at line 837 and the unresolved initializer becomes a hard error. Expected: the initializer evaluates to `T#2s` (2000 ms), as `TIME * ANY_NUM` is a valid IEC 61131-3 operation and compiles in statement position. Reproduce with `plc main.st --check`.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
     t : TIME := T#1s * 2;   // error[E033]: Unresolved constant `t` variable: Cannot evaluate LiteralTime { nanos: 1000000000, negative: false } * LiteralInteger { value: 2 }
-    u : TIME := T#1s + T#500ms; // compiles
+    u: TIME := T#1s + T#500ms; // compiles
 END_VAR
     printf('%u %u$N', t, u); // expected 2000 1500
     main := 0;
@@ -1230,13 +1272,13 @@ END_FUNCTION
 ```
 
 P1 src/resolver.rs:3327:13: Recursive unqualified call of a method from its own body aborts codegen
-`METHOD fact : DINT VAR_INPUT n : DINT; END_VAR ... fact := n * fact(n - 1); END_METHOD` inside a function block passes `--check` but the build aborts with `error: no type hint available for fact(n - 1)`; when the recursive call is first stored in a local (`r := fact(n - 1);`) the compiler panics at `src/codegen/generators/expression_generator.rs:1577` (`explicit panic`, missing `Argument` hint). The call operator is resolved with `call_operator_scopes`, whose `FunctionsOnly` step only accepts `index.find_pou(name)` entries that are functions; a method is indexed as `Fact.fact` and is not a function, so the step finds nothing and the default scopes resolve the bare name `fact` to the method's own return variable (a `DINT`). The call statement therefore carries a `Variable` annotation, `get_call_name` yields no POU, the arguments never get `Argument` hints, and codegen fails. The same recursion in a `FUNCTION fact : DINT` works because `find_pou("fact")` finds the function before the return variable is considered, and `THIS^.fact(n - 1)` works because the qualified lookup finds the method. Expected: the unqualified recursive call resolves to the enclosing method and prints 120. Reproduce with the default command line at any optimization level.
+`METHOD fact: DINT VAR_INPUT n: DINT; END_VAR ... fact := n * fact(n - 1); END_METHOD` inside a function block passes `--check` but the build aborts with `error: no type hint available for fact(n - 1)`; when the recursive call is first stored in a local (`r := fact(n - 1);`) the compiler panics at `src/codegen/generators/expression_generator.rs:1577` (`explicit panic`, missing `Argument` hint). The call operator is resolved with `call_operator_scopes`, whose `FunctionsOnly` step only accepts `index.find_pou(name)` entries that are functions; a method is indexed as `Fact.fact` and is not a function, so the step finds nothing and the default scopes resolve the bare name `fact` to the method's own return variable (a `DINT`). The call statement therefore carries a `Variable` annotation, `get_call_name` yields no POU, the arguments never get `Argument` hints, and codegen fails. The same recursion in a `FUNCTION fact: DINT` works because `find_pou("fact")` finds the function before the return variable is considered, and `THIS^.fact(n - 1)` works because the qualified lookup finds the method. Expected: the unqualified recursive call resolves to the enclosing method and prints 120. Reproduce with the default command line at any optimization level.
 ```
 // Reproducible example:
 FUNCTION_BLOCK Fact
-METHOD fact : DINT
+METHOD fact: DINT
 VAR_INPUT
-    n : DINT;
+    n: DINT;
 END_VAR
     IF n <= 1 THEN
         fact := 1;
@@ -1246,9 +1288,9 @@ END_VAR
 END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    f : Fact;
+    f: Fact;
 END_VAR
     printf('%d$N', f.fact(5)); // expected 120
     main := 0;
@@ -1256,28 +1298,28 @@ END_FUNCTION
 ```
 
 P1 src/lowering/polymorphism/dispatch/pou.rs:184:17: Body call through a REFERENCE TO member is cast to the vtable of the enclosing instance
-`refA.refB(x := 7)`, where `refA : REFERENCE TO A` and `A` holds `refB : REFERENCE TO B`, is lowered to `__vtable_A#(refA.refB.__vtable^).__body^(refA.refB)` (visible with `--ast-lowered`); expected `__vtable_B#(...)`. The vtable type name is taken from the type of the base of the call operator, which for an auto-dereferenced member is the enclosing instance `refA` of type `A`, not the member `refB` of type `B`. Because the `__body` slot carries the type `__FPOINTER A`, the named argument `x` is resolved against `A` and rejected with E048 `Could not resolve reference to x`; with a positional argument, `refA.refB(7)`, the argument gets no `Argument` hint and codegen panics at `src/codegen/generators/expression_generator.rs:1577` (`explicit panic`). The same chain written with `REF_TO` and explicit dereferencing, `refA^.refB^(x := 7)`, is cast to `__vtable_B` and prints `B body x=7`. The unit test `reference_to` in the same file records the wrong cast in its snapshot. Expected: the cast names the type of the member that is called, and both spellings behave alike. Reproduce with the default command line at any optimization level.
+`refA.refB(x := 7)`, where `refA: REFERENCE TO A` and `A` holds `refB: REFERENCE TO B`, is lowered to `__vtable_A#(refA.refB.__vtable^).__body^(refA.refB)` (visible with `--ast-lowered`); expected `__vtable_B#(...)`. The vtable type name is taken from the type of the base of the call operator, which for an auto-dereferenced member is the enclosing instance `refA` of type `A`, not the member `refB` of type `B`. Because the `__body` slot carries the type `__FPOINTER A`, the named argument `x` is resolved against `A` and rejected with E048 `Could not resolve reference to x`; with a positional argument, `refA.refB(7)`, the argument gets no `Argument` hint and codegen panics at `src/codegen/generators/expression_generator.rs:1577` (`explicit panic`). The same chain written with `REF_TO` and explicit dereferencing, `refA^.refB^(x := 7)`, is cast to `__vtable_B` and prints `B body x=7`. The unit test `reference_to` in the same file records the wrong cast in its snapshot. Expected: the cast names the type of the member that is called, and both spellings behave alike. Reproduce with the default command line at any optimization level.
 ```
 // Reproducible example:
 FUNCTION_BLOCK A
     VAR
-        refB : REFERENCE TO B;
+        refB: REFERENCE TO B;
     END_VAR
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK B
     VAR_INPUT
-        x : DINT;
+        x: DINT;
     END_VAR
 
     printf('B body x=%d$N', x);
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        instA : A;
-        instB : B;
-        refA : REFERENCE TO A;
+        instA: A;
+        instB: B;
+        refA: REFERENCE TO A;
     END_VAR
 
     refA REF= instA;
@@ -1288,32 +1330,32 @@ END_FUNCTION
 ```
 
 P2 compiler/plc_diagnostics/src/reporter/codespan.rs:149:13: Rich reporter drops the diagnostic for a POU named like a builtin
-Declaring `FUNCTION add : DINT ... END_FUNCTION` (also seen with `ADR`, `SIZEOF`, `MUX`, `SEL`, `LOWER_BOUND`, `REF`) aborts with only "Compilation aborted due to critical errors" and no diagnostic. With `--error-format clang` the expected `error[E004]: add: Duplicate symbol.` at `main.st:1:10` is printed (plus a second E004 with no location for the builtin, and with the stdlib includes a third one at `output/include/arithmetic_functions.st:25:10`), so the diagnostic exists. The duplicate check in `src/validation/global.rs:42` only treats undefined or internal locations as builtin; a builtin function has a real text range in the `<builtin>` source, so a normal duplicate diagnostic is created with a secondary "see also" location in `<builtin>`. That source is never registered with the diagnostician, its file handle does not resolve, the codespan emit call returns an error, and the error is swallowed at codespan.rs:149 because the main location is not internal. Expected: a diagnostic such as "add can not be used as a name because it is a built-in function" pointing at the user's declaration, in every error format.
+Declaring `FUNCTION add: DINT ... END_FUNCTION` (also seen with `ADR`, `SIZEOF`, `MUX`, `SEL`, `LOWER_BOUND`, `REF`) aborts with only "Compilation aborted due to critical errors" and no diagnostic. With `--error-format clang` the expected `error[E004]: add: Duplicate symbol.` at `main.st:1:10` is printed (plus a second E004 with no location for the builtin, and with the stdlib includes a third one at `output/include/arithmetic_functions.st:25:10`), so the diagnostic exists. The duplicate check in `src/validation/global.rs:42` only treats undefined or internal locations as builtin; a builtin function has a real text range in the `<builtin>` source, so a normal duplicate diagnostic is created with a secondary "see also" location in `<builtin>`. That source is never registered with the diagnostician, its file handle does not resolve, the codespan emit call returns an error, and the error is swallowed at codespan.rs:149 because the main location is not internal. Expected: a diagnostic such as "add can not be used as a name because it is a built-in function" pointing at the user's declaration, in every error format.
 ```
 // Reproducible example:
 // plc --check main.st
 // default format prints only: error: Compilation aborted due to critical errors.
 // --error-format clang prints: main.st:1:10: error[E004]: add: Duplicate symbol.
-FUNCTION add : DINT
+FUNCTION add: DINT
 VAR_INPUT
-    a : DINT;
+    a: DINT;
 END_VAR
     add := a;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     main := 0;
 END_FUNCTION
 ```
 
 P2 compiler/plc_driver/src/pipelines/participant.rs:493:5: FOR loop type checks are unreachable in the compiler
-`FOR r := 0.0 TO 1.0 DO END_FOR` with `r : REAL`, and `FOR i := 0 TO TRUE DO END_FOR`, compile without a diagnostic. The validator's check that counter, start, end, and step are integers (`validate_for_loop`, E094, src/validation/statement.rs:2491) and the resolver's hinting of start, end, and step with the counter's type (src/resolver.rs:2089) only handle `ForLoop` nodes, but `LoopDesugarer::pre_index` (participant.rs:493) has replaced every `FOR` and `REPEAT` with a `WHILE TRUE` loop before the index, the resolver, and the validator run; the lowered AST of the program only contains `WhileLoopStatement` nodes. The unit tests for E094 pass because `parse_and_validate_buffered` does not run the participants. Expected: `error[E094]: Expected an integer value, got REAL` at the loop header, as the tests describe.
+`FOR r := 0.0 TO 1.0 DO END_FOR` with `r: REAL`, and `FOR i := 0 TO TRUE DO END_FOR`, compile without a diagnostic. The validator's check that counter, start, end, and step are integers (`validate_for_loop`, E094, src/validation/statement.rs:2491) and the resolver's hinting of start, end, and step with the counter's type (src/resolver.rs:2089) only handle `ForLoop` nodes, but `LoopDesugarer::pre_index` (participant.rs:493) has replaced every `FOR` and `REPEAT` with a `WHILE TRUE` loop before the index, the resolver, and the validator run; the lowered AST of the program only contains `WhileLoopStatement` nodes. The unit tests for E094 pass because `parse_and_validate_buffered` does not run the participants. Expected: `error[E094]: Expected an integer value, got REAL` at the loop header, as the tests describe.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    r : REAL;
-    i : DINT;
+    r: REAL;
+    i: DINT;
 END_VAR
     // plc --check: no diagnostic, exit 0; expected E094 for both loops
     FOR r := 0.0 TO 1.0 DO
@@ -1325,20 +1367,20 @@ END_FUNCTION
 ```
 
 P2 compiler/plc_lowering/src/reference_to_return.rs:722:25: Plain assignment to a REFERENCE TO return variable is dropped silently
-`pick := a;` inside `FUNCTION pick : REFERENCE TO INT` is replaced by an `EmptyStatement` in `visit_assignment` (line 722); `--check` passes and the caller reads the zero-initialized `__pick_return_val` store, so a program that expects 42 prints 0. Only `REF=` is rewritten into the return slot assignment (`visit_ref_assignment`, line 691). Expected: a diagnostic, or the same rewrite as for `REF=`.
+`pick := a;` inside `FUNCTION pick: REFERENCE TO INT` is replaced by an `EmptyStatement` in `visit_assignment` (line 722); `--check` passes and the caller reads the zero-initialized `__pick_return_val` store, so a program that expects 42 prints 0. Only `REF=` is rewritten into the return slot assignment (`visit_ref_assignment`, line 691). Expected: a diagnostic, or the same rewrite as for `REF=`.
 ```
 // Reproducible example:
-FUNCTION pick : REFERENCE TO INT
+FUNCTION pick: REFERENCE TO INT
 VAR_IN_OUT
-    a : INT;
+    a: INT;
 END_VAR
     pick := a;    // lowered to EmptyStatement, no diagnostic
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    v : INT := 42;
-    r : REFERENCE TO INT;
+    v: INT := 42;
+    r: REFERENCE TO INT;
 END_VAR
     r REF= pick(v);
     printf('%d$N', r);    // prints 0, expected 42
@@ -1351,21 +1393,21 @@ The parser consumes `RETAIN` for every variable block type (parser.rs:1622) and 
 // Reproducible example:
 PROGRAM prg
 VAR_TEMP RETAIN
-    t : DINT;
+    t: DINT;
 END_VAR
     t := t + 1;
     printf('%d$N', t);    // prints 1 then 2; a temp must not persist
 END_PROGRAM
 
-FUNCTION f : DINT
+FUNCTION f: DINT
 VAR RETAIN
-    c : DINT;
+    c: DINT;
 END_VAR
     c := c + 1;
     f := c;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     prg();
     prg();
     printf('%d$N', f());    // prints 1
@@ -1374,18 +1416,18 @@ END_FUNCTION
 ```
 
 P2 src/lowering/generics.rs:325:17: Generic call whose type parameter is bound by no parameter reaches codegen
-`FUNCTION novote<T: ANY_NUM> : T VAR_INPUT x : DINT; END_VAR END_FUNCTION` called as `d := novote(1)` passes `--check`, but codegen aborts with `error: No callable implementation associated to "novote"`. No argument is bound to a parameter of type `T`, so the generic lowerer never fills `generic_map` for `T`, `fully_resolved` is false and the call is left untouched in every pass (generics.rs:325 to 340); the validator reports nothing because the resolver attaches natures to arguments only for built-in generics. Expected: a diagnostic during validation, such as E064 for the unresolved type parameter.
+`FUNCTION novote<T: ANY_NUM>: T VAR_INPUT x: DINT; END_VAR END_FUNCTION` called as `d := novote(1)` passes `--check`, but codegen aborts with `error: No callable implementation associated to "novote"`. No argument is bound to a parameter of type `T`, so the generic lowerer never fills `generic_map` for `T`, `fully_resolved` is false and the call is left untouched in every pass (generics.rs:325 to 340); the validator reports nothing because the resolver attaches natures to arguments only for built-in generics. Expected: a diagnostic during validation, such as E064 for the unresolved type parameter.
 ```
 // Reproducible example:
-FUNCTION novote<T: ANY_NUM> : T
+FUNCTION novote<T: ANY_NUM>: T
 VAR_INPUT
-    x : DINT;
+    x: DINT;
 END_VAR
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    d : DINT;
+    d: DINT;
 END_VAR
     // --check passes; build aborts with
     // error: No callable implementation associated to "novote"
@@ -1394,32 +1436,32 @@ END_FUNCTION
 ```
 
 P2 src/lowering/calls.rs:164:5: Misleading E032 for an aggregate-returning call in a local initializer
-`VAR s : STRING := greet(); END_VAR` reports `E032 this POU takes 1 argument but 0 arguments were supplied` in addition to the correct `E033 Unresolved constant`. The callee's signature gained the in-out result parameter, but variable initializers are not rewritten, so the validator counts the initializer's call against the new signature. The same program with a `DINT`-returning callee reports only E033. Expected: only E033, as for a scalar-returning call.
+`VAR s: STRING := greet(); END_VAR` reports `E032 this POU takes 1 argument but 0 arguments were supplied` in addition to the correct `E033 Unresolved constant`. The callee's signature gained the in-out result parameter, but variable initializers are not rewritten, so the validator counts the initializer's call against the new signature. The same program with a `DINT`-returning callee reports only E033. Expected: only E033, as for a scalar-returning call.
 ```
 // Reproducible example:
-FUNCTION greet : STRING
+FUNCTION greet: STRING
     greet := 'hi';
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
     // plc --check reports:
     // error[E032]: this POU takes 1 argument but 0 arguments were supplied
     // error[E033]: Unresolved constant `s` variable: Call-statement 'greet' in initializer is not constant.
     // expected: only E033
-    s : STRING := greet();
+    s: STRING := greet();
 END_VAR
     main := 0;
 END_FUNCTION
 ```
 
 P2 compiler/plc_lowering/src/inheritance.rs:425:9: SUPER^ in a member initializer is not lowered inside the generated constructor
-`FUNCTION_BLOCK Y EXTENDS X VAR o : DINT := SUPER^.c + 5; END_VAR END_FUNCTION_BLOCK`, with `c` a constant of `X`, is rejected with `error[E033]: Unresolved constant o variable`. The lowered AST shows that the constructor `Y__ctor` generated by the init participant still contains `self.o := SUPER^.c + 5` with an unresolved `Super(derefed)` node, because `visit_super` (inheritance.rs:425) looks up the super class of the POU whose body is walked, and `Y__ctor` has none; the constant evaluator cannot evaluate `SUPER^` either. Expected: a diagnostic that `SUPER` is not allowed in an initializer, or `self.o := self.__X.c + 5` in the constructor.
+`FUNCTION_BLOCK Y EXTENDS X VAR o: DINT := SUPER^.c + 5; END_VAR END_FUNCTION_BLOCK`, with `c` a constant of `X`, is rejected with `error[E033]: Unresolved constant o variable`. The lowered AST shows that the constructor `Y__ctor` generated by the init participant still contains `self.o := SUPER^.c + 5` with an unresolved `Super(derefed)` node, because `visit_super` (inheritance.rs:425) looks up the super class of the POU whose body is walked, and `Y__ctor` has none; the constant evaluator cannot evaluate `SUPER^` either. Expected: a diagnostic that `SUPER` is not allowed in an initializer, or `self.o := self.__X.c + 5` in the constructor.
 ```
 // Reproducible example:
 FUNCTION_BLOCK X
 VAR CONSTANT
-    c : DINT := 3;
+    c: DINT := 3;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -1429,34 +1471,34 @@ VAR
 END_VAR
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    y : Y;
+    y: Y;
 END_VAR
     printf('%d$N', y.o);    // expected 8
 END_FUNCTION
 ```
 
 P2 src/lowering/polymorphism/dispatch/validation.rs:37:15: Assigning a pointer to an interface variable passes `--check` and aborts codegen
-`shape := rectPtr;` with `rectPtr : POINTER TO Rect` and `shape : Shape` reports nothing under `--check` and aborts codegen with `error: Could not resolve reference to __itable_Shape___main_rectPtr_instance`. `validate_pou_implements_interface` returns `None` (valid) through the `?` on `index.find_pou(pou_name)` when the right-hand type is not a POU (validation.rs:37), and the assignment is then expanded with an itable instance named after the pointer type. Expected: E126, or a type mismatch diagnostic, from the check.
+`shape := rectPtr;` with `rectPtr: POINTER TO Rect` and `shape: Shape` reports nothing under `--check` and aborts codegen with `error: Could not resolve reference to __itable_Shape___main_rectPtr_instance`. `validate_pou_implements_interface` returns `None` (valid) through the `?` on `index.find_pou(pou_name)` when the right-hand type is not a POU (validation.rs:37), and the assignment is then expanded with an itable instance named after the pointer type. Expected: E126, or a type mismatch diagnostic, from the check.
 ```
 // Reproducible example:
 INTERFACE Shape
-METHOD area : DINT
+METHOD area: DINT
 END_METHOD
 END_INTERFACE
 
 FUNCTION_BLOCK Rect IMPLEMENTS Shape
-METHOD area : DINT
+METHOD area: DINT
     area := 6;
 END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    r : Rect;
-    rectPtr : POINTER TO Rect;
-    shape : Shape;
+    r: Rect;
+    rectPtr: POINTER TO Rect;
+    shape: Shape;
 END_VAR
     rectPtr := ADR(r);
     // --check passes; build aborts with
@@ -1467,38 +1509,38 @@ END_FUNCTION
 ```
 
 P2 src/lowering/polymorphism/dispatch/interface.rs:347:9: Interface assignment from a base-typed place binds the base type's itable
-`shape := rectPtr^;` with `rectPtr` pointing at a `Square` (which overrides `area`), or `pick := r;` inside a function with `VAR_IN_OUT r : Rect` called with a `Square`, produces a fat pointer whose table is `__itable_Shape_Rect_instance`; `shape.area()` then prints 6 (`Rect.area`) while `rectPtr^.area()` and `shape := sq; shape.area()` print 9 (`Square.area`). The itable instance is chosen from the static type of the right-hand side (`let pou_name = rhs_type.get_name();`, interface.rs:347), while the same call through `POINTER TO Rect` uses the method table of the instance. Expected: the table is derived from the instance at run time, for example through the method table, or the compiler documents that interface conversion is static.
+`shape := rectPtr^;` with `rectPtr` pointing at a `Square` (which overrides `area`), or `pick := r;` inside a function with `VAR_IN_OUT r: Rect` called with a `Square`, produces a fat pointer whose table is `__itable_Shape_Rect_instance`; `shape.area()` then prints 6 (`Rect.area`) while `rectPtr^.area()` and `shape := sq; shape.area()` print 9 (`Square.area`). The itable instance is chosen from the static type of the right-hand side (`let pou_name = rhs_type.get_name();`, interface.rs:347), while the same call through `POINTER TO Rect` uses the method table of the instance. Expected: the table is derived from the instance at run time, for example through the method table, or the compiler documents that interface conversion is static.
 ```
 // Reproducible example:
 INTERFACE Shape
-METHOD area : DINT
+METHOD area: DINT
 END_METHOD
 END_INTERFACE
 
 FUNCTION_BLOCK Rect IMPLEMENTS Shape
-METHOD area : DINT
+METHOD area: DINT
     area := 6;
 END_METHOD
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK Square EXTENDS Rect
-METHOD area : DINT
+METHOD area: DINT
     area := 9;
 END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION pick : Shape
+FUNCTION pick: Shape
 VAR_IN_OUT
-    r : Rect;
+    r: Rect;
 END_VAR
     pick := r;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    sq : Square;
-    rectPtr : POINTER TO Rect;
-    shape : Shape;
+    sq: Square;
+    rectPtr: POINTER TO Rect;
+    shape: Shape;
 END_VAR
     rectPtr := ADR(sq);
     shape := rectPtr^;
@@ -1539,15 +1581,15 @@ END_VAR</bmx:TextDeclaration>
 ```
 
 P2 src/resolver.rs:2430:13: A variable named like an enum type hijacks the cast to that enum
-With `VAR color : DINT; c : Color; END_VAR` and `c := Color#Green;`, the base `Color` of the cast is resolved with `ResolvingStrategy::default_scopes()`, variables before types, and finds the local `main.color` because names are case-insensitive. The cast is then typed as `DINT`, the enum qualifier is dropped in the `ReferenceAccess::Cast` branch because the base type is not an enum, `Green` resolves as a bare enum variant, and the validator reports `warning[E091]: Value evaluated at run-time, use an enum variant from Color` on a plain variant. Renaming the variable removes the warning. The generated code is still `store i32 1`. Expected: the base of a cast is resolved as a type only, so the variable does not shadow it and no warning is reported.
+With `VAR color: DINT; c: Color; END_VAR` and `c := Color#Green;`, the base `Color` of the cast is resolved with `ResolvingStrategy::default_scopes()`, variables before types, and finds the local `main.color` because names are case-insensitive. The cast is then typed as `DINT`, the enum qualifier is dropped in the `ReferenceAccess::Cast` branch because the base type is not an enum, `Green` resolves as a bare enum variant, and the validator reports `warning[E091]: Value evaluated at run-time, use an enum variant from Color` on a plain variant. Renaming the variable removes the warning. The generated code is still `store i32 1`. Expected: the base of a cast is resolved as a type only, so the variable does not shadow it and no warning is reported.
 ```
 // Reproducible example:
-TYPE Color : (Red, Green, Blue); END_TYPE
+TYPE Color: (Red, Green, Blue); END_TYPE
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    color : DINT;
-    c : Color;
+    color: DINT;
+    c: Color;
 END_VAR
     c := Color#Green; // warning[E091]: Value evaluated at run-time, use an enum variant from `Color`
     printf('%d$N', c); // prints 1, no warning expected
@@ -1555,53 +1597,53 @@ END_FUNCTION
 ```
 
 P2 src/validation/variable.rs:199:1: A VLA as a function return type is not rejected
-`FUNCTION ret : ARRAY[*] OF DINT END_FUNCTION` passes `plc --check` without a diagnostic. The VLA placement check `validate_vla` only runs over variable blocks, and a return type is not a block. A function that uses the return, `ret := v;` with `v : ARRAY[*] OF DINT` as `VAR_IN_OUT`, called as `out := ret(arr)`, then panics in the resolver at `src/resolver.rs:2672` with `internal error: entered unreachable code`, like the other misplaced VLAs. Expected: E044 for a VLA return type.
+`FUNCTION ret: ARRAY[*] OF DINT END_FUNCTION` passes `plc --check` without a diagnostic. The VLA placement check `validate_vla` only runs over variable blocks, and a return type is not a block. A function that uses the return, `ret := v;` with `v: ARRAY[*] OF DINT` as `VAR_IN_OUT`, called as `out := ret(arr)`, then panics in the resolver at `src/resolver.rs:2672` with `internal error: entered unreachable code`, like the other misplaced VLAs. Expected: E044 for a VLA return type.
 ```
 // Reproducible example:
 // plc --check
 // observed: panic at src/resolver.rs:2672:17, internal error: entered unreachable code
 // expected: error[E044] on the VLA return type
-FUNCTION ret : ARRAY[*] OF DINT
+FUNCTION ret: ARRAY[*] OF DINT
 VAR_IN_OUT
-    v : ARRAY[*] OF DINT;
+    v: ARRAY[*] OF DINT;
 END_VAR
     ret := v;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    arr : ARRAY[0..2] OF DINT;
-    out : ARRAY[0..2] OF DINT;
+    arr: ARRAY[0..2] OF DINT;
+    out: ARRAY[0..2] OF DINT;
 END_VAR
     out := ret(arr);
 END_FUNCTION
 ```
 
 P2 src/validation/statement.rs:1117:16: A user-defined compare function with local variables is not recognized
-`FUNCTION STRING_EQUAL : BOOL VAR_INPUT a, b : STRING; END_VAR VAR pa, pb : POINTER TO BYTE; END_VAR ... END_FUNCTION` in the project does not satisfy the check for `s1 = s2` on strings; the compiler still reports `error[E073]: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'`. Removing the `VAR` block makes the error disappear. `compare_function_exists` matches the member list of the implementation against a slice pattern of exactly three entries, two by-value inputs and the return, so any local, temporary, or `{ref}` input makes the pattern fail. Expected: the check looks at the inputs and the return type only.
+`FUNCTION STRING_EQUAL: BOOL VAR_INPUT a, b: STRING; END_VAR VAR pa, pb: POINTER TO BYTE; END_VAR ... END_FUNCTION` in the project does not satisfy the check for `s1 = s2` on strings; the compiler still reports `error[E073]: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'`. Removing the `VAR` block makes the error disappear. `compare_function_exists` matches the member list of the implementation against a slice pattern of exactly three entries, two by-value inputs and the return, so any local, temporary, or `{ref}` input makes the pattern fail. Expected: the check looks at the inputs and the return type only.
 ```
 // Reproducible example:
 // plc --check main.st (without the stdlib includes, which define their own STRING_EQUAL)
 // observed: error[E073]: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'
 // expected: no diagnostic; removing the VAR block makes E073 disappear
-FUNCTION STRING_EQUAL : BOOL
+FUNCTION STRING_EQUAL: BOOL
 VAR_INPUT
-    a : STRING;
-    b : STRING;
+    a: STRING;
+    b: STRING;
 END_VAR
 VAR
-    pa : POINTER TO BYTE;
-    pb : POINTER TO BYTE;
+    pa: POINTER TO BYTE;
+    pb: POINTER TO BYTE;
 END_VAR
     pa := ADR(a);
     pb := ADR(b);
     STRING_EQUAL := pa^ = pb^;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    s1 : STRING := 'a';
-    s2 : STRING := 'a';
+    s1: STRING := 'a';
+    s2: STRING := 'a';
 END_VAR
     IF s1 = s2 THEN
         main := 1;
@@ -1610,7 +1652,7 @@ END_FUNCTION
 ```
 
 P2 compiler/plc_header_generator/src/header_generator/header_generator_c.rs:730:33: Generated C header names a function block member with the block's name instead of its type
-For `PROGRAM prg VAR ch : Child; n : DINT; END_VAR END_PROGRAM`, `plc --generate-headers` writes `typedef struct { Child ch; int32_t n; } prg_type;`, but the function block itself is emitted as `Child_type` (the POU struct name gets the `_type` suffix in `prepare_function_block`) and `Child` is the constructor function `void Child(Child_type* self);`. A C file that includes the header does not compile. The member is produced in `get_transformed_variables_from_variables`: the FB type is a user-generated struct, `get_user_type_variable` returns a `Variable` whose `data_type` is the plain type name, and the alias check pushes it unchanged without appending `_type`. Expected: `Child_type ch;`.
+For `PROGRAM prg VAR ch: Child; n: DINT; END_VAR END_PROGRAM`, `plc --generate-headers` writes `typedef struct { Child ch; int32_t n; } prg_type;`, but the function block itself is emitted as `Child_type` (the POU struct name gets the `_type` suffix in `prepare_function_block`) and `Child` is the constructor function `void Child(Child_type* self);`. A C file that includes the header does not compile. The member is produced in `get_transformed_variables_from_variables`: the FB type is a user-generated struct, `get_user_type_variable` returns a `Variable` whose `data_type` is the plain type name, and the alias check pushes it unchanged without appending `_type`. Expected: `Child_type ch;`.
 ```
 // Reproducible example:
 // plc main.st --generate-headers --header-output hdr -o main.o
@@ -1621,20 +1663,20 @@ For `PROGRAM prg VAR ch : Child; n : DINT; END_VAR END_PROGRAM`, `plc --generate
 // expected: Child_type ch;
 FUNCTION_BLOCK Child
 VAR
-    x : DINT;
+    x: DINT;
 END_VAR
 END_FUNCTION_BLOCK
 
 PROGRAM prg
 VAR
-    ch : Child;
-    n : DINT;
+    ch: Child;
+    n: DINT;
 END_VAR
 END_PROGRAM
 ```
 
 P2 compiler/plc_header_generator/src/header_generator/header_generator_c.rs:117:9: Generated C header emits structs in declaration order, so a struct that uses a later struct does not compile
-For `TYPE Outer : STRUCT inner : Inner; END_STRUCT END_TYPE` declared before `TYPE Inner : STRUCT v : DINT; END_STRUCT END_TYPE`, `plc --generate-headers` writes `typedef struct { Inner inner; } Outer;` and only then `typedef struct { int32_t v; } Inner;`. A C file that includes the header fails with `unknown type name 'Inner'`. Structured Text allows any declaration order, and `prepare_user_types` walks `compilation_unit.user_types` as declared; only the aliases are dependency-sorted (`resolve_alias_dependencies`), structs and function block structs are not. The same happens for a program that contains a function block declared after it. Expected: structs are ordered so that every member type is declared before its use, like the aliases.
+For `TYPE Outer: STRUCT inner: Inner; END_STRUCT END_TYPE` declared before `TYPE Inner: STRUCT v: DINT; END_STRUCT END_TYPE`, `plc --generate-headers` writes `typedef struct { Inner inner; } Outer;` and only then `typedef struct { int32_t v; } Inner;`. A C file that includes the header fails with `unknown type name 'Inner'`. Structured Text allows any declaration order, and `prepare_user_types` walks `compilation_unit.user_types` as declared; only the aliases are dependency-sorted (`resolve_alias_dependencies`), structs and function block structs are not. The same happens for a program that contains a function block declared after it. Expected: structs are ordered so that every member type is declared before its use, like the aliases.
 ```
 // Reproducible example:
 // plc order.st --generate-headers
@@ -1642,48 +1684,54 @@ For `TYPE Outer : STRUCT inner : Inner; END_STRUCT END_TYPE` declared before `TY
 //   typedef struct { Inner inner; } Outer;
 //   typedef struct { int32_t v; } Inner;
 // expected: Inner before Outer
-TYPE Outer : STRUCT
-    inner : Inner;
-END_STRUCT END_TYPE
+TYPE Outer:
+    STRUCT
+        inner: Inner;
+    END_STRUCT
+END_TYPE
 
-TYPE Inner : STRUCT
-    v : DINT;
-END_STRUCT END_TYPE
+TYPE Inner:
+    STRUCT
+        v: DINT;
+    END_STRUCT
+END_TYPE
 ```
 
 P2 compiler/plc_header_generator/src/header_generator/header_generator_c.rs:705:37: Function pointer typedef in the generated C header is emitted before the structs it refers to
-For `VAR_GLOBAL callback : __FPOINTER scale; END_VAR` where `scale` takes a `Point` struct by reference, the header starts with `typedef int32_t (*scale_ptr)(int32_t, Point*);` and defines `typedef struct { ... } Point;` further down. The typedef is pushed into `user_defined_types.aliases`, and the template renders all aliases before enums and structs, so every function pointer whose signature names a user struct or enum refers to a type that C has not seen yet. Expected: function pointer typedefs are rendered after the types they use, or the struct is forward-declared.
+For `VAR_GLOBAL callback: __FPOINTER scale; END_VAR` where `scale` takes a `Point` struct by reference, the header starts with `typedef int32_t (*scale_ptr)(int32_t, Point*);` and defines `typedef struct { ... } Point;` further down. The typedef is pushed into `user_defined_types.aliases`, and the template renders all aliases before enums and structs, so every function pointer whose signature names a user struct or enum refers to a type that C has not seen yet. Expected: function pointer typedefs are rendered after the types they use, or the struct is forward-declared.
 ```
 // Reproducible example:
 // plc fp.st --generate-headers
 // observed in fp.h: typedef int32_t (*scale_ptr)(Point*); comes before typedef struct { int32_t x; } Point;
 // expected: Point first
-TYPE Point : STRUCT
-    x : DINT;
-END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x: DINT;
+    END_STRUCT
+END_TYPE
 
 VAR_GLOBAL
-    callback : __FPOINTER scale;
+    callback: __FPOINTER scale;
 END_VAR
 
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT {ref}
-        p : Point;
+        p: Point;
     END_VAR
 END_FUNCTION
 ```
 
 P2 compiler/plc_header_generator/src/header_generator/header_generator_c.rs:723:21: A variable of a named array type repeats the dimensions in the generated C header
-With `TYPE Grid : ARRAY[0..1, 0..2] OF DINT; END_TYPE` and `VAR_GLOBAL grid : Grid; END_VAR`, the header contains `typedef int32_t Grid[2][3];` and `extern Grid grid[2][3];`. The typedef already carries the dimensions, so the extern declares a two-dimensional array of `Grid`, a different type from the one codegen emits. The array alias is resolved through `get_user_type_variable`, which returns the member as `MultidimensionalArray` with the sizes, and the alias branch at line 723 keeps that `variable_type` while it swaps the data type to the alias name `Grid`. Expected: `extern Grid grid;`. The same applies to a struct member of a named array type and to a `STRING` alias.
+With `TYPE Grid: ARRAY[0..1, 0..2] OF DINT; END_TYPE` and `VAR_GLOBAL grid: Grid; END_VAR`, the header contains `typedef int32_t Grid[2][3];` and `extern Grid grid[2][3];`. The typedef already carries the dimensions, so the extern declares a two-dimensional array of `Grid`, a different type from the one codegen emits. The array alias is resolved through `get_user_type_variable`, which returns the member as `MultidimensionalArray` with the sizes, and the alias branch at line 723 keeps that `variable_type` while it swaps the data type to the alias name `Grid`. Expected: `extern Grid grid;`. The same applies to a struct member of a named array type and to a `STRING` alias.
 ```
 // Reproducible example:
 // plc grid.st --generate-headers
 // observed in grid.h: extern Grid grid[2][3];
 // expected: extern Grid grid;
-TYPE Grid : ARRAY[0..1, 0..2] OF DINT; END_TYPE
+TYPE Grid: ARRAY[0..1, 0..2] OF DINT; END_TYPE
 
 VAR_GLOBAL
-    grid : Grid;
+    grid: Grid;
 END_VAR
 ```
 
@@ -1696,18 +1744,18 @@ A build description with `api.st` and `b.st` gives `api.h` and `b.h` from `plc g
 // observed in pre.h: int32_t other(int32_t v);   the `scale` of api.st is missing
 // expected: the declarations of both sources
 // api.st
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        v : DINT;
+        v: DINT;
     END_VAR
 
     scale := v * 2;
 END_FUNCTION
 
 // b.st
-FUNCTION other : DINT
+FUNCTION other: DINT
     VAR_INPUT
-        v : DINT;
+        v: DINT;
     END_VAR
 
     other := v + 1;
@@ -1722,8 +1770,8 @@ P2 src/validation/statement.rs:416:9: ADR or REF of an expression passes --check
 // plc --ir:    error: Builder error: () at adr.st:7:13
 PROGRAM main
     VAR
-        i : DINT;
-        l : LWORD;
+        i: DINT;
+        l: LWORD;
     END_VAR
 
     l := ADR(i + 1);
@@ -1731,17 +1779,17 @@ END_PROGRAM
 ```
 
 P2 src/validation/variable.rs:581:5: The check for the address of a temporary in a member initializer never runs
-`s1 : REF_TO DINT := REF(t1);` in a function block, where `t1` is declared in `VAR_TEMP`, passes `plc --check` with no diagnostic, although E109 "Cannot assign address of temporary variable to a member-variable" exists for it. `report_temporary_address_in_pointer_initializer` reads the argument with `get_flat_reference_name()` on the call's `parameters`. By the time validation runs, lowering has wrapped those parameters in an `ExpressionList`, for which that function returns `None`, so the check returns before it can report. The unit test passes because it validates a unit that was never lowered. Expected: E109 on the initializer, as the test describes.
+`s1: REF_TO DINT := REF(t1);` in a function block, where `t1` is declared in `VAR_TEMP`, passes `plc --check` with no diagnostic, although E109 "Cannot assign address of temporary variable to a member-variable" exists for it. `report_temporary_address_in_pointer_initializer` reads the argument with `get_flat_reference_name()` on the call's `parameters`. By the time validation runs, lowering has wrapped those parameters in an `ExpressionList`, for which that function returns `None`, so the check returns before it can report. The unit test passes because it validates a unit that was never lowered. Expected: E109 on the initializer, as the test describes.
 ```
 // Reproducible example:
 // plc --check: no diagnostic, exit 0
 // expected: error[E109] Cannot assign address of temporary variable to a member-variable
 FUNCTION_BLOCK fb
     VAR
-        s1 : REF_TO DINT := REF(t1);
+        s1: REF_TO DINT := REF(t1);
     END_VAR
     VAR_TEMP
-        t1 : DINT;
+        t1: DINT;
     END_VAR
 END_FUNCTION_BLOCK
 ```
@@ -1754,21 +1802,21 @@ P2 compiler/plc_lowering/src/initializer.rs:1022:21: An FB_INIT method with para
 // run: a is an undefined value, 0 in this build
 FUNCTION_BLOCK fbInit
     VAR
-        a : DINT;
+        a: DINT;
     END_VAR
 
     METHOD FB_INIT
         VAR_INPUT
-            x : DINT;
+            x: DINT;
         END_VAR
 
         a := x;
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        i : fbInit;
+        i: fbInit;
     END_VAR
 
     main := 0;
@@ -1784,26 +1832,26 @@ P2 src/validation/statement.rs:776:13: Access modifiers are ignored, and every V
 // expected: no diagnostic for b.open and for `guarded` in Child; a diagnostic for b.secret()
 FUNCTION_BLOCK Box
     VAR PUBLIC
-        open : DINT;
+        open: DINT;
     END_VAR
     VAR PROTECTED
-        guarded : DINT;
+        guarded: DINT;
     END_VAR
 
-    METHOD PRIVATE secret : DINT
+    METHOD PRIVATE secret: DINT
         secret := 1;
     END_METHOD
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK Child EXTENDS Box
-    METHOD use : DINT
+    METHOD use: DINT
         use := guarded;
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        b : Box;
+        b: Box;
     END_VAR
 
     main := b.open + b.secret();
@@ -1816,7 +1864,7 @@ The parser reads `ABSTRACT` and `FINAL` in front of a `FUNCTION_BLOCK` or `CLASS
 // Reproducible example:
 // plc --check: no diagnostic for either case
 FUNCTION_BLOCK FINAL Leaf
-    METHOD PUBLIC area : DINT
+    METHOD PUBLIC area: DINT
         area := 1;
     END_METHOD
 END_FUNCTION_BLOCK
@@ -1825,13 +1873,13 @@ FUNCTION_BLOCK Deeper EXTENDS Leaf   // expected: error, Leaf is FINAL
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK ABSTRACT Base
-    METHOD PUBLIC ABSTRACT area : DINT
+    METHOD PUBLIC ABSTRACT area: DINT
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        b : Base;                    // expected: error, Base is ABSTRACT
+        b: Base;                    // expected: error, Base is ABSTRACT
     END_VAR
 
     main := b.area();                // observed: returns 0
@@ -1846,16 +1894,16 @@ P3 compiler/plc_lexer/src/lexer.rs:229:17: Two diagnostics for one missing closi
 // observed: main.st:5:16: error[E006]: Missing expected Token [KeywordParensClose]
 //           main.st:5:16: error[E007]: Unexpected token: expected KeywordParensClose but found ';'
 // expected: one diagnostic
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    x : DINT;
+    x: DINT;
 END_VAR
     x := (2 * 3;
 END_FUNCTION
 ```
 
 P3 src/index.rs:343:29: Hardware address segments are registered with the type name "32"
-When a variable is declared with a hardware address such as `sensor AT %IX0.0 : BOOL`, `HardwareBinding::from_statement` stores each address segment as a constant expression whose target type is the integer constant `DINT_SIZE` converted to a string, so the arena entry reads `target_type=32`. The intent is the type name `DINT`. Because "32" is not a type, `find_effective_type_by_name` returns `None` in the constant evaluator and the overflow check is skipped for these segments: `sensor AT %IX99999999999.0 : BOOL` compiles without a diagnostic and emits `@__PI_99999999999_0`, while `x : DINT := 99999999999;` reports `warning[E039]: This will overflow for type DINT`. Expected: `DINT_TYPE`.
+When a variable is declared with a hardware address such as `sensor AT %IX0.0: BOOL`, `HardwareBinding::from_statement` stores each address segment as a constant expression whose target type is the integer constant `DINT_SIZE` converted to a string, so the arena entry reads `target_type=32`. The intent is the type name `DINT`. Because "32" is not a type, `find_effective_type_by_name` returns `None` in the constant evaluator and the overflow check is skipped for these segments: `sensor AT %IX99999999999.0: BOOL` compiles without a diagnostic and emits `@__PI_99999999999_0`, while `x: DINT := 99999999999;` reports `warning[E039]: This will overflow for type DINT`. Expected: `DINT_TYPE`.
 ```
 // Reproducible example:
 // plc --check
@@ -1863,7 +1911,7 @@ When a variable is declared with a hardware address such as `sensor AT %IX0.0 : 
 // expected: E039 overflow warning for the segment, as for a DINT initializer
 PROGRAM main
 VAR
-    sensor AT %IX99999999999.0 : BOOL;
+    sensor AT %IX99999999999.0: BOOL;
     x : DINT := 99999999999; // warning[E039]: This will overflow for type DINT
 END_VAR
 END_PROGRAM
@@ -1877,26 +1925,28 @@ P3 src/lowering/property.rs:174:13: Nested property set target produces a mislea
 // observed: main.st:22:28: error[E128]: Properties can only be assigned as a whole, not through member or index access
 //           main.st:22:28: error[E048]: Could not resolve reference to x
 // expected: only E128
-TYPE Point : STRUCT
-    x : DINT;
-    y : DINT;
-END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x: DINT;
+        y: DINT;
+    END_STRUCT
+END_TYPE
 
 FUNCTION_BLOCK Shape
 VAR
-    pos : Point;
+    pos: Point;
 END_VAR
-PROPERTY_GET position : Point
+PROPERTY_GET position: Point
     position := pos;
 END_PROPERTY
-PROPERTY_SET position : Point
+PROPERTY_SET position: Point
     pos := position;
 END_PROPERTY
 END_FUNCTION_BLOCK
 
 PROGRAM main
 VAR
-    shapeInstance : Shape;
+    shapeInstance: Shape;
 END_VAR
     shapeInstance.position.x := 1;
 END_PROGRAM
@@ -1909,31 +1959,31 @@ P3 compiler/plc_project/src/project.rs:262:82: Nonexistent library search path p
 // plc -L /does/not/exist -o out main.st
 // observed: panic at compiler/plc_project/src/project.rs:262:82, exit code 101
 // expected: a diagnostic naming the missing path
-FUNCTION main : DINT
+FUNCTION main: DINT
     main := 0;
 END_FUNCTION
 ```
 
 P3 compiler/plc_lowering/src/reference_to_return.rs:219:56: Alias-typed REFERENCE TO return is not lowered
-`TYPE IntRef : REFERENCE TO INT; END_TYPE FUNCTION pick : IntRef` is not recognized by `ReferenceToReturnContextGatherer::visit_pou`, because only an inline `DataTypeDeclaration::Definition` with `PointerType { auto_deref: Some(Reference) }` matches and a `DataTypeDeclaration::Reference` to the alias falls into the `_ => false` arm. The function keeps a pointer return and `r REF= pick(v)` fails with `E098 Invalid assignment, expected a reference`, while the inline spelling `FUNCTION pick : REFERENCE TO INT` compiles and runs. Expected: both spellings behave the same.
+`TYPE IntRef: REFERENCE TO INT; END_TYPE FUNCTION pick: IntRef` is not recognized by `ReferenceToReturnContextGatherer::visit_pou`, because only an inline `DataTypeDeclaration::Definition` with `PointerType { auto_deref: Some(Reference) }` matches and a `DataTypeDeclaration::Reference` to the alias falls into the `_ => false` arm. The function keeps a pointer return and `r REF= pick(v)` fails with `E098 Invalid assignment, expected a reference`, while the inline spelling `FUNCTION pick: REFERENCE TO INT` compiles and runs. Expected: both spellings behave the same.
 ```
 // Reproducible example:
 // plc --check
 // observed: main.st:15:12: error[E098]: Invalid assignment, expected a reference
 // expected: compiles, like with `FUNCTION pick : REFERENCE TO INT`
-TYPE IntRef : REFERENCE TO INT; END_TYPE
+TYPE IntRef: REFERENCE TO INT; END_TYPE
 
-FUNCTION pick : IntRef
+FUNCTION pick: IntRef
 VAR_IN_OUT
-    v : INT;
+    v: INT;
 END_VAR
     pick REF= v;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    v : INT := 7;
-    r : REFERENCE TO INT;
+    v: INT := 7;
+    r: REFERENCE TO INT;
 END_VAR
     r REF= pick(v);
     printf('%d$N', r);
@@ -1948,7 +1998,7 @@ P3 src/validation/pou.rs:75:12: Interface named like a builtin function is valid
 // observed: main.st:6:11: error[E112]: Method `area` defined in interface `Shape` is missing in POU `Sub`
 // expected: no diagnostic (renaming Sub to SubShape compiles)
 INTERFACE Shape
-    METHOD area : DINT
+    METHOD area: DINT
     END_METHOD
 END_INTERFACE
 
@@ -1956,14 +2006,14 @@ INTERFACE Sub EXTENDS Shape
 END_INTERFACE
 
 FUNCTION_BLOCK Sq IMPLEMENTS Sub
-    METHOD area : DINT
+    METHOD area: DINT
         area := 4;
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    s : Sq;
+    s: Sq;
 END_VAR
     printf('%d$N', s.area());
 END_FUNCTION
@@ -1977,17 +2027,17 @@ P3 compiler/plc_driver/src/pipelines.rs:715:17: A `.cfc` file given as include i
 // observed: error[E007]: Unexpected token: expected StartKeyword but found < (function_void.cfc:1:1) and more
 // expected: the same result as `plc --check main.st myVoid.st function_void.cfc`
 // --- file: main.st ---
-FUNCTION main : DINT
+FUNCTION main: DINT
     function_void();
 END_FUNCTION
 
 // --- file: myVoid.st ---
 FUNCTION myVoid
     VAR_INPUT
-        in : DINT;
+        in: DINT;
     END_VAR
     VAR_OUTPUT
-        out : DINT;
+        out: DINT;
     END_VAR
     out := in * 2;
 END_FUNCTION
@@ -2003,34 +2053,34 @@ For `values := other;` where both are `ARRAY[*] OF DINT` parameters of the same 
 // plc --check main.st
 // observed: main.st:6:5: error[E037]: Invalid assignment: cannot assign 'ARRAY[*] OF DINT' to 'ARRAY[*] OF DINT'
 // expected: a message that explains that VLA assignments are only valid as call arguments
-FUNCTION copy : DINT
+FUNCTION copy: DINT
     VAR_IN_OUT
-        values : ARRAY[*] OF DINT;
-        other : ARRAY[*] OF DINT;
+        values: ARRAY[*] OF DINT;
+        other: ARRAY[*] OF DINT;
     END_VAR
     values := other;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        a : ARRAY[1..3] OF DINT;
-        b : ARRAY[1..3] OF DINT;
+        a: ARRAY[1..3] OF DINT;
+        b: ARRAY[1..3] OF DINT;
     END_VAR
     copy(a, b);
 END_FUNCTION
 ```
 
 P3 src/index.rs:1564:21: An unqualified enum variant shared by two enums resolves to the first declared enum without an ambiguity diagnostic
-With `TYPE Door : (Open := 8, Closed := 16); END_TYPE`, `TYPE State : (Open := 1, Closed := 4) BYTE; END_TYPE`, and `VAR_GLOBAL g : State; END_VAR`, the statement `g := Closed;` in a program stores `16` (`Door.Closed`) and reports `warning[E040]: Non-standard enum value Closed for State` plus `warning[E067]: Implicit downcast from 'Door' to 'State'`. `find_qualified_global_variable` falls back to `enum_global_variables.get_all(name)` and returns `it.first()`, which is declaration order; the target type is not consulted. Inside a POU that declares a variable of type `State`, the same `g := Closed;` stores `4` because the member lookup's enum fallback (`find_enum_variant_in_pou`) resolves to `State.Closed`, so the result depends on which unrelated variables the POU declares. Expected: prefer the variant of the target's type when one exists, or report the name as ambiguous and ask for a qualifier.
+With `TYPE Door: (Open := 8, Closed := 16); END_TYPE`, `TYPE State: (Open := 1, Closed := 4) BYTE; END_TYPE`, and `VAR_GLOBAL g: State; END_VAR`, the statement `g := Closed;` in a program stores `16` (`Door.Closed`) and reports `warning[E040]: Non-standard enum value Closed for State` plus `warning[E067]: Implicit downcast from 'Door' to 'State'`. `find_qualified_global_variable` falls back to `enum_global_variables.get_all(name)` and returns `it.first()`, which is declaration order; the target type is not consulted. Inside a POU that declares a variable of type `State`, the same `g := Closed;` stores `4` because the member lookup's enum fallback (`find_enum_variant_in_pou`) resolves to `State.Closed`, so the result depends on which unrelated variables the POU declares. Expected: prefer the variant of the target's type when one exists, or report the name as ambiguous and ask for a qualifier.
 ```
 // Reproducible example:
 // observed: prints 16, 4, 4 (with E040 and E067 warnings on line 9 only)
 // expected: 4, 4, 4 or an ambiguity diagnostic for the unqualified `Closed`
-TYPE Door : (Open := 8, Closed := 16); END_TYPE
-TYPE State : (Open := 1, Closed := 4) BYTE; END_TYPE
+TYPE Door: (Open := 8, Closed := 16); END_TYPE
+TYPE State: (Open := 1, Closed := 4) BYTE; END_TYPE
 
 VAR_GLOBAL
-    g : State;
+    g: State;
 END_VAR
 
 PROGRAM prog
@@ -2039,13 +2089,13 @@ END_PROGRAM
 
 PROGRAM prog2
     VAR
-        s : State;
+        s: State;
     END_VAR
     g := Closed;
     s := Closed;
 END_PROGRAM
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     prog();
     printf('%d$N', g);
     prog2();
@@ -2061,7 +2111,7 @@ P3 compiler/plc_header_generator/src/header_generator/file_helper/file_helper_c.
 // plc a.st --generate-headers -o api.h
 // observed: api.h.h with guard API_H_H_
 // expected: api.h
-FUNCTION f : DINT
+FUNCTION f: DINT
 END_FUNCTION
 ```
 
@@ -2072,7 +2122,7 @@ P3 compiler/plc_header_generator/src/lib.rs:16:5: The header generator accepts -
 // plc generate plc.json headers --include-stubs   (any project)
 // observed: same header as without the flag, no stub file
 // expected: a stub source file, or an error that the option is not supported
-FUNCTION f : DINT
+FUNCTION f: DINT
 END_FUNCTION
 ```
 
@@ -2091,12 +2141,16 @@ The comment above the cast branch reads "CAST-Statement: INT#a.b.c" and "this me
 // Reproducible example:
 // plc --check: error[E048]: Could not resolve reference to b
 // expected: a diagnostic that names the cast, or the binding the comment describes
-TYPE P : STRUCT b : INT; END_STRUCT END_TYPE
+TYPE P:
+    STRUCT
+        b: INT;
+    END_STRUCT
+END_TYPE
 
 PROGRAM main
     VAR
-        a : P;
-        r : DINT;
+        a: P;
+        r: DINT;
     END_VAR
 
     r := INT#a.b;
@@ -2113,7 +2167,7 @@ P3 compiler/plc_driver/src/pipelines.rs:91:9: The variables that the build expor
 // --- file: plc.json ---
 // { "name": "demo", "files": ["$PROJECT_ROOT/src/hello.st"] }
 // --- file: src/hello.st ---
-FUNCTION main : DINT
+FUNCTION main: DINT
     main := 0;
 END_FUNCTION
 ```
@@ -2135,9 +2189,9 @@ The "Details:" list printed after "Compilation aborted due to critical parse err
 // observed: rich diagnostic at broken.st:5:13, then
 //           "Details: Unexpected token: expected expression but found ; at: broken.st:4:12:{4:12-4:13}:"
 // expected: the Details line also reads broken.st:5:13
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        x : DINT;
+        x: DINT;
     END_VAR
     x := 1 +;
 END_FUNCTION
@@ -2149,25 +2203,25 @@ P4 src/resolver.rs:303:9: Call arguments are annotated twice
 // Reproducible example:
 // No observable difference in output; the double visit is visible in src/resolver.rs
 // (visit at line 2703, then annotate_arguments visits again at line 303).
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        value : DINT;
-        factor : DINT;
+        value: DINT;
+        factor: DINT;
     END_VAR
     scale := value * factor;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        i : DINT;
-        small : DINT := 2;
+        i: DINT;
+        small: DINT := 2;
     END_VAR
     i := scale(3, factor := small);
 END_FUNCTION
 ```
 
 P4 src/codegen/generators/pou_generator.rs:146:40: Initializer constant for a POU member is emitted twice
-For `PROGRAM main VAR values : ARRAY[1..3] OF DINT := [1, 2, 3]; END_VAR END_PROGRAM`, `plc --ir` contains both `@__main.values__init` and `@__main.values__init.1` with the same value `[i32 1, i32 2, i32 3]`. `generate_global_constants_for_pou_members` iterates the unit's dependencies, which contain `main` twice (once as `Dependency::Datatype` from its declaration and once as `Dependency::Call` from the reference to its instance in the generated constructor), and the guard `llvm_index.find_global_value(&name).is_none()` checks the module index that was passed in, not `local_llvm_index` into which the first constant was just inserted, so LLVM renames the second global with a `.1` suffix. Expected: one constant per initialized member.
+For `PROGRAM main VAR values: ARRAY[1..3] OF DINT := [1, 2, 3]; END_VAR END_PROGRAM`, `plc --ir` contains both `@__main.values__init` and `@__main.values__init.1` with the same value `[i32 1, i32 2, i32 3]`. `generate_global_constants_for_pou_members` iterates the unit's dependencies, which contain `main` twice (once as `Dependency::Datatype` from its declaration and once as `Dependency::Call` from the reference to its instance in the generated constructor), and the guard `llvm_index.find_global_value(&name).is_none()` checks the module index that was passed in, not `local_llvm_index` into which the first constant was just inserted, so LLVM renames the second global with a `.1` suffix. Expected: one constant per initialized member.
 ```
 // Reproducible example:
 // plc main.st --ir -o -
@@ -2177,7 +2231,7 @@ For `PROGRAM main VAR values : ARRAY[1..3] OF DINT := [1, 2, 3]; END_VAR END_PRO
 // expected: only @__main.values__init
 PROGRAM main
     VAR
-        values : ARRAY[1..3] OF DINT := [1, 2, 3];
+        values: ARRAY[1..3] OF DINT := [1, 2, 3];
     END_VAR
 END_PROGRAM
 ```
@@ -2190,15 +2244,15 @@ P4 src/codegen.rs:534:13: Objects for an explicit target are placed in a doubly 
 // observed: tb/x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu/scale.st.o
 // expected: tb/x86_64-unknown-linux-gnu/scale.st.o
 // --- file: scale.st ---
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        x : DINT;
+        x: DINT;
     END_VAR
     scale := x * 2;
 END_FUNCTION
 
 // --- file: prog.st ---
-FUNCTION main : DINT
+FUNCTION main: DINT
     main := scale(2);
 END_FUNCTION
 ```
@@ -2210,14 +2264,14 @@ Pre-processing appends a `UserTypeDeclaration` for every type parameter of a gen
 // plc --check main.st --ast-lowered | grep -c 'name: "__times_two__T"'
 // observed: 10
 // expected: 1
-FUNCTION times_two<T: ANY_INT> : T
+FUNCTION times_two<T: ANY_INT>: T
     VAR_INPUT
-        x : T;
+        x: T;
     END_VAR
     times_two := x * 2;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     main := times_two(DINT#4);
 END_FUNCTION
 ```
@@ -2230,33 +2284,33 @@ The "Side effects" section of the array lowerer's module documentation (lines 72
 // initializer to None; the strip lives in initializer.rs.
 PROGRAM main
     VAR
-        values : ARRAY[1..3] OF DINT := [3(1)];
+        values: ARRAY[1..3] OF DINT := [3(1)];
     END_VAR
 END_PROGRAM
 ```
 
 P4 src/codegen/generators/pou_generator.rs:877:8: Stack variables with an initializer are stored twice per call
-For `FUNCTION pick : DINT VAR local : DINT := 5; END_VAR ... END_FUNCTION`, and likewise for a `VAR_TEMP t : DINT := 4;` in a program, `plc --ir` shows `store i32 5, ptr %local` twice at the start of `@pick` and `store i32 4, ptr %t` twice at the start of `@prog`. `generate_initialization_of_local_vars` writes the constant initial value of every local, temp, and return variable when it sets up the stack slots, and the init participant has already prepended a `local := 5` assignment to the same body for the same variable (visible with `--ast-lowered`). The value is the same, so the result is correct, but every initialized stack variable costs two stores per call. Expected: one of the two mechanisms owns stack initialization.
+For `FUNCTION pick: DINT VAR local: DINT := 5; END_VAR ... END_FUNCTION`, and likewise for a `VAR_TEMP t: DINT := 4;` in a program, `plc --ir` shows `store i32 5, ptr %local` twice at the start of `@pick` and `store i32 4, ptr %t` twice at the start of `@prog`. `generate_initialization_of_local_vars` writes the constant initial value of every local, temp, and return variable when it sets up the stack slots, and the init participant has already prepended a `local := 5` assignment to the same body for the same variable (visible with `--ast-lowered`). The value is the same, so the result is correct, but every initialized stack variable costs two stores per call. Expected: one of the two mechanisms owns stack initialization.
 ```
 // Reproducible example:
 // plc main.st --ir -o -
 // observed in @pick: "store i32 5, ptr %local" twice; in @prog: "store i32 4, ptr %t" twice
 // expected: one store per variable
-FUNCTION pick : DINT
+FUNCTION pick: DINT
     VAR
-        local : DINT := 5;
+        local: DINT := 5;
     END_VAR
     pick := local;
 END_FUNCTION
 
 PROGRAM prog
     VAR_TEMP
-        t : DINT := 4;
+        t: DINT := 4;
     END_VAR
     t := t + 1;
 END_PROGRAM
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     main := pick();
     prog();
 END_FUNCTION
@@ -2268,21 +2322,23 @@ The indexer registers a `__<Type>__init` entry in the `global_initializers` map 
 // Reproducible example:
 // plc main.st --ir -o - | grep '^@'
 // observed: only @__vtable_Counter_instance and @llvm.global_ctors; no @__Point__init, no @__Counter__init
-TYPE Point : STRUCT
-    x : DINT := 1;
-    y : DINT := 2;
-END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x: DINT := 1;
+        y: DINT := 2;
+    END_STRUCT
+END_TYPE
 
 FUNCTION_BLOCK Counter
     VAR
-        n : DINT := 3;
+        n: DINT := 3;
     END_VAR
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        p : Point;
-        c : Counter;
+        p: Point;
+        c: Counter;
     END_VAR
     main := p.x + c.n;
 END_FUNCTION
@@ -2297,32 +2353,32 @@ Entries in this section were not confirmed. Each one starts with a `Review:` lin
 Review (unclear): The symptom reproduces exactly (13 for the direct call, 3 or garbage for the interface call, codegen abort when the default is on the interface). The stated cause is partly wrong: E032 is never reported for methods, `validate_argument_count` has `_ => false` for everything except functions, programs, and function blocks, so a direct call `ad.compute(a := 3)` with no default compiles too and prints garbage. The interface path differs only because it takes the parameter list, and hence the defaults, from the interface method. Whether E032 must be raised for methods, or the implementation default must be honoured, is a design decision.
 
 P0 src/lowering/polymorphism/dispatch/interface.rs:369:5: Omitted input argument in an interface method call passes an uninitialized value
-`INTERFACE Calc METHOD compute : DINT VAR_INPUT a : DINT; b : DINT; END_VAR END_METHOD END_INTERFACE`, implemented by `Adder` with `b : DINT := 10`, called as `c.compute(a := 3)` through `c : Calc`, passes `--check` and prints `3` at `-O none` and a garbage value at the default level, while the direct call `ad.compute(a := 3)` prints `13`. The IR of the interface call reads `%1 = alloca i32` followed by `%2 = load i32, ptr %1` and passes `%2` as the second argument of the indirect call. The dispatch lowerer rewrites the call into a call through the method table entry; codegen then builds the argument list from the interface method's parameters (`src/codegen/generators/expression_generator.rs:715`), which carry no default, and fills the missing one with a fresh stack slot. The arity check `validate_argument_count` (`src/validation/statement.rs:2695`) only counts arguments for functions, programs, and function blocks, so no method call, direct or via interface, reports E032 for an omitted input; a direct method call without a default also passes an uninitialized value. Declaring the default on the interface method instead aborts codegen with `no type hint available for 10`. Expected: E032 for the omitted argument, or the implementation's default value.
+`INTERFACE Calc METHOD compute: DINT VAR_INPUT a: DINT; b: DINT; END_VAR END_METHOD END_INTERFACE`, implemented by `Adder` with `b: DINT := 10`, called as `c.compute(a := 3)` through `c: Calc`, passes `--check` and prints `3` at `-O none` and a garbage value at the default level, while the direct call `ad.compute(a := 3)` prints `13`. The IR of the interface call reads `%1 = alloca i32` followed by `%2 = load i32, ptr %1` and passes `%2` as the second argument of the indirect call. The dispatch lowerer rewrites the call into a call through the method table entry; codegen then builds the argument list from the interface method's parameters (`src/codegen/generators/expression_generator.rs:715`), which carry no default, and fills the missing one with a fresh stack slot. The arity check `validate_argument_count` (`src/validation/statement.rs:2695`) only counts arguments for functions, programs, and function blocks, so no method call, direct or via interface, reports E032 for an omitted input; a direct method call without a default also passes an uninitialized value. Declaring the default on the interface method instead aborts codegen with `no type hint available for 10`. Expected: E032 for the omitted argument, or the implementation's default value.
 ```
 // Reproducible example:
 INTERFACE Calc
-    METHOD compute : DINT
+    METHOD compute: DINT
     VAR_INPUT
-        a : DINT;
-        b : DINT;
+        a: DINT;
+        b: DINT;
     END_VAR
     END_METHOD
 END_INTERFACE
 
 FUNCTION_BLOCK Adder IMPLEMENTS Calc
-    METHOD compute : DINT
+    METHOD compute: DINT
     VAR_INPUT
-        a : DINT;
-        b : DINT := 10;
+        a: DINT;
+        b: DINT := 10;
     END_VAR
         compute := a + b;
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    ad : Adder;
-    c : Calc;
+    ad: Adder;
+    c: Calc;
 END_VAR
     c := ad;
     printf('%d$N', ad.compute(a := 3));
@@ -2335,21 +2391,21 @@ END_FUNCTION
 Review (unclear): The segfault reproduces only with `-O none`. With the default optimization level (and `-O less`) the binary runs to completion, because LLVM hoists or removes the alloca. The IR analysis is correct: `--ir` shows `%6 = alloca i32` inside the loop block. The P0 severity should be reconsidered since a default build is not affected.
 
 P0 src/codegen/generators/expression_generator.rs:1382:36: Temporary for an expression passed to a by-reference parameter is allocated inside the loop and exhausts the stack
-`FOR i := 1 TO 3000000 DO acc := acc + refsum(i + 1); END_FOR` with `FUNCTION refsum : DINT VAR_INPUT {ref} a : DINT; END_VAR` segfaults with the default 8 MB stack when compiled with `-O none`; the same loop with a plain variable argument runs, and the default optimization level hides the problem because LLVM hoists the slot. The IR of `main` has `%6 = alloca i32` in the loop block `continue2`, not in `entry`: when the argument of a by-reference parameter is not an lvalue, codegen allocates a stack slot at the current insert position and stores the value there, so every iteration allocates a new slot that is only released when the function returns. Every call with a computed argument for a `VAR_INPUT {ref}` parameter grows the stack per call. Expected: the temporary is allocated once in the entry block, or the slot is released with lifetime markers as the aggregate-return temporaries are.
+`FOR i := 1 TO 3000000 DO acc := acc + refsum(i + 1); END_FOR` with `FUNCTION refsum: DINT VAR_INPUT {ref} a: DINT; END_VAR` segfaults with the default 8 MB stack when compiled with `-O none`; the same loop with a plain variable argument runs, and the default optimization level hides the problem because LLVM hoists the slot. The IR of `main` has `%6 = alloca i32` in the loop block `continue2`, not in `entry`: when the argument of a by-reference parameter is not an lvalue, codegen allocates a stack slot at the current insert position and stores the value there, so every iteration allocates a new slot that is only released when the function returns. Every call with a computed argument for a `VAR_INPUT {ref}` parameter grows the stack per call. Expected: the temporary is allocated once in the entry block, or the slot is released with lifetime markers as the aggregate-return temporaries are.
 ```
 // Reproducible example:
 // plc main.st ... -O none; segfaults at runtime, prints -1121226208 with -O default
-FUNCTION refsum : DINT
+FUNCTION refsum: DINT
 VAR_INPUT {ref}
-    a : DINT;
+    a: DINT;
 END_VAR
     refsum := a;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    i : DINT;
-    acc : DINT;
+    i: DINT;
+    acc: DINT;
 END_VAR
     FOR i := 1 TO 3000000 DO
         acc := acc + refsum(i + 1);
@@ -2361,22 +2417,22 @@ END_FUNCTION
 Review (unclear): The segfault reproduces only with `-O none`. With the default optimization level the binary runs and prints 3000000. The IR analysis is correct: `%vla_struct` and `%vla_struct_ptr` are allocated in the loop block `continue2`, and the source already carries an XXX comment about this alloca per call. The P0 severity should be reconsidered since a default build is not affected.
 
 P0 src/codegen/llvm_typesystem.rs:476:25: VLA wrapper struct for a fixed array argument is allocated inside the loop and exhausts the stack
-`FOR i := 1 TO 3000000 DO acc := acc + vsum(arr); END_FOR` with `FUNCTION vsum : DINT VAR_IN_OUT a : ARRAY[*] OF DINT; END_VAR` and `arr : ARRAY[0..2] OF DINT` segfaults with the default 8 MB stack when compiled with `-O none`; the default optimization level hides the problem because LLVM hoists the slots. The IR of `main` has `%vla_struct = alloca %__vsum_a` and `%vla_struct_ptr = alloca %__vsum_a` in the loop block `continue2`. The cast that wraps a fixed array into the VLA struct allocates the struct at the current insert position on every call (lines 416 and 476), so a loop leaks two slots per iteration until the function returns. Expected: the wrapper slots are allocated once in the entry block and reused, or released with lifetime markers.
+`FOR i := 1 TO 3000000 DO acc := acc + vsum(arr); END_FOR` with `FUNCTION vsum: DINT VAR_IN_OUT a: ARRAY[*] OF DINT; END_VAR` and `arr: ARRAY[0..2] OF DINT` segfaults with the default 8 MB stack when compiled with `-O none`; the default optimization level hides the problem because LLVM hoists the slots. The IR of `main` has `%vla_struct = alloca %__vsum_a` and `%vla_struct_ptr = alloca %__vsum_a` in the loop block `continue2`. The cast that wraps a fixed array into the VLA struct allocates the struct at the current insert position on every call (lines 416 and 476), so a loop leaks two slots per iteration until the function returns. Expected: the wrapper slots are allocated once in the entry block and reused, or released with lifetime markers.
 ```
 // Reproducible example:
 // plc main.st ... -O none; segfaults at runtime, prints 3000000 with -O default
-FUNCTION vsum : DINT
+FUNCTION vsum: DINT
 VAR_IN_OUT
-    a : ARRAY[*] OF DINT;
+    a: ARRAY[*] OF DINT;
 END_VAR
     vsum := a[0];
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    i : DINT;
-    acc : DINT;
-    arr : ARRAY[0..2] OF DINT := [1, 2, 3];
+    i: DINT;
+    acc: DINT;
+    arr: ARRAY[0..2] OF DINT := [1, 2, 3];
 END_VAR
     FOR i := 1 TO 3000000 DO
         acc := acc + vsum(arr);
@@ -2388,16 +2444,16 @@ END_FUNCTION
 Review (unclear): The symptom reproduces exactly, but the cause is elsewhere. The flat literal escapes E033 because the init participant detects it as a non-constant array literal and moves it into the constructor before the constant evaluator sees it. That detection uses `is_const_expression` in compiler/plc_lowering/src/helper.rs, which returns true for any `Literal`, including a nested array literal, without recursing into its elements. So the nested initializer stays in the declaration and the constant evaluator reports it. The original location `const_evaluator.rs:1:1` was a placeholder; the entry now points at the helper.
 
 P1 compiler/plc_lowering/src/helper.rs:12:9: Nested array literal with a runtime element is rejected as an unresolved constant
-`nested : ARRAY[0..1] OF ARRAY[0..1] OF DINT := [[seed, 1], [2, seed]]` aborts with `error[E033]: Unresolved constant 'nested' variable: 'seed' is no const reference`, while the flat literal `flat : ARRAY[0..1] OF DINT := [seed, 1]` with the same element compiles and prints 7. The init participant moves an array initializer into the constructor only when `is_const_expression` says its elements are not constant; that helper returns true for every `Literal` node, so an inner array literal counts as constant whatever its elements contain. The nested initializer therefore stays in the declaration, and the constant evaluator, which does recurse into the inner literal, reports the runtime element. Expected: the nested literal is handled like the flat one; `is_const_expression` must recurse into array literals.
+`nested: ARRAY[0..1] OF ARRAY[0..1] OF DINT := [[seed, 1], [2, seed]]` aborts with `error[E033]: Unresolved constant 'nested' variable: 'seed' is no const reference`, while the flat literal `flat: ARRAY[0..1] OF DINT := [seed, 1]` with the same element compiles and prints 7. The init participant moves an array initializer into the constructor only when `is_const_expression` says its elements are not constant; that helper returns true for every `Literal` node, so an inner array literal counts as constant whatever its elements contain. The nested initializer therefore stays in the declaration, and the constant evaluator, which does recurse into the inner literal, reports the runtime element. Expected: the nested literal is handled like the flat one; `is_const_expression` must recurse into array literals.
 ```
 // Reproducible example:
 // plc --check: error[E033]: Unresolved constant `nested` variable: `seed` is no const reference
 // without `nested` the program compiles and prints 7
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    seed : DINT := 7;
-    flat : ARRAY[0..1] OF DINT := [seed, 1];
-    nested : ARRAY[0..1] OF ARRAY[0..1] OF DINT := [[seed, 1], [2, seed]];
+    seed: DINT := 7;
+    flat: ARRAY[0..1] OF DINT := [seed, 1];
+    nested: ARRAY[0..1] OF ARRAY[0..1] OF DINT := [[seed, 1], [2, seed]];
 END_VAR
     printf('%d %d$N', flat[0], nested[1][1]);
 END_FUNCTION
@@ -2406,30 +2462,30 @@ END_FUNCTION
 Review (unclear): Reproduces (THIS^.name() returns 1, name() returns 2). The behavior is enforced on purpose: the comment at the top of is_polymorphic_call_candidate says THIS^.foo() must not be lowered, and the unit test this_calls_are_untouched in the same file asserts it. Only the inner comment of Case 1 says the opposite. IEC 61131-3 binds calls through THIS dynamically (only SUPER is static), so the project has to decide whether to change the design and the test, or to fix the inner comment.
 
 P1 src/lowering/polymorphism/dispatch/pou.rs:241:9: `THIS^.method()` is a direct call while `method()` in the same body is dispatched
-`METHOD viaThis : DINT viaThis := THIS^.name(); END_METHOD` in `Base` returns `1` for a `Child` instance that overrides `name` to return `2`; the bare call `name()` in a sibling method returns `2`. The candidate check returns early for `THIS` and `THIS^` operators and for bases that are `THIS^` (the recursion for `Member` with a base hits `is_this_deref`), and the check for calls inside methods tests the base with `is_this`, which is false for the deref node `THIS^`, so `THIS^.foo()` never matches although the comment of that check says it wants to accept it. The top comment of the function and the unit test `this_calls_are_untouched` state the opposite, that `THIS^.foo()` stays untouched. Expected: both spellings dispatch through the method table, as IEC 61131-3 binds calls through `THIS` dynamically, or the difference is documented and the contradicting comment is removed.
+`METHOD viaThis: DINT viaThis := THIS^.name(); END_METHOD` in `Base` returns `1` for a `Child` instance that overrides `name` to return `2`; the bare call `name()` in a sibling method returns `2`. The candidate check returns early for `THIS` and `THIS^` operators and for bases that are `THIS^` (the recursion for `Member` with a base hits `is_this_deref`), and the check for calls inside methods tests the base with `is_this`, which is false for the deref node `THIS^`, so `THIS^.foo()` never matches although the comment of that check says it wants to accept it. The top comment of the function and the unit test `this_calls_are_untouched` state the opposite, that `THIS^.foo()` stays untouched. Expected: both spellings dispatch through the method table, as IEC 61131-3 binds calls through `THIS` dynamically, or the difference is documented and the contradicting comment is removed.
 ```
 // Reproducible example:
 FUNCTION_BLOCK Base
-    METHOD name : DINT
+    METHOD name: DINT
         name := 1;
     END_METHOD
-    METHOD viaThis : DINT
+    METHOD viaThis: DINT
         viaThis := THIS^.name();
     END_METHOD
-    METHOD viaBare : DINT
+    METHOD viaBare: DINT
         viaBare := name();
     END_METHOD
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK Child EXTENDS Base
-    METHOD name : DINT
+    METHOD name: DINT
         name := 2;
     END_METHOD
 END_FUNCTION_BLOCK
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        child : Child;
+        child: Child;
     END_VAR
     printf('%d$N', child.viaThis());    // prints 1, expected 2
     printf('%d$N', child.viaBare());    // prints 2
@@ -2446,7 +2502,7 @@ A `DataSource` with `identifier="ghost"`, or a `DataSink` naming a variable the 
 // observed: error[E037]: Invalid assignment: cannot assign 'rsion' to 'DINT' (ghost.cfc: Block 3), no E048
 // expected: error[E048]: Could not resolve reference to ghost (ghost.cfc: Block 1)
 // --- file: main.st ---
-FUNCTION main : DINT
+FUNCTION main: DINT
     ghost();
     printf('%d$N', ghost.x);
 END_FUNCTION
@@ -2458,7 +2514,7 @@ END_FUNCTION
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
             <bmx:TextDeclaration>PROGRAM ghost
 VAR
-    x : DINT;
+    x: DINT;
 END_VAR</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
@@ -2497,27 +2553,29 @@ P1 src/lowering/calls.rs:487:13: Aggregate-returning call as a FOR bound aborts 
 `FOR i := 1 TO xof(mk(4)) DO ... END_FOR`, where `mk` returns a struct and `xof` reads its member, passes `--check` but aborts codegen with `error: Could not resolve reference to __mk2` at the location of the bound. The same call in an `IF`, `ELSIF`, `WHILE`, or `REPEAT UNTIL` condition, in a `CASE` selector, in an assignment, nested inside another call, or in a hand-written `WHILE TRUE DO IF i > xof(mk(4)) THEN EXIT; END_IF; ... END_WHILE` is lowered correctly. The loop desugarer runs before the aggregate-return lowerer and turns the FOR into a `WHILE TRUE` loop whose bound check copies the `end` expression with `end.clone()` into two exit tests (`counter > end` and `counter < end`), so both copies share their AST ids; the aggregate lowerer rewrites each copy in place into a temporary (`__mk2`, `__mk3`) allocated in front of its exit test, and the codegen fails to resolve the first one, most likely because the annotation of the shared id points at the other temporary. Expected: the temporary and the call are placed once in front of the loop, or the desugarer gives the copied bound fresh ids so each temporary resolves.
 ```
 // Reproducible example:
-TYPE S : STRUCT
-    x : DINT;
-END_STRUCT END_TYPE
+TYPE S:
+    STRUCT
+        x: DINT;
+    END_STRUCT
+END_TYPE
 
-FUNCTION mk : S
+FUNCTION mk: S
     VAR_INPUT
-        v : DINT;
+        v: DINT;
     END_VAR
     mk.x := v;
 END_FUNCTION
 
-FUNCTION xof : DINT
+FUNCTION xof: DINT
     VAR_INPUT
-        s : S;
+        s: S;
     END_VAR
     xof := s.x;
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        i : DINT;
+        i: DINT;
     END_VAR
     CASE xof(mk(3)) OF    // compiles and prints "case ok"
         3: printf('case ok$N');
@@ -2531,7 +2589,7 @@ END_FUNCTION
 Review (unclear): The symptom reproduces (E048 on p^.show(), while plain.show() and p^.method() resolve), but the cause is not the resolver. The polymorphism dispatch lowering treats every `ptr^.member()` call as a virtual method call and rewrites it to `__vtable_Plain#(p^.__vtable^).show^(p^)`; actions are not in the vtable, so `show` is unresolved after lowering. The corrected location is given in the entry. Whether actions should be dispatched directly or become virtual is a design decision.
 
 P3 src/lowering/polymorphism/dispatch/pou.rs:269:13: Action called through a pointer is not resolved
-`p^.show();` with `p : POINTER TO Plain` and `ACTION show` of `Plain` fails with `E048: Could not resolve reference to show`, while `plain.show();` on an instance resolves and `p^.m()` with a `METHOD m` works. `is_polymorphic_call_candidate` accepts any `Member` access whose base is a dereferenced pointer to a function block or class without checking that the callee is a method, so the call is rewritten to the virtual table dispatch `__vtable_Plain#(p^.__vtable^).show^(p^)` (visible with `--ast-lowered`). Actions have no vtable slot, so the re-annotation cannot resolve `show`. Expected: the action is found through the pointer like a method is, by calling it directly instead of through the vtable.
+`p^.show();` with `p: POINTER TO Plain` and `ACTION show` of `Plain` fails with `E048: Could not resolve reference to show`, while `plain.show();` on an instance resolves and `p^.m()` with a `METHOD m` works. `is_polymorphic_call_candidate` accepts any `Member` access whose base is a dereferenced pointer to a function block or class without checking that the callee is a method, so the call is rewritten to the virtual table dispatch `__vtable_Plain#(p^.__vtable^).show^(p^)` (visible with `--ast-lowered`). Actions have no vtable slot, so the re-annotation cannot resolve `show`. Expected: the action is found through the pointer like a method is, by calling it directly instead of through the vtable.
 ```
 // Reproducible example:
 // plc --check
@@ -2539,7 +2597,7 @@ P3 src/lowering/polymorphism/dispatch/pou.rs:269:13: Action called through a poi
 // expected: compiles and prints 5 twice
 FUNCTION_BLOCK Plain
 VAR
-    n : DINT;
+    n: DINT;
 END_VAR
 END_FUNCTION_BLOCK
 
@@ -2549,10 +2607,10 @@ ACTIONS Plain
     END_ACTION
 END_ACTIONS
 
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    plain : Plain;
-    p : POINTER TO Plain;
+    plain: Plain;
+    p: POINTER TO Plain;
 END_VAR
     p := ADR(plain);
     plain.n := 5;
@@ -2568,18 +2626,18 @@ P3 compiler/plc_lowering/src/loops.rs:359:17: FOR end bound and step are re-eval
 ```
 // Reproducible example:
 VAR_GLOBAL
-    cnt : DINT := 0;
+    cnt: DINT := 0;
 END_VAR
-FUNCTION next : DINT
+FUNCTION next: DINT
     cnt := cnt + 1;
     next := cnt;
 END_FUNCTION
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    n : DINT;
-    i : DINT;
-    st : DINT := 2;
-    k : DINT := 0;
+    n: DINT;
+    i: DINT;
+    st: DINT := 2;
+    k: DINT := 0;
 END_VAR
     FOR n := next() TO next() + 3 DO END_FOR
     printf('cnt=%d n=%d$N', cnt, n);
@@ -2596,15 +2654,15 @@ END_FUNCTION
 Review (unclear): Out-of-range float to integer conversion is implementation-defined in IEC 61131-3, so this is reported as P3 for the inconsistency and the optimization-dependent result, not as wrong code by itself.
 
 P3 src/codegen/llvm_typesystem.rs:330:26: Implicit REAL to integer assignment out of range yields an optimization-dependent value while REAL_TO_INT saturates
-With `r : REAL := 40000.0` and `lr : LREAL := 3.0E9`, `i := r` prints `40000` at `-O none` and `-668053464` at the default level, and `d := lr` prints `2147483647` at `-O none` and `-1499349872` at the default level; `REAL_TO_INT(r)` and `LREAL_TO_DINT(lr)` print `32767` and `2147483647` at both levels. The implicit cast in `cast_float_to_int` emits a plain `fptosi` (line 330, `fptoui` for unsigned targets), whose result is poison for values outside the target range, so LLVM folds it to an arbitrary constant when it can and the hardware saturates when it cannot; the explicit stdlib conversion functions are Rust `as` casts and saturate. Expected: the implicit narrowing behaves like the explicit conversion (saturating `llvm.fptosi.sat`), or at least does not change with the optimization level. Reproduce with the default command line at `-O none` and at the default level and compare.
+With `r: REAL := 40000.0` and `lr: LREAL := 3.0E9`, `i := r` prints `40000` at `-O none` and `-668053464` at the default level, and `d := lr` prints `2147483647` at `-O none` and `-1499349872` at the default level; `REAL_TO_INT(r)` and `LREAL_TO_DINT(lr)` print `32767` and `2147483647` at both levels. The implicit cast in `cast_float_to_int` emits a plain `fptosi` (line 330, `fptoui` for unsigned targets), whose result is poison for values outside the target range, so LLVM folds it to an arbitrary constant when it can and the hardware saturates when it cannot; the explicit stdlib conversion functions are Rust `as` casts and saturate. Expected: the implicit narrowing behaves like the explicit conversion (saturating `llvm.fptosi.sat`), or at least does not change with the optimization level. Reproduce with the default command line at `-O none` and at the default level and compare.
 ```
 // Reproducible example:
-FUNCTION main : DINT
+FUNCTION main: DINT
 VAR
-    i : INT;
-    d : DINT;
-    r : REAL := 40000.0;
-    lr : LREAL := 3.0E9;
+    i: INT;
+    d: DINT;
+    r: REAL := 40000.0;
+    lr: LREAL := 3.0E9;
 END_VAR
     i := r;
     d := lr;

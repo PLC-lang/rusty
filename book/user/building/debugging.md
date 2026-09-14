@@ -136,4 +136,4 @@ One convention for both compilers keeps the source lookup consistent in Eclipse,
 
 ## What's next
 
-That is the toolchain. The next part connects a project to code that is not written in Structured Text: [interoperability](../interop/README.md).
+That is the toolchain. The next chapter connects a project to code that is not written in Structured Text: [interoperability](../interop/README.md).

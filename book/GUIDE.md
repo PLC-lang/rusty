@@ -59,6 +59,7 @@ Chapters are written one at a time. Each chapter gets a review before the next o
 - Do not enumerate entry or node fields in prose. Point to the source file and to the internals chapter instead.
 - Do not explain library choices (for example which lexer generator is used). Describe the mechanism as if it were hand-written.
 - Indent Structured Text examples: variable blocks and bodies one level inside the POU, declarations two levels, a blank line between the last `END_VAR` and the body.
+- Write the colon of a declaration without a space before it (`count: DINT`). A `STRUCT` stands on its own line inside its `TYPE` block, with the members one level deeper.
 - Use the admonition blocks of mdBook: `> [!NOTE]` for a short aside, and `> [!NOTE]` with a leading `**Developer note.**` for known technical debt or historical context. A custom title is not supported.
 - Do not mention that facts were obtained with temporary logging.
 
@@ -88,7 +89,7 @@ Every pipeline chapter has a "Where it lives" table (what, where) directly above
 
 - `technical/participants/02-property.md`, `04-control-statements.md`, `05-reference-to-return.md`, `06-init.md`, `07-retain.md`, `08-generic.md`, `09-aggregate-return.md`, `10-inheritance.md`, `11-array.md`: written to the same template, each researched with its own example set; the bugs found along the way are in `bugs.md`.
 
-- `technical/participants/README.md`: the ordered table of all twelve participants with their hooks, one-line purposes, and locations, plus one paragraph on the order. Index pages (the README of every part) stay at surface level: a short intro, a table with one line per chapter, at most one paragraph after it.
+- `technical/participants/README.md`: a summary of what the twelve participants do, in registration order. An index page (the README of every part) says what the part and its chapters cover, in at most five sentences and one to three paragraphs. It carries no table and no list of chapter links, because the sidebar and the navigation arrows already do that. The pipeline index keeps the pipeline diagram above its paragraph.
 
 - `technical/participants/03-polymorphism.md`: the two-hook participant, carried over almost verbatim from the design document in `src/lowering/polymorphism/draft.md` and fitted into the template: the intro with the hook diagram, one Transformation section with vtables, itables, the fat pointer, the four dispatch rewrites, and a complete example, then Interactions and a Validation section on E126 and E129. The draft was checked against the code first; its `__FPOINTER TO` syntax and the missing `__upcast` initializers were corrected. About twice the length of the other participant chapters because it holds two lowerings.
 

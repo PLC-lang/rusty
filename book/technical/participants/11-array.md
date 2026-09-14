@@ -5,7 +5,7 @@ Codegen can copy an array literal such as `[1, 2, 3]` from one constant. A liter
 ```iecst
 PROGRAM main
     VAR
-        readings : ARRAY[0..2] OF DINT := [sample(), 0, sample()];
+        readings: ARRAY[0..2] OF DINT := [sample(), 0, sample()];
     END_VAR
 END_PROGRAM
 ```
@@ -46,7 +46,7 @@ The spelling `n(value)` repeats one element `n` times. Fewer than 32 repetitions
 
 ```diff
 +VAR_TEMP
-+    __literal_idx : DINT;
++    __literal_idx: DINT;
 +END_VAR
 -self.big := [40(sample())];
 +__literal_idx := 1;
@@ -59,11 +59,11 @@ The spelling `n(value)` repeats one element `n` times. Fewer than 32 repetitions
 +END_WHILE
 ```
 
-for `big : ARRAY[1..40] OF DINT`. A literal may mix segments, `[2(a), b, 2(c)]`; each segment is lowered on its own at the position it occupies, and the threshold applies per segment, so `[10(v), 10(v), 10(v), 10(v)]` is unrolled into 40 assignments.
+for `big: ARRAY[1..40] OF DINT`. A literal may mix segments, `[2(a), b, 2(c)]`; each segment is lowered on its own at the position it occupies, and the threshold applies per segment, so `[10(v), 10(v), 10(v), 10(v)]` is unrolled into 40 assignments.
 
 ### Several dimensions
 
-For `grid : ARRAY[0..1, 0..2] OF DINT`, the positions of the flat literal are converted into one index per dimension, the last dimension varying fastest and every index offset by its lower bound:
+For `grid: ARRAY[0..1, 0..2] OF DINT`, the positions of the flat literal are converted into one index per dimension, the last dimension varying fastest and every index offset by its lower bound:
 
 ```diff
 -self.grid := [sample(), 1, 2, 3, 4, sample()];

@@ -43,17 +43,17 @@ A `FUNCTION` becomes a C function. Parameters follow three rules:
 - A `VAR_INPUT {ref}`, a `VAR_IN_OUT`, and a `VAR_OUTPUT` are passed as a pointer to the caller's variable. `VAR_IN_OUT` and `VAR_OUTPUT` write through it.
 
 ```iecst
-FUNCTION F1 : DINT
+FUNCTION F1: DINT
     VAR_INPUT
-        i : DINT;
-        s : STRING[10];
-        p : Point;
+        i: DINT;
+        s: STRING[10];
+        p: Point;
     END_VAR
     VAR_IN_OUT
-        io : DINT;
+        io: DINT;
     END_VAR
     VAR_OUTPUT
-        o : DINT;
+        o: DINT;
     END_VAR
 END_FUNCTION
 ```
@@ -72,9 +72,9 @@ An elementary return type is the return value of the C function.
 An aggregate return type (string, array, or struct) is returned through a pointer that the caller provides, and that pointer is the **first** parameter. The C function then returns `void`.
 
 ```iecst
-FUNCTION RetString : STRING[20]
+FUNCTION RetString: STRING[20]
     VAR_INPUT
-        n : DINT;
+        n: DINT;
     END_VAR
 END_FUNCTION
 ```
@@ -91,17 +91,17 @@ A `FUNCTION_BLOCK` is a struct plus a function that takes a pointer to an instan
 ```iecst
 FUNCTION_BLOCK FB1
     VAR_INPUT
-        i : DINT;
-        s : STRING[10];
+        i: DINT;
+        s: STRING[10];
     END_VAR
     VAR_IN_OUT
-        io : DINT;
+        io: DINT;
     END_VAR
     VAR_OUTPUT
-        o : DINT;
+        o: DINT;
     END_VAR
     VAR
-        priv : DINT;
+        priv: DINT;
     END_VAR
 END_FUNCTION_BLOCK
 ```
@@ -166,8 +166,8 @@ The declaration on the Structured Text side only states that the method exists:
 {external}
 FUNCTION_BLOCK myFunctionBlock
     VAR
-        a : DINT;
-        b : DINT;
+        a: DINT;
+        b: DINT;
     END_VAR
 
     METHOD FB_INIT

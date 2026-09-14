@@ -57,7 +57,7 @@ A function block that needs setup declares the method `FB_INIT`. The compiler ca
 ```iecst
 FUNCTION_BLOCK Counter
     VAR
-        current : DINT;
+        current: DINT;
     END_VAR
 
     METHOD FB_INIT

@@ -4,8 +4,8 @@ Two types hold text. `STRING` stores UTF-8 bytes and its literals stand between 
 
 ```iecst
 VAR
-    name  : STRING := 'motor';
-    label : WSTRING := "Motor";
+    name: STRING := 'motor';
+    label: WSTRING := "Motor";
 END_VAR
 ```
 
@@ -18,8 +18,8 @@ The capacity is the whole story about what fits. An assignment that does not fit
 
 ```iecst
 VAR
-    long  : STRING[20] := 'abcdefghij';
-    short : STRING[5];
+    long: STRING[20] := 'abcdefghij';
+    short: STRING[5];
 END_VAR
 
 short := long;   (* 'abcde' *)
@@ -44,8 +44,8 @@ So declare the capacity that the value needs. The compiler cannot warn about a t
 | `$XX` | The character with that hexadecimal code, four digits in a `WSTRING` |
 
 ```iecst
-message : STRING := 'Line 1$NLine 2';
-price   : STRING := 'costs $$5';
+message: STRING := 'Line 1$NLine 2';
+price: STRING := 'costs $$5';
 ```
 
 
@@ -80,8 +80,8 @@ Positions count from `1`. Note the order of the arguments of `MID`: the length c
 
 ```iecst
 VAR
-    source : STRING[20] := 'abcdefghij';
-    part : STRING[20];
+    source: STRING[20] := 'abcdefghij';
+    part: STRING[20];
 END_VAR
 
 part := MID(source, 3, 2);   (* 'bcd' *)

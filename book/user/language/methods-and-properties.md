@@ -10,12 +10,12 @@ A method is declared inside the function block, it has its own parameters and it
 ```iecst
 FUNCTION_BLOCK Tank
     VAR
-        level : DINT;
+        level: DINT;
     END_VAR
 
-    METHOD Fill : DINT
+    METHOD Fill: DINT
         VAR_INPUT
-            amount : DINT;
+            amount: DINT;
         END_VAR
 
         level := level + amount;
@@ -28,8 +28,8 @@ Call it through an instance:
 
 ```iecst
 VAR
-    inlet : Tank;
-    value : DINT;
+    inlet: Tank;
+    value: DINT;
 END_VAR
 
 value := inlet.Fill(amount := 3);
@@ -42,7 +42,7 @@ Inside a method, `THIS^` names the instance itself. You need it when a parameter
 ```iecst
 METHOD SetLevel
     VAR_INPUT
-        level : DINT;
+        level: DINT;
     END_VAR
 
     THIS^.level := level;
@@ -59,14 +59,14 @@ A property is a value with code behind it. It has a getter, a setter, or both. I
 ```iecst
 FUNCTION_BLOCK Tank
     VAR
-        level : DINT;
+        level: DINT;
     END_VAR
 
-    PROPERTY_GET Percent : DINT
+    PROPERTY_GET Percent: DINT
         Percent := level * 10;
     END_PROPERTY
 
-    PROPERTY_SET Percent : DINT
+    PROPERTY_SET Percent: DINT
         level := Percent / 10;
     END_PROPERTY
 END_FUNCTION_BLOCK

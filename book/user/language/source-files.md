@@ -8,11 +8,11 @@ Before the language itself, three things about the files that hold it: what goes
 A source file is a list of declarations at the top level. There is no wrapper around them and no order requirement:
 
 ```iecst
-TYPE Level : INT (0..100);
+TYPE Level: INT (0..100);
 END_TYPE
 
 VAR_GLOBAL
-    cycleTime : TIME := T#10ms;
+    cycleTime: TIME := T#10ms;
 END_VAR
 
 FUNCTION_BLOCK Pump
@@ -73,12 +73,12 @@ When a local name and a global name are the same, the local one wins. A leading 
 
 ```iecst
 VAR_GLOBAL
-    shared : DINT := 1;
+    shared: DINT := 1;
 END_VAR
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        shared : DINT := 2;
+        shared: DINT := 2;
     END_VAR
 
     main := shared;    (* 2, the local one *)

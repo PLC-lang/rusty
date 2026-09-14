@@ -37,10 +37,10 @@ plc generate plc.json headers
 ## An example
 
 ```iecst
-TYPE T_Message : STRING[255];
+TYPE T_Message: STRING[255];
 END_TYPE
 
-FUNCTION PrintMessage : DINT
+FUNCTION PrintMessage: DINT
     VAR_INPUT
         message: T_Message;
     END_VAR
@@ -48,10 +48,10 @@ END_FUNCTION
 
 FUNCTION_BLOCK Counter
     VAR_INPUT
-        step : DINT;
+        step: DINT;
     END_VAR
     VAR_OUTPUT
-        value : DINT;
+        value: DINT;
     END_VAR
 END_FUNCTION_BLOCK
 ```
@@ -111,4 +111,4 @@ The C interface of each construct, and the rules behind the type translation, ar
 
 ## What's next
 
-The last chapter of this part is about the interface itself: [how to design one](api-guidelines.md).
+The last chapter here is about the interface itself: [how to design one](api-guidelines.md).

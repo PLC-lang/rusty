@@ -1,3 +1,5 @@
 # Building
 
-This part is about the compiler as a tool. It explains how to turn one file or a whole project into an artifact, and which options decide what that artifact is, for which machine it is built, and how hard the optimizer works. It then covers the link step, where the object files meet the libraries, the standard library, and the rules of the platform. The last two chapters are for the moments when a build fails or a program misbehaves: how to read a diagnostic, look up its code, and change its severity, and what to put into the binary so that a debugger finds the source of a shipped build.
+After this chapter you can turn a project into the artifact that you want to ship.
+
+It covers how sources become an artifact, and which options decide what that artifact is, for which target it is built, and how hard the optimizer works. It then covers how the object files are joined with the libraries and with the standard library, what the compiler reports when a build fails, and how to change the severity of a message. At the end it covers what to put into the binary so that a debugger finds the source of a shipped build.

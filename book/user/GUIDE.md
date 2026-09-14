@@ -21,7 +21,7 @@ The book follows the split that the documentation of Rust, Go, Kotlin, and TypeS
 
 | Kind | Parts | Shape |
 |---|---|---|
-| Guide | Get Started, Language, Building, Interoperability | Prose with worked examples. The reader reads it once, from the top |
+| Guide | Getting Started, Language, Building, Interoperability | Prose with worked examples. The reader reads it once, from the top |
 | Reference | Reference | Tables and lists. The reader arrives from a search or a link, reads one row, and leaves |
 
 The rule that follows from this: a complete list belongs in the reference. A guide chapter shows the few forms that a reader needs to start and links to the reference for the rest. The command line chapter of the guide explains six options; the reference lists all of them.
@@ -84,8 +84,9 @@ Reference pages open with one line that says they are for looking up, and they m
 - No em dashes. Use commas, semicolons, or parentheses.
 - Do not reference plans, tickets, or roadmap items. Describe current behavior.
 - Indent Structured Text examples: variable blocks and bodies one level inside the POU, declarations two levels, a blank line between the last `END_VAR` and the body.
+- Write the colon of a declaration without a space before it (`count: DINT`). A `STRUCT` stands on its own line inside its `TYPE` block, with the members one level deeper.
 - Use the admonition blocks of mdBook: `> [!NOTE]` for a short aside, `> [!IMPORTANT]` for a rule that breaks code when it is missed, and `> [!WARNING]` for something that is deprecated or wrong today. A custom title is not supported, so put the label in the text (`> **Deprecated.** ...`). At most one per section, and never two in a row.
-- An index page (the README of every part) is one paragraph of at most five sentences that says what the part and its chapters teach. It carries no table and no list of chapter links, because the sidebar and the navigation arrows already do that.
+- An index page (the README of every part) says what the part and its chapters teach, in at most five sentences and one to three paragraphs. It carries no table and no list of chapter links, because the sidebar and the navigation arrows already do that.
 
 
 ## Coverage
@@ -94,7 +95,7 @@ Reference pages open with one line that says they are for looking up, and they m
 
 | Chapter | Covers |
 |---|---|
-| `install.md` | Release packages, binaries, build from source, verification |
+| `install.md` | Prerequisites per system, build from source, the standard library, verification |
 | `hello-world.md` | One file, compile, link, run, and the first diagnostic |
 | `first-project.md` | A program, a function block, two files, `plc.json`, `plc build` |
 
@@ -145,7 +146,6 @@ Read in this order. Each chapter uses only what the chapters before it introduce
 |---|---|
 | `command-line.md` | Every option and subcommand, grouped by purpose |
 | `project-file.md` | Every key of `plc.json` |
-| `supported-features.md` | Every construct, and what is not supported |
 | `standard-library.md` | The function families of `iec61131std` |
 | `error-codes.md` | The generated page per diagnostic code |
 

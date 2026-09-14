@@ -53,7 +53,7 @@ There are two kinds of participants:
 - **Mutating participants** take the project by value and return a new one. They are the lowerers above and use the four hooks around index and annotate. The diagnostics they collect while they rewrite are gathered after the last `post_annotate` hook and reported with the validation diagnostics.
 - **Read-only participants** get a shared reference and cannot change the project. They see all six hooks, plus one call per generated module. The only one by default is the codegen participant, which writes the modules to disk and links them.
 
-The driver registers twelve mutating participants. Hook order determines when they run; registration order determines their order within a hook. Later participants can depend on earlier rewrites. The [Participants](../participants/README.md) index lists both orders.
+The driver registers twelve mutating participants. Hook order determines when they run; registration order determines their order within a hook. Later participants can depend on earlier rewrites. The [Participants](../participants/README.md) chapters follow the registration order.
 
 > [!NOTE]
 > **Developer note.** The participant model started small. It gave a simple way to lower inheritance without a dedicated

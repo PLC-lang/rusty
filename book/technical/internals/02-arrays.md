@@ -6,22 +6,24 @@ The example compares several dimensions with nested arrays and arrays of [struct
 
 ```iecst
 VAR_GLOBAL CONSTANT
-    MAX : DINT := 3;
+    MAX: DINT := 3;
 END_VAR
 
-TYPE Point : STRUCT
-    x : DINT;
-    y : DINT;
-END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x: DINT;
+        y: DINT;
+    END_STRUCT
+END_TYPE
 
-TYPE Data : ARRAY[0..9] OF DINT := [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; END_TYPE
+TYPE Data: ARRAY[0..9] OF DINT := [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; END_TYPE
 
-FUNCTION sum : DINT
+FUNCTION sum: DINT
     VAR_INPUT
-        values : ARRAY[1..MAX] OF DINT;
+        values: ARRAY[1..MAX] OF DINT;
     END_VAR
     VAR_IN_OUT
-        target : ARRAY[0..1] OF DINT;
+        target: ARRAY[0..1] OF DINT;
     END_VAR
 
     sum := values[1] + values[2] + values[3];
@@ -30,15 +32,15 @@ END_FUNCTION
 
 PROGRAM main
     VAR
-        a : Data;
-        b : ARRAY[3..5] OF DINT := [3, 4, 5];
-        neg : ARRAY[-2..2] OF INT;
-        grid : ARRAY[0..1, 0..2] OF DINT;
-        nested : ARRAY[0..1] OF ARRAY[0..2] OF DINT;
-        points : ARRAY[0..1] OF Point := [(x := 1, y := 2), (x := 3)];
-        rep : ARRAY[1..MAX] OF DINT := [(MAX)(7)];
-        i : DINT;
-        pair : ARRAY[0..1] OF DINT;
+        a: Data;
+        b: ARRAY[3..5] OF DINT := [3, 4, 5];
+        neg: ARRAY[-2..2] OF INT;
+        grid: ARRAY[0..1, 0..2] OF DINT;
+        nested: ARRAY[0..1] OF ARRAY[0..2] OF DINT;
+        points: ARRAY[0..1] OF Point := [(x := 1, y := 2), (x := 3)];
+        rep: ARRAY[1..MAX] OF DINT := [(MAX)(7)];
+        i: DINT;
+        pair: ARRAY[0..1] OF DINT;
     END_VAR
 
     a[2] := b[4];
@@ -82,7 +84,7 @@ pub struct Dimension {
 }
 ```
 
-Every bound is put into the constant store as an expression, even a plain literal, and constant evaluation at the end of the stage folds it (see [Index](../pipeline/02-index.md), Constant evaluation). `values : ARRAY[1..MAX]` therefore holds the expression `MAX` until the evaluator resolves it to 3. After indexing, the project has these array types, all with the nature `Any`:
+Every bound is put into the constant store as an expression, even a plain literal, and constant evaluation at the end of the stage folds it (see [Index](../pipeline/02-index.md), Constant evaluation). `values: ARRAY[1..MAX]` therefore holds the expression `MAX` until the evaluator resolves it to 3. After indexing, the project has these array types, all with the nature `Any`:
 
 ```
 Data             inner: DINT              dims: [0..9]            initializer: ConstId -> [0, 1, ..., 9]
@@ -135,10 +137,10 @@ An array literal gets no annotation of its own, only a hint: the type of the pla
 For an array of structs, every parenthesized element is hinted with the struct type, `Point`, and its member assignments resolve against that struct, `Point.x` and `Point.y`:
 
 ```
-        points : ARRAY[0..1] OF Point := [(x := 1, y := 2), (x := 3)];
-                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^   hint: "__main_points"
-                                          ^^^^^^^^^^^^^^^^              hint: "Point"
-                                           ^                            { kind: Variable, qualified_name: "Point.x", resulting_type: "DINT" }
+        points: ARRAY[0..1] OF Point := [(x := 1, y := 2), (x := 3)];
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^   hint: "__main_points"
+                                         ^^^^^^^^^^^^^^^^              hint: "Point"
+                                          ^                            { kind: Variable, qualified_name: "Point.x", resulting_type: "DINT" }
 ```
 
 The repetition `(MAX)(7)` is still a call here: its operator resolves to the constant `MAX` and the argument `7` is a `DINT`. The array lowerer sorts that out later. An array passed to a function is hinted with the type of the parameter: `rep` is hinted `__sum_values`, and `pair` is hinted `__auto_pointer_to___sum_target`, the pointer type of the in-out parameter.

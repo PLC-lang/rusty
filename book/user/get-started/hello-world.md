@@ -13,13 +13,13 @@ Write this into `hello_world.st`:
 
 ```iecst
 {external}
-FUNCTION puts : DINT
+FUNCTION puts: DINT
     VAR_INPUT {ref}
-        text : STRING;
+        text: STRING;
     END_VAR
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     puts('hello, world!$N');
 END_FUNCTION
 ```
@@ -48,9 +48,9 @@ Leave out `-o` and the executable is named after the input file, here `hello_wor
 Change the body to an assignment that cannot work:
 
 ```iecst
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        x : DINT;
+        x: DINT;
     END_VAR
 
     x := 'text';

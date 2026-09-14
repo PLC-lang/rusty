@@ -5,19 +5,19 @@ A program organization unit (POU) contains code and declarations. Programs, func
 The example uses a function, a function block, a class, a method, and an action. Follow how their variables become instance fields or stack slots:
 
 ```iecst
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        value : DINT;
-        factor : INT := 2;
+        value: DINT;
+        factor: INT := 2;
     END_VAR
     VAR_IN_OUT
-        count : DINT;
+        count: DINT;
     END_VAR
     VAR_OUTPUT
-        overflow : BOOL;
+        overflow: BOOL;
     END_VAR
     VAR
-        tmp : DINT;
+        tmp: DINT;
     END_VAR
 
     count := count + 1;
@@ -28,16 +28,16 @@ END_FUNCTION
 
 FUNCTION_BLOCK Counter
     VAR_INPUT
-        step : DINT := 1;
+        step: DINT := 1;
     END_VAR
     VAR_OUTPUT
-        total : DINT;
+        total: DINT;
     END_VAR
     VAR
-        calls : DINT;
+        calls: DINT;
     END_VAR
     VAR_TEMP
-        scratch : DINT;
+        scratch: DINT;
     END_VAR
 
     METHOD reset
@@ -58,12 +58,12 @@ END_ACTIONS
 
 CLASS Limits
     VAR
-        max : DINT := 100;
+        max: DINT := 100;
     END_VAR
 
-    METHOD exceeded : BOOL
+    METHOD exceeded: BOOL
         VAR_INPUT
-            candidate : DINT;
+            candidate: DINT;
         END_VAR
 
         exceeded := candidate > max;
@@ -72,10 +72,10 @@ END_CLASS
 
 PROGRAM main
     VAR
-        counter : Counter;
-        limits : Limits;
-        hits : DINT;
-        flag : BOOL;
+        counter: Counter;
+        limits: Limits;
+        hits: DINT;
+        flag: BOOL;
     END_VAR
 
     counter(step := 5, total => hits);
@@ -337,7 +337,7 @@ Calls are checked in the statement validator: every `VAR_IN_OUT` of the callee m
 | `PROGRAM main` | `Program` entry, struct `main`, global `main_instance` | `Program` | `%main`, `@main_instance`, `void @main(ptr)` |
 | `FUNCTION_BLOCK Counter` | `FunctionBlock` entry, struct `Counter` | `Variable` of type `Counter` | `%Counter`, `void @Counter(ptr)` |
 | `CLASS Limits` | `Class` entry, struct `Limits` | `Variable` of type `Limits` | `%Limits`, empty `void @Limits(ptr)` |
-| `FUNCTION scale : DINT` | `Function` entry, struct `scale` with return member `scale.scale` | `Function`, return type `DINT` | `i32 @scale(...)`, no struct |
+| `FUNCTION scale: DINT` | `Function` entry, struct `scale` with return member `scale.scale` | `Function`, return type `DINT` | `i32 @scale(...)`, no struct |
 | `METHOD reset` | `Method` entry, struct `Counter.reset` for its parameters | `Function` | `void @Counter__reset(ptr, ...)` |
 | `ACTION double` | `Action` entry, parent's struct | `Program` | `void @Counter__double(ptr)` |
 | `VAR_INPUT x` | `ByVal(Input)` member | | struct field, or a by-value argument in a function |

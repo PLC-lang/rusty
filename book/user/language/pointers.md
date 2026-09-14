@@ -9,9 +9,9 @@ A pointer holds the address of a variable instead of a value. You need one to sh
 
 ```iecst
 VAR
-    value : DINT := 10;
-    p : REF_TO DINT;
-    q : POINTER TO DINT;
+    value: DINT := 10;
+    p: REF_TO DINT;
+    q: POINTER TO DINT;
 END_VAR
 
 p := REF(value);
@@ -30,8 +30,8 @@ Adding a whole number to a pointer moves it by that many elements, which is how 
 
 ```iecst
 VAR
-    values : ARRAY[0..3] OF DINT := [10, 20, 30, 40];
-    p : REF_TO DINT;
+    values: ARRAY[0..3] OF DINT := [10, 20, 30, 40];
+    p: REF_TO DINT;
 END_VAR
 
 p := REF(values[0]);
@@ -46,8 +46,8 @@ A reference is a pointer that you do not dereference. It is declared with `REFER
 
 ```iecst
 VAR
-    target : DINT := 5;
-    alias : REFERENCE TO DINT;
+    target: DINT := 5;
+    alias: REFERENCE TO DINT;
 END_VAR
 
 alias REF= target;
@@ -62,9 +62,10 @@ Use a reference where the code reads better without `^`, and a pointer where the
 Most code needs no pointer at all, because the parameter blocks already say how data travels: `VAR_IN_OUT` passes the caller's variable, and `VAR_INPUT {ref}` passes a large value without a copy. Reach for a pointer when neither fits, for example in a structure that refers to another structure, or at the border to C.
 
 ```iecst
-TYPE Node : STRUCT
-        value : DINT;
-        next : REF_TO Node;
+TYPE Node:
+    STRUCT
+        value: DINT;
+        next: REF_TO Node;
     END_STRUCT
 END_TYPE
 ```

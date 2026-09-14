@@ -1,3 +1,5 @@
-# Get Started
+# Getting Started
 
-These chapters take you from an empty machine to a project that runs. The first one installs the compiler, from a release package or from source. The second one writes a single file, compiles it, links it, runs it, and shows what a diagnostic looks like when something is wrong. The third one builds a small plant with two tanks, in two files and with a project file, which is the shape that real work takes.
+After this chapter you have a working compiler and a program of your own that builds and runs.
+
+It covers how to build the compiler from source and what else your system needs. It then shows how one source file becomes an executable, and how to read what the compiler reports when that file is wrong. At the end it shows how a project file holds the inputs and the options of a build, which you need as soon as a program has more than one file.

@@ -42,7 +42,7 @@ It makes three passes over every unit, one per loop kind, in the order `WHILE`, 
 `REPEAT` checks its condition after the body. Placing the check at the end of the generated body would let `CONTINUE` skip it. Instead, the lowerer puts the check at the start and skips it on the first iteration:
 
 ```diff
-+alloca __ran_once_0 : BOOL;
++alloca __ran_once_0: BOOL;
 -REPEAT
 +WHILE TRUE DO
 +    IF __ran_once_0 THEN
@@ -62,8 +62,8 @@ It makes three passes over every unit, one per loop kind, in the order `WHILE`, 
 `FOR` uses two flags. `__ran_once_N` skips the counter update on the first iteration. Later iterations update the counter at the start, so `CONTINUE` cannot skip the update. `__is_incrementing_N` records the initial step direction and selects the exit comparison:
 
 ```diff
-+alloca __ran_once_0 : BOOL;
-+alloca __is_incrementing_0 : BOOL;
++alloca __ran_once_0: BOOL;
++alloca __is_incrementing_0: BOOL;
 -FOR i := 10 TO 1 BY -3 DO
 +i := 10;
 +__is_incrementing_0 := -3 > 0;

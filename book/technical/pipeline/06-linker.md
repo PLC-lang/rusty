@@ -4,9 +4,9 @@ Linking joins the object files that codegen produced into one artifact. For
 
 ```iecst
 (* scale.st *)
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        value : DINT;
+        value: DINT;
     END_VAR
 
     scale := value * 2;
@@ -15,7 +15,7 @@ END_FUNCTION
 (* main.st *)
 PROGRAM main
     VAR
-        i : DINT;
+        i: DINT;
     END_VAR
 
     i := scale(i);

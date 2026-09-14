@@ -5,28 +5,30 @@ A reference expression connects a name to a variable, member, element, pointer t
 The example combines member access, array indexing, pointers, casts, direct bit access, and an explicit global reference:
 
 ```iecst
-TYPE Point : STRUCT
-    x : DINT;
-    y : DINT;
-END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x: DINT;
+        y: DINT;
+    END_STRUCT
+END_TYPE
 
-TYPE Color : (Red, Green, Blue); END_TYPE
+TYPE Color: (Red, Green, Blue); END_TYPE
 
 FUNCTION_BLOCK Shape
     VAR_INPUT
-        origin : Point;
+        origin: Point;
     END_VAR
     VAR_OUTPUT
-        points : ARRAY[0..3] OF Point;
+        points: ARRAY[0..3] OF Point;
     END_VAR
 END_FUNCTION_BLOCK
 
-FUNCTION bump : DINT
+FUNCTION bump: DINT
     VAR_IN_OUT
-        target : DINT;
+        target: DINT;
     END_VAR
     VAR_INPUT
-        step : INT;
+        step: INT;
     END_VAR
 
     target := target + step;
@@ -34,20 +36,20 @@ FUNCTION bump : DINT
 END_FUNCTION
 
 VAR_GLOBAL
-    count : DINT;
+    count: DINT;
 END_VAR
 
 PROGRAM main
     VAR
-        shape : Shape;
-        pShape : POINTER TO Shape;
-        pDint : REF_TO DINT;
-        rDint : REFERENCE TO DINT;
-        i : DINT;
-        paint : Color;
-        word : WORD;
-        flag : BOOL;
-        count : DINT;
+        shape: Shape;
+        pShape: POINTER TO Shape;
+        pDint: REF_TO DINT;
+        rDint: REFERENCE TO DINT;
+        i: DINT;
+        paint: Color;
+        word: WORD;
+        flag: BOOL;
+        count: DINT;
     END_VAR
 
     pShape := ADR(shape);
@@ -282,7 +284,7 @@ The parser reports a `POINTER TO` declaration as type-unsafe (E015), but that co
 | `a.b` | member `b` of the type of `a` | `Variable` on `b`, chain takes it | `getelementptr` by struct position |
 | `a[i]` | the array type of `a` | `Value` of the element type | offset from the lower bound, one `getelementptr` |
 | `p^` | pointer type, `auto_deref: None` | `Value` of the inner type | `load ptr` from the slot |
-| `r : REFERENCE TO T`, `VAR_IN_OUT` | pointer type, `auto_deref: Reference` or `Default` | `Variable` of type `T` with an auto-deref flag | an extra `load ptr` on every use |
+| `r: REFERENCE TO T`, `VAR_IN_OUT` | pointer type, `auto_deref: Reference` or `Default` | `Variable` of type `T` with an auto-deref flag | an extra `load ptr` on every use |
 | `ADR(x)`, `REF(x)` | built-in functions | `Value` of `LWORD`, or of a generated `__POINTER_TO_T` | the address of `x`, no load |
 | `T#v` | the type `T` | `Type` on `T`, `Value` of `T` on the whole | none; the value is created in `T` |
 | `w.%Xn`, `w.%Bn` | | `Value` of `BOOL`, `BYTE`, and so on | load, shift, truncate, mask |

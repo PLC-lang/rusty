@@ -3,10 +3,10 @@
 A function can declare type parameters. A type parameter stands for the type that the call uses, and it has a constraint that says which types are allowed.
 
 ```iecst
-FUNCTION MAX <T: ANY_ELEMENTARY> : T
+FUNCTION MAX <T: ANY_ELEMENTARY>: T
     VAR_INPUT
-        in1 : T;
-        in2 : T;
+        in1: T;
+        in2: T;
     END_VAR
 END_FUNCTION
 ```
@@ -29,10 +29,10 @@ The compiler does not write the body of that version. One of three things must p
 - a builtin of the compiler.
 
 ```iecst
-FUNCTION MAX__DINT : DINT
+FUNCTION MAX__DINT: DINT
     VAR_INPUT
-        in1 : DINT;
-        in2 : DINT;
+        in1: DINT;
+        in2: DINT;
     END_VAR
 
     IF in1 > in2 THEN
@@ -51,15 +51,15 @@ When nothing in the project defines the name, the compiler writes an `{external}
 The constraint is a type nature, for example `ANY_INT`, `ANY_REAL`, `ANY_ELEMENTARY`, or `ANY`. An argument whose type does not have that nature is rejected:
 
 ```iecst
-FUNCTION Inc <T: ANY_INT> : T
+FUNCTION Inc <T: ANY_INT>: T
     VAR_INPUT
-        v : T;
+        v: T;
     END_VAR
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        value : REAL := 1.0;
+        value: REAL := 1.0;
     END_VAR
 
     main := Inc(value);   (* error[E062]: REAL is no ANY_INT *)
@@ -69,19 +69,23 @@ END_FUNCTION
 `ANY` accepts every type, so a call with a type that has no implementation passes the compiler and fails at the link step:
 
 ```iecst
-TYPE Point : STRUCT x, y : DINT; END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x, y: DINT;
+    END_STRUCT
+END_TYPE
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        s : STRING;
-        p : Point;
+        s: STRING;
+        p: Point;
     END_VAR
 
     s := TO_STRING(p);   (* undefined symbol TO_STRING__Point at link time *)
 END_FUNCTION
 ```
 
-The standard library uses this for its conversions: `TO_STRING <T: ANY> : STRING` has an implementation for every type that it supports, such as `TO_STRING__DINT` and `TO_STRING__REAL`.
+The standard library uses this for its conversions: `TO_STRING <T: ANY>: STRING` has an implementation for every type that it supports, such as `TO_STRING__DINT` and `TO_STRING__REAL`.
 
 The natures that a constraint can name are `ANY`, `ANY_DERIVED`, `ANY_ELEMENTARY`, `ANY_MAGNITUDE`, `ANY_NUM`, `ANY_REAL`, `ANY_INT`, `ANY_SIGNED`, `ANY_UNSIGNED`, `ANY_DURATION`, `ANY_BIT`, `ANY_CHARS`, `ANY_STRING`, `ANY_CHAR`, and `ANY_DATE`. They form a tree: `ANY_INT` is part of `ANY_NUM`, which is part of `ANY_MAGNITUDE`, and so on up to `ANY`.
 

@@ -1,72 +1,23 @@
 # Install
 
-There are two ways to get the compiler. Install a release if you only want to compile Structured Text. Build from source if you want to work on the compiler itself.
+You build the compiler from source and get a binary that you can run from anywhere. The binary is called `plc`.
 
-The compiler binary is called `plc`.
-
-
-## Install a release
-
-Every release publishes its assets on the [releases page](https://github.com/PLC-lang/rusty/releases).
-
-| Asset | Contents |
-|---|---|
-| `plc-linux-x86_64`, `plc-linux-aarch64` | The compiler binary for Linux |
-| `plc-compiler_<version>-1_<arch>.deb` | The compiler as a Debian package |
-| `plc-stdlib_<version>-1_<arch>.deb` | The standard library as a Debian package |
-| `stdlib-<version>.tar.gz` | The standard library with its declaration files |
-| `plc.exe` | The compiler binary for Windows |
-| `iec61131std.dll`, `iec61131std.lib` | The standard library for Windows |
-
-### Debian and Ubuntu
-
-Install both packages together, so that the standard library is available to your programs:
-
-```bash
-sudo apt install ./plc-compiler_<version>-1_amd64.deb ./plc-stdlib_<version>-1_amd64.deb
-```
-
-The packages install these files:
-
-| File | Purpose |
-|---|---|
-| `/usr/bin/plc` | The compiler |
-| `/usr/share/plc/schema/plc-json.schema` | The schema of the project file |
-| `/usr/lib/<triplet>/libiec61131std.so`, `libiec61131std.a` | The standard library |
-| `/usr/share/plc/include/*.st` | The declarations of the standard library |
-
-### Other systems
-
-Copy the binary for your platform into a directory in your `PATH`, and make it executable.
-
-LLVM is linked into the compiler binary, so you do not install LLVM to use a release.
-
-`plc` does need a linker on the system to produce executables and shared objects. Use the compiler driver of the system: `cc` on Linux, and `clang` on macOS and Windows.
-
-
-## Verify the installation
-
-```bash
-plc --version
-```
-
-The command prints the version, the commit date, and the commit hash of the binary.
-
-
-## Build from source
-
-Building from source needs Rust and a full LLVM installation.
+The build needs Rust and a full LLVM installation. `plc` also needs a linker on the system to produce executables and shared objects. Use the compiler driver of the system: `cc` on Linux, and `clang` on macOS and Windows.
 
 > [!NOTE]
 > The LLVM installation must match the major version that the compiler is built against. This is LLVM 21. LLVM gives no API compatibility between major versions, so another version does not link.
 
-### Dev container
+Follow the section for your system, and then build. The dev container brings everything with it.
+
+
+## Dev container
 
 A [dev container](https://containers.dev/) is the shortest way to a complete environment. Open the repository in [VS Code](https://code.visualstudio.com/docs/devcontainers/containers) and choose "Reopen in Container". The container is defined in `.devcontainer/` and is based on Ubuntu 26.04.
 
 The container runs with a read-only root filesystem and without `sudo`. The workspace is mounted at `/workspace`. The home directory and the `target/` directory live on named volumes, so builds and tools installed with `cargo install` survive a rebuild of the container.
 
-### Ubuntu 26.04
+
+## Ubuntu 26.04
 
 Ubuntu 26.04 ships LLVM 21 in its own package archive, so the LLVM apt repository is not necessary:
 
@@ -81,7 +32,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo ln -s /usr/lib/llvm-21/bin/lit /usr/local/bin/lit
 ```
 
-### Ubuntu 24.04
+
+## Ubuntu 24.04
 
 ```bash
 # Install the prerequisites
@@ -102,11 +54,13 @@ source $HOME/.local/bin/env
 uv tool install lit
 ```
 
-### Debian Trixie
+
+## Debian Trixie
 
 Use the instructions for Ubuntu 24.04, but remove `software-properties-common`, which Debian does not have.
 
-### macOS
+
+## macOS
 
 Install the [Xcode Command Line Tools](https://developer.apple.com/downloads/) and the LLVM toolchain with [Homebrew](https://brew.sh):
 
@@ -127,28 +81,38 @@ The `lit` test suite expects `FileCheck-21`. If it is not there, make a symbolic
 ln -svf /opt/homebrew/opt/llvm@21/bin/FileCheck /opt/homebrew/opt/llvm@21/bin/FileCheck-21
 ```
 
-### Windows
+
+## Windows
 
 Install [Rust](https://www.rust-lang.org/tools/install) and the matching LLVM build from the [llvm-package-windows releases](https://github.com/PLC-lang/llvm-package-windows/releases). Extract it and add its `bin/` directory to your `PATH`.
 
 Rust needs the C++ build tools. A full Visual Studio installation gives them, but the [build tools alone](https://aka.ms/vs/stable/vs_BuildTools.exe) are smaller and faster to install.
 
-### Build
+
+## Build
 
 ```bash
 cargo build --release
 ```
 
-The binary is written to `target/release/plc`.
+The binary is written to `target/release/plc`. Put that directory into your `PATH`, or copy the binary into a directory that is in it already.
+
+The standard library is a second artifact, and the build script builds and collects it:
+
+```bash
+./scripts/build.sh --build --release --package
+```
+
+This writes the static and the shared library into `output/lib`, and the declaration files of the standard functions into `output/include`. The programs of the next two chapters do not need it. [Linking and Libraries](../building/linking.md) shows how to link it when you call a standard function.
 
 
-## Troubleshooting
+## Verify the installation
 
-| Symptom | Cause |
-|---|---|
-| The build fails while it links LLVM | The installed LLVM is not version 21. Check with `llvm-config --version` |
-| `plc` reports that it cannot find a linker | No linker on the system. Install `clang` or `lld`, or name one with `--linker` |
-| A program does not link against standard functions | The standard library is missing. Install the `plc-stdlib` package, or link it with `-l iec61131std` |
+```bash
+plc --version
+```
+
+The command prints the version, the commit date, and the commit hash of the binary.
 
 
 ## What's next

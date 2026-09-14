@@ -23,11 +23,11 @@ Eight integer types, four signed and four unsigned:
 A literal can be written in another base, and `_` groups digits anywhere:
 
 ```iecst
-i1 : DINT := 42;
-i2 : DINT := 2#101010;     (* binary *)
-i3 : DINT := 8#52;         (* octal *)
-i4 : DINT := 16#2A;        (* hexadecimal *)
-i5 : DINT := 1_000_000;
+i1: DINT := 42;
+i2: DINT := 2#101010;     (* binary *)
+i3: DINT := 8#52;         (* octal *)
+i4: DINT := 16#2A;        (* hexadecimal *)
+i5: DINT := 1_000_000;
 ```
 
 Integer division cuts towards zero and never produces a fraction: `7 / 2` is `3`. `MOD` gives the rest of that division, so `7 MOD 2` is `1`.
@@ -60,9 +60,9 @@ Use them for flags, masks, and values that come from hardware. `AND`, `OR`, `XOR
 
 ```iecst
 VAR
-    flags : BYTE := 2#0000_1100;
-    mask  : BYTE := 16#0F;
-    result : BYTE;
+    flags: BYTE := 2#0000_1100;
+    mask: BYTE := 16#0F;
+    result: BYTE;
 END_VAR
 
 result := flags AND mask;   (* 2#0000_1100 *)
@@ -74,8 +74,8 @@ result := flags AND mask;   (* 2#0000_1100 *)
 `REAL` is 32 bits wide and `LREAL` is 64. A literal with a decimal point or an exponent is a real:
 
 ```iecst
-r1 : REAL := 1.5;
-r2 : LREAL := 1.0e-9;
+r1: REAL := 1.5;
+r2: LREAL := 1.0e-9;
 ```
 
 A `REAL` keeps about seven decimal digits. That is less than a `DINT` needs, so a large whole number does not survive a trip through a `REAL`.
@@ -87,8 +87,8 @@ The compiler converts a value to a wider type of the same family by itself:
 
 ```iecst
 VAR
-    small : INT := 300;
-    big : DINT;
+    small: INT := 300;
+    big: DINT;
 END_VAR
 
 big := small;   (* fine, every INT fits in a DINT *)
@@ -98,8 +98,8 @@ The other direction also compiles, but the value can change, so the compiler war
 
 ```iecst
 VAR
-    small : INT := 300;
-    tiny : SINT;
+    small: INT := 300;
+    tiny: SINT;
 END_VAR
 
 tiny := small;   (* warning[E067]: Implicit downcast from 'INT' to 'SINT'; tiny is 44 *)
@@ -111,12 +111,15 @@ Write the conversion yourself when the narrowing is intended. The standard libra
 tiny := INT_TO_SINT(small);
 ```
 
+> [!NOTE]
+> The conversion functions live in the standard library, so a project that calls one, for example `INT_TO_SINT`, must link `iec61131std`. See [Linking and Libraries](../building/linking.md).
+
 Between an integer and a real the conversion is never silent, because the two are different families:
 
 ```iecst
 VAR
-    r : REAL := 2.7;
-    n : DINT;
+    r: REAL := 2.7;
+    n: DINT;
 END_VAR
 
 n := REAL_TO_DINT(r);   (* 3, the nearest whole number *)

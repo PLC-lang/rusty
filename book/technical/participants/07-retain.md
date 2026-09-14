@@ -5,7 +5,7 @@
 ```iecst
 PROGRAM Main
     VAR RETAIN
-        counter : INT := 5;
+        counter: INT := 5;
     END_VAR
 
     counter := counter + 1;
@@ -33,21 +33,21 @@ A program has exactly one instance, so a retained member can become a global of 
 
 ```diff
 +VAR_GLOBAL RETAIN
-+    __Main_counter__retain : INT := 5;
++    __Main_counter__retain: INT := 5;
 +END_VAR
 +
  PROGRAM Main
 -    VAR RETAIN
--        counter : INT := 5;
+-        counter: INT := 5;
 +    VAR
-+        counter : __Main_counter__retain_ptr := __Main_counter__retain;
++        counter: __Main_counter__retain_ptr := __Main_counter__retain;
      END_VAR
 
      counter := counter + 1;
  END_PROGRAM
 ```
 
-`__Main_counter__retain_ptr` is a named pointer type with automatic dereferencing, the same kind of node the parser produces for an `AT` alias such as `x AT y : INT`. It is registered as a user type scoped to the program. Its name comes from the global and not from the variable: the pre-processor has already extracted inline types under `__Main_<variable>`, so an inline array or struct in the retain block would clash with its own pointer type.
+`__Main_counter__retain_ptr` is a named pointer type with automatic dereferencing, the same kind of node the parser produces for an `AT` alias such as `x AT y: INT`. It is registered as a user type scoped to the program. Its name comes from the global and not from the variable: the pre-processor has already extracted inline types under `__Main_<variable>`, so an inline array or struct in the retain block would clash with its own pointer type.
 
 The body is not changed. The resolver treats an alias variable as automatically dereferenced, so `counter := counter + 1` reads and writes through the pointer. The rewrite applies to every block of the program that carries `RETAIN`, `VAR_INPUT` and `VAR_TEMP` included; a retained temporary becomes a local pointer that is set to the global at the start of every call.
 
@@ -58,18 +58,18 @@ A retained member of a function block is not extracted. A function block can hav
 ```diff
  FUNCTION_BLOCK Fb
      VAR RETAIN
-         a : INT := 5;
+         a: INT := 5;
      END_VAR
  END_FUNCTION_BLOCK
 
 +VAR_GLOBAL RETAIN
-+    __Main_x__retain : Fb;
++    __Main_x__retain: Fb;
 +END_VAR
 +
  PROGRAM Main
      VAR
--        x : Fb;
-+        x : __Main_x__retain_ptr := __Main_x__retain;
+-        x: Fb;
++        x: __Main_x__retain_ptr := __Main_x__retain;
      END_VAR
  END_PROGRAM
 ```
@@ -82,13 +82,13 @@ Globals A global in a plain `VAR_GLOBAL` block whose type retains transitively i
 
 ```diff
  VAR_GLOBAL RETAIN
-     explicit : Fb;
-+    implicit : Fb;
+     explicit: Fb;
++    implicit: Fb;
  END_VAR
 
  VAR_GLOBAL
--    implicit : Fb;
-     x : INT;
+-    implicit: Fb;
+     x: INT;
  END_VAR
 ```
 

@@ -35,13 +35,13 @@ END_CASE
 The value can be an integer or an enumeration, which is what makes `CASE` the natural shape for a state machine:
 
 ```iecst
-TYPE State : (Idle, Running, Stopped);
+TYPE State: (Idle, Running, Stopped);
 END_TYPE
 
 PROGRAM Machine
     VAR
-        current : State;
-        start, stop : BOOL;
+        current: State;
+        start, stop: BOOL;
     END_VAR
 
     CASE current OF
@@ -109,9 +109,9 @@ END_FOR
 `RETURN` leaves the POU at once. In a function, assign the result before you return:
 
 ```iecst
-FUNCTION Divide : DINT
+FUNCTION Divide: DINT
     VAR_INPUT
-        a, b : DINT;
+        a, b: DINT;
     END_VAR
 
     IF b = 0 THEN

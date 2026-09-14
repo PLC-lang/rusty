@@ -5,10 +5,10 @@ A function block is a type with memory. You declare it once, and every variable 
 ```iecst
 FUNCTION_BLOCK Counter
     VAR_INPUT
-        step : DINT := 1;
+        step: DINT := 1;
     END_VAR
     VAR_OUTPUT
-        total : DINT;
+        total: DINT;
     END_VAR
 
     total := total + step;
@@ -22,8 +22,8 @@ An instance is declared like any other variable, and it is called by its own nam
 
 ```iecst
 VAR
-    fast : Counter;
-    slow : Counter;
+    fast: Counter;
+    slow: Counter;
 END_VAR
 
 fast(step := 2);
@@ -49,8 +49,8 @@ An instance can live anywhere a variable can: in a POU, in a struct, in an array
 ```iecst
 FUNCTION_BLOCK Axis
     VAR
-        position : Counter;
-        speed    : Counter;
+        position: Counter;
+        speed: Counter;
     END_VAR
 
     position(step := 5);
@@ -85,8 +85,8 @@ A program is a function block with exactly one instance, and that instance is gl
 ```iecst
 PROGRAM Plant
     VAR
-        cycle : DINT;
-        pumps : ARRAY[1..4] OF Counter;
+        cycle: DINT;
+        pumps: ARRAY[1..4] OF Counter;
     END_VAR
 
     cycle := cycle + 1;
@@ -103,7 +103,7 @@ An action is a named piece of body that belongs to a POU and works on its data. 
 ```iecst
 FUNCTION_BLOCK Valve
     VAR
-        open : BOOL;
+        open: BOOL;
     END_VAR
 END_FUNCTION_BLOCK
 
@@ -134,8 +134,8 @@ The initial values in the declaration apply to every instance. When an instance 
 ```iecst
 FUNCTION_BLOCK Buffer
     VAR
-        size  : DINT;
-        ready : BOOL;
+        size: DINT;
+        ready: BOOL;
     END_VAR
 
     METHOD FB_INIT

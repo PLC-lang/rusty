@@ -20,11 +20,11 @@ A literal starts with the name of its type and `#`:
 
 ```iecst
 VAR
-    cycle   : TIME := T#10ms;
-    startup : TIME := TIME#2d4h6m8s10ms;
-    day     : DATE := D#2024-05-02;
-    moment  : TIME_OF_DAY := TOD#23:59:59.999;
-    stamp   : DATE_AND_TIME := DT#1999-12-31-23:59:59.999;
+    cycle: TIME := T#10ms;
+    startup: TIME := TIME#2d4h6m8s10ms;
+    day: DATE := D#2024-05-02;
+    moment: TIME_OF_DAY := TOD#23:59:59.999;
+    stamp: DATE_AND_TIME := DT#1999-12-31-23:59:59.999;
 END_VAR
 ```
 
@@ -45,9 +45,9 @@ Durations add and subtract, and they compare:
 
 ```iecst
 VAR
-    a : TIME := T#1s;
-    b : TIME := T#500ms;
-    total : TIME;
+    a: TIME := T#1s;
+    b: TIME := T#500ms;
+    total: TIME;
 END_VAR
 
 total := a + b;        (* 1500 ms *)

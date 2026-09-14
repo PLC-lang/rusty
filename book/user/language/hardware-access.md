@@ -17,13 +17,13 @@ Two things use the `%` sign: reading a part of a value, and binding a variable t
 The position counts parts of that size, from `0`. For a bit, the `%X` can be left out.
 
 ```iecst
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        variable    : LWORD;
-        bitTarget   : BOOL;
-        byteTarget  : BYTE;
-        wordTarget  : WORD;
-        dwordTarget : DWORD;
+        variable: LWORD;
+        bitTarget: BOOL;
+        byteTarget: BYTE;
+        wordTarget: WORD;
+        dwordTarget: DWORD;
     END_VAR
 
     variable    := 16#AB_CD_EF_12_34_56_78_90;
@@ -60,9 +60,9 @@ The size letter is the same as above, and the position has one or more parts, se
 
 ```iecst
 VAR_GLOBAL
-    inBit   AT %IX1.0 : BOOL;
-    outWord AT %QW2.5 : WORD;
-    memory  AT %MD3   : DWORD;
+    inBit   AT %IX1.0: BOOL;
+    outWord AT %QW2.5: WORD;
+    memory  AT %MD3: DWORD;
 END_VAR
 ```
 
@@ -70,7 +70,7 @@ END_VAR
 
 ```iecst
 VAR
-    alias AT shared : STRING;
+    alias AT shared: STRING;
 END_VAR
 ```
 
@@ -82,20 +82,20 @@ A function block that is instantiated more than once cannot name a fixed address
 ```iecst
 FUNCTION_BLOCK Sensor
     VAR
-        raw AT %I* : INT;
+        raw AT %I*: INT;
     END_VAR
 END_FUNCTION_BLOCK
 
 PROGRAM Cycle
     VAR
-        s1 : Sensor;
-        s2 : Sensor;
+        s1: Sensor;
+        s2: Sensor;
     END_VAR
 END_PROGRAM
 
 VAR_CONFIG
-    Cycle.s1.raw AT %IW1.2 : INT;
-    Cycle.s2.raw AT %IW1.3 : INT;
+    Cycle.s1.raw AT %IW1.2: INT;
+    Cycle.s2.raw AT %IW1.3: INT;
 END_VAR
 ```
 
@@ -106,4 +106,4 @@ A build can write the list of all bound variables with their addresses as a file
 
 ## What's next
 
-The last chapter of this part is about code that is not text at all: [graphical programs](cfc.md).
+The last chapter here is about code that is not text at all: [graphical programs](cfc.md).

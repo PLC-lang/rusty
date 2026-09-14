@@ -7,28 +7,28 @@ The [Resolver](../pipeline/03-resolver.md) chapter explains how the table is fil
 The example produces the annotations used below. Labels are introduced separately because they come from CFC diagrams:
 
 ```iecst
-TYPE Color : (Red, Green, Blue); END_TYPE
-TYPE Percent : INT(0..100); END_TYPE
+TYPE Color: (Red, Green, Blue); END_TYPE
+TYPE Percent: INT(0..100); END_TYPE
 
-FUNCTION CheckRangeSigned : INT
+FUNCTION CheckRangeSigned: INT
     VAR_INPUT
-        value, lower, upper : INT;
+        value, lower, upper: INT;
     END_VAR
 
     CheckRangeSigned := value;
 END_FUNCTION
 
 {external}
-FUNCTION STRING_EQUAL : BOOL
+FUNCTION STRING_EQUAL: BOOL
     VAR_INPUT
-        a, b : STRING;
+        a, b: STRING;
     END_VAR
 END_FUNCTION
 
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        value : DINT;
-        factor : INT := 1;
+        value: DINT;
+        factor: INT := 1;
     END_VAR
 
     scale := value * factor;
@@ -36,27 +36,27 @@ END_FUNCTION
 
 FUNCTION_BLOCK Base
     VAR_INPUT
-        limit : INT;
+        limit: INT;
     END_VAR
 
-    METHOD area : DINT
+    METHOD area: DINT
         area := limit;
     END_METHOD
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK Counter EXTENDS Base
     VAR_INPUT
-        step : DINT;
+        step: DINT;
     END_VAR
     VAR_OUTPUT
-        count : DINT;
+        count: DINT;
     END_VAR
 
-    PROPERTY_GET scaled : DINT
+    PROPERTY_GET scaled: DINT
         scaled := count * 10;
     END_PROPERTY
 
-    METHOD area : DINT
+    METHOD area: DINT
         area := SUPER^.area() + step;
     END_METHOD
 
@@ -65,23 +65,23 @@ END_FUNCTION_BLOCK
 
 PROGRAM logger
     VAR_INPUT
-        text : STRING;
+        text: STRING;
     END_VAR
 END_PROGRAM
 
 PROGRAM main
     VAR
-        counter : Counter;
-        i : DINT;
-        pct : Percent;
-        hue : Color;
-        fp : __FPOINTER Base.area := ADR(Base.area);
-        same : BOOL;
-        text : STRING;
-        r : REFERENCE TO DINT;
+        counter: Counter;
+        i: DINT;
+        pct: Percent;
+        hue: Color;
+        fp: __FPOINTER Base.area := ADR(Base.area);
+        same: BOOL;
+        text: STRING;
+        r: REFERENCE TO DINT;
     END_VAR
     VAR CONSTANT
-        MAX : DINT := 10;
+        MAX: DINT := 10;
     END_VAR
 
     i := MAX;

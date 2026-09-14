@@ -16,12 +16,12 @@ calls `myAdd` with the function's two inputs and routes its return value to the 
 <ppx:Function name="function_call">
     <ppx:AddData>
         <ppx:Data>
-            <bmx:TextDeclaration>FUNCTION function_call : INT
+            <bmx:TextDeclaration>FUNCTION function_call: INT
 VAR_INPUT
-    in1, in2 : DINT;
+    in1, in2: DINT;
 END_VAR
 VAR_OUTPUT
-    doubledOut : DINT;
+    doubledOut: DINT;
 END_VAR</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
@@ -56,16 +56,16 @@ END_VAR</bmx:TextDeclaration>
 Each element has a `globalId`; each output pin has a `connectionPointOutId`. An input pin names the output pin it reads. The POU declaration is Structured Text without its closing keyword. A block's unnamed output pin carries its return value. The CFC participant converts the network into an AST statement list:
 
 ```iecst
-FUNCTION function_call : INT
+FUNCTION function_call: INT
 VAR_INPUT
-    in1, in2 : DINT;
+    in1, in2: DINT;
 END_VAR
 VAR_OUTPUT
-    doubledOut : DINT;
+    doubledOut: DINT;
 END_VAR
 VAR
-    __out_myAdd_1 : DINT;
-    __out_myAddDoubled_1 : DINT;
+    __out_myAdd_1: DINT;
+    __out_myAddDoubled_1: DINT;
 END_VAR
     __out_myAdd_1 := myAdd(in1 := in1, in2 := in2, myAddDoubled => __out_myAddDoubled_1);
     function_call := __out_myAdd_1;
@@ -362,7 +362,7 @@ The transpiler turns each statement into an AST node with the constructors the p
 
 ## Generic temporaries
 
-A temporary initially takes its output parameter's declared type. For a generic function such as `myGenAdd<T: ANY_NUM> : T`, this is `__myGenAdd__T`. Codegen needs a concrete type. The compiler's expression resolver can derive it from the call arguments after transpilation.
+A temporary initially takes its output parameter's declared type. For a generic function such as `myGenAdd<T: ANY_NUM>: T`, this is `__myGenAdd__T`. Codegen needs a concrete type. The compiler's expression resolver can derive it from the call arguments after transpilation.
 
 After indexing the new units, the participant runs type inference rounds. Each round annotates the unit and checks generic temporaries whose inputs already have concrete types. It updates their declarations and index entries with the inferred types. A chain of generic calls resolves one step per round:
 

@@ -66,9 +66,9 @@ An expression of two different numeric types is computed in the wider of the two
 
 ```iecst
 VAR
-    i : INT := 300;
-    d : DINT;
-    s : SINT;
+    i: INT := 300;
+    d: DINT;
+    s: SINT;
 END_VAR
 
 d := i + 1;   (* fine *)

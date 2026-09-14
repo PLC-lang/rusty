@@ -5,7 +5,7 @@ A function block or class can extend another one and use the members of its base
 ```iecst
 FUNCTION_BLOCK Base
     VAR
-        counter : DINT;
+        counter: DINT;
     END_VAR
 END_FUNCTION_BLOCK
 
@@ -14,7 +14,7 @@ FUNCTION_BLOCK Child EXTENDS Base
 END_FUNCTION_BLOCK
 ```
 
-the resolver finds `counter` in `Base` and records `Base.counter`. Codegen needs an explicit path through the instance layout. The inheritance lowerer adds a first member, `__Base : Base`, to `Child`, then rewrites the assignment as `__Base.counter := __Base.counter + 1`.
+the resolver finds `counter` in `Base` and records `Base.counter`. Codegen needs an explicit path through the instance layout. The inheritance lowerer adds a first member, `__Base: Base`, to `Child`, then rewrites the assignment as `__Base.counter := __Base.counter + 1`.
 
 ```mermaid
 flowchart LR
@@ -39,14 +39,14 @@ The derived block gets a new local variable block with one variable, named after
 ```diff
  FUNCTION_BLOCK Child EXTENDS Base
 +    VAR
-+        __Base : Base;
++        __Base: Base;
 +    END_VAR
      VAR
-         offset : DINT;
+         offset: DINT;
      END_VAR
 ```
 
-The base member is first, so `%Child = type { %Base, i32 }` starts at the address of its `%Base` part. A chain `C EXTENDS B EXTENDS A` embeds `__B : B` in `C` and `__A : A` in `B`. The `EXTENDS` clause remains for index lookup. The new member and block have internal source locations.
+The base member is first, so `%Child = type { %Base, i32 }` starts at the address of its `%Base` part. A chain `C EXTENDS B EXTENDS A` embeds `__B: B` in `C` and `__A: A` in `B`. The `EXTENDS` clause remains for index lookup. The new member and block have internal source locations.
 
 ### Inherited members
 
@@ -55,8 +55,8 @@ Inside the derived block, its methods, its actions, and the initializers of its 
 ```diff
  FUNCTION_BLOCK Child EXTENDS Base
      VAR
--        offset : DINT := limit;
-+        offset : DINT := __Base.limit;
+-        offset: DINT := limit;
++        offset: DINT := __Base.limit;
      END_VAR
 
      METHOD reset
@@ -100,7 +100,7 @@ Every function block or class carries a pointer, `__vtable`, to its method table
 ```diff
  FUNCTION Child__ctor
      VAR_IN_OUT
-         self : Child;
+         self: Child;
      END_VAR
 
      Base__ctor(self.__Base);
@@ -116,7 +116,7 @@ The call `Base__ctor(self.__Base)` already addressed the injected member when th
 `SUPER^` denotes the base part of the current instance and becomes a reference to the embedded member; `SUPER` without `^` is a pointer to it and becomes `REF(__Base)`:
 
 ```diff
-     METHOD describe : DINT
+     METHOD describe: DINT
 -        describe := SUPER^.describe() + 10;
 +        describe := __Base.describe() + 10;
      END_METHOD

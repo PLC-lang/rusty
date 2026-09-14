@@ -5,8 +5,8 @@ After indexing, every declaration is known, but the statement bodies are still t
 ```iecst
 PROGRAM main
     VAR
-        i : DINT;
-        sintVar : SINT;
+        i: DINT;
+        sintVar: SINT;
     END_VAR
 
     sintVar := i + 1;
@@ -62,14 +62,14 @@ The resolver walks each unit from top to bottom and visits every expression: the
 ```iecst
 FUNCTION_BLOCK Buffer
     VAR_INPUT
-        limit : INT;
+        limit: INT;
     END_VAR
 END_FUNCTION_BLOCK
 
 PROGRAM main
     VAR
-        bufferInstance : Buffer;
-        i : DINT := 1;
+        bufferInstance: Buffer;
+        i: DINT := 1;
     END_VAR
 
     i := bufferInstance.limit;
@@ -87,9 +87,9 @@ Visualized:
 ```
 PROGRAM main
     VAR
-        bufferInstance : Buffer;
-        i : DINT := 1;
-                    ^          { kind: Value, resulting_type: "DINT", hint: "DINT" }
+        bufferInstance: Buffer;
+        i: DINT := 1;
+                   ^          { kind: Value, resulting_type: "DINT", hint: "DINT" }
     END_VAR
 
     i := bufferInstance.limit;
@@ -110,9 +110,9 @@ Arithmetic and comparisons combine operands of different types. The resolver dec
 ```iecst
 PROGRAM main
     VAR
-        sintVar : SINT;
-        dintVar : DINT;
-        boolVar : BOOL;
+        sintVar: SINT;
+        dintVar: DINT;
+        boolVar: BOOL;
     END_VAR
 
     sintVar := dintVar + 1;
@@ -146,17 +146,17 @@ Visualized:
 In
 
 ```iecst
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        value : DINT;
-        factor : INT;
+        value: DINT;
+        factor: INT;
     END_VAR
 END_FUNCTION
 
 PROGRAM main
     VAR
-        i : DINT;
-        sintVar : SINT;
+        i: DINT;
+        sintVar: SINT;
     END_VAR
 
     i := scale(i, factor := sintVar);
@@ -194,9 +194,9 @@ That sized type does not exist in the index, so the resolver registers it in a s
 ```iecst
 PROGRAM main
     VAR
-        text : STRING := 'hello';
-        large : LINT := 5_000_000_000;
-        n : INT := INT#5;
+        text: STRING := 'hello';
+        large: LINT := 5_000_000_000;
+        n: INT := INT#5;
     END_VAR
 END_PROGRAM
 ```
@@ -204,12 +204,12 @@ END_PROGRAM
 Visualized:
 
 ```
-        text : STRING := 'hello';
-                         ^^^^^^^        { kind: Value, resulting_type: "__STRING_5", hint: "STRING" }
-        large : LINT := 5_000_000_000;
-                        ^^^^^^^^^^^^^   { kind: Value, resulting_type: "LINT",       hint: "LINT" }
-        n : INT := INT#5;
-                   ^^^^^                { kind: Value, resulting_type: "INT",        hint: "INT" }
+        text: STRING := 'hello';
+                        ^^^^^^^        { kind: Value, resulting_type: "__STRING_5", hint: "STRING" }
+        large: LINT := 5_000_000_000;
+                       ^^^^^^^^^^^^^   { kind: Value, resulting_type: "LINT",       hint: "LINT" }
+        n: INT := INT#5;
+                  ^^^^^                { kind: Value, resulting_type: "INT",        hint: "INT" }
 ```
 
 

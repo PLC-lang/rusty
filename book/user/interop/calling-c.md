@@ -4,12 +4,12 @@ A POU marked `{external}` has its implementation somewhere else. The compiler ta
 
 ```iecst
 {external}
-FUNCTION log : DINT
+FUNCTION log: DINT
     VAR_IN_OUT
-        message : STRING[1024];
+        message: STRING[1024];
     END_VAR
     VAR_INPUT
-        severity : (Err, Warn, Info) := Info;
+        severity: (Err, Warn, Info) := Info;
     END_VAR
 END_FUNCTION
 ```
@@ -44,10 +44,10 @@ int min(int a, int b);
 
 ```iecst
 {external}
-FUNCTION min : DINT
+FUNCTION min: DINT
     VAR_INPUT
-        a : DINT;
-        b : DINT;
+        a: DINT;
+        b: DINT;
     END_VAR
 END_FUNCTION
 ```
@@ -61,18 +61,18 @@ A parameter of type `...` in the last `VAR_INPUT` block makes the function varia
 
 ```iecst
 {external}
-FUNCTION printf : DINT
+FUNCTION printf: DINT
     VAR_INPUT {ref}
-        format : STRING;
+        format: STRING;
     END_VAR
     VAR_INPUT
-        args : ...;
+        args: ...;
     END_VAR
 END_FUNCTION
 
-FUNCTION main : DINT
+FUNCTION main: DINT
     VAR
-        tmp : DINT;
+        tmp: DINT;
     END_VAR
 
     tmp := 1;
@@ -90,9 +90,9 @@ There are three variadic forms, and they differ in what the callee receives:
 
 | Form | What the callee gets |
 |---|---|
-| `args : ...` | Every argument, then a null pointer after the last one |
-| `args : T...` | Every argument as a `T`, and nothing after them |
-| `args : {sized} T...` | The number of arguments, then a pointer to an array of `T` |
+| `args: ...` | Every argument, then a null pointer after the last one |
+| `args: T...` | Every argument as a `T`, and nothing after them |
+| `args: {sized} T...` | The number of arguments, then a pointer to an array of `T` |
 
 The null pointer of the untyped form lets a callee that walks the list until a terminator always find the end, also when the call carries no variadic argument at all. A terminator that the caller writes ends the list first, so the added one stays unread. A callee that reads a fixed number of arguments, such as `printf` with its format string or a function with a count parameter, never sees the terminator.
 

@@ -4,9 +4,9 @@ A variable is declared inside a variable block, with a name, a type, and an opti
 
 ```iecst
 VAR
-    count : DINT := 1;
-    x, y, z : REAL;
-    name : STRING[20] := 'motor';
+    count: DINT := 1;
+    x, y, z: REAL;
+    name: STRING[20] := 'motor';
 END_VAR
 ```
 
@@ -23,7 +23,7 @@ Assignment uses `:=`, and it works in one direction only. `a := b` writes the va
 
 ```iecst
 VAR_GLOBAL
-    cycleTime : TIME := T#10ms;
+    cycleTime: TIME := T#10ms;
 END_VAR
 ```
 
@@ -41,8 +41,8 @@ Write `CONSTANT` on the block and every variable in it becomes a constant. An as
 
 ```iecst
 VAR_GLOBAL CONSTANT
-    MAX_SIZE : INT := 99;
-    MIN_LEN  : INT := 1;
+    MAX_SIZE: INT := 99;
+    MIN_LEN: INT := 1;
 END_VAR
 ```
 
@@ -56,15 +56,18 @@ A control system loses its memory when it loses power. `RETAIN` marks the variab
 ```iecst
 PROGRAM Main
     VAR RETAIN
-        partsProduced : DINT;
+        partsProduced: DINT;
     END_VAR
     VAR NON_RETAIN
-        scratch : DINT;
+        scratch: DINT;
     END_VAR
 END_PROGRAM
 ```
 
-The compiler puts retained variables into a separate section of the binary, and the runtime on the target provides the persistent storage for that section. `NON_RETAIN` states the normal behavior, which is also the default.
+The compiler puts retained variables into a section of the binary that is called `.retain`, and leaves the rest to the target. `NON_RETAIN` states the normal behavior, which is also the default.
+
+> [!NOTE]
+> `RETAIN` needs explicit handling in the runtime that manages the project. The compiler only marks the storage and gives you the metadata. It does not save the section, it does not restore it, and it does not supply a runtime that does.
 
 
 ## Initial values
@@ -73,9 +76,9 @@ An initial value is computed while the program is compiled, so it can use litera
 
 ```iecst
 VAR_GLOBAL CONSTANT
-    MIN_LEN : INT := 1;
-    MAX_LEN : INT := 100;
-    SIZE    : INT := MAX_LEN - MIN_LEN;
+    MIN_LEN: INT := 1;
+    MAX_LEN: INT := 100;
+    SIZE: INT := MAX_LEN - MIN_LEN;
 END_VAR
 ```
 
@@ -85,8 +88,8 @@ An array takes a list, a struct takes its members by name:
 
 ```iecst
 VAR
-    values : ARRAY[0..4] OF DINT := [1, 2, 3, 4, 5];
-    origin : Point := (x := 0, y := 0);
+    values: ARRAY[0..4] OF DINT := [1, 2, 3, 4, 5];
+    origin: Point := (x := 0, y := 0);
 END_VAR
 ```
 

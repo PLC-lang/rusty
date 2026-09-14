@@ -5,12 +5,12 @@ A [fixed array](02-arrays.md) carries its bounds in its type. A variable-length 
 The example passes two arrays with different bounds to `sum` and a two-dimensional array to `fill`:
 
 ```iecst
-FUNCTION sum : DINT
+FUNCTION sum: DINT
     VAR_IN_OUT
-        values : ARRAY[*] OF DINT;
+        values: ARRAY[*] OF DINT;
     END_VAR
     VAR
-        i : DINT;
+        i: DINT;
     END_VAR
 
     FOR i := LOWER_BOUND(values, 1) TO UPPER_BOUND(values, 1) DO
@@ -18,9 +18,9 @@ FUNCTION sum : DINT
     END_FOR
 END_FUNCTION
 
-FUNCTION fill : DINT
+FUNCTION fill: DINT
     VAR_INPUT {ref}
-        grid : ARRAY[*, *] OF INT;
+        grid: ARRAY[*, *] OF INT;
     END_VAR
 
     grid[0, 1] := 7;
@@ -28,10 +28,10 @@ END_FUNCTION
 
 PROGRAM main
     VAR
-        small : ARRAY[0..2] OF DINT := [1, 2, 3];
-        large : ARRAY[10..19] OF DINT;
-        table : ARRAY[0..1, 0..2] OF INT;
-        total : DINT;
+        small: ARRAY[0..2] OF DINT := [1, 2, 3];
+        large: ARRAY[10..19] OF DINT;
+        table: ARRAY[0..1, 0..2] OF INT;
+        total: DINT;
     END_VAR
 
     total := sum(small);
@@ -65,7 +65,7 @@ Struct {
 }
 ```
 
-For `values : ARRAY[*] OF DINT`, the indexer creates four types. The main struct, `__sum_values`, has the nature `__VLA`, a marker used by resolution and validation.
+For `values: ARRAY[*] OF DINT`, the indexer creates four types. The main struct, `__sum_values`, has the nature `__VLA`, a marker used by resolution and validation.
 
 The first member, `struct_vla_dint_1`, points to an array type with undetermined bounds. That type lets the resolver attach an array hint; codegen does not lay it out. The second member, `dimensions`, is a fixed `DINT` array with a lower and upper bound for each dimension:
 
@@ -105,7 +105,7 @@ At the call site the argument is an ordinary fixed array, and it receives the ar
                  ^^^^^            { kind: Variable, qualified_name: "main.small",       resulting_type: "__main_small",  hint: Argument { resulting_type: "__auto_pointer_to___sum_values", position: 0 } }
 ```
 
-`LOWER_BOUND` and `UPPER_BOUND` are built-in generic functions, declared as `FUNCTION LOWER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT`. Their annotation hints the first argument with its own VLA type when it is one, and with the reserved placeholder type `__VLA` when it is not, so that the argument fails the type check with a readable name. The second argument keeps its integer type, and the call is a `DINT` value.
+`LOWER_BOUND` and `UPPER_BOUND` are built-in generic functions, declared as `FUNCTION LOWER_BOUND<U: __ANY_VLA, T: ANY_INT>: DINT`. Their annotation hints the first argument with its own VLA type when it is one, and with the reserved placeholder type `__VLA` when it is not, so that the argument fails the type check with a readable name. The second argument keeps its integer type, and the call is a `DINT` value.
 
 
 ## Lowering
@@ -210,9 +210,9 @@ An access must use as many indices as the VLA has dimensions (E045), and a liter
 
 | Structured Text | Index | Annotation | LLVM |
 |---|---|---|---|
-| `values : ARRAY[*] OF DINT` (parameter) | struct `__<pou>_<var>` with a pointer and a bounds member, nature `__VLA`; the parameter holds an auto-dereferencing pointer to it | `Variable` of the struct, hinted with the placeholder array `__<pou>_<var>_vla_1_dint` | `{ ptr, [2 x i32] }`, passed as `ptr` |
+| `values: ARRAY[*] OF DINT` (parameter) | struct `__<pou>_<var>` with a pointer and a bounds member, nature `__VLA`; the parameter holds an auto-dereferencing pointer to it | `Variable` of the struct, hinted with the placeholder array `__<pou>_<var>_vla_1_dint` | `{ ptr, [2 x i32] }`, passed as `ptr` |
 | `ARRAY[*, *] OF INT` | same, with two dimensions in the source marker | same | `{ ptr, [4 x i32] }` |
-| `f(small)` with `small : ARRAY[0..2] OF DINT` | | argument hinted with the pointer to the VLA struct | `alloca` of the struct, store data pointer and `[0, 2]`, pass its address |
+| `f(small)` with `small: ARRAY[0..2] OF DINT` | | argument hinted with the pointer to the VLA struct | `alloca` of the struct, store data pointer and `[0, 2]`, pass its address |
 | `values[i]` | | `Value` of the element type | load pointer and lower bound, `sub`, `getelementptr` |
 | `grid[a, b]` | | `Value` of the element type | run-time lengths, normalized indices, multiply and accumulate |
 | `LOWER_BOUND(values, 1)` | built-in generic `<U: __ANY_VLA, T: ANY_INT>` | `Value DINT`; the VLA argument hinted with its own type | load entry `2(n-1)` of the bounds array; `UPPER_BOUND` entry `2(n-1)+1` |

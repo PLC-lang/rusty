@@ -5,22 +5,22 @@ A property gives a function block a member that reads like a variable but runs c
 ```iecst
 FUNCTION_BLOCK fb
     VAR
-        raw : DINT;
+        raw: DINT;
     END_VAR
 
-    PROPERTY_GET scaled : DINT
+    PROPERTY_GET scaled: DINT
         scaled := raw * 10;
     END_PROPERTY
 
-    PROPERTY_SET scaled : DINT
+    PROPERTY_SET scaled: DINT
         raw := scaled / 10;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION main
     VAR
-        inst : fb;
-        x : DINT;
+        inst: fb;
+        x: DINT;
     END_VAR
 
     inst.scaled := 50;
@@ -51,10 +51,10 @@ The order inside a statement is fixed. In an assignment the participant lowers t
 The getter uses the property name as a local result variable. The generated method keeps that variable and the original body, then copies the result to the method's return variable:
 
 ```diff
--PROPERTY_GET scaled : DINT
-+METHOD __get_scaled : DINT
+-PROPERTY_GET scaled: DINT
++METHOD __get_scaled: DINT
 +    VAR
-+        scaled : DINT;
++        scaled: DINT;
 +    END_VAR
 +
      scaled := raw * 10;
@@ -68,10 +68,10 @@ The getter uses the property name as a local result variable. The generated meth
 In the setter body the property name stands for the incoming value, so it becomes a by-value input parameter, and the method has no return type:
 
 ```diff
--PROPERTY_SET scaled : DINT
+-PROPERTY_SET scaled: DINT
 +METHOD __set_scaled
 +    VAR_INPUT
-+        scaled : DINT;
++        scaled: DINT;
 +    END_VAR
 +
      raw := scaled / 10;

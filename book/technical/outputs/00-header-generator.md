@@ -3,13 +3,13 @@
 C code and Structured Text code can call each other through linked functions. Both need compatible declarations. For
 
 ```iecst
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        value : DINT;
-        factor : INT;
+        value: DINT;
+        factor: INT;
     END_VAR
     VAR_IN_OUT
-        total : DINT;
+        total: DINT;
     END_VAR
 END_FUNCTION
 ```
@@ -74,7 +74,7 @@ The generator visits globals, user types, POUs, and implementations. It skips ex
 
 Built-in types are translated from their index records. Integers use `intN_t` or `uintN_t`; `BOOL` uses `bool`; `REAL` and `LREAL` use `float_t` and `double_t`. Date and time types use `time_t`. Strings become arrays of `char` or `int16_t`, including a terminator slot. User type names stay unchanged.
 
-Array bounds and string lengths that are constant expressions rather than literals are evaluated through the index, so `STRING[MESSAGE_LEN]` with `MESSAGE_LEN : DINT := 80` becomes `char[81]`. A bound that is not constant stops the run with an error.
+Array bounds and string lengths that are constant expressions rather than literals are evaluated through the index, so `STRING[MESSAGE_LEN]` with `MESSAGE_LEN: DINT := 80` becomes `char[81]`. A bound that is not constant stops the run with an error.
 
 
 ## The example, rendered
@@ -82,55 +82,57 @@ Array bounds and string lengths that are constant expressions rather than litera
 The project below covers the main declaration forms. Each following subsection pairs a construct with trimmed C output.
 
 ```iecst
-TYPE Speed : (Slow, Fast := 10, Turbo); END_TYPE
+TYPE Speed: (Slow, Fast := 10, Turbo); END_TYPE
 
-TYPE Point : STRUCT
-    x : DINT;
-    label : STRING[20];
-END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x: DINT;
+        label: STRING[20];
+    END_STRUCT
+END_TYPE
 
-TYPE Message : STRING[80]; END_TYPE
-TYPE Grid : ARRAY[0..1, 0..2] OF DINT; END_TYPE
-TYPE PointRef : REF_TO Point; END_TYPE
-TYPE Percent : INT(0..100); END_TYPE
+TYPE Message: STRING[80]; END_TYPE
+TYPE Grid: ARRAY[0..1, 0..2] OF DINT; END_TYPE
+TYPE PointRef: REF_TO Point; END_TYPE
+TYPE Percent: INT(0..100); END_TYPE
 
 VAR_GLOBAL
-    counter : DINT;
-    origin : Point;
-    callback : __FPOINTER scale;
+    counter: DINT;
+    origin: Point;
+    callback: __FPOINTER scale;
 END_VAR
 
-FUNCTION scale : DINT
+FUNCTION scale: DINT
     VAR_INPUT
-        value : DINT;
+        value: DINT;
     END_VAR
     VAR_INPUT {ref}
-        p : Point;
+        p: Point;
     END_VAR
     VAR_IN_OUT
-        total : DINT;
+        total: DINT;
     END_VAR
     VAR_OUTPUT
-        overflow : BOOL;
+        overflow: BOOL;
     END_VAR
 END_FUNCTION
 
-FUNCTION sum : DINT
+FUNCTION sum: DINT
     VAR_INPUT
-        args : {sized} DINT...;
+        args: {sized} DINT...;
     END_VAR
 END_FUNCTION
 
 FUNCTION_BLOCK Buffer
     VAR_INPUT
-        limit : INT;
+        limit: INT;
     END_VAR
     VAR
-        count : DINT;
+        count: DINT;
     END_VAR
-    METHOD push : BOOL
+    METHOD push: BOOL
         VAR_INPUT
-            value : DINT;
+            value: DINT;
         END_VAR
     END_METHOD
 END_FUNCTION_BLOCK
@@ -142,13 +144,13 @@ END_ACTIONS
 
 FUNCTION_BLOCK RingBuffer EXTENDS Buffer
     VAR
-        head : DINT;
+        head: DINT;
     END_VAR
 END_FUNCTION_BLOCK
 
 PROGRAM main
     VAR
-        i : DINT;
+        i: DINT;
     END_VAR
 END_PROGRAM
 ```

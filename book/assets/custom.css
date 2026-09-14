@@ -1,0 +1,6 @@
+/* mdBook shrinks a table to its content and centers it (`table { margin: 0 auto }`).
+   Make it start at the left margin and use the whole width of the page instead. */
+table {
+    margin: 0;
+    width: 100%;
+}

@@ -1,6 +1,6 @@
 # Initializers
 
-A declaration can specify an initial value: `i : DINT := 1`, `TYPE MyInt : INT := 7`, `p : Point := (y := 2)`, or `ptr : POINTER TO DINT := ADR(i)`. The index first tries to evaluate that expression as a constant.
+A declaration can specify an initial value: `i: DINT := 1`, `TYPE MyInt: INT := 7`, `p: Point := (y := 2)`, or `ptr: POINTER TO DINT := ADR(i)`. The index first tries to evaluate that expression as a constant.
 
 Constant values can become static data. Constructors initialize instances, and statements at the start of a body initialize stack variables. These paths can write the same value more than once. This chapter follows where each initializer goes and which values need runtime work.
 
@@ -8,32 +8,34 @@ The example combines defaults, aggregate literals, addresses, and a call inside 
 
 ```iecst
 VAR_GLOBAL CONSTANT
-    MAX : DINT := 3;
+    MAX: DINT := 3;
 END_VAR
 
 VAR_GLOBAL
-    gCount : DINT := MAX + 1;
+    gCount: DINT := MAX + 1;
 END_VAR
 
-TYPE MyInt : INT := 7; END_TYPE
+TYPE MyInt: INT := 7; END_TYPE
 
-TYPE Point : STRUCT
-    x : DINT := 1;
-    y : DINT;
-END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x: DINT := 1;
+        y: DINT;
+    END_STRUCT
+END_TYPE
 
 FUNCTION_BLOCK Counter
     VAR_INPUT
-        step : DINT := 1;
+        step: DINT := 1;
     END_VAR
     VAR
-        count : DINT;
+        count: DINT;
     END_VAR
 END_FUNCTION_BLOCK
 
-FUNCTION pick : DINT
+FUNCTION pick: DINT
     VAR
-        local : DINT := 5;
+        local: DINT := 5;
     END_VAR
 
     pick := local;
@@ -41,17 +43,17 @@ END_FUNCTION
 
 PROGRAM main
     VAR
-        i : DINT := MAX + 1;
-        n : MyInt;
-        p : Point := (y := 2);
-        values : ARRAY[0..2] OF DINT := [1, 2, 3];
-        counter : Counter := (step := 10);
-        ptr : POINTER TO DINT := ADR(i);
-        r : REFERENCE TO DINT REF= i;
-        readings : ARRAY[0..1] OF DINT := [pick(), 2];
+        i: DINT := MAX + 1;
+        n: MyInt;
+        p: Point := (y := 2);
+        values: ARRAY[0..2] OF DINT := [1, 2, 3];
+        counter: Counter := (step := 10);
+        ptr: POINTER TO DINT := ADR(i);
+        r: REFERENCE TO DINT REF= i;
+        readings: ARRAY[0..1] OF DINT := [pick(), 2];
     END_VAR
     VAR_TEMP
-        t : DINT := 4;
+        t: DINT := 4;
     END_VAR
 END_PROGRAM
 ```
@@ -115,7 +117,7 @@ The evaluator processes a queue. Literals resolve after a range check. Constant 
 
 A reference to a variable that is not constant is unresolvable, "`x` is no const reference", unless the target is a pointer type; then it is an address. `ADR`, `REF`, and a bare reference that initializes a `REFERENCE TO` are addresses too. A call to a user function is a plain unresolvable, because the compiler does not execute code at compile time.
 
-Struct and array literals keep their shape: every element is folded on its own, but the literal as a whole stays a list instead of one value. An element that is not constant makes the whole literal unresolvable, as `readings` shows. A variable without an initializer has no entry at all, and its value comes from its type: the type's own default (`n : MyInt` starts at `7`), or zero.
+Struct and array literals keep their shape: every element is folded on its own, but the literal as a whole stays a list instead of one value. An element that is not constant makes the whole literal unresolvable, as `readings` shows. A variable without an initializer has no entry at all, and its value comes from its type: the type's own default (`n: MyInt` starts at `7`), or zero.
 
 > [!NOTE]
 > **Developer note.** The index has an unused map of default-instance entries such as `__Point__init` and `__Counter__init`. These entries do not produce LLVM globals. Codegen reads defaults from the type index, while constructors provide runtime initialization.
@@ -126,24 +128,24 @@ Struct and array literals keep their shape: every element is folded on its own, 
 The resolver visits an initializer like any other expression, with the declaring POU as context, and hints it with the declared type of the variable (see [Resolver](../pipeline/03-resolver.md)). A struct literal gets no annotation of its own, only the hint, and its assignments resolve the member name against the target type, not against the current POU:
 
 ```
-    i : DINT := MAX + 1;
-                ^^^^^^^        { kind: Value,                                   resulting_type: "DINT",  hint: "DINT" }
-                ^^^            { kind: Variable, qualified_name: "MAX", constant: true, resulting_type: "DINT", hint: None }
+    i: DINT := MAX + 1;
+               ^^^^^^^        { kind: Value,                                   resulting_type: "DINT",  hint: "DINT" }
+               ^^^            { kind: Variable, qualified_name: "MAX", constant: true, resulting_type: "DINT", hint: None }
 
-    p : Point := (y := 2);
-                 ^^^^^^^^      { kind: None,                                                             hint: "Point" }
-                  ^            { kind: Variable, qualified_name: "Point.y",      resulting_type: "DINT",  hint: None }
-                       ^       { kind: Value,                                   resulting_type: "DINT",  hint: "DINT" }
+    p: Point := (y := 2);
+                ^^^^^^^^      { kind: None,                                                             hint: "Point" }
+                 ^            { kind: Variable, qualified_name: "Point.y",      resulting_type: "DINT",  hint: None }
+                      ^       { kind: Value,                                   resulting_type: "DINT",  hint: "DINT" }
 
-    ptr : POINTER TO DINT := ADR(i);
-                             ^^^^^^   { kind: Value,                                resulting_type: "LWORD", hint: "__main_ptr" }
-                                 ^    { kind: Variable, qualified_name: "main.i",   resulting_type: "DINT",  hint: "DINT" }
+    ptr: POINTER TO DINT := ADR(i);
+                            ^^^^^^   { kind: Value,                                resulting_type: "LWORD", hint: "__main_ptr" }
+                                ^    { kind: Variable, qualified_name: "main.i",   resulting_type: "DINT",  hint: "DINT" }
 
-    r : REFERENCE TO DINT REF= i;
-                               ^      { kind: Variable, qualified_name: "main.i",   resulting_type: "DINT",  hint: "__main_r" }
+    r: REFERENCE TO DINT REF= i;
+                              ^      { kind: Variable, qualified_name: "main.i",   resulting_type: "DINT",  hint: "__main_r" }
 
-TYPE MyInt : INT := 7; END_TYPE
-                    ^                 { kind: Value,                                resulting_type: "DINT",  hint: "INT" }
+TYPE MyInt: INT := 7; END_TYPE
+                   ^                 { kind: Value,                                resulting_type: "DINT",  hint: "INT" }
 ```
 
 `ADR(i)` is a `LWORD` value hinted to the pointer type `__main_ptr`; `REF= i` is the variable itself hinted to the reference type. Both hints tell codegen to store an address rather than a value. The elements of `[1, 2, 3]` are each hinted `DINT`, the literal as a whole `__main_values`.
@@ -224,15 +226,15 @@ A scalar initializer containing a call is rejected. The same call inside an arra
 
 | Initializer | Constant store | Static data | Constructor or body |
 |---|---|---|---|
-| `i : DINT := 1` | `Resolved(1)` | `i32 1` in the instance | `store i32 1` |
-| `i : DINT := MAX + 1` | `Resolved(4)`, folded in a later pass | `i32 4` | `store i32 4` |
-| `TYPE MyInt : INT := 7` | `Resolved(7)` on the type | default for every `MyInt` without its own initializer | `MyInt__ctor` stores 7 |
-| `p : Point := (y := 2)` | `Resolved`, literal kept as written | struct constant, type default for the other members | `Point__ctor(p)` then `store` per member |
-| `values : ARRAY := [1, 2, 3]` | `Resolved`, literal kept | array constant | `memcpy` from a constant |
-| `counter : Counter := (step := 10)` | `Resolved`, literal kept | struct constant with the FB's defaults | `Counter__ctor` then `store` |
+| `i: DINT := 1` | `Resolved(1)` | `i32 1` in the instance | `store i32 1` |
+| `i: DINT := MAX + 1` | `Resolved(4)`, folded in a later pass | `i32 4` | `store i32 4` |
+| `TYPE MyInt: INT := 7` | `Resolved(7)` on the type | default for every `MyInt` without its own initializer | `MyInt__ctor` stores 7 |
+| `p: Point := (y := 2)` | `Resolved`, literal kept as written | struct constant, type default for the other members | `Point__ctor(p)` then `store` per member |
+| `values: ARRAY := [1, 2, 3]` | `Resolved`, literal kept | array constant | `memcpy` from a constant |
+| `counter: Counter := (step := 10)` | `Resolved`, literal kept | struct constant with the FB's defaults | `Counter__ctor` then `store` |
 | `ptr := ADR(i)` | `Unresolvable(Address)` | `ptr null` | `store ptr %i` |
 | `r REF= i` | `Unresolvable(Address)` | `ptr null` | `store ptr %i` |
 | `readings := [pick(), 2]` | `Unresolvable(Misc)`, removed by lowering | `zeroinitializer` | one `store` per element, the call runs once |
-| `local : DINT := 5` in a function | `Resolved(5)` | none | two `store` at the start of the body |
-| `t : DINT := 4` in `VAR_TEMP` | `Resolved(4)` | none | two `store` at the start of the body |
-| `chosen : DINT := pick()` | `Unresolvable(Misc)` | rejected, E033 | |
+| `local: DINT := 5` in a function | `Resolved(5)` | none | two `store` at the start of the body |
+| `t: DINT := 4` in `VAR_TEMP` | `Resolved(4)` | none | two `store` at the start of the body |
+| `chosen: DINT := pick()` | `Unresolvable(Misc)` | rejected, E033 | |

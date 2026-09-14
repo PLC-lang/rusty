@@ -16,9 +16,9 @@ Two parts. The declaration is Structured Text, written in the declaration editor
 ```iecst
 PROGRAM Mixer
     VAR
-        left  : Counter;
-        right : Counter;
-        outA, outB : DINT;
+        left: Counter;
+        right: Counter;
+        outA, outB: DINT;
     END_VAR
 ```
 
@@ -92,4 +92,4 @@ A chart has no lines and columns, so a diagnostic names the element instead, for
 
 ## What's next
 
-That is the language. The next part explains the compiler as a tool: [building](../building/README.md).
+That is the language. The next chapter explains the compiler as a tool: [building](../building/README.md).

@@ -1,10 +1,5 @@
 # Outputs
 
-The compiler can also write C headers and hardware maps. These outputs use declarations and index entries already available after validation.
+This chapter walks you through the results that a run can produce besides machine code, from the declarations and index entries that the pipeline has already collected.
 
-| Chapter | Output |
-|---|---|
-| [Header Generator](00-header-generator.md) | The declarations of a project as C headers (`--generate-headers`) |
-| [Hardware Map](01-hardware-map.md) | The hardware-bound variables (`%IX0.0`, `%QW2.5`) of a project as a JSON or TOML file (`--hwmap-file`) |
-
-Header generation replaces codegen and ends the run. A requested hardware map can accompany a normal build or a `--check` run. For the layouts and types behind these outputs, continue with [Internals](../internals/README.md).
+There are two of them: the C headers of a project, which replace code generation and end the run, and the map of the variables that are bound to hardware addresses, which a normal build or a `--check` run can write beside its artifact. Each subchapter follows one output from the option that asks for it to the file that it writes, with the model and the naming rules in between.

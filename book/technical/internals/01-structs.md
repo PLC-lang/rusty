@@ -5,34 +5,38 @@ A struct groups named members into one value. The index keeps the members in dec
 The example extends the instance-layout model from [POUs](00-pous.md) to nested data. It shows member defaults, a whole-struct copy, a function argument, and a struct return:
 
 ```iecst
-TYPE Point : STRUCT
-    x, y : INT;
-END_STRUCT END_TYPE
+TYPE Point:
+    STRUCT
+        x, y: INT;
+    END_STRUCT
+END_TYPE
 
-TYPE Rect : STRUCT
-    topLeft : Point;
-    bottomRight : Point := (x := 10, y := 10);
-    label : STRING[5] := 'rect';
-END_STRUCT END_TYPE
+TYPE Rect:
+    STRUCT
+        topLeft: Point;
+        bottomRight: Point := (x := 10, y := 10);
+        label: STRING[5] := 'rect';
+    END_STRUCT
+END_TYPE
 
-FUNCTION area : INT
+FUNCTION area: INT
     VAR_INPUT
-        r : Rect;
+        r: Rect;
     END_VAR
 
     area := (r.bottomRight.x - r.topLeft.x) * (r.bottomRight.y - r.topLeft.y);
 END_FUNCTION
 
-FUNCTION origin : Point
+FUNCTION origin: Point
     origin := (x := 0, y := 0);
 END_FUNCTION
 
 PROGRAM main
     VAR
-        r1 : Rect := (topLeft := (x := 1, y := 2));
-        r2 : Rect;
-        p : Point;
-        a : INT;
+        r1: Rect := (topLeft := (x := 1, y := 2));
+        r2: Rect;
+        p: Point;
+        a: INT;
     END_VAR
 
     r2 := r1;
@@ -103,12 +107,12 @@ The qualified name of a member is always `<struct>.<member>`, never `<variable>.
 A struct literal gets no annotation of its own, only a hint with the struct type, taken from the left side of the assignment or from the declared type of the variable. Under that hint the left side of every inner assignment is looked up as a member of the struct, and the right side is hinted with the type of that member:
 
 ```
-    r1 : Rect := (topLeft := (x := 1, y := 2));
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  { kind: None,                                                    hint: "Rect" }
-                  ^^^^^^^                        { kind: Variable, qualified_name: "Rect.topLeft", resulting_type: "Point", hint: None }
-                             ^^^^^^^^^^^^^^^^    { kind: None,                                                    hint: "Point" }
-                              ^                  { kind: Variable, qualified_name: "Point.x",      resulting_type: "INT",   hint: None }
-                                   ^             { kind: Value,                                     resulting_type: "DINT",  hint: "INT" }
+    r1: Rect := (topLeft := (x := 1, y := 2));
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  { kind: None,                                                    hint: "Rect" }
+                 ^^^^^^^                        { kind: Variable, qualified_name: "Rect.topLeft", resulting_type: "Point", hint: None }
+                            ^^^^^^^^^^^^^^^^    { kind: None,                                                    hint: "Point" }
+                             ^                  { kind: Variable, qualified_name: "Point.x",      resulting_type: "INT",   hint: None }
+                                  ^             { kind: Value,                                     resulting_type: "DINT",  hint: "INT" }
 ```
 
 Nested literals are hinted recursively, so `(x := 1, y := 2)` inside the `topLeft` assignment is hinted `Point`. The same happens for a literal assigned in a body, `origin := (x := 0, y := 0)`. A member name the struct does not have, `z := 2`, gets no annotation at all.
@@ -120,7 +124,7 @@ A struct variable passed as an argument, `area(r1)`, is annotated like any argum
 
 The [init participant](../participants/06-init.md) creates `Point__ctor` and `Rect__ctor`. It splits declaration literals into assignments for individual fields. Thus `Rect__ctor` sets `self.bottomRight.x` and `.y` to 10. `main__ctor` sets `self.r1.topLeft.x := 1` and `self.r1.topLeft.y := 2`.
 
-The [aggregate-return lowerer](../participants/09-aggregate-return.md) turns `origin` into a void function with a `VAR_IN_OUT origin : Point` parameter and gives the call site a temporary. A struct literal assigned in a body is left as it is.
+The [aggregate-return lowerer](../participants/09-aggregate-return.md) turns `origin` into a void function with a `VAR_IN_OUT origin: Point` parameter and gives the call site a temporary. A struct literal assigned in a body is left as it is.
 
 
 ## Codegen
@@ -231,10 +235,10 @@ A member name in a literal or an access that the struct does not declare is an u
 
 | Structured Text | Index | Annotation | LLVM |
 |---|---|---|---|
-| `TYPE Rect : STRUCT ... END_STRUCT END_TYPE` | `Struct { members, source: OriginalDeclaration }`, one variable entry per member | | `%Rect = type { ... }`, fields in declaration order |
-| `topLeft : Point;` inside a struct | member entry `Rect.topLeft`, position 0 | | field 0, embedded by value |
+| `TYPE Rect: STRUCT ... END_STRUCT END_TYPE` | `Struct { members, source: OriginalDeclaration }`, one variable entry per member | | `%Rect = type { ... }`, fields in declaration order |
+| `topLeft: Point;` inside a struct | member entry `Rect.topLeft`, position 0 | | field 0, embedded by value |
 | `r1.topLeft.x` | | each segment `Variable`, last one `Point.x` of type `INT` | one `getelementptr` per segment, then `load` or `store` |
 | `(x := 1, y := 2)` | expression in the constant store, if in a declaration | no annotation, hint `Point`; members resolved under that hint | folded into the instance constant; in a body, `memcpy` from a constant or `insertvalue` chain |
 | `r2 := r1` | | `r1` hinted `Rect` | `memcpy` of `sizeof(%Rect)` |
 | `area(r1)` | `area.r` of type `Rect` | `r1` hinted as argument 0 | `ptr`, copied into a local `%Rect` in the callee |
-| `FUNCTION origin : Point` | `origin.origin` return member of type `Point` | | void function with a `ptr` result parameter |
+| `FUNCTION origin: Point` | `origin.origin` return member of type `Point` | | void function with a `ptr` result parameter |
