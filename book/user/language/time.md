@@ -4,14 +4,16 @@ Four things can be measured: how long something takes, which day it is, which mo
 
 The short family is 32 bits wide, the long family is 64 bits and starts with `L`:
 
-| Short | Long | Holds | Unit of the short type |
+| Short | Long | Holds | What the short type counts |
 |---|---|---|---|
 | `TIME` | `LTIME` | A duration | milliseconds |
 | `DATE` | `LDATE` | A day | seconds since 1970-01-01 UTC |
-| `TIME_OF_DAY` | `LTIME_OF_DAY` | A moment of a day | milliseconds since 1970-01-01 UTC |
+| `TIME_OF_DAY` | `LTIME_OF_DAY` | A moment of a day | milliseconds since midnight |
 | `DATE_AND_TIME` | `LDATE_AND_TIME` | A point in time | seconds since 1970-01-01 UTC |
 
-The long family counts in nanoseconds. Each type also has a short name: `T`, `LT`, `D`, `LD`, `TOD`, `LTOD`, `DT`, `LDT`.
+Each long type counts the same thing as the short type next to it, but in nanoseconds. Each type also has a short name: `T`, `LT`, `D`, `LD`, `TOD`, `LTOD`, `DT`, `LDT`.
+
+A part of a value that is finer than what the type counts is lost. `T#500us` is a `TIME` of zero, and `DT#1999-12-31-23:59:59.999` is the same `DATE_AND_TIME` as `DT#1999-12-31-23:59:59`. The long types count in nanoseconds and keep both.
 
 
 ## Literals
@@ -28,15 +30,17 @@ VAR
 END_VAR
 ```
 
-A duration is a sequence of segments, in the order `d`, `h`, `m`, `s`, `ms`, `us`, `ns`. You leave out the ones you do not need, and only the last one can have a fraction:
+A duration is a sequence of segments, in the order `d`, `h`, `m`, `s`, `ms`, `us`, `ns`. You leave out the ones you do not need, and a segment can have a fraction:
 
 ```iecst
 T#2d4h          (* two days and four hours *)
-T#2d4.2h        (* the last segment may be fractional *)
+T#2d4.2h        (* a segment may be fractional *)
 T#90s           (* a segment may exceed its usual range *)
 ```
 
-In a date or a point in time, only the seconds can have a fraction.
+The order is not optional. A literal that changes it, such as `T#4h2d`, is rejected.
+
+In a moment of a day or a point in time, only the seconds can have a fraction. A date has no fraction at all.
 
 
 ## Calculating
@@ -56,7 +60,7 @@ IF a > b THEN          (* TRUE *)
 
 A duration also multiplies and divides by a number, which is how you scale a cycle time.
 
-The short types are unsigned, so a negative duration does not fit. The compiler reports `E148` for a literal such as `T#-10s`. Use `LTIME` when a duration must be able to go below zero.
+The short types are unsigned, so a negative duration does not fit. A literal such as `T#-10s` still compiles, but the compiler warns about an underflow and the value wraps around to a large positive duration. Use `LTIME` when a duration must be able to go below zero: `LT#-10s` is a negative `LTIME` and gets no warning.
 
 To read a time value as a number, convert it with a cast. `DINT#cycle` gives the milliseconds of a `TIME`, because that is what the type holds.
 
