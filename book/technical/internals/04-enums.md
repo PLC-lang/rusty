@@ -2,7 +2,7 @@
 
 An enum gives names to integer values. `TYPE Color: (Red, Green, Blue := 5); END_TYPE` defines three variants of `Color`. Codegen uses the underlying integer type, `DINT` by default, and folds variant references into constant values.
 
-The example shows explicit values, type defaults, and different ways to name a variant. It also includes a cross-enum assignment to show the validation rules:
+The example shows explicit values, type defaults, and different ways to name a variant. It also includes a cross-enum assignment, `state := Door#Closed`, which the compiler reports with two warnings:
 
 ```iecst
 TYPE Color: (Red, Green, Blue := 5); END_TYPE
@@ -126,11 +126,11 @@ A variant in a body resolves to its variable entry, and the annotation records t
 
 The example uses three forms of variant access: `Color#Red`, `Color.Green`, and the unqualified `Closed`.
 
-`Color#Red` is a cast expression: the base `Color` is annotated as a type, and because that type is an enum, the target `Red` is looked up among its variants only. The expression as a whole is a value of type `Color`. `Color.Green` is an ordinary member access: the base resolves to the type `Color`, and the member lookup, which tries the members of a container first, falls back to the variants when the container is an enum.
+`Color#Red` is a cast expression: the base `Color` is annotated as a type, and because that type is an enum, the target `Red` is looked up among its variants only. The expression as a whole is a value of type `Color`. `Color.Green` is an ordinary member access: the base resolves to the type `Color`, and the member lookup finds `Green`, because the variants of an enum are its members.
 
 `Closed` without a qualifier goes through the normal name lookup (see [Resolver](../pipeline/03-resolver.md), Walking a unit): a member of the current POU first, then a global. Inside a POU the member lookup also searches the variants of every enum type one of the POU's variables has. That is why `Closed` in `main` finds `State.Closed` and not `Door.Closed`: `main` has a variable of type `State` and none of type `Door`. Without such a variable, the global lookup takes the first variant of that name in declaration order.
 
-Comparisons are promoted through the underlying type. `paint = Green` compares two `DINT` values and needs no hints. `state <> Idle` compares two `BYTE` values, and the resolver promotes both to the bigger of the underlying type and `DINT`, which for the unsigned `BYTE` is `UDINT`. The argument `paint` in `isGreen(paint)` is hinted to the parameter type `Color` like any argument, and the variant initializers are annotated too, with the underlying type as hint, so the values of `State` are hinted `BYTE`.
+Comparisons are promoted through the underlying type. `paint = Green` compares two `DINT` values and needs no hints. `state <> Idle` compares two `BYTE` values, and the resolver widens both to 32 bits; the promoted type is `UDINT` because `BYTE` is unsigned. The argument `paint` in `isGreen(paint)` is hinted to the parameter type `Color` like any argument, and the variant initializers are annotated too, with the underlying type as hint, so the values of `State` are hinted `BYTE`.
 
 > [!NOTE]
 > Names are case-insensitive, so a variable `color: Color` shadows the type name in `Color.Green`: the base resolves to the variable `main.color`, and the variant is then found through the variable's type. The result is the same entry, which is why the example uses `paint` for the variable.
@@ -145,7 +145,7 @@ Enums keep their representation during lowering. The [init participant](../parti
 
 ### Layout
 
-An enum type becomes the LLVM integer of its underlying type, `i32` for `Color` and `i8` for `State`; the type itself leaves no trace in the module. Every variant becomes a global constant named by its qualified name, and the instance of `main` gets its default values from the types:
+An enum type becomes the LLVM integer of its underlying type, `i32` for `Color` and `i8` for `State`; the type itself leaves no trace in the module. Every variant becomes a global constant named by its qualified name, and the instance of `main` carries the initial value of each of its variables:
 
 ```llvm
 %main = type { i32, i8, i32, i8 }
@@ -194,7 +194,7 @@ The declaration is checked for an integer underlying type (E122; `REAL` or `TIME
 
 Enum assignment diagnostics are warnings or informational messages by default. They do not stop codegen unless the severity configuration changes them. See [Severity and reporting](../pipeline/04-validation.md#severity-and-reporting).
 
-A value not accepted as a constant of the target enum produces E091. This includes an integer variable or a variant of another enum. Narrowing the underlying type also produces E067, as in `state := Door#Closed`. A matching integer literal produces a suggestion such as `Replace 1 with Green` (E092); an unmatched value produces E040.
+The assignment check reads the right side as a constant integer. When it cannot, it reports the value as evaluated at run time (E091). An integer variable lands here, and so does the cast form `Enum#Variant`, which is why `state := Door#Closed` in the example reports E091 and not a value mismatch. When it can, it compares the value with the variants of the target: a match gives the note ``Replace `1` with `Green` `` (E092), and no match gives E040. A narrower underlying type gives E067 on top, as the example also shows.
 
 Two enum types are the same type only when their names are equal, so a copy of a variant list under a second name is a different type. An enum assigned to an integer variable is not checked at all.
 
@@ -205,9 +205,9 @@ Two enum types are the same type only when their names are equal, so a copy of a
 |---|---|---|---|
 | `TYPE Color: (Red, Green); END_TYPE` | enum type, underlying `DINT`, two variants with constant-store values | | none; variables are `i32` |
 | `(...) BYTE` or `: BYTE (...)` | underlying `BYTE` | | `i8` |
-| `Red` as a variant | constant global entry `Color.Red`, also findable by bare name | Variable `Color.Red`, constant, type `Color` | `@Color.Red = constant i32 0`, folded to an immediate |
+| `Red` as a variant | constant global entry `Color.Red`, also findable by bare name | Variable `Color.Red`, constant, type `Color` | `@Color.Red = unnamed_addr constant i32 0`, folded to an immediate |
 | `Color#Red` | | base Type `Color`, whole a Value of type `Color` | immediate |
 | `Color.Red` | | base Type `Color`, member Variable `Color.Red` | immediate |
 | `mode: (Manual, Auto)` | pre-processed type `__main_mode` | | `i32`, constants `@__main_mode.Manual` |
 | `x: Color` without initializer | type default: zero variant, else the first | | initial value of the type's default |
-| `a = b` on enums | | operands hinted to the promoted underlying type | `icmp` on the underlying integer |
+| `a = b` on enums | | operands hinted to the promoted type when it is wider than the enum | `icmp` on the promoted integer |
