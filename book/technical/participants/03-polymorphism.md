@@ -69,7 +69,7 @@ At `post_index`, the table generators run: first the vtable generator for classe
 
 At `post_annotate`, the dispatch lowerers run: first the interface dispatch lowerer, which replaces interface type declarations with `__FATPOINTER` and lowers assignments, method calls, and call arguments; then the POU dispatch lowerer, which patches class and function block calls to go through the vtable. The project is then indexed and annotated again, so that the injected types and calls are resolved for code generation. The Validation section covers the checks that must happen before this rewrite.
 
-The two Transformation sections below describe the two kinds of polymorphism in detail.
+The Transformation section takes the two kinds of polymorphism in turn, then traces one program from source to lowered form.
 
 
 ## Transformation
@@ -80,9 +80,9 @@ As mentioned in the introduction, any derived POU instance can be assigned to a 
 
 ```iecst
 VAR
-    instanceA: FbA; // Has method foo
-    instanceB: FbB; // Has methods bar, baz
-    instanceC: FbC; // Has method qux
+    instanceA: FbA; // Declares foo
+    instanceB: FbB; // Extends FbA, overrides foo, adds bar and baz
+    instanceC: FbC; // Extends FbB, adds qux
 
     refInstanceA: POINTER TO FbA;
 END_VAR
@@ -92,9 +92,9 @@ END_VAR
 refInstanceA := ADR(instanceA);
 refInstanceA^.foo(); // Calls FbA.foo
 refInstanceA := ADR(instanceB);
-refInstanceA^.foo(); // Calls FbB.foo (or FbA.foo if not overridden)
+refInstanceA^.foo(); // Calls FbB.foo, the override
 refInstanceA := ADR(instanceC);
-refInstanceA^.foo(); // Calls FbC.foo (or the closest ancestor that overrides foo)
+refInstanceA^.foo(); // Calls FbB.foo, the closest ancestor that overrides foo
 ```
 
 To achieve dynamic dispatch, the compiler must perform a vtable lookup to execute the correct method. It does so by patching every such method call:
@@ -119,7 +119,7 @@ That in turn requires that classes and function blocks have a `__vtable` member 
  END_FUNCTION_BLOCK
 ```
 
-The `__vtable` field is initialized at construction time by the init participant, which assigns it to `ADR(__vtable_FbA_instance)`. That in turn requires a `__vtable_FbA` struct definition whose members carry default initializers, each pointing to the corresponding method implementation. Function blocks also include a `__body` entry for their callable body (classes do not, since they cannot be called directly). For clarity, the ASCII diagrams in this chapter omit `__body` and show only named methods:
+The `__vtable` field is initialized at construction time by the init participant, which assigns it to `ADR(__vtable_FbA_instance)`. The table itself is a `__vtable_FbA` struct definition whose members carry default initializers, each pointing to the corresponding method implementation. Function blocks also include a `__body` entry for their callable body (classes do not, since they cannot be called directly). For clarity, the ASCII diagrams in this chapter omit `__body` and show only named methods:
 
 ```diff
 +TYPE __vtable_FbA:
@@ -139,9 +139,9 @@ And finally a global instance of that struct, one per POU:
  END_VAR
 ```
 
-The global itself has no initializer. The member initializers of the struct become a constructor, which fills the instance before the program starts (see Interactions). A POU from an include file or with `{external}` linkage gets its instance declared in an `{external}` global block instead, because the library defines it.
+The global itself has no initializer. The member initializers of the struct become a constructor, which fills the instance before the program starts (see Interactions). A POU from an include file or with `{external}` linkage gets its instance declared in an `{external}` global block instead, because the library defines it. The `--generate-external-constructors` flag reverses this for `{external}` POUs; that is how the library itself is built.
 
-For derived POUs the process is the same, except that they do not get their own `__vtable` member field. They access the `__vtable` of the root parent and override it. This is also why the vtable pointer is a void pointer: different vtables, and therefore different types, are assigned to the `__vtable` field of the root. For the `A <- B <- C` inheritance chain we get
+For derived POUs the process is the same, except that they do not get their own `__vtable` member field. They access the `__vtable` of the root parent and override it. This is also why the vtable pointer is a void pointer: different vtables, and therefore different types, are assigned to the `__vtable` field of the root. For the `A <- B <- C` inheritance chain the result is
 
 ```diff
  FUNCTION_BLOCK FbA
@@ -177,7 +177,7 @@ One more note: methods called from within other methods, or from a function bloc
 
 Calls written as `THIS^.bar()` or `SUPER^.bar()` are left untouched, and so is a call on a plain instance variable, `instanceA.bar()`. In all three cases the type of the instance is exact, so the call is statically dispatched.
 
-Now that we know how vtables are stored and accessed, we should answer why `__vtable_FbA#(refInstanceA^.__vtable^).foo^(FbA#(refInstanceA^))` works in the first place. That is, why can we simply cast one vtable to another? Let's take a look at the vtable layouts:
+One question remains about `__vtable_FbA#(refInstanceA^.__vtable^).foo^(FbA#(refInstanceA^))`: why is it safe to cast one vtable to another? The vtable layouts give the answer:
 
 ```
 ┌─VTable FbA─┐   ┌─VTable FbB─┐   ┌─VTable FbC─┐
@@ -192,7 +192,7 @@ Now that we know how vtables are stored and accessed, we should answer why `__vt
                                   └────────────┘
 ```
 
-Notice how the order of function pointers is stable? At the top we have the function pointers of the parent class(es), followed by our own. This works because the generated vtable structs have a guaranteed sequential layout with no field reordering; each derived vtable is a strict prefix extension of the vtable of its parent. This is the reason why casting one vtable to another works in linear inheritance: we simply reinterpret the vtable as the parent type, cutting off trailing fields but keeping the content of the existing ones. In other words, upcasting from a derived class to a parent requires no run-time conversion. Note that this property only holds for single, linear inheritance chains; interfaces require a different dispatch mechanism (see the next section).
+The order of the function pointers is stable: the pointers of the parent types come first, then the ones the type adds. This works because the generated vtable structs have a guaranteed sequential layout with no field reordering; each derived vtable is a strict prefix extension of the vtable of its parent. A cast therefore only reinterprets the vtable as the parent type, cutting off trailing fields but keeping the content of the existing ones. In other words, upcasting from a derived class to a parent requires no run-time conversion. This property only holds for single, linear inheritance chains; interfaces require a different dispatch mechanism (see the next section).
 
 **Putting it all together**, the compiler does the following to achieve dynamic dispatch for classes and function blocks:
 
@@ -204,10 +204,9 @@ Notice how the order of function pointers is stable? At the top we have the func
     2. method is called through a variable of type `POINTER TO <CLASS|FUNCTION_BLOCK>`, `REF_TO`, or `REFERENCE TO`,
     3. but leave `THIS^`, `SUPER^`, and instance variable calls untouched, since those are statically dispatched
 
-
 ### Interface polymorphism
 
-Again, as mentioned in the introduction, an interface can be used as a variable type, and any concrete instance can be assigned to it, provided that its POU implements the interface. For example
+Interfaces need that different mechanism. An interface can be used as a variable type, and any concrete instance can be assigned to it, provided that its POU implements the interface. For example
 
 ```iecst
 VAR
@@ -220,14 +219,14 @@ END_VAR
 refInterface := instanceFbA;
 refInterface.foo(); // Calls FbA.foo
 
-// Here we assign an instance of FbB to interface IA, which works because FbB implements IA
+// Assigning an instance of FbB to interface IA works, because FbB implements IA
 refInterface := instanceFbB;
 refInterface.foo(); // Calls FbB.foo
 ```
 
 #### The problem: why vtables do not work for interfaces
 
-Let's try to apply our findings from the previous section to interfaces. Assume the following interface definitions
+Apply the mechanism of the previous section to interfaces. Assume the following interface definitions
 
 ```
 //   IA
@@ -264,9 +263,9 @@ refInterfaceC.baz();
 Two problems arise:
 
 1. What types do `refInterfaceB` and `refInterfaceC` have?
-2. How do we upcast the vtable of `instanceD` to the vtable of `IB` or `IC`, given that their layouts are incompatible?
+2. How can the vtable of `instanceD` be upcast to the vtable of `IB` or `IC`, given that their layouts are incompatible?
 
-First, let's tackle the vtable issue. Assume that for each interface there is a function block that implements it. If we were to naively build vtables with the methods of each POU in declaration order, we would get
+Take the vtable issue first. Assume that for each interface there is a function block that implements it. A naive vtable, built from the methods of each POU in declaration order, would give
 
 ```
 ┌─VTable FbA─┐   ┌─VTable FbB─┐   ┌─VTable FbC─┐   ┌─VTable FbD─┐
@@ -288,13 +287,13 @@ refInterfaceC := instanceD;
 refInterfaceC.baz(); // This would call FbD.bar rather than FbD.baz!
 ```
 
-If we were to swap the order of `bar` and `baz` in `FbD`, then upcasting from `FbD` to `FbC` would work, but from `FbD` to `FbB` would break. There is no single layout that satisfies both. We need a different approach.
+Swapping the order of `bar` and `baz` in `FbD` would make the upcast to `FbC` work and break the one to `FbB`. There is no single layout that satisfies both. A different approach is needed.
 
 #### Interface tables (itables)
 
-The solution is a separate data structure: interface tables, or short itables. The idea is to have **one itable struct per interface** and **one global itable instance per (interface, POU) pair** where the POU implements the interface, directly or indirectly. Each itable struct contains function pointer fields that match the method signatures of the interface, and each instance fills those pointers with the concrete implementations of the POU.
+The solution is a separate data structure: interface tables, itables for short. The idea is to have **one itable struct per interface** and **one global itable instance per (interface, POU) pair** where the POU implements the interface, directly or indirectly. Each itable struct contains function pointer fields that match the method signatures of the interface, and each instance fills those pointers with the concrete implementations of the POU.
 
-For our diamond hierarchy, the compiler generates the following itable struct definitions:
+For the diamond hierarchy above, the compiler generates the following itable struct definitions:
 
 ```diff
 +TYPE __itable_IA:
@@ -334,33 +333,27 @@ For our diamond hierarchy, the compiler generates the following itable struct de
 
 Each itable struct includes `__upcast_<Ancestor>` pointer fields for every proper ancestor interface in its hierarchy, sorted alphabetically. Root interfaces like `IA` have none. These fields enable interface upcasting at run time with a single field read (see Interface upcasting below).
 
-Note how the function pointer types reference the original interface method (for example `IA.foo`), which already exists in the index as a registered implementation without a body. This avoids separate forward declarations. Also note that inherited methods are included: `__itable_IB` contains both `foo` (from `IA`) and `bar` (from `IB`), with inherited methods first. In the diamond above, the methods of the ancestors (`IA.foo`, `IB.bar`, `IC.baz`) come before the own methods of `ID` (`ID.qux`).
+The function pointer types reference the original interface method (for example `IA.foo`), which already exists in the index as a registered implementation without a body. This avoids separate forward declarations. Inherited methods are included: `__itable_IB` contains both `foo` (from `IA`) and `bar` (from `IB`), with inherited methods first. In the diamond above, the methods of the ancestors (`IA.foo`, `IB.bar`, `IC.baz`) come before the own methods of `ID` (`ID.qux`).
 
-Then, the compiler generates global instances for every (interface, POU) combination. Each `__upcast` field is initialized to the ancestor instance for the same POU:
+Then, the compiler generates global instances for every (interface, POU) combination, sorted by name. Each `__upcast` field is initialized to the ancestor instance for the same POU:
 
 ```diff
 +VAR_GLOBAL
-+    // FbA implements IA directly
 +    __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo));
-+
-+    // FbB implements IB, which extends IA, so two instances are needed
 +    __itable_IA_FbB_instance: __itable_IA := (foo := ADR(FbB.foo));
-+    __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbB.foo), bar := ADR(FbB.bar));
-+
-+    // Similarly for FbC: implements IC, which extends IA
 +    __itable_IA_FbC_instance: __itable_IA := (foo := ADR(FbC.foo));
-+    __itable_IC_FbC_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbC_instance), foo := ADR(FbC.foo), baz := ADR(FbC.baz));
-+
-+    // FbD implements ID, which extends IB and IC, both of which extend IA.
-+    // Four instances are needed, one per unique interface in the hierarchy.
 +    __itable_IA_FbD_instance: __itable_IA := (foo := ADR(FbD.foo));
++    __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbB.foo), bar := ADR(FbB.bar));
 +    __itable_IB_FbD_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar));
++    __itable_IC_FbC_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbC_instance), foo := ADR(FbC.foo), baz := ADR(FbC.baz));
 +    __itable_IC_FbD_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), baz := ADR(FbD.baz));
 +    __itable_ID_FbD_instance: __itable_ID := (__upcast_IA := ADR(__itable_IA_FbD_instance), __upcast_IB := ADR(__itable_IB_FbD_instance), __upcast_IC := ADR(__itable_IC_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar), baz := ADR(FbD.baz), qux := ADR(FbD.qux));
 +END_VAR
 ```
 
-While verbose, this solves the layout incompatibility problem entirely. There is no need to upcast one itable to another. Instead we swap the address of the itable pointer to the correct global instance. Each interface has its own consistent layout, and each POU gets its own instance with the correct function pointers. Like the vtable instances, itable instances of external POUs are declared in an `{external}` global block.
+A POU gets one instance per interface in its hierarchy. `FbA` implements `IA` alone and gets one. `FbD` implements `ID`, which extends `IB` and `IC`, and both of those extend `IA`, so `FbD` gets four.
+
+While verbose, this solves the layout incompatibility problem entirely. There is no need to upcast one itable to another. Instead the itable pointer is swapped to the address of the correct global instance. Each interface has its own consistent layout, and each POU gets its own instance with the correct function pointers. Like the vtable instances, itable instances of external POUs are declared in an `{external}` global block.
 
 Two additional cases are worth calling out:
 
@@ -370,7 +363,7 @@ Two additional cases are worth calling out:
 
 #### The fat pointer
 
-With itables solving the function pointer lookup problem, we still need to answer: what type does an interface variable have? Interfaces are shallow constructs with no state. They serve purely as a contract that certain methods exist. However, for dispatch we need two things:
+Itables solve the function pointer lookup, but one question is still open: what type does an interface variable have? Interfaces are shallow constructs with no state. They serve purely as a contract that certain methods exist. Dispatch, however, needs two things:
 
 1. A way to find the correct itable (to call the right method)
 2. A way to pass the data of the concrete instance to that method (so it can access state)
@@ -525,7 +518,7 @@ Multiple interface arguments in a single call each get their own temporary; the 
 
 The preamble (allocations and assignments) is hoisted before the call. When the call is nested inside another statement, for example `result := consumer(instance)` or the condition of an `IF`, the preamble is hoisted above that whole statement, so that the fat pointer is fully constructed before the call executes.
 
-**Interface upcasting**: When a child interface variable is assigned to a parent interface variable (for example `refIA := refIB` where `IB EXTENDS IA`), both sides are already fat pointers. The `.data` field can be copied directly; it still points to the same concrete POU instance. However, the `.table` field points to an `__itable_IB_*` instance but must point to the corresponding `__itable_IA_*` instance for the same POU. Since the concrete POU is only known at run time, we cannot statically determine which itable instance to use.
+**Interface upcasting**: When a child interface variable is assigned to a parent interface variable (for example `refIA := refIB` where `IB EXTENDS IA`), both sides are already fat pointers. The `.data` field can be copied directly; it still points to the same concrete POU instance. However, the `.table` field points to an `__itable_IB_*` instance but must point to the corresponding `__itable_IA_*` instance for the same POU. Since the concrete POU is only known at run time, the correct itable instance cannot be determined statically.
 
 The solution uses the `__upcast_<Ancestor>` fields embedded in each itable struct. Each itable instance initializes these fields to point directly to the ancestor itable instance for the same POU, so one field read resolves the upcast regardless of hierarchy depth:
 
@@ -547,10 +540,9 @@ The same transformation applies when a child interface is passed as a call argum
 
 Same-interface assignments (for example `refIA1 := refIA2`) remain plain struct copies, since the itable layout is identical.
 
-
 ### Complete example
 
-To tie everything together, let's trace a complete example from user code to lowered form.
+To tie everything together, here is one program traced from user code to lowered form.
 
 **User code** (across multiple files):
 
@@ -663,7 +655,7 @@ id=2
 
 At `pre_index`, the [property lowerer](02-property.md) creates `__get_x` and `__set_x` methods. By the time the tables are generated they are ordinary methods, so they receive vtable and itable slots, and property accesses through pointers and interfaces dispatch dynamically.
 
-The [init participant](06-init.md), registered later in the same hook, does the storing. The constructor of every class and function block ends with `self.__vtable := ADR(__vtable_FbA_instance)`. For a derived type the constructor of the base runs first and stores the table of the base, then the derived constructor overwrites the same member through the embedded base: `self.__FbA.__vtable := ADR(__vtable_FbB_instance)`. The member initializers of the vtable structs and the initializers of the itable instances become constructors too, and `__FATPOINTER` gets one like any struct. All of them run from the global constructors before the program starts.
+This participant creates the `__vtable` member but never fills it. The [init participant](06-init.md), registered later and running at `post_annotate` too, does the storing: the constructor of every class and function block ends with `self.__vtable := ADR(__vtable_FbA_instance)`. For a derived type the constructor of the base runs first and stores the table of the base, then the derived constructor overwrites the same member through the embedded base: `self.__FbA.__vtable := ADR(__vtable_FbB_instance)`. The member initializers of the vtable structs and the initializers of the itable instances become constructors too, and `__FATPOINTER` gets one like any struct. All of them run from the global constructors before the program starts.
 
 The [inheritance lowerer](10-inheritance.md), also later, resolves the members the rewrite introduced. An access follows the declared type, so a pointer declared as `POINTER TO FbB` gives `refInstanceB^.__vtable`, and because `FbB` has no member of that name it becomes `refInstanceB^.__FbA.__vtable`. The re-annotation at the end of this participant finds the inherited member; the inheritance lowerer spells out the path.
 
@@ -683,14 +675,16 @@ The [aggregate-return lowerer](09-aggregate-return.md) runs after this participa
 +alloca __fatpointer_0: __FATPOINTER;
 +__fatpointer_0.data := ADR(instance);
 +__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
-+alloca __foo0: STRING;
-+__itable_IA#(reference.table^).foo^(reference.data^, __foo0, __fatpointer_0);
-+result := __foo0;
++alloca __0: STRING;
++__itable_IA#(reference.table^).foo^(reference.data^, __0, __fatpointer_0);
++result := __0;
 ```
+
+The result temporary carries no callee name, because this rewrite leaves the operator without a plain name.
 
 
 ## Validation
 
-The participant reports E126 when an instance is assigned or passed to an interface its type does not implement, and when an interface variable is assigned or passed to an unrelated or a child interface. It reports E129 when an interface variable is called directly, `refInterface()`.
+The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: `Invalid assignment: 'FbX' does not implement interface 'IA'`. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: `Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically`. It reports E129 when an interface variable is called directly, `refInterface()`: `Interfaces cannot be called directly`.
 
 These checks run before interface types become `__FATPOINTER`, while the original interface names are still available. On failure, the lowerer drops the statement or leaves an unfilled argument temporary to avoid diagnostics about generated code. It passes its diagnostics to the driver.
