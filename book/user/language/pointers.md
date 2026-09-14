@@ -5,7 +5,7 @@ A pointer holds the address of a variable instead of a value. With one you reach
 
 ## Declaring and dereferencing
 
-`REF_TO` and `POINTER TO` declare the same type, and the compiler makes no difference between them:
+`REF_TO` and `POINTER TO` declare the same type, and a value of the one is accepted for the other. They differ in what the compiler checks: it warns about an assignment that would make a `REF_TO` point at another type, and says nothing for a `POINTER TO`.
 
 ```iecst
 VAR
@@ -18,7 +18,7 @@ p := REF(value);
 q := ADR(value);
 ```
 
-`REF` and `ADR` both give the address of a variable. They differ in the type of the result: `REF` keeps the type of the variable, so the compiler warns when the pointer points at another type, while `ADR` gives the address alone and accepts every target.
+`REF` and `ADR` both give the address of a variable. `REF` keeps the type of that variable, which is what the check above reads. `ADR` gives the address alone, so an assignment of it is never reported.
 
 `^` reads and writes through the pointer:
 
