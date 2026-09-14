@@ -25,9 +25,9 @@ FUNCTION_BLOCK ScaledSensor EXTENDS Sensor
 END_FUNCTION_BLOCK
 ```
 
-`OVERRIDE` replaces a method of the base. `SUPER^` is the same instance seen as the base type, so `SUPER^.Read()` runs the method that was replaced. Without `SUPER^`, a call to `Read()` inside `ScaledSensor` would call the new one again.
+`OVERRIDE` replaces a method of the base. `SUPER^` is the same instance seen as the base type, so `SUPER^.Read()` runs the method that was replaced. Without `SUPER^`, a call to `Read()` inside `ScaledSensor` reaches the new one.
 
-The body of the base runs when the derived block runs, and the members of the base are members of the derived block.
+The members of the base are members of the derived block, but the body is not. A call to the derived block runs its own body only. Write `SUPER^();` in that body to run the body of the base as well.
 
 
 ## Dispatch
@@ -38,18 +38,21 @@ A call through a variable of the base type runs the method of the actual instanc
 VAR
     scaled: ScaledSensor;
     any: REF_TO Sensor;
+    value: DINT;
 END_VAR
 
-any := REF(scaled);
+any := ADR(scaled);
 value := any^.Read();   (* the method of ScaledSensor *)
 ```
+
+Take the address with `ADR`. `REF` gives a pointer to the exact type of its argument, so `any := REF(scaled)` warns that `REF_TO Sensor` and `ScaledSensor` are different types, although the call works.
 
 This is what makes a list of different sensors possible: they all have `Read`, and each one brings its own.
 
 
 ## Interfaces
 
-An interface is a set of method declarations without bodies. A function block that names it in `IMPLEMENTS` must provide those methods:
+An interface is a set of method declarations without bodies. A function block that names it in `IMPLEMENTS` must provide those methods, and a missing one is rejected:
 
 ```iecst
 INTERFACE ISensor
@@ -74,6 +77,7 @@ A variable of the interface type holds any instance that implements it, and a ca
 VAR
     analog: Analog;
     sensor: ISensor;
+    value: DINT;
 END_VAR
 
 sensor := analog;
@@ -97,7 +101,7 @@ Use an interface when the implementations have nothing in common but their opera
 
 ## Classes
 
-A `CLASS` is a function block without a body. It holds members and methods, and a call reaches it only through one of its methods:
+Neither mechanism is limited to the function block. A `CLASS` is a function block without a body. It holds members and methods, and you reach it through its methods:
 
 ```iecst
 CLASS Formatter
@@ -111,12 +115,12 @@ CLASS Formatter
 END_CLASS
 ```
 
-An implementation in a class is an error (`E017`), and `THIS` is not available there (`E120`). Everything else, `EXTENDS`, `IMPLEMENTS`, methods, and properties, works as in a function block. Use a class for a type that has no cyclic behavior of its own.
+A statement outside a method is rejected, because a class cannot have an implementation, and `THIS` is not available in a class either. Everything else, `EXTENDS`, `IMPLEMENTS`, methods, and properties, works as in a function block. Use a class for a type that has no cyclic behavior of its own.
 
 
 ## Access modifiers
 
-A member or a method can carry `PUBLIC`, `PRIVATE`, `PROTECTED`, or `INTERNAL`, which state who the declaration is meant for: everybody, the declaring POU, the declaring POU and the POUs that extend it, or the project:
+A block that others extend often wants to say which of its declarations they may use. A member or a method can carry `PUBLIC`, `PRIVATE`, `PROTECTED`, or `INTERNAL` for that:
 
 ```iecst
 FUNCTION_BLOCK Box
@@ -130,7 +134,12 @@ FUNCTION_BLOCK Box
 END_FUNCTION_BLOCK
 ```
 
-A POU and a method can also carry `ABSTRACT`, which says that a derived POU provides the body, or `FINAL`, which says that no derived POU replaces it.
+> [!WARNING]
+> The compiler parses the four modifiers and then ignores them. They do not change what a caller may touch.
+
+Every `VAR` member counts as private to the block that declares it, whatever the modifier says. A read of `state` from outside, and also from a block that extends `Box`, gets the warning `Illegal access to private member Box.state`. A modifier on a method changes nothing at all, so a `PRIVATE` method can be called from anywhere. The [variable block](function-blocks.md#what-the-outside-may-touch) decides what the outside may touch, not the modifier.
+
+A POU and a method can also carry `ABSTRACT` or `FINAL`, and these two are parsed and ignored in the same way. A block declared `FINAL` can still be extended, a method declared `FINAL` can still be replaced, and a variable can take the type of a block declared `ABSTRACT`. A method declared `ABSTRACT` has no body, and a call to it returns the default value of its result type.
 
 
 ## What's next
