@@ -29,7 +29,7 @@ The stage receives the annotated project: the units after all lowering, the glob
 
 The index describes declarations, such as parameter lists, constant variables, and base types. The annotation map identifies expressions and their types. Some checks need both. A private-member check uses the annotation to identify the member and the index to determine whether the current POU may access it.
 
-The validator carries both, with the name of the POU it is in, in a small context that travels down the walk:
+The validator carries both, with the name of the POU or type it is in, in a small context that travels down the walk:
 
 ```rust,noplayground
 pub struct ValidationContext<'s, T: AnnotationMap> {
@@ -39,34 +39,34 @@ pub struct ValidationContext<'s, T: AnnotationMap> {
     /// What every name declares
     index: &'s Index,
 
-    /// The POU whose declarations or body are being validated
+    /// The POU or type whose declarations or body are being validated
     qualifier: Option<&'s str>,
 
     // ... other omitted fields
 }
 ```
 
-Every failed check produces a diagnostic. Trimmed to what matters here, it is a message, an error code, and where in the source it applies:
+Every failed check produces a diagnostic. The content of a `Diagnostic` is a message, an error code, and where in the source it applies:
 
 ```rust,noplayground
-pub struct Diagnostic {
+pub struct DiagnosticsInner {
     /// The description of the problem, as shown to the user
-    message: String,
-
-    /// The code that identifies the rule, such as E037
-    error_code: &'static str,
+    pub message: String,
 
     /// Where the problem is
-    primary_location: SourceLocation,
+    pub primary_location: SourceLocation,
 
     /// Other places that take part in it, such as the second declaration of a duplicate name
-    secondary_locations: Option<Vec<SourceLocation>>,
+    pub secondary_locations: Option<Vec<SourceLocation>>,
+
+    /// The code that identifies the rule, such as E037
+    pub error_code: &'static str,
 
     // ... other omitted fields
 }
 ```
 
-The validator only collects these; what a code means for the build is decided later, see Severity and reporting below.
+The validator only collects these. What a code means for the build is decided later (see Severity and reporting below).
 
 
 ## Global validation
@@ -88,7 +88,7 @@ neither file is wrong on its own; the conflict only exists in the merged index. 
 - **Names are unique** within their group: callables, types, and global variables. Every declaration of a duplicate is reported, with the others as secondary locations. Built-in names such as `ADD` count too.
 - **Data structures are finite.** A struct that contains itself by value, an alias chain that loops, or interfaces that extend each other are reported.
 - **Template variables** (`AT %I*`) are configured exactly once in a `VAR_CONFIG` block.
-- **Overflowing constants**, such as `TOO_BIG: SINT := 300`, get the reason the index stored reported as a warning.
+- **Overflowing constants**, such as `TOO_BIG: SINT := 300`, are reported as a warning, with the reason the index stored.
 
 
 ## Per-unit validation
@@ -164,14 +164,14 @@ Every diagnostic carries an error code, and the code decides how serious it is. 
 { "error": ["E067"], "ignore": ["E048"] }
 ```
 
-With this file the downcast in the introduction aborts the compilation and the unknown name is not even printed.
+With this file the downcast in the introduction aborts the compilation and the unknown name is not reported.
 
 The validator reports diagnostics after global validation and after each unit. The diagnostician assigns severity, resolves source locations, and renders messages in the selected `--error-format`. The stage keeps the highest severity across batches and stops after the last unit if it is an error.
 
 
 ## Validation in participants
 
-Some checks must run before lowering removes the original construct. Properties become methods, interface variables become pointer structs, and generic calls become concrete calls. The final validator cannot recover all original rules from those forms.
+Not every rule can wait for this stage. Some checks must run before lowering removes the original construct. Properties become methods, interface variables become pointer structs, and generic calls become concrete calls. The final validator cannot recover all original rules from those forms.
 
 Those rules are checked by the participant itself, before it rewrites the tree. The participant keeps its diagnostics until the last `post_annotate` hook has run, and the stage handles them before global validation, so they appear at the top of the output.
 
@@ -185,6 +185,7 @@ Those rules are checked by the participant itself, before it rewrites the tree. 
 |---|---|
 | Validator | `src/validation.rs`, `src/validation/` |
 | Diagnostics | `compiler/plc_diagnostics` |
+| Validate step | `compiler/plc_driver` |
 
 
 ## What's next
