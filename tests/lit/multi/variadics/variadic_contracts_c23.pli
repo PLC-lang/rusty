@@ -1,0 +1,13 @@
+{external}
+FUNCTION OnlyVariadic
+VAR_INPUT
+    args : ...;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION OnlyVariadicCount : DINT
+VAR_INPUT
+    args : ...;
+END_VAR
+END_FUNCTION
