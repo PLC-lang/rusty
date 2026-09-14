@@ -247,6 +247,12 @@ impl Pou {
             Pou::Function(content) | Pou::FunctionBlock(content) | Pou::Program(content) => content,
         }
     }
+
+    // The diagram the network's element locations name; the POU's only body today.
+    // TODO: an action or method (`bmx:Action`, `bmx:Method`) carries an own body that must name its own diagram.
+    pub fn diagram_name(&self) -> &str {
+        &self.content().name
+    }
 }
 
 impl PouContent {

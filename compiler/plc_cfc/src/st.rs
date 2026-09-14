@@ -25,21 +25,25 @@ pub fn parse_expression_at(text: &str, ids: IdProvider, location: &SourceLocatio
     node
 }
 
-pub fn parse_interface(
-    pou: &Pou,
-    source: &SourceCode,
-    ids: IdProvider,
-) -> (CompilationUnit, Vec<Diagnostic>) {
-    // The declaration omits its closing keyword; re-attach it.
+// The declaration text as the IDE's text editor shows it, completed by the
+// closing keyword the export omits; text locations count lines within it.
+pub fn declaration(pou: &Pou) -> String {
     let end_keyword = match pou.kind() {
         PouKind::Function => "END_FUNCTION",
         PouKind::FunctionBlock => "END_FUNCTION_BLOCK",
         PouKind::Program => "END_PROGRAM",
     };
-    let declaration = format!("{}\n{end_keyword}", pou.content().declaration().unwrap_or_default());
 
+    format!("{}\n{end_keyword}", pou.content().declaration().unwrap_or_default())
+}
+
+pub fn parse_interface(
+    pou: &Pou,
+    source: &SourceCode,
+    ids: IdProvider,
+) -> (CompilationUnit, Vec<Diagnostic>) {
     // Parse the completed declaration like any ST source.
-    let declaration = SourceCode { source: declaration, path: source.path.clone() };
+    let declaration = SourceCode { source: declaration(pou), path: source.path.clone() };
     let factory = SourceLocationFactory::for_source(&declaration);
     let session = lexer::lex_with_ids(&declaration.source, ids, factory);
 

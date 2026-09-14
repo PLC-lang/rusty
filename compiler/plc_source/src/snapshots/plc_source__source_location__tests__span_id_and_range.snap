@@ -4,6 +4,8 @@ expression: loc1.span(&loc2)
 ---
 SourceLocation {
     span: Block {
-        local_id: 1,
+        diagram: "main",
+        order: 1,
+        pin: None,
     },
 }

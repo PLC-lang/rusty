@@ -127,7 +127,17 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                     Some(range) => labels.push(
                         Label::primary(d.main_location.file_handle, range).with_message(d.message.as_str()),
                     ),
-                    None => notes.push(format!("{}: {}", self.file_name(d.main_location.file_handle), span)),
+                    None => {
+                        let file = self.file_name(d.main_location.file_handle);
+                        notes.push(match span {
+                            // Spelled out in the diagram's own terms, as the IDE shows them.
+                            CodeSpan::Block { diagram, order, pin } => {
+                                let pin = pin.map(|pin| format!(", pin {pin}")).unwrap_or_default();
+                                format!("{file}, diagram {diagram}, execution order {order}{pin}")
+                            }
+                            _ => format!("{file}: {span}"),
+                        })
+                    }
                 },
             }
 
