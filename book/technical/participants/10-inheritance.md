@@ -50,7 +50,7 @@ The base member is first, so `%Child = type { %Base, i32 }` starts at the addres
 
 ### Inherited members
 
-Inside the derived block, its methods, its actions, and the initializers of its variables, a member declared in a base is reached through the embedded base:
+Inside the derived block, its methods, its actions, and the initializers of its variables, a member declared in a base is reached through the embedded base. `limit` below is a constant of `Base`, which is what an initializer may name:
 
 ```diff
  FUNCTION_BLOCK Child EXTENDS Base
