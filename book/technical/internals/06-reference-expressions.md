@@ -103,7 +103,7 @@ Pointer {
     /// None for a pointer the user dereferences with ^; otherwise the kind of implicit dereference
     auto_deref: Option<AutoDerefType>,
 
-    /// false for POINTER TO, true for REF_TO, REFERENCE TO, and every generated pointer
+    /// false for POINTER TO, true for REF_TO and REFERENCE TO
     type_safe: bool,
 
     /// Whether the pointer targets a POU rather than data

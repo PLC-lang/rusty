@@ -1,6 +1,6 @@
 # Structs
 
-A struct groups named members into one value. The index keeps the members in declaration order, and codegen computes their memory layout. Member access computes an address; assignment between struct variables copies the whole value. The [init participant](../participants/06-init.md) supplies constructor code for defaults and initializers.
+A struct groups named members into one value. The index keeps the members in declaration order, and codegen builds an LLVM type with the fields in that order. Member access computes an address; assignment between struct variables copies the whole value. The [init participant](../participants/06-init.md) supplies constructor code for defaults and initializers.
 
 The example extends the instance-layout model from [POUs](00-pous.md) to nested data. It shows member defaults, a whole-struct copy, a function argument, and a struct return:
 
@@ -122,7 +122,7 @@ A struct variable passed as an argument, `area(r1)`, is annotated like any argum
 
 ## Lowering
 
-The [init participant](../participants/06-init.md) creates `Point__ctor` and `Rect__ctor`. It splits declaration literals into assignments for individual fields. Thus `Rect__ctor` sets `self.bottomRight.x` and `.y` to 10. `main__ctor` sets `self.r1.topLeft.x := 1` and `self.r1.topLeft.y := 2`.
+Two participants rewrite the tree before codegen sees it. The [init participant](../participants/06-init.md) creates `Point__ctor` and `Rect__ctor`. It splits declaration literals into assignments for individual fields. Thus `Rect__ctor` sets `self.bottomRight.x` and `.y` to 10. `main__ctor` sets `self.r1.topLeft.x := 1` and `self.r1.topLeft.y := 2`.
 
 The [aggregate-return lowerer](../participants/09-aggregate-return.md) turns `origin` into a void function with a `VAR_IN_OUT origin: Point` parameter and gives the call site a temporary. A struct literal assigned in a body is left as it is.
 
@@ -226,7 +226,7 @@ A `VAR_IN_OUT` struct is passed as a pointer without a copy, and a `REF_TO` or `
 
 ## Validation
 
-A struct type must be finite. A struct that holds itself, directly or through other structs or arrays, is reported as a recursive data structure (E029) by the global validation from the index (see [Validation](../pipeline/04-validation.md), Global validation).
+Codegen can only lay out a type whose size is known, so a struct type must be finite. A struct that holds itself, directly or through other structs or arrays, is reported as a recursive data structure (E029) by the global validation from the index (see [Validation](../pipeline/04-validation.md), Global validation).
 
 A member name in a literal or an access that the struct does not declare is an unresolved reference (E048). A struct assigned to a variable of a different type, or a scalar assigned to a struct, is an invalid assignment (E037); two struct types are compatible only when they are the same type. A struct literal in a declaration is checked member by member with the same rules as an assignment.
 
