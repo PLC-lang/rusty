@@ -139,6 +139,39 @@ void FB1(FB1_type* self);
 A `PROGRAM` has the same shape, but without the `__vtable` member, and the compiler creates its one instance as the global `<Program>_instance`. Do not use programs in a library.
 
 
+## Inheritance
+
+A `FUNCTION_BLOCK Derived EXTENDS Base` embeds the base as its first member, named `__Base`, and the `__vtable` member stays in the root of the chain. Write the C struct the same way, nested and not flattened:
+
+```iecst
+FUNCTION_BLOCK Base
+    VAR
+        b: SINT;
+    END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK Derived EXTENDS Base
+    VAR_INPUT
+        c: DINT;
+    END_VAR
+END_FUNCTION_BLOCK
+```
+
+```c
+typedef struct {
+    uint64_t* __vtable;
+    int8_t b;
+} Base_type;
+
+typedef struct {
+    Base_type __Base;
+    int32_t c;
+} Derived_type;
+```
+
+The nesting keeps the padding at the end of the base, so `c` sits at offset 16 and an instance takes 24 bytes on both sides. A flattened struct with the same three members compiles as well, but it puts `c` at offset 12 in 16 bytes, so the two sides read different memory and nothing reports it. The generated headers nest for you.
+
+
 ## Struct layout
 
 Layout and alignment follow the rules of C. In C, declare a normal struct. In another language, force the C layout, for example with `#[repr(C)]` in Rust:
