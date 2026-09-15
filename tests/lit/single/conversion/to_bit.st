@@ -1,7 +1,7 @@
 // Note: Tests are kept simple because there are already tests covering the underliny X_TO_Y functions, which
 //       the TO_Y(X) functions are based on.
 
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main
     printf('%d$N', TO_BOOL(BOOL#FALSE));        // CHECK: 0
     printf('%d$N', TO_BOOL(BOOL#TRUE));         // CHECK: 1

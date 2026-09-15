@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: FbB extends FbA which implements interface IA with a PROPERTY_GET+PROPERTY_SET property. FbB overrides
 // only the setter (adds 1000). Dispatch through an IA variable should use FbA's inherited getter
 // and FbB's overridden setter when pointing at FbB.

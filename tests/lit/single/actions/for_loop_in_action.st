@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression: a FOR loop inside an action must resolve its desugared temporaries (#1784).
 
 PROGRAM mainProg

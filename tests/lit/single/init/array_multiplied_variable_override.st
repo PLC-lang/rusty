@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 TYPE tarr : ARRAY[0..9] OF DINT := [10(42)]; END_TYPE
 
 PROGRAM prog

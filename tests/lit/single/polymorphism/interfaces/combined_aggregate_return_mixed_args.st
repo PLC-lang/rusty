@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: A method returns a STRUCT (aggregate) and takes a mix of scalar, interface, and multiple
 // different interface-typed parameters. Tests both positional (unnamed) and named arguments with
 // completely reordered parameter positions to verify that fat pointer wrapping targets the correct

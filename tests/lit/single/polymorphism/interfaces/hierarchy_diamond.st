@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Classic diamond pattern inheritance hierachy between interfaces. Should assert that even with
 // multi inheritance dynamic dispatch works correctly.
 // A

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: B extends A which has a property with both PROPERTY_GET and PROPERTY_SET. B overrides only the setter.
 // Dispatch through POINTER TO A should use A's inherited getter and B's overridden setter.
 

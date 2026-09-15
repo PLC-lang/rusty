@@ -1,5 +1,5 @@
 // STRING_TO_DATE, STRING_TO_DT, and STRING_TO_TOD accept exactly the calendar literals of their type.
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 FUNCTION main
     // Valid prefixed literals parse for each target type.

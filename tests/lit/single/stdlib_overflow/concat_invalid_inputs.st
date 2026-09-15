@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that date/time constructors yield 0 for unrepresentable inputs
 // and clamp out-of-range dates to the DATE range
 

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // NOTE: The runtime monitoring write API depends on these exact values.
 // If this test fails, check whether the runtime parser needs a matching update.

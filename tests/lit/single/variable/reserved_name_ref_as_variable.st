@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression for #1605: a local variable named `ref` must not be shadowed by the `REF` builtin
 // when used as the base of a qualified call like `ref.foo()`.
 

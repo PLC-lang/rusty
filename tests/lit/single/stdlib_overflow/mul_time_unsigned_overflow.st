@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that MUL with TIME and an unsigned integer wraps mod 2^64 on overflow
 
 FUNCTION main : DINT

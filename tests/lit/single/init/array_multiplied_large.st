@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 TYPE tarr : ARRAY[0..9999] OF DINT := [10000(7)]; END_TYPE
 
 FUNCTION main : DINT

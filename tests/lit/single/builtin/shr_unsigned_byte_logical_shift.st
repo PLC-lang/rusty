@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // SHR on unsigned BYTE must use logical shift (zero-fill), not arithmetic shift
 FUNCTION main

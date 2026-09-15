@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // #1737 coverage: a METHOD-scoped VAR with `AT %M...` should alias-bind on method
 // entry and round-trip a write to the backing hardware slot.
 

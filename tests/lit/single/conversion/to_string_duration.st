@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main : DINT
     printf('%s$N', REF(TIME_TO_STRING(T#0ms)));              // CHECK: T#0ms
     printf('%s$N', REF(TIME_TO_STRING(T#1s500ms)));          // CHECK-NEXT: T#1s500ms

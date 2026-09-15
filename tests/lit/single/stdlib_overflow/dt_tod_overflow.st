@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that DT and TOD arithmetic wraps mod 2^32 on overflow and underflow
 
 FUNCTION main : DINT

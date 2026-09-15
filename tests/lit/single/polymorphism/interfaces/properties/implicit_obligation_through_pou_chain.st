@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: FbB extends FbA (which implements IValue) without overriding anything. FbC extends FbB,
 // also without overriding. All three should be assignable to an IValue variable and dispatch
 // correctly to FbA's inherited property accessors.

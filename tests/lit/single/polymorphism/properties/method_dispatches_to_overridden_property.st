@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: A defines a method `doubleValue` that reads and writes a property internally.
 // B extends A and overrides only the setter (adds 100). When `doubleValue` is called on a B
 // instance through POINTER TO A, the read dispatches to A's getter but the write dispatches

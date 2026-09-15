@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Test BYTE enum values work correctly
 TYPE Status : BYTE (inactive := 0, active := 1, error := 255);

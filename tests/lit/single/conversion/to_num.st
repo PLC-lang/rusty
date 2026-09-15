@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main
     printf('%d$N', TO_SINT(SINT#5));            // CHECK: 5
     printf('%d$N', TO_SINT(USINT#5));           // CHECK: 5

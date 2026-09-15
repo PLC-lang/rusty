@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Two function blocks implement the same interface property with different backing logic.
 // FbPlain returns the stored value directly, FbDoubling returns twice the stored value. Assigning
 // each to the same interface variable and reading the property verifies that dispatch picks the

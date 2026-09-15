@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Comprehensive test for type aliases with initializers (enum, struct, array).
 TYPE SomeEnum : (E1, E2, E3); END_TYPE

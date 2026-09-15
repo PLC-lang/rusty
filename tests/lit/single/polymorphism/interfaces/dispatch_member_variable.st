@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: A function block stores an interface reference as a member variable. A concrete instance is
 // assigned to it, and dispatch happens through the stored reference. The fat pointer must survive being
 // written to and read back from the FB's struct fields.

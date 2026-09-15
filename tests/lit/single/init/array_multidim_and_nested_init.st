@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Tests initialization of multi-dimensional arrays and arrays of arrays,
 // including struct element types.
 

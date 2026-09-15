@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Positive coverage for the qualified leaf path: the addressed wrapper member itself is not a
 // BOOL, but its `.out` leaf is. Toggling through `.out` must compile and run.
 

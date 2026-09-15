@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Ensure STRING arguments are passed correctly through interface dispatch for
 // VAR_INPUT, VAR_OUTPUT, VAR_IN_OUT and mixed signatures.
 

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Three-level POU chain C → B → A. B overrides only the getter (adds 1000),
 // C overrides only the setter (adds 2000). Dispatch through POINTER TO A should resolve
 // each accessor independently to the most-derived override:

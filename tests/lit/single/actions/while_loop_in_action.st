@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression: a WHILE loop inside an action must resolve against the parent POU's members (#1784).
 
 PROGRAM mainProg

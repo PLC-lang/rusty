@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // FB retain members with inline type definitions keep their in-place layout; the
 // instances get the retain treatment transitively: the program instance is extracted
 // into a retain global, the plain global instance moves to a retain block.

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 VAR_GLOBAL
     a AT %IX1.2.1 : BOOL;
     b AT %QX1.2.2 : BOOL;

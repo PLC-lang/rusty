@@ -1,6 +1,6 @@
-// RUN: rm -f %T/%basename_t.out
+// RUN: rm -f %t.out
 // RUN: not %COMPILE --error-format clang %s 2>&1 | %CHECK %s
-// RUN: test ! -e %T/%basename_t.out
+// RUN: test ! -e %t.out
 
 // In the instance struct a VAR_IN_OUT member is a pointer that is only bound to a
 // target while the POU is being called. Reading or writing it from outside used to

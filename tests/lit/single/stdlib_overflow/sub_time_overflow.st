@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that SUB with TIME and DATE wraps mod 2^32 on underflow, matching CODESYS
 
 FUNCTION main : DINT

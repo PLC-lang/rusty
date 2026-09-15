@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 TYPE IntArrayBase : ARRAY[1..3] OF DINT := [11, 22, 33]; END_TYPE
 TYPE IntArrayAlias : IntArrayBase; END_TYPE

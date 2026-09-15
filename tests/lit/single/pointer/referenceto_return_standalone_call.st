@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Verify: Standalone calls (without REF= assignment) to reference-to-return
 // functions have their signatures rewritten so the call compiles.
 // Top-level standalone calls are already handled by this rewriting.

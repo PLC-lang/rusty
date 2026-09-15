@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main : DINT
     // TO_CHAR
     printf('%c$N', TO_CHAR(WCHAR#"a"));             // CHECK: a

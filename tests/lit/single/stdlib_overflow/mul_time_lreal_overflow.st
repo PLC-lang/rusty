@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that MUL with TIME and an oversized LREAL factor saturates at the TIME range
 // and a NaN factor yields zero
 

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Stress test for u16 (WORD) FFI return values. Same shape as the BYTE
 // regression but at i16 width — exercises the second sub-32-bit slot the
 // extension gate must handle consistently across targets.

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: An interface hierarchy (IA <- IB <- IC) with function blocks implementing each level.
 // An array of the root interface IA is populated with all concrete types — direct and indirect
 // implementors — and dispatched through, testing that fat pointers in array slots handle inheritance

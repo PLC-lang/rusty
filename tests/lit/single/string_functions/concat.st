@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // End-to-end tests for the CONCAT stdlib function (STRING and WSTRING).
 // Also covers truncation to the STRING[2048] / WSTRING[2048] result buffer:
 // concatenating past 2048 code units used to overflow the result buffer and

@@ -1,7 +1,7 @@
 // Malformed WSTRINGs must not crash the application; WSTRING_TO_* delegates to STRING_TO_* after a
 // WSTRING->STRING conversion.
 
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main
     // WSTRING_TO_REAL / WSTRING_TO_LREAL: parse the valid prefix, default to 0.0
     printf('%f$N', WSTRING_TO_REAL(""));             // CHECK: 0.000000

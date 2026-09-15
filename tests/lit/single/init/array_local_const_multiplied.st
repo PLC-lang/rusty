@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Tests that a POU-local VAR CONSTANT can be used as the multiplier
 // in an array initializer with the [(CONST)(value)] syntax.
 

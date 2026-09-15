@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Verify calls inside WHILE loops are lowered.
 FUNCTION referenceFunc : REFERENCE TO INT
     VAR_INPUT

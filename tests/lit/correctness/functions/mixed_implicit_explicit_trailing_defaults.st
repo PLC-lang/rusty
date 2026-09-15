@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Runtime check that trailing defaults fill correctly when combined with mixed
 // positional/named args. The resolver's "skip named slots" rule for positionals

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test case #2: verify calls inside CASE branches are lowered correctly.
 FUNCTION referenceFunc : REFERENCE TO INT
     VAR_INPUT

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Struct defaults must be applied to every element of arrays of structs,
 // including nested and multi-dimensional arrays.
 TYPE Point : STRUCT
