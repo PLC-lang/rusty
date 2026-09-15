@@ -1,6 +1,6 @@
 # Text
 
-Two types hold text. `STRING` stores UTF-8 bytes and its literals stand between single quotation marks. `WSTRING` stores UTF-16 and its literals stand between double quotation marks.
+Two types hold text, and two more hold one character each. `STRING` stores UTF-8 bytes and its literals stand between single quotation marks. `WSTRING` stores UTF-16 and its literals stand between double quotation marks.
 
 ```iecst
 VAR
@@ -28,6 +28,22 @@ short := long;   (* 'abcde' *)
 ```
 
 So declare the capacity that the value needs. The compiler cannot warn about a text that grows only while the program runs.
+
+
+## Single characters
+
+`CHAR` holds one byte and `WCHAR` one unit of 16 bits. A literal is written like a text literal of the same kind, with one character in it:
+
+```iecst
+VAR
+    letter: CHAR := 'a';
+    wide: WCHAR := "b";
+END_VAR
+```
+
+A character is not a text of length one, and the compiler keeps the two apart. An assignment between `CHAR` and `STRING`, or between `CHAR` and `WCHAR`, is rejected, and a text cannot be indexed to take a character out of it. A comparison with a plain literal is rejected as well, because that literal is a text; write the type in front of it, as in `letter = CHAR#'a'`. The standard library converts in both directions: `STRING_TO_CHAR` gives the first byte of a text, `CHAR_TO_STRING` makes a text of one character, and `WSTRING_TO_WCHAR`, `WCHAR_TO_WSTRING`, `CHAR_TO_WCHAR`, and `WCHAR_TO_CHAR` do the same for the other pairs.
+
+A literal with more than one character keeps its first unit only, and the compiler does not warn. For a `CHAR` that unit is one byte, so a character outside ASCII does not fit: `'ü'` gives the first byte of its two-byte code.
 
 
 ## Escape sequences
