@@ -1,0 +1,34 @@
+RUN: %COMPILE_IR %S/function_pins.cfc %S/myAdd.st | %CHECK_IR %s
+
+The diagram, with execution orders in parentheses; `o` marks a negated pin:
+
+           +-------- myAdd ---------+
+a1 ------o-| IN1              myAdd |-o------> b1 (2)
+a2 --------| IN2       myAddDoubled |-o------> b2 (1)
+           +------------------------+ (0)
+
+Each ordered element must get a debug location in the diagram's own file,
+at line = order + 1, so a debugger can break on it.
+
+Debug file per area: declaration text vs. diagram `function_pins`.
+CHECK-DAG: ![[#FILE_DECLARATION:]] = !DIFile(filename: "function_pins.cfc", directory:
+CHECK-DAG: ![[#FILE_DIAGRAM:]] = !DIFile(filename: "function_pins.cfc.function_pins", directory:
+
+The function lives in the declaration; a lexical block inside it is bound to the diagram file.
+CHECK-DAG: ![[#SCOPE_FUNCTION:]] = distinct !DISubprogram(name: "function_pins", {{.*}}, file: ![[#FILE_DECLARATION]], line: 1,
+CHECK-DAG: ![[#SCOPE_DIAGRAM:]] = distinct !DILexicalBlock(scope: ![[#SCOPE_FUNCTION]], file: ![[#FILE_DIAGRAM]])
+
+Diagram statements are scoped to that block, line = execution order + 1 (0 is reserved).
+CHECK-DAG: ![[#LOCATION_MYADD:]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]])
+CHECK-DAG: ![[#LOCATION_B2:]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]])
+CHECK-DAG: ![[#LOCATION_B1:]] = !DILocation(line: 3, scope: ![[#SCOPE_DIAGRAM]])
+
+Block `myAdd` (order 0), sink `b2` (order 1), sink `b1` (order 2).
+CHECK-DAG: define void @function_pins(ptr %0) !dbg ![[#SCOPE_FUNCTION]]
+CHECK-DAG: call i32 @myAdd({{.*}}), !dbg ![[#LOCATION_MYADD]]
+CHECK-DAG: store i32 {{.*}}, ptr %b2, {{.*}}!dbg ![[#LOCATION_B2]]
+CHECK-DAG: store i32 {{.*}}, ptr %b1, {{.*}}!dbg ![[#LOCATION_B1]]
+
+Declared variables keep their text line; the captured block output sits at its block's order.
+CHECK-DAG: !DIDerivedType(tag: DW_TAG_member, name: "a1", scope: ![[#FILE_DECLARATION]], file: ![[#FILE_DECLARATION]], line: 3,
+CHECK-DAG: !DIDerivedType(tag: DW_TAG_member, name: "__out_myAdd_1", scope: ![[#FILE_DECLARATION]], file: ![[#FILE_DIAGRAM]], line: 1,

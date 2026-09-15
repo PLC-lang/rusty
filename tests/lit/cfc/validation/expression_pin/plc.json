@@ -1,0 +1,10 @@
+{
+	"name" : "cfc_expression_pin",
+	"files" : [
+		"expression_pin.cfc",
+		"myAdd.st"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

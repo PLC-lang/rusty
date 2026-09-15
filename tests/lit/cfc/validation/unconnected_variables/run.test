@@ -1,0 +1,8 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+An element without an execution order is not targetable, so its diagnostic
+names only the file; the element itself is named in the message. The lit
+error config raises the E084 warning to an error, so the build fails.
+CHECK: {{.*}}unconnected_variables.cfc: error[E084]: Element `foo` is unconnected and will be ignored
+CHECK: {{.*}}unconnected_variables.cfc: error[E084]: Element `bar` is unconnected and will be ignored
+CHECK: error: Compilation aborted due to critical errors

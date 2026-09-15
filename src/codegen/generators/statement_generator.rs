@@ -127,6 +127,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         mut llvm_index: LlvmTypedIndex<'b>,
         statement: &AstNode,
     ) -> Result<LlvmTypedIndex<'b>, CodegenError> {
+        // Anchor the statement's own location so instructions that carry none of their own
+        // are not attributed to the previously generated statement.
+        self.register_debug_location(statement);
+
         match statement.get_stmt() {
             AstStatement::EmptyStatement(..) => {
                 //nothing to generate
@@ -145,7 +149,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.generate_conditional_return(&llvm_index, statement, condition)?;
                 }
                 None => {
-                    self.register_debug_location(statement);
                     self.generate_return_statement()?;
                     self.generate_buffer_block(); // XXX(volsa): This is not needed on x86 but if removed segfaults on ARM
                 }
@@ -153,7 +156,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::LabelStatement(LabelStatement { name }) => {
                 if let Some(block) = self.function_context.blocks.get(name) {
                     //unconditionally jump to the label
-                    self.register_debug_location(statement);
                     self.llvm.builder.build_unconditional_branch(*block)?;
                     //Place the current instert block at the label statement
                     self.llvm.builder.position_at_end(*block);
@@ -193,7 +195,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             AstStatement::ExitStatement(_) => {
                 if let Some(exit_block) = &self.current_loop_exit {
-                    self.register_debug_location(statement);
                     self.llvm.builder.build_unconditional_branch(*exit_block)?;
                     self.generate_buffer_block();
                 } else {
@@ -420,9 +421,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     fn register_debug_location(&self, statement: &AstNode) {
-        let line = statement.get_location().get_line_plus_one();
-        let column = statement.get_location().get_column();
-        self.debug.set_debug_location(self.llvm, self.function_context, line, column);
+        self.debug.set_debug_location(self.llvm, self.function_context, &statement.get_location());
     }
 
     fn generate_assignment_statement_direct_access(
@@ -475,6 +474,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let exp_gen = self.create_expr_generator(llvm_index);
+        // The selector load and the switch below share the selector's location
+        self.register_debug_location(&stmt.selector);
         let selector_statement = exp_gen.generate_expression(&stmt.selector)?;
 
         let mut cases = Vec::new();
@@ -511,12 +512,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             builder.position_at_end(case_block);
             self.generate_body(&conditional_block.body)?;
             //Add debug location to the end of the case
-            self.debug.set_debug_location(
-                self.llvm,
-                self.function_context,
-                stmt.end_location.get_line_plus_one(),
-                stmt.end_location.get_column(),
-            );
+            self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
             // skip all other case-bodies
             builder.build_unconditional_branch(continue_block)?;
         }
@@ -524,12 +520,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         builder.position_at_end(current_else_block);
         self.generate_body(&stmt.else_block)?;
         //Add debug location to the end of the case
-        self.debug.set_debug_location(
-            self.llvm,
-            self.function_context,
-            stmt.end_location.get_line_plus_one(),
-            stmt.end_location.get_column(),
-        );
+        self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
         builder.build_unconditional_branch(continue_block)?;
         continue_block.move_after(current_else_block).expect(INTERNAL_LLVM_ERROR);
 
@@ -633,12 +624,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
         body_generator.generate_body(&stmt.body)?;
 
-        self.debug.set_debug_location(
-            self.llvm,
-            self.function_context,
-            stmt.end_location.get_line_plus_one(),
-            stmt.end_location.get_column(),
-        );
+        self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
         builder.build_unconditional_branch(while_body)?;
 
         builder.position_at_end(continue_block);
@@ -693,12 +679,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             builder.position_at_end(conditional_block);
             self.generate_body(&block.body)?;
             // Place debug location to end of if
-            self.debug.set_debug_location(
-                self.llvm,
-                self.function_context,
-                stmt.end_location.get_line_plus_one(),
-                stmt.end_location.get_column(),
-            );
+            self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
             builder.build_unconditional_branch(continue_block)?;
         }
         //Else
@@ -707,12 +688,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             builder.position_at_end(else_block);
             self.generate_body(&stmt.else_block)?;
             // Place debug location to end of if
-            self.debug.set_debug_location(
-                self.llvm,
-                self.function_context,
-                stmt.end_location.get_line_plus_one(),
-                stmt.end_location.get_column(),
-            );
+            self.debug.set_debug_location(self.llvm, self.function_context, &stmt.end_location);
             builder.build_unconditional_branch(continue_block)?;
         }
         //Continue

@@ -16,24 +16,24 @@ entry:
   switch i32 %load_myFunc, label %else [
     i32 1, label %case
     i32 2, label %case1
-  ], !dbg !12
+  ], !dbg !11
 
 case:                                             ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !13
-  br label %continue, !dbg !14
+  store i32 1, ptr %myFunc, align [filtered], !dbg !12
+  br label %continue, !dbg !13
 
 case1:                                            ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !15
-  br label %continue, !dbg !14
+  store i32 1, ptr %myFunc, align [filtered], !dbg !14
+  br label %continue, !dbg !13
 
 else:                                             ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !16
-  br label %continue, !dbg !14
+  store i32 1, ptr %myFunc, align [filtered], !dbg !15
+  br label %continue, !dbg !13
 
 continue:                                         ; preds = %else, %case1, %case
-  store i32 1, ptr %myFunc, align [filtered], !dbg !17
-  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
-  ret i32 %myFunc_ret, !dbg !18
+  store i32 1, ptr %myFunc, align [filtered], !dbg !16
+  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
+  ret i32 %myFunc_ret, !dbg !17
 }
 
 !llvm.module.flags = !{!0, !1}
@@ -50,11 +50,10 @@ continue:                                         ; preds = %else, %case1, %case
 !8 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !9, align [filtered])
 !9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !10 = !DILocation(line: 2, column: 17, scope: !4)
-!11 = !DILocation(line: 3, column: 12, scope: !4)
-!12 = !DILocation(line: 3, column: 17, scope: !4)
-!13 = !DILocation(line: 5, column: 16, scope: !4)
-!14 = !DILocation(line: 10, column: 12, scope: !4)
-!15 = !DILocation(line: 7, column: 16, scope: !4)
-!16 = !DILocation(line: 9, column: 16, scope: !4)
-!17 = !DILocation(line: 11, column: 12, scope: !4)
-!18 = !DILocation(line: 12, column: 8, scope: !4)
+!11 = !DILocation(line: 3, column: 17, scope: !4)
+!12 = !DILocation(line: 5, column: 16, scope: !4)
+!13 = !DILocation(line: 10, column: 12, scope: !4)
+!14 = !DILocation(line: 7, column: 16, scope: !4)
+!15 = !DILocation(line: 9, column: 16, scope: !4)
+!16 = !DILocation(line: 11, column: 12, scope: !4)
+!17 = !DILocation(line: 12, column: 8, scope: !4)

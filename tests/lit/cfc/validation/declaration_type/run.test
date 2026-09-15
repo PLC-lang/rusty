@@ -1,0 +1,6 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+The declaration is located like any text: line and column within the
+declaration text the IDE's text editor shows.
+CHECK: {{.*}}declaration_type.cfc:3:22:{3:22-3:30}: error[E052]: Unknown type: NOTATYPE
+CHECK: error: Compilation aborted due to critical errors

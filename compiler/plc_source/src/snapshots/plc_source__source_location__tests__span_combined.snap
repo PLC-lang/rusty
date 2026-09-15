@@ -6,16 +6,24 @@ SourceLocation {
     span: Combined(
         [
             Block {
-                local_id: 1,
+                diagram: "main",
+                order: 1,
+                pin: None,
             },
             Block {
-                local_id: 2,
+                diagram: "main",
+                order: 2,
+                pin: None,
             },
             Block {
-                local_id: 3,
+                diagram: "main",
+                order: 3,
+                pin: None,
             },
             Block {
-                local_id: 4,
+                diagram: "main",
+                order: 4,
+                pin: None,
             },
         ],
     ),

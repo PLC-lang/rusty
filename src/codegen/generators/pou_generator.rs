@@ -636,20 +636,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &function_context,
                 debug,
             );
-            let (line, column) = implementation
-                .statements
-                .first()
-                .map(|it| (it.get_location().get_line_plus_one(), it.get_location().get_column()))
-                .unwrap_or_else(|| {
-                    (implementation.location.get_line_plus_one(), implementation.location.get_column())
-                });
+            let first = implementation.statements.first().map(|it| it.get_location());
+            let location = first.as_ref().unwrap_or(&implementation.location);
             //Set the debug location to the first statement in the body
-            debug.set_debug_location(&self.llvm, &function_context, line, column);
+            debug.set_debug_location(&self.llvm, &function_context, location);
             statement_gen.generate_body(&implementation.statements)?;
             //TODO the return statement should be lowered
-            let line = implementation.end_location.get_line_plus_one();
-            let column = implementation.end_location.get_column();
-            debug.set_debug_location(&self.llvm, &function_context, line, column);
+            debug.set_debug_location(&self.llvm, &function_context, &implementation.end_location);
             statement_gen.generate_return_statement()?;
         }
 
