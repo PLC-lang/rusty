@@ -687,7 +687,7 @@ pub(crate) fn generate_pous(
                 match current_impl.location.file {
                     plc_source::source_location::FileMarker::File(file_path) => {
                         match grab_file_statement_from_span(file_path, inner_range) {
-                            Some(pou_procedure_text) => pou_procedure_text,
+                            Some(pou_procedure_text) => flatten_body_indent(&pou_procedure_text),
                             None => {
                                 continue;
                             }
@@ -1002,6 +1002,44 @@ fn generate_variable_element(
         }
     }
     Some(variable_node)
+}
+
+fn common_indent_prefix<'a>(left: &'a str, right: &str) -> &'a str {
+    let shared = left.bytes().zip(right.bytes()).take_while(|(a, b)| a == b).count();
+    &left[..shared]
+}
+
+fn flatten_body_indent(text: &str) -> String {
+    let mut lines = text.split('\n');
+
+    let Some(first) = lines.next() else {
+        return String::from(text);
+    };
+
+    let remainder: Vec<&str> = lines.collect();
+    let mut shared: Option<&str> = None;
+
+    for line in remainder.iter().filter(|line| !line.trim().is_empty()) {
+        let indent = &line[..line.len() - line.trim_start().len()];
+
+        shared = Some(match shared {
+            Some(current) => common_indent_prefix(current, indent),
+            None => indent,
+        });
+    }
+
+    let Some(shared) = shared.filter(|value| !value.is_empty()) else {
+        return String::from(text);
+    };
+
+    let mut result = String::from(first);
+
+    for line in remainder {
+        result.push('\n');
+        result.push_str(line.strip_prefix(shared).unwrap_or(line));
+    }
+
+    result
 }
 
 fn grab_file_statement_from_span(file_path: &'static str, range: &Range<TextLocation>) -> Option<String> {
