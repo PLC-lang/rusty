@@ -422,13 +422,7 @@ fn date_and_time_constants_can_be_parsed() {
         },
         initializer: Some(
             LiteralTime {
-                day: 0.0,
-                hour: 0.0,
-                min: 0.0,
-                sec: 1.0,
-                milli: 0.0,
-                micro: 0.0,
-                nano: 0,
+                nanos: 1000000000,
                 negative: false,
             },
         ),
@@ -440,13 +434,7 @@ fn date_and_time_constants_can_be_parsed() {
         },
         initializer: Some(
             LiteralTime {
-                day: 0.0,
-                hour: 2.0,
-                min: 0.0,
-                sec: 1.0,
-                milli: 0.0,
-                micro: 0.0,
-                nano: 10,
+                nanos: 7201000000010,
                 negative: false,
             },
         ),
@@ -458,13 +446,7 @@ fn date_and_time_constants_can_be_parsed() {
         },
         initializer: Some(
             LiteralTime {
-                day: 0.0,
-                hour: 1.0,
-                min: 0.0,
-                sec: 1.0,
-                milli: 1.0,
-                micro: 1.0,
-                nano: 1,
+                nanos: 3601001001001,
                 negative: false,
             },
         ),
@@ -476,13 +458,7 @@ fn date_and_time_constants_can_be_parsed() {
         },
         initializer: Some(
             LiteralTime {
-                day: 0.0,
-                hour: 0.0,
-                min: 0.0,
-                sec: 1000.0,
-                milli: 0.0,
-                micro: 0.0,
-                nano: 0,
+                nanos: 1000000000000,
                 negative: false,
             },
         ),

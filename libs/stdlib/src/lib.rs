@@ -22,6 +22,8 @@ pub mod bistable_functionblocks;
 pub mod bit_num_conversion;
 pub mod bit_shift_functions;
 pub mod counters;
+#[cfg(test)]
+mod counting_allocator;
 pub mod date_time_conversion;
 pub mod date_time_extra_functions;
 pub mod date_time_numeric_functions;
@@ -31,6 +33,7 @@ pub mod flanks;
 pub mod num_conversion;
 pub mod string_conversion;
 pub mod string_functions;
+pub mod string_to_conversions;
 pub mod timers;
 pub mod types;
 pub mod utils;

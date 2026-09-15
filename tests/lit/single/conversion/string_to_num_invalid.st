@@ -1,5 +1,4 @@
-// Malformed strings must not crash the application; STRING_TO_* parses the longest valid
-// prefix instead.
+// Malformed strings must not crash the application.
 
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 FUNCTION main
@@ -12,10 +11,10 @@ FUNCTION main
     printf('%f$N', STRING_TO_LREAL(''));            // CHECK: 0.000000
     printf('%f$N', STRING_TO_LREAL('1.2j3'));       // CHECK: 1.200000
 
-    // STRING_TO_DINT / STRING_TO_LINT: parse the valid prefix, default to 0
+    // STRING_TO_DINT / STRING_TO_LINT: reject malformed input, default to 0
     printf('%d$N', STRING_TO_DINT(''));             // CHECK: 0
     printf('%d$N', STRING_TO_DINT('asdf'));         // CHECK: 0
-    printf('%d$N', STRING_TO_DINT('12j3'));         // CHECK: 12
+    printf('%d$N', STRING_TO_DINT('12j3'));         // CHECK: 0
     printf('%d$N', STRING_TO_DINT('123.456'));      // CHECK: 123
-    printf('%d$N', STRING_TO_LINT('12j3'));         // CHECK: 12
+    printf('%d$N', STRING_TO_LINT('12j3'));         // CHECK: 0
 END_FUNCTION

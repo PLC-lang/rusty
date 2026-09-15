@@ -1,0 +1,2 @@
+REQUIRES: c23-varargs
+RUN: %COMPILE_C23 %S/main_c23.st && %RUN | %CHECK %S/main_c23.st
