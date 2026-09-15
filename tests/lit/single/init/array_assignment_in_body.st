@@ -1,7 +1,7 @@
 // Test to verify array assignment works in body (not initializer)
 // This test confirms that array assignment works correctly when done in the body
 // rather than as an initializer, which helps isolate initializer-specific issues.
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 VAR_GLOBAL
     g1: INT := 10;

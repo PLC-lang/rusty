@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Verify that mixing positional and named arguments compiles and produces
 // correct results at runtime.

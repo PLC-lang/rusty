@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 VAR_GLOBAL
     globalFoo: DINT := 15;
     globalBar: DINT := 30;

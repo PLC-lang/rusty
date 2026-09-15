@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION_BLOCK foo
     VAR
         x: DINT := 50;

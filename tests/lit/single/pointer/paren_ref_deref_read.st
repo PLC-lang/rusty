@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression for #1443: reading through `(REF(x))^` must dereference the
 // returned pointer, not load through the variable holding it. Prior to the
 // fix this silently miscompiled to a segfault at runtime.

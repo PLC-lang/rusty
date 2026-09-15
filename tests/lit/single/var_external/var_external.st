@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 VAR_GLOBAL
     arr : ARRAY [0..10] OF INT;
 END_VAR

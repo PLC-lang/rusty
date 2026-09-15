@@ -1,5 +1,5 @@
 // Issue #1522: Typedef initializer chains not propagating values
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 TYPE myStruct: STRUCT
   a : INT;

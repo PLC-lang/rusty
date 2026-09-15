@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 //
 // `ADR(x) + N` is byte-stride pointer arithmetic — `ADR` is declared to
 // return LWORD, so the `+` flows through the integer-arithmetic path; the

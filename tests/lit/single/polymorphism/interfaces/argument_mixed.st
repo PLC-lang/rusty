@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: A method takes a mix of interface-typed and non-interface-typed parameters. Only the
 // interface-typed arguments should be wrapped in a fat pointer; the rest remain untouched.
 

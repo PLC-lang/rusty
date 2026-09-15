@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that LREAL_TO_STRING uses scientific notation for huge negative values
 // instead of overflowing the 80-byte string buffer
 

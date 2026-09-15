@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression: nested loops inside an action must re-initialize their inner temporaries (#1784).
 
 PROGRAM mainProg

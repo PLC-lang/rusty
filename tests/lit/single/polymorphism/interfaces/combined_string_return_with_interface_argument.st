@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: An interface method returns an aggregate type (STRING) and also takes an interface-typed
 // argument. Both the aggregate return lowering and fat pointer wrapping must cooperate: the fat pointer
 // preamble must execute before the call, and the aggregate alloca must also be set up before the call.

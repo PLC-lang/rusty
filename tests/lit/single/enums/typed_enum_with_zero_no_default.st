@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Test enum with zero variant and NO explicit default - should init to zero
 TYPE Status : INT (

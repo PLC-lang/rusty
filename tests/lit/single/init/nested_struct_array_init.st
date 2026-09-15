@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 //
 // An array of structs that hold an array of structs must accept a nested initializer.
 // The parenthesized struct initializers have to stay recognizable as such after the

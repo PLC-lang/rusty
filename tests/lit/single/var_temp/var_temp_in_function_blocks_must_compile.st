@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION_BLOCK baseControl
     VAR_INPUT
         a_in : INT;

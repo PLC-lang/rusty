@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION VlaInit
 VAR_IN_OUT
 	arr	: ARRAY [*] OF BYTE;

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Test IEC 61131-3 syntax: TYPE NAME : TYPE (variants) := default;
 TYPE Status : DWORD (

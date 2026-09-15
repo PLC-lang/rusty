@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that ADD with TIME wraps mod 2^32 on overflow, matching CODESYS
 
 FUNCTION main : DINT

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Passing a property getter result as an argument to a function, dispatched through
 // an interface reference. Mirrors the `property_get_as_function_argument` unit test.
 

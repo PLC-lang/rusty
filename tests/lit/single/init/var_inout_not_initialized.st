@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that VAR_IN_OUT parameters without initializers keep their passed values
 // Note: VAR_IN_OUT initializers are NOT applied in the current implementation
 

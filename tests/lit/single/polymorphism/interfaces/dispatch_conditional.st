@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Different concrete types are assigned to an interface variable based on a runtime condition.
 // The method is then called after the branch, ensuring dispatch is truly dynamic and not resolved at
 // compile time.

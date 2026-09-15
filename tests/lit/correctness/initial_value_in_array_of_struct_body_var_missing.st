@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // This test verifies that array of struct initialization in the body works correctly.
 // This is a companion test to initial_value_in_array_of_struct_body_missing.st which uses VAR_TEMP.
 // Case: Missing initialization - only first element is assigned, second should be zero

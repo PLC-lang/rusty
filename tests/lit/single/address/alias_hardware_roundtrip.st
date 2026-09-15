@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 VAR_GLOBAL
     alias AT %IX1.1 : BOOL;
 END_VAR

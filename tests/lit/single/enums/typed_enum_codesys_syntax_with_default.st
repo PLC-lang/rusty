@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Test Codesys syntax: TYPE NAME : (variants) TYPE := default;
 TYPE Priority : (

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: A free FUNCTION (not a method on an interface) returns an aggregate type (STRING) and takes
 // an interface-typed VAR_INPUT. This tests the interaction between AggregateTypeLowerer and
 // InterfaceDispatchLowerer for plain function calls where the callee is known statically but the

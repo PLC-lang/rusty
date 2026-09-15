@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Interface references passed as positional (unnamed) VAR_INPUT arguments are correctly wrapped
 // in a fat pointer and dispatched to the implementing function block's method.
 

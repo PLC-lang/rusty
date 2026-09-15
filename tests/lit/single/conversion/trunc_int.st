@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main
     // REAL
     printf('%d$N', TRUNC_SINT(REAL#5.6));       // CHECK: 5

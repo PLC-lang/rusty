@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that DIV with TIME by LREAL zero saturates at the TIME range
 // and a zero dividend yields zero
 

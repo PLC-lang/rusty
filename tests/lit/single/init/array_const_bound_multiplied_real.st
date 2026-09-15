@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Tests that an array with constant-expression bounds and a constant-multiplied
 // REAL initializer compiles and runs correctly.
 

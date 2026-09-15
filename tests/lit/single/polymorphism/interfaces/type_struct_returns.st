@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Ensure user-defined STRUCT return values are passed correctly through interface dispatch.
 
 TYPE User :

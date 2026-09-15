@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // This test ensures that even with an unordered method declaration, the methods internally are still defined
 // in a fixed order within the virtual table. Specifically, if function block A defines methods in order
 // [alpha, bravo, charlie] and function block B extends A overridding bravo and introducing delta in order

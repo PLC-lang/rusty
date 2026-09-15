@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // This test verifies that array of struct initialization works correctly
 // with different initializer styles:
 // 1. Single element initialization in VAR declaration (only first element, rest defaults to zero)

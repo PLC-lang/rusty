@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: A has two properties (x and y). B extends A and overrides only the getter of x
 // (adds 100) and only the setter of y (adds 200). Dispatch through POINTER TO A verifies
 // that each property's each accessor is resolved independently through the vtable.

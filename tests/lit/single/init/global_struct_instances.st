@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 VAR_GLOBAL
     arr : ARRAY[1..3] OF DINT := [3, 2, 1];
     foo: foo_t;

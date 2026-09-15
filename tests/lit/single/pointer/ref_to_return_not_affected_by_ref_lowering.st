@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression test: functions returning REF_TO must not be rewritten by the
 // reference-to-return lowering.
 FUNCTION getRef : REF_TO INT

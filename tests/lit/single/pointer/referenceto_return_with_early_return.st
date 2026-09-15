@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression test: multiple return paths with an early RETURN must preserve
 // the REF= assignment to the function name when it occurs in a conditional branch.
 FUNCTION selectRef : REFERENCE TO INT

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Sequencing: `Base.FB_INIT` must run before `Child.FB_INIT`, so that the
 // child's body can rely on initialized base state. Pre-fix, the doubled base
 // ctor would still produce the right value here, but the inherited-FB_INIT

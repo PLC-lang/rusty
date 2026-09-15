@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Probe for #1737 follow-up: a FUNCTION-scoped VAR with `AT %M...` should bind its alias
 // pointer to the synthesised backing global on entry, so the write below ends up at the
 // same hardware slot a VAR_GLOBAL alias would observe.

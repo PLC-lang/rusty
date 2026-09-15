@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 FUNCTION foo: ARRAY[1..5] OF DINT
     foo := [5, 4, 3, 2, 1];

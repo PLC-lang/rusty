@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 TYPE str : STRUCT
     a : DINT := 10; b : DINT := 20; c : DINT := 30; d : DINT;

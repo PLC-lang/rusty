@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Sanity: the fix for double base-ctor / inherited FB_INIT must not
 // over-correct. Each constructed instance must still run the inherited
 // `FB_INIT` once. Two instances => count of 2.
