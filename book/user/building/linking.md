@@ -60,9 +60,13 @@ ld.lld: error: undefined symbol: host_log
 
 ## Position-independent code
 
-The compiler generates position-independent code for a shared object and the platform default for everything else. `--fpic` and `--fno-pic` force one of the two, and they exclude each other.
+The compiler generates position-independent code for a shared object and for an executable. An object built with `-c` takes the default model of the target instead. `--fpic` and `--fno-pic` force one of the two, and they exclude each other.
 
-On x86_64 the generated code is position-independent anyway, and the visible effect is at link time: with `--fno-pic` the compiler passes `-no-pie` to the linker, which produces an executable that is not position-independent. On 32-bit x86 and on some ARM configurations the generated code differs as well. A shared object without position-independent code fails to link on targets that require it, exactly as with `gcc` and `clang`.
+What `--fno-pic` changes depends on the target. On x86_64 and on aarch64, the default model reaches a global through the global offset table as well, so the machine code is the same, and the visible effect is at link time: the compiler passes `-no-pie` to the driver, which produces an executable that is not position-independent. On 32-bit x86 and on 32-bit ARM, the default model addresses a global directly, so the code differs, and a shared object built from it fails to link, exactly as with `gcc` and `clang`:
+
+```
+ld.lld: error: relocation R_386_32 cannot be used against symbol 'g'; recompile with -fPIC
+```
 
 
 ## Windows
