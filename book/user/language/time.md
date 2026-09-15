@@ -15,6 +15,8 @@ Each long type counts the same thing as the short type next to it, but in nanose
 
 A part of a value that is finer than what the type counts is lost. `T#500us` is a `TIME` of zero, and `DT#1999-12-31-23:59:59.999` is the same `DATE_AND_TIME` as `DT#1999-12-31-23:59:59`. The long types count in nanoseconds and keep both.
 
+The short types are unsigned. `DATE` and `DATE_AND_TIME` reach from 1970-01-01 to 2106-02-07, and `TIME` reaches `T#49d17h2m47s295ms`, about 49 days. A literal outside that range compiles with a warning and wraps around, so `D#1969-12-31` is a day in February 2106 and `T#49d17h2m47s296ms` is zero. The long types are signed and reach about 292 years to either side of 1970, from `LD#1677-09-22` to `LD#2262-04-11`. A long literal outside that range is rejected.
+
 
 ## Literals
 
@@ -60,7 +62,7 @@ IF a > b THEN          (* TRUE *)
 
 A duration also multiplies and divides by a number, which is how you scale a cycle time.
 
-The short types are unsigned, so a negative duration does not fit. A literal such as `T#-10s` still compiles, but the compiler warns about an underflow and the value wraps around to a large positive duration. Use `LTIME` when a duration must be able to go below zero: `LT#-10s` is a negative `LTIME` and gets no warning.
+A negative duration does not fit into the unsigned `TIME`. A literal such as `T#-10s` still compiles, but the compiler warns about an underflow and the value wraps around to a large positive duration. Use `LTIME` when a duration must be able to go below zero: `LT#-10s` is a negative `LTIME` and gets no warning.
 
 To read a time value as a number, convert it with a cast. `DINT#cycle` gives the milliseconds of a `TIME`, because that is what the type holds.
 
