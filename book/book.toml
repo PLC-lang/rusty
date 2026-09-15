@@ -1,16 +1,54 @@
 [book]
-authors = ["Ghaith Hachem", "Mathias Rieder", "Alexander Ulmer"]
+title = "RuSTy Documentation"
+description = "The IEC 61131-3 Structured Text compiler: how to use it, and how it works inside."
 language = "en"
-src = "src"
-title = "RuSTy User Documentation"
+src = "."
+
+[build]
+build-dir = "book"
+# A chapter in SUMMARY.md that has no file is an error, not an empty page
+create-missing = false
+
 [output.html]
-additional-js = ["iecst.min.js", "llvm.min.js", "custom.js", "highlight.js"]
+additional-css = ["assets/custom.css"]
+additional-js = ["assets/iecst.min.js", "assets/llvm.min.js", "assets/custom.js", "assets/highlight.js", "assets/mermaid.min.js", "assets/mermaid-init.js"]
+git-repository-url = "https://github.com/PLC-lang/rusty"
+edit-url-template = "https://github.com/PLC-lang/rusty/edit/master/book/{path}"
 
 [output.html.fold]
 enable = true
-level = 0
+level = 1
+
+# The pages of the previous book, so that existing links keep working
+[output.html.redirect]
+"/intro_1.html" = "user/language/README.html"
+"/build_and_install.html" = "user/get-started/install.html"
+"/using_rusty.html" = "user/building/compiling.html"
+"/using_rusty/build_configuration.html" = "../user/reference/project-file.html"
+"/using_rusty/debug_paths.html" = "../user/building/debugging.html"
+"/using_rusty/build_info.html" = "../user/building/compiling.html"
+"/using_rusty/error_configuration.html" = "../user/building/diagnostics.html"
+"/using_rusty/header_generation.html" = "../user/interop/headers.html"
+"/libraries.html" = "user/building/linking.html"
+"/libraries/external_functions.html" = "../user/interop/calling-c.html"
+"/libraries/api_lib_guide.html" = "../user/interop/api-guidelines.html"
+"/pous.html" = "user/language/functions.html"
+"/variables.html" = "user/language/variables.html"
+"/datatypes.html" = "user/language/basic-types.html"
+"/direct_variables.html" = "user/language/hardware-access.html"
+"/cfc/cfc.html" = "../user/language/cfc.html"
+"/cfc/m2m.html" = "../technical/participants/00-cfc.html"
+"/arch/architecture.html" = "../technical/overview.html"
+"/arch/parser.html" = "../technical/pipeline/01-lexer-parser.html"
+"/arch/indexer.html" = "../technical/pipeline/02-index.html"
+"/arch/validation.html" = "../technical/pipeline/04-validation.html"
+"/arch/codegen.html" = "../technical/pipeline/05-codegen.html"
+"/arch/linker.html" = "../technical/pipeline/06-linker.html"
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
 
 [preprocessor.errors]
 command = "../target/release/errorcode_book_generator"
 err_location = "../compiler/plc_diagnostics/src/diagnostics/error_codes"
-err_target = "using_rusty/error_configuration.md"
+err_target = "user/reference/error-codes.md"
