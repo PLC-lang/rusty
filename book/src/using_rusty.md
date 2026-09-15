@@ -249,3 +249,39 @@ Currently, Rusty supports importing it's generated XML into Omron Sysmac Studio.
 ```
 plc ./examples/hello_world.st --xml-omron -l iec61131std -o ./hello_world.xml
 ```
+
+### Network Publish Mode
+
+Sysmac Studio publishes global variables to the network. Each variable carries a `networkPublish`
+attribute in the generated XML. The default is `DoNotPublish`.
+
+To set the mode, write a `network_publish` pragma directly before a `VAR_GLOBAL` block. The mode
+applies to every variable in that block:
+
+```iecst
+{network_publish := 'Input'}
+VAR_GLOBAL
+    speed : INT;
+    torque : INT;
+END_VAR
+```
+
+The accepted modes are `DoNotPublish`, `PublishOnly`, `Input` and `Output`. The mode name is not
+case sensitive.
+
+The pragma applies to one block only. A later `VAR_GLOBAL` block without its own pragma goes back
+to `DoNotPublish`:
+
+```iecst
+{network_publish := 'Output'}
+VAR_GLOBAL
+    published : INT;
+END_VAR
+
+VAR_GLOBAL
+    notPublished : INT;
+END_VAR
+```
+
+Local variables are not published, so the pragma has no effect on a `VAR` block inside a POU.
+An unknown mode name gives warning `E024`, and the block falls back to `DoNotPublish`.
