@@ -7,9 +7,8 @@ use plc_ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DeclarationKind, DirectAccessType, GenericBinding,
         HardwareAccessType, Identifier, Implementation, Interface, LinkageType, NetworkPublish,
-        PolymorphismMode, Pou,
-        PouType, PropertyBlock, PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr,
-        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        PolymorphismMode, Pou, PouType, PropertyBlock, PropertyImplementation, PropertyKind, ReferenceAccess,
+        ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -101,7 +100,6 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
             KeywordVarGlobal => {
                 let mut block = parse_variable_block(&mut lexer, linkage);
                 block.network_publish = network_publish;
-                network_publish = NetworkPublish::default();
                 unit.global_vars.push(block);
             }
             KeywordVarConfig => unit.var_config.extend(parse_config_variables(&mut lexer)),
@@ -158,6 +156,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
             }
         };
         linkage = lnk;
+        network_publish = NetworkPublish::default();
     }
     //the match in the loop will always return
 }

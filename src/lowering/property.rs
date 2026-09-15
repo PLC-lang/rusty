@@ -74,8 +74,9 @@ use helper::patch_prefix_to_name;
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
-        DeclarationKind, Identifier, Implementation, LinkageType, Pou, PouType, PropertyBlock, PropertyKind,
-        NetworkPublish, ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
+        DeclarationKind, Identifier, Implementation, LinkageType, NetworkPublish, Pou, PouType,
+        PropertyBlock, PropertyKind, ReferenceAccess, ReferenceExpr, Variable, VariableBlock,
+        VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
