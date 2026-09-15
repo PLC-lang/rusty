@@ -142,10 +142,25 @@ impl Time {
 
 impl Display for Time {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut rest = self.nanos;
+        let day = rest / 86_400_000_000_000;
+        rest %= 86_400_000_000_000;
+        let hour = rest / 3_600_000_000_000;
+        rest %= 3_600_000_000_000;
+        let min = rest / 60_000_000_000;
+        rest %= 60_000_000_000;
+        let sec = rest / 1_000_000_000;
+        rest %= 1_000_000_000;
+        let milli = rest / 1_000_000;
+        rest %= 1_000_000;
+        let micro = rest / 1_000;
+        let nano = rest % 1_000;
+
         write!(
             f,
-            "LTIME#{}D{}H{}M{}S{}MS{}US{}NS",
-            self.day, self.hour, self.min, self.sec, self.milli, self.micro, self.nano
+            "{}#{}{day}D{hour}H{min}M{sec}S{milli}MS{micro}US{nano}NS",
+            if self.is_long { "LTIME" } else { "TIME" },
+            if self.negative { "-" } else { "" }
         )
     }
 }
