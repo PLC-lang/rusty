@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main : DINT
     printf('%s$N', REF(DATE_TO_STRING(D#2024-3-4)));          // CHECK: D#2024-03-04
     printf('%s$N', REF(DATE_TO_STRING(DATE#2106-02-07)));     // CHECK-NEXT: D#2106-02-07

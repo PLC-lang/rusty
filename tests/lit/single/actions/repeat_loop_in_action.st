@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression: a REPEAT loop inside an action must resolve its `__ran_once_*` temporary (#1784).
 
 PROGRAM mainProg

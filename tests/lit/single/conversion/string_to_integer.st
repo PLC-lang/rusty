@@ -1,5 +1,5 @@
 // STRING_TO integer and bit-string conversions share one parser at every width.
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 FUNCTION main
     // Empty input returns zero for every target type.

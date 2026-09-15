@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Verify that array type aliases with struct initializers produce correct runtime values.
 TYPE SomeStruct : STRUCT

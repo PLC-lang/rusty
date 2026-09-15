@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Verifies that BOOL values and boolean expressions are correctly promoted to
 // 32-bit integers when passed as variadic arguments, matching C default argument
 // promotion rules. Without this promotion the values can appear as 255/254 at

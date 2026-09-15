@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 //
 // ABS of an unsigned value returns the value unchanged instead of calling a
 // non-existent monomorph (previously a crash at runtime). Each call reports

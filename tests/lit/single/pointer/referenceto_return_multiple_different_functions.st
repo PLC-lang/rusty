@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Verify: calling multiple different reference-to-return functions from the same POU.
 FUNCTION addOne : REFERENCE TO INT
     VAR_INPUT

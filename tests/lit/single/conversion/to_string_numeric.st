@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression: the generic TO_STRING / TO_WSTRING must bind to the concrete per-type
 // monomorphization (e.g. TO_STRING__DINT) instead of falling back to TO_STRING__STRING and
 // reinterpreting the argument's bytes. DINT#-1 is a value that used to crash at runtime.

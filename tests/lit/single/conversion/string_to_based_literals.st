@@ -1,5 +1,5 @@
 // STRING_TO integer and bit-string conversions accept IEC based literals and nothing else.
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 FUNCTION main
     printf('byte_hex=%d$N', STRING_TO_BYTE('16#FF'));        // CHECK: byte_hex=255

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: FbA implements IA, FbB extends FbA and implicitly implements IA. Both should be passable as
 // interface-typed arguments, with FbB's overridden method dispatched correctly.
 

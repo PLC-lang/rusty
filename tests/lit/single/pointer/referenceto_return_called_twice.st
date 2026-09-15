@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Verify: calling the same reference-to-return function multiple times at top level.
 // The temp variable is shared across calls — verify values don't leak between calls.
 FUNCTION referenceFunc : REFERENCE TO INT

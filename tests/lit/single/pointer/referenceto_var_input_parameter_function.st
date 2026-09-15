@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // A plain variable passed to a `REFERENCE TO` VAR_INPUT must arrive as the
 // address of that variable, not as its value. This test only inspects the

@@ -4,10 +4,10 @@
 // was exhausted.
 
 // First we make sure that the hwmap file does not stack overflow
-// RUN: timeout 10s %PLC -i %UTILS --check --hwmap-file=%T/%basename_t.hwmap.json %s
+// RUN: timeout 10s %PLC -i %UTILS --check --hwmap-file=%t.hwmap.json %s
 
 // Then we do a sanity run to make sure the program executes to completion and produces the expected output
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 TYPE enumType : (
     element0,

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // A POU-local `VAR CONSTANT` used as an array bound. The generated element constructor is a
 // POU of its own, so a bound naming a member of the declaring POU does not resolve inside it
 // and has to be taken from the index as a literal. Regression test for PRG-4730: element

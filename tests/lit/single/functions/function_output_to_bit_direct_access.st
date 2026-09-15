@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Regression test for https://github.com/PLC-lang/rusty/issues/1239
 // `fun(out => bar.4)` and `myFb(out => bar.4)` previously generated IR that

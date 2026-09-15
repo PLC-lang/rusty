@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Stress test for the sub-32-bit FFI integer ABI fix (#1146).
 // Calls Rust stdlib `MUL_LTIME` with negative `SINT` arguments and asserts
 // the i8 sign-extension on the parameter side reaches the callee correctly

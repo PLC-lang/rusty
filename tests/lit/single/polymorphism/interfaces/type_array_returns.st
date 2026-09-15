@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Ensure ARRAY[1..5] OF DINT return values are passed correctly through interface dispatch.
 
 TYPE DintArray5: ARRAY[1..5] OF DINT; END_TYPE

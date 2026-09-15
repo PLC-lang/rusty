@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that RIGHT with a substring length above the string length clamps
 // to the whole string for WSTRING, matching the STRING behavior
 

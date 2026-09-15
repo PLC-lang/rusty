@@ -1,6 +1,6 @@
 // Malformed strings must not crash the application.
 
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main
     // STRING_TO_REAL / STRING_TO_LREAL: parse the valid prefix, default to 0.0
     printf('%f$N', STRING_TO_REAL(''));             // CHECK: 0.000000

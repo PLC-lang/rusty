@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Two unrelated interfaces define a method with the same name and signature. A single function
 // block implements both. Dispatching through each interface variable should resolve to the same underlying
 // method, but the vtable routing for each interface must be correct independently.

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression coverage for #1576 (fixed in commit 2b3388f). Calling an action
 // that inherits a `VAR_IN_OUT` parameter from its parent FB must store the
 // caller's address into the FB's in-out slot before invoking the action.

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 TYPE myStruct : STRUCT
         member AT arr : ARRAY[0..3] OF STRING;
     END_STRUCT

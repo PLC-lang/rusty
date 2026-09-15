@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: An interface declares both a regular method and a property. Two function blocks
 // implement the interface with different behaviors. Both the method and property are dispatched
 // through the same interface variable, verifying they coexist cleanly in the itable.

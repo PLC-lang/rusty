@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main : DINT
     printf('%s$N', REF(BYTE_TO_STRING(BYTE#255)));       // CHECK: 255
     printf('%s$N', REF(USINT_TO_STRING(USINT#255)));     // CHECK-NEXT: 255

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: (Big) linear / single inheritance hierachy between interfaces, A <- B <- C <- DD <- E <- F
 
 INTERFACE A

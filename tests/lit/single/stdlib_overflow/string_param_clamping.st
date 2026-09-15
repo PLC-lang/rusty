@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that out-of-range string function parameters clamp or leave the
 // base string unchanged, matching CODESYS (except the position-0 quirk
 // of DELETE/REPLACE, which is treated as an invalid position here)

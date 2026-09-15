@@ -1,5 +1,5 @@
 // STRING_TO_TIME and STRING_TO_LTIME parse duration literals with exact arithmetic.
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 FUNCTION main
     printf('time_fraction_1_5s=%s$N', REF(TIME_TO_STRING(STRING_TO_TIME('T#1.5s')))); // CHECK: time_fraction_1_5s=T#1s500ms

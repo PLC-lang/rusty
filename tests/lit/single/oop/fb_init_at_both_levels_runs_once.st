@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression: when both Base and Child declare `FB_INIT`, each must run
 // exactly once during construction. Pre-fix the doubled base-ctor (issue 1)
 // and the inherited FB_INIT re-emit (issue 2) inflated these counts.

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // #1737 coverage: a METHOD-scoped VAR_TEMP with `AT %M...` (temporary, per-call) should
 // alias-bind on entry and round-trip a write to the backing hardware slot.
 

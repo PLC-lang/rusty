@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Program retain variables with inline type definitions: the extracted inline type
 // and the generated retain pointer type must not clash (they both used to be named
 // `__<pou>_<var>`), and initializers must land on the generated retain globals.

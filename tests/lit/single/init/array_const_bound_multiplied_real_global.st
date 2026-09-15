@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Tests that global constant arrays with constant-expression bounds and
 // constant-multiplied REAL initializers compile and run correctly.
 

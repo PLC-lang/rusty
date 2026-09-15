@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // A `REFERENCE TO` VAR_INPUT of a method must receive the address of a plain
 // variable argument. Field report: a reference member assigned from such an

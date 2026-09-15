@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Verify: nested call - result of one ref-return function passed directly to another.
 FUNCTION addOne : REFERENCE TO INT
     VAR_INPUT

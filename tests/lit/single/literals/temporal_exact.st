@@ -1,7 +1,7 @@
 // Temporal literals are evaluated with exact integer arithmetic: no 32-bit truncation of a
 // nanosecond segment, no rounding of a fraction into the next second, and the same value whether
 // the literal is written in code or converted from a string at runtime.
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 FUNCTION main : DINT
 VAR

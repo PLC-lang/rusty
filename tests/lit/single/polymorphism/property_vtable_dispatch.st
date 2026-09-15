@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: POU-based polymorphism (vtable dispatch) with properties. A method in the base FB
 // accesses a property. When the property getter is overridden in a child FB, calling that method
 // through a pointer-to-base should dispatch to the overridden getter via the vtable.

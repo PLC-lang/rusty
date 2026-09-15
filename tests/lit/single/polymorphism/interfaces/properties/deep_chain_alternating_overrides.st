@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Three-level POU chain FbC → FbB → FbA, where FbA implements IValue. FbB overrides
 // only the getter (adds 1000), FbC overrides only the setter (adds 2000). Dispatch through the
 // interface should resolve each accessor to the most-derived override:

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: IB extends IA, where IA declares a property and IB adds a method. FbImpl implements
 // IB with both, FbChild extends FbImpl and overrides only the setter (adds 500). Dispatch through
 // both IA and IB variables should resolve the property identically, while the method is only

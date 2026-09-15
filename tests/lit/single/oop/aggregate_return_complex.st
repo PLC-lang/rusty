@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION_BLOCK fb_with_method
 VAR_TEMP
     ret : ARRAY[0..1] OF STRING;

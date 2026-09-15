@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression test: calls inside FOR loops are lowered correctly.
 FUNCTION referenceFunc : REFERENCE TO INT
     VAR_INPUT

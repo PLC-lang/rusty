@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // A reference member assigned from a `REFERENCE TO` method input must target
 // the caller's variable: a later write through the member must reach it.

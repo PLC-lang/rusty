@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // A POU-local `VAR CONSTANT` is a constant like any other and must be usable everywhere a
 // constant is allowed in a type: as a string length, as an array bound, in an expression
 // forming either, and as the bound of an array whose element type is itself sized by one.

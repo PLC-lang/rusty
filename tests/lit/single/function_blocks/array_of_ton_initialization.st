@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Regression test for https://github.com/PLC-lang/rusty/issues/1275
 // Initializing an ARRAY of TON with a repeat-initializer used to overflow the stack.

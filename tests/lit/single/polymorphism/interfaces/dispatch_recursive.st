@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: An interface method implementation dispatches through another interface reference passed as an
 // argument, forming a chain of virtual calls. Additionally, a countdown pattern is used where an FB calls
 // back into itself through an interface reference, testing re-entrant dispatch.
