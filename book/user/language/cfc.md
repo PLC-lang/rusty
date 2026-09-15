@@ -67,6 +67,13 @@ A block can carry two more pins. `EN` is a condition: the call runs only when th
 When `EN` is false, the call does not run, and the outputs of the block keep the values they had.
 
 
+## Storage modes
+
+An output element can carry a storage mode, which you set in the tool. Without one, the output writes the value on its wire every time it runs. With `Set`, the wire is a condition instead: when it is true, the variable becomes `TRUE`, and when it is false, nothing is written and the variable keeps its value. `Reset` writes `FALSE` under the same condition. Two outputs on one variable, one with each mode, build a latch.
+
+`Reference` writes no value at all. The output becomes a [reference](pointers.md#references) that is bound to the variable on its wire, so a later read of the output sees the value that variable holds at that time. A negation bubble on such an output is rejected.
+
+
 ## What the compiler reports
 
 The compiler checks the drawing before it turns the network into statements. A chart has no lines and columns, so a diagnostic names the element instead:
