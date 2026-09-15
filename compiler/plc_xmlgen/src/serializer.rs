@@ -502,7 +502,7 @@ newtype_impl!(SSimpleValue, "SimpleValue", false);
 newtype_impl!(SGenVariable, "Variable", false);
 newtype_impl!(SOmronAddData, "AddData", false);
 newtype_impl!(SOmronData, "Data", false);
-newtype_impl!(SOmronGlobalVariableAdditionalProperties, "GlobalVariableAdditionalProperties", false);
+newtype_impl!(SOmronGlobalVariableAdditionalProperties, "smcext:GlobalVariableAdditionalProperties", false);
 newtype_impl!(SDataTypeDecl, "DataTypeDecl", false);
 newtype_impl!(SDocumentation, "Documentation", false);
 newtype_impl!(SUserDefinedTypeSpec, "UserDefinedTypeSpec", false);

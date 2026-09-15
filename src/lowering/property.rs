@@ -75,7 +75,7 @@ use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
         DeclarationKind, Identifier, Implementation, LinkageType, Pou, PouType, PropertyBlock, PropertyKind,
-        ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
+        NetworkPublish, ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -305,6 +305,7 @@ pub fn lower_to_pou(
                     }],
                     kind: VariableBlockType::Local,
                     linkage: LinkageType::Internal,
+                    network_publish: NetworkPublish::DoNotPublish,
                     location: SourceLocation::internal(),
                 });
                 pou.return_type = Some(datatype);
@@ -328,6 +329,7 @@ pub fn lower_to_pou(
                     }],
                     kind: VariableBlockType::Input(ArgumentProperty::ByVal),
                     linkage: LinkageType::Internal,
+                    network_publish: NetworkPublish::DoNotPublish,
                     location: SourceLocation::internal(),
                 });
             }

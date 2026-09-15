@@ -350,7 +350,7 @@ pub(crate) fn generate_globals(
             }
 
             let network_publish = match current_global.kind {
-                VariableBlockType::Global => String::from("DoNotPublish"),
+                VariableBlockType::Global => Some(current_global.network_publish.to_string()),
                 _ => {
                     continue; //skip non global variables
                 }
@@ -779,7 +779,7 @@ pub(crate) fn generate_pous(
                     continue; //discard compiler interally generated variables
                 }
 
-                let network_publish = String::from("DoNotPublish");
+                let network_publish = None;
 
                 let maybe_variablenode = generate_variable_element(
                     current_variable,
@@ -923,7 +923,7 @@ fn generate_variable_element(
     pou_name: &str,
     schema_path: &'static str,
     type_names: &TypeNameMap,
-    network_publish: String,
+    network_publish: Option<String>,
     preused_order: &mut HashSet<(String, usize)>,
     order: usize,
     add_order: bool,
@@ -932,18 +932,20 @@ fn generate_variable_element(
         SGenVariable::new().attribute(String::from("name"), current_variable.name.clone());
 
     //<AddData>
-    let additional_property_node = SOmronGlobalVariableAdditionalProperties::new()
-        .attribute(String::from("networkPublish"), network_publish);
+    if let Some(network_publish) = network_publish {
+        let additional_property_node = SOmronGlobalVariableAdditionalProperties::new()
+            .attribute(String::from("networkPublish"), network_publish);
 
-    let data_node = SOmronData::new() //<Data>
-        .attribute_str("name", schema_path)
-        .attribute_str("handleUnknown", "discard")
-        .child(&additional_property_node);
+        let data_node = SOmronData::new() //<Data>
+            .attribute_str("name", schema_path)
+            .attribute_str("handleUnknown", "discard")
+            .child(&additional_property_node);
 
-    let adddata_node = SOmronAddData::new() //<AddData>
-        .child(&data_node);
+        let adddata_node = SOmronAddData::new() //<AddData>
+            .child(&data_node);
 
-    variable_node = variable_node.child(&adddata_node);
+        variable_node = variable_node.child(&adddata_node);
+    }
 
     //<Type>
     let typename = match resolve_type_name(&current_variable.data_type_declaration, type_names) {

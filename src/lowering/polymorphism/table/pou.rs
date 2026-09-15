@@ -69,7 +69,7 @@
 use plc_ast::{
     ast::{
         AccessModifier, AstFactory, AstNode, CompilationUnit, DataType, DataTypeDeclaration, LinkageType,
-        Pou, PouType, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        NetworkPublish, Pou, PouType, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -155,6 +155,7 @@ impl VirtualTableGenerator {
                 access: AccessModifier::Protected,
                 constant: false,
                 retain: false,
+                network_publish: NetworkPublish::DoNotPublish,
                 location: location.clone(),
             },
         );

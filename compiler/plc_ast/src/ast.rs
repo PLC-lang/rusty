@@ -579,6 +579,38 @@ pub enum ArgumentProperty {
     ByRef,
 }
 
+#[derive(Debug, Copy, PartialEq, Eq, Clone, Default, Serialize, Deserialize)]
+pub enum NetworkPublish {
+    #[default]
+    DoNotPublish,
+    PublishOnly,
+    Input,
+    Output,
+}
+
+impl NetworkPublish {
+    pub fn parse(value: &str) -> Option<Self> {
+        match value.to_ascii_lowercase().as_str() {
+            "donotpublish" => Some(NetworkPublish::DoNotPublish),
+            "publishonly" => Some(NetworkPublish::PublishOnly),
+            "input" => Some(NetworkPublish::Input),
+            "output" => Some(NetworkPublish::Output),
+            _ => None,
+        }
+    }
+}
+
+impl Display for NetworkPublish {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NetworkPublish::DoNotPublish => write!(f, "DoNotPublish"),
+            NetworkPublish::PublishOnly => write!(f, "PublishOnly"),
+            NetworkPublish::Input => write!(f, "Input"),
+            NetworkPublish::Output => write!(f, "Output"),
+        }
+    }
+}
+
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
 #[serde(bound(deserialize = "'de: 'static"))]
 pub struct VariableBlock {
@@ -588,6 +620,7 @@ pub struct VariableBlock {
     pub variables: Vec<Variable>,
     pub kind: VariableBlockType,
     pub linkage: LinkageType,
+    pub network_publish: NetworkPublish,
     pub location: SourceLocation,
 }
 
@@ -633,6 +666,7 @@ impl Default for VariableBlock {
             variables: vec![],
             kind: VariableBlockType::Local,
             linkage: LinkageType::Internal,
+            network_publish: NetworkPublish::DoNotPublish,
             location: SourceLocation::internal(),
         }
     }
@@ -648,6 +682,9 @@ impl Debug for VariableBlock {
         }
         if self.retain {
             result.field("retain", &self.retain);
+        }
+        if self.network_publish != NetworkPublish::DoNotPublish {
+            result.field("network_publish", &self.network_publish);
         }
         result.finish()
     }
