@@ -57,13 +57,20 @@ pub fn get_omron_template() -> Node {
         .child(
             &SContentHeader::new()
                 .attribute_str("name", "Sample")
-                .attribute(String::from("creationDateTime"), Local::now().to_rfc3339()),
+                .attribute(String::from("creationDateTime"), Local::now().to_rfc3339())
+                .child(&SAddDataInfo::new().child(
+                    &SInfo::new()
+                        .attribute_str("name", OMRON_SCHEMA)
+                        .attribute_str("vendor", OMRON_VENDOR),
+                )),
         )
         .child(&STypes::new().child(&SGlobalNamespace::new()))
         .child(&SInstances::new())
 }
 
 pub const OMRON_SCHEMA: &str = "https://www.ia.omron.com/Smc IEC61131_10_Ed1_0_SmcExt1_0_Spc1_0.xsd";
+
+pub const OMRON_VENDOR: &str = "https://www.ia.omron.com/Smc";
 
 pub const STRUCT_TYPE_SPEC: &str = "StructTypeSpec";
 pub const ENUM_TYPE_SPEC: &str = "EnumTypeWithNamedValueSpec";

@@ -209,6 +209,8 @@ newtype_impl!(SAction, "action", false);
 newtype_impl!(SActions, "actions", false);
 newtype_impl!(SFileHeader, FILE_HEADER, false);
 newtype_impl!(SContentHeader, CONTENT_HEADER, false);
+newtype_impl!(SAddDataInfo, "AddDataInfo", false);
+newtype_impl!(SInfo, "Info", false);
 newtype_impl!(STypes, TYPES, false);
 
 pub const FILE_HEADER: &str = "FileHeader";
