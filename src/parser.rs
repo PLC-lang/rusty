@@ -6,9 +6,9 @@ use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DeclarationKind, DirectAccessType, GenericBinding,
-        HardwareAccessType, Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou,
-        PouType, PropertyBlock, PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr,
-        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        HardwareAccessType, Identifier, Implementation, Interface, LinkageType, NetworkPublish,
+        PolymorphismMode, Pou, PouType, PropertyBlock, PropertyImplementation, PropertyKind, ReferenceAccess,
+        ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -72,6 +72,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
 
     let mut linkage = lnk;
     let mut constant = false;
+    let mut network_publish = NetworkPublish::default();
     loop {
         match lexer.token {
             PropertyExternal => {
@@ -91,7 +92,16 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                 let (interfaces, _) = parse_interface(&mut lexer);
                 unit.interfaces.push(interfaces);
             }
-            KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
+            PropertyNetworkPublish => {
+                network_publish = parse_network_publish_pragma(&mut lexer);
+                lexer.advance();
+                continue;
+            }
+            KeywordVarGlobal => {
+                let mut block = parse_variable_block(&mut lexer, linkage);
+                block.network_publish = network_publish;
+                unit.global_vars.push(block);
+            }
             KeywordVarConfig => unit.var_config.extend(parse_config_variables(&mut lexer)),
 
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
@@ -146,6 +156,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
             }
         };
         linkage = lnk;
+        network_publish = NetworkPublish::default();
     }
     //the match in the loop will always return
 }
@@ -1579,6 +1590,25 @@ fn parse_control(lexer: &mut ParseSession) -> AstNode {
     parse_control_statement(lexer)
 }
 
+fn parse_network_publish_pragma(lexer: &mut ParseSession) -> NetworkPublish {
+    let slice = lexer.slice();
+    let parsed = slice.split('\'').nth(1).and_then(NetworkPublish::parse);
+
+    match parsed {
+        Some(mode) => mode,
+        None => {
+            lexer.accept_diagnostic(
+                Diagnostic::new(format!(
+                    "Invalid network publish mode in `{slice}`, expected DoNotPublish, PublishOnly, Input or Output"
+                ))
+                .with_error_code("E024")
+                .with_location(lexer.location()),
+            );
+            NetworkPublish::default()
+        }
+    }
+}
+
 fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
     let block_type = lexer.token;
     //Consume the type token
@@ -1640,7 +1670,16 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
         });
     }
 
-    VariableBlock { access, constant, retain, variables, kind: variable_block_type, linkage, location }
+    VariableBlock {
+        access,
+        constant,
+        retain,
+        variables,
+        kind: variable_block_type,
+        linkage,
+        network_publish: NetworkPublish::DoNotPublish,
+        location,
+    }
 }
 
 /// Consumes a var-block modifier, but only if the following token is not a

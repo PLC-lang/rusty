@@ -2115,7 +2115,7 @@ impl Index {
         properties: Vec<PropertyBlock>,
     ) {
         let instance_variable =
-            VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
+            VariableIndexEntry::create_global(&format!("{name}_instance"), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)
                 .set_linkage(linkage);
         // self.register_global_variable(name, instance_variable.clone());
         let entry =

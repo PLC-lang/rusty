@@ -366,6 +366,7 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                     constant: false,
                     retain: false,
                     linkage: plc_ast::ast::LinkageType::Internal,
+                    network_publish: plc_ast::ast::NetworkPublish::DoNotPublish,
                     location,
                     access: AccessModifier::Public,
                 });
@@ -444,6 +445,7 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                         constant: false,
                         retain: false,
                         linkage: plc_ast::ast::LinkageType::Internal,
+                        network_publish: plc_ast::ast::NetworkPublish::DoNotPublish,
                         location: return_type_for_call_location.clone(),
                         access: AccessModifier::Private,
                     });

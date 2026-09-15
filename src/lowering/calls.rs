@@ -50,8 +50,8 @@ use std::{borrow::BorrowMut, sync::atomic::AtomicI32};
 use plc_ast::{
     ast::{
         flatten_expression_list, steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory,
-        AstId, AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable,
-        VariableBlock, VariableBlockType,
+        AstId, AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, NetworkPublish, Pou,
+        Variable, VariableBlock, VariableBlockType,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     mut_visitor::{AstVisitorMut, WalkerMut},
@@ -200,6 +200,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 }],
                 kind: VariableBlockType::InOut,
                 linkage: LinkageType::Internal,
+                network_publish: NetworkPublish::DoNotPublish,
                 location: SourceLocation::internal(),
             };
             pou.variable_blocks.insert(0, block)

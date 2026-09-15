@@ -575,7 +575,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             linking_context: self.index.find_implementation_by_name(&implementation.name).ok_or_else(
                 || {
                     CodegenError::new(
-                        format!("Could not find implementation for {}", &implementation.name),
+                        format!("Could not find implementation for {}", implementation.name),
                         &implementation.location,
                     )
                 },

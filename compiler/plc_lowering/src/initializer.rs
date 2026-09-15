@@ -212,6 +212,11 @@ impl AstVisitor for Initializer {
                 return;
             }
         }
+
+        if matches!(block.kind, VariableBlockType::External) {
+            //prevents VAR_EXTERNAL blocks from getting initialised twice
+            return;
+        }
         self.context.enter_variable_block(block);
         block.walk(self);
         self.context.exit_variable_block();
@@ -1709,9 +1714,40 @@ mod tests {
         insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"
         MyExtStruct__ctor(internalVar)
         ");
-        // Check that no constructor is generated for MyExtStruct
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @r"
         extern:
+        self.a := 5
+        self.b := TRUE
+        ");
+    }
+
+    #[test]
+    fn external_global_variables_are_initialized_when_generating_external_constructors() {
+        let src = r#"
+        VAR_GLOBAL
+            internalVar : MyExtStruct;
+        END_VAR
+
+        {external}
+        VAR_GLOBAL
+            extVar : MyExtStruct;
+        END_VAR
+
+        {external}
+        TYPE MyExtStruct : STRUCT
+            a : INT := 5;
+            b : BOOL := TRUE;
+        END_STRUCT
+        END_TYPE
+        "#;
+
+        let initializer = parse_and_init_internal(vec![src.into()], true);
+        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @r"
+        MyExtStruct__ctor(internalVar)
+        MyExtStruct__ctor(extVar)
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @r"
+        intern:
         self.a := 5
         self.b := TRUE
         ");

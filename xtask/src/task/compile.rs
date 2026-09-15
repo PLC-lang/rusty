@@ -15,7 +15,7 @@ pub(crate) struct Compile {
 
 impl Task for Compile {
     fn get_name(&self) -> String {
-        format!("{}/{}", &self.name, &self.optimization)
+        format!("{}/{}", self.name, self.optimization)
     }
 
     fn execute(&self) -> Result<Duration> {

@@ -38,6 +38,8 @@ You might also want to refer to the [API documentation](api/rusty/).
 - ✔ VAR_INPUT {ref}
 - ✔ VAR_OUTPUT
 - ✔ VAR_IN_OUT
+- ✔ VAR_EXTERNAL
+- ✔ VAR_EXTERNAL CONSTANT
 
 ### Statements
 

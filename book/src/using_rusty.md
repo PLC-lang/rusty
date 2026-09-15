@@ -200,6 +200,7 @@ Manual calls are not required on any architecture.
 
 ## Native Windows Usage Example
 
+
 - Ensure [`LLVM 21.1.7`](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v21.1.7) is installed and it's `bin` folder is added to your `PATH` environment variable.
 
 - Install `plc.zip` from the [Windows Build Pipeline](https://github.com/PLC-lang/rusty/actions/workflows/windows.yml).
@@ -208,7 +209,7 @@ Manual calls are not required on any architecture.
 
 - Install `stdlib.lib` from the same pipeline into the same folder.
 
-- Install the `Windows SDK` and `MSVC`. You can use the Visual Studio Installer to do this or install them as standalone packages. 
+- Install the `Windows SDK` and `MSVC`. You can use the Visual Studio Installer to do this or install them as standalone packages.
 
 - Create a `LIB` environment variable containing paths to `iec61131std.lib`, `ws2_32.lib`, `ntdll.lib`, `userenv.lib`, `libcmt.lib`, `oldnames.lib` and `libucrt.lib`.
 
@@ -232,10 +233,55 @@ EXPORTS
 ```
 
 This example allows linking with Rusty's Standard Library.
-    
+
 - Proceed with compilation:
-    
+
     ```
     plc ./examples/hello_world.st -c -l iec61131std -l ws2_32 -l ntdll -l userenv -o ./hello_world.o
     clang ./hello_world.o --shared -l iec61131std -l ws2_32 -l ntdll -l userenv -fuse-ld=lld-link "-Wl,/DEF:exports.def" -o ./hello_world.dll
     ```
+
+## Generating open XML exchange format
+
+Rusty can convert Structured Text to a standardised IEC 61131-10 XML format, with implementation specific schemas.
+Currently, Rusty supports importing it's generated XML into Omron Sysmac Studio.
+
+```
+plc ./examples/hello_world.st --xml-omron -l iec61131std -o ./hello_world.xml
+```
+
+### Network Publish Mode
+
+Sysmac Studio publishes global variables to the network. Each variable carries a `networkPublish`
+attribute in the generated XML. The default is `DoNotPublish`.
+
+To set the mode, write a `network_publish` pragma directly before a `VAR_GLOBAL` block. The mode
+applies to every variable in that block:
+
+```iecst
+{network_publish := 'Input'}
+VAR_GLOBAL
+    speed : INT;
+    torque : INT;
+END_VAR
+```
+
+The accepted modes are `DoNotPublish`, `PublishOnly`, `Input` and `Output`. The mode name is not
+case sensitive.
+
+The pragma applies to one block only. A later `VAR_GLOBAL` block without its own pragma goes back
+to `DoNotPublish`:
+
+```iecst
+{network_publish := 'Output'}
+VAR_GLOBAL
+    published : INT;
+END_VAR
+
+VAR_GLOBAL
+    notPublished : INT;
+END_VAR
+```
+
+Local variables are not published, so the pragma has no effect on a `VAR` block inside a POU.
+An unknown mode name gives warning `E024`, and the block falls back to `DoNotPublish`.

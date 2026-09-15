@@ -43,11 +43,11 @@ pub struct SymbolIndexer {
     ctx: Context,
 }
 
-/// The SymbolIndexer is responsible for registering all delcared types and symbols in the index.
+/// The SymbolIndexer is responsible for registering all declared types and symbols in the index.
 impl AstVisitor for SymbolIndexer {
     /// Visits a VAR_GLOBAL VariableBlock and registers all variables as globals in the index
     fn visit_variable_block(&mut self, block: &plc_ast::ast::VariableBlock) {
-        if block.kind == VariableBlockType::Global {
+        if matches!(block.kind, VariableBlockType::Global) {
             // let the global var indexer handle the global variables
             let mut indexer =
                 VarGlobalIndexer::new(block.constant, block.retain, block.linkage, &mut self.index);

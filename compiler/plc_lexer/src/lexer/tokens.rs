@@ -26,6 +26,9 @@ pub enum Token {
     #[token("{sized}")]
     PropertySized,
 
+    #[regex(r"\{network_publish[^}]*\}")]
+    PropertyNetworkPublish,
+
     #[token("PROGRAM", ignore(case))]
     KeywordProgram,
 
