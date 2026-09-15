@@ -1018,7 +1018,7 @@ impl AnnotatedProject {
             let obj: Object = module?
                 .unwrap()
                 .persist(
-                    Some(&compile_directory),
+                    Some(&target_compile_dir(&compile_directory, target)),
                     &compile_options.output,
                     compile_options.output_format,
                     compile_options.relocation_preference,
@@ -1089,12 +1089,18 @@ impl AnnotatedProject {
 /// Ensures the directores for the various targets have been created
 fn ensure_compile_dirs(targets: &[Target], compile_directory: &Path) -> Result<(), Diagnostic> {
     for target in targets {
-        if let Some(name) = target.try_get_name() {
-            let dir = compile_directory.join(name);
-            fs::create_dir_all(dir)?;
-        }
+        fs::create_dir_all(target_compile_dir(compile_directory, target))?;
     }
     Ok(())
+}
+
+/// The artifacts of a target land in a directory of their own, so that builds for
+/// several targets do not overwrite each other.
+fn target_compile_dir(compile_directory: &Path, target: &Target) -> PathBuf {
+    match target.try_get_name() {
+        Some(name) => compile_directory.join(name),
+        None => compile_directory.to_path_buf(),
+    }
 }
 
 /// A project that has been transformed into a binary representation
