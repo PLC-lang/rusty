@@ -1,0 +1,571 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Codegen - RuSTy Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="The IEC 61131-3 Structured Text compiler: how to use it, and how it works inside.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-e96d0476.css">
+        <link rel="stylesheet" href="../../css/chrome-d279d366.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../assets/custom-510357f6.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-d2af6354.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-ec926692.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">RuSTy Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty/edit/master/book/./technical/pipeline/05-codegen.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="codegen"><a class="header" href="#codegen">Codegen</a></h1>
+<p>Codegen turns the validated and fully lowered tree into LLVM IR, the input of the LLVM back end that produces machine code. In</p>
+<pre><code class="language-iecst">PROGRAM main
+    VAR
+        sintVar: SINT;
+        dintVar: DINT;
+    END_VAR
+
+    sintVar := dintVar;
+END_PROGRAM
+</code></pre>
+<p>the assignment is a node with two references, an annotation that says <code>dintVar</code> is a <code>DINT</code>, and a hint that says the value must become a <code>SINT</code>. A processor cannot run that. Codegen turns it into three instructions:</p>
+<pre><code class="language-llvm">%load_dintVar = load i32, ptr %dintVar        ; read dintVar
+%1 = trunc i32 %load_dintVar to i8            ; cut it to 8 bits, the hint says SINT
+store i8 %1, ptr %sintVar                     ; write sintVar
+</code></pre>
+<p>Both names became addresses inside the program’s instance structure, and the hint became the truncation between the load and the store.</p>
+<pre class="mermaid">flowchart LR
+    parse[Parse] --&gt; index[Index] --&gt; annotate[Annotate] --&gt; validate[Validate] --&gt; codegen[Codegen] --&gt; link[Link]
+    style codegen fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
+</pre>
+
+<p>The stage receives the annotated project and produces one LLVM module per compilation unit, in parallel. Each module is built from the unit, the global index, the annotation map, and two things the resolver collected for this purpose: the set of names the unit depends on and the string literals it contains. The finished module is written as an object file, or as textual IR or bitcode with <code>--ir</code> or <code>--bc</code>, and handed to the <a href="06-linker.html">Linker</a>. With <code>--single-module</code>, and always with <code>-c</code>, all units are merged into one module first.</p>
+<p>The following project connects the mechanisms in this chapter. Each section shows the relevant source operation and trimmed LLVM IR. <code>plc --ir</code> writes the complete module.</p>
+<pre><code class="language-iecst">TYPE Speed: (Slow, Fast); END_TYPE
+
+TYPE Point:
+    STRUCT
+        x: DINT;
+        y: DINT;
+    END_STRUCT
+END_TYPE
+
+VAR_GLOBAL
+    counter: DINT := 7;
+END_VAR
+
+FUNCTION scale: DINT
+    VAR_INPUT
+        value: DINT;
+        factor: INT;
+    END_VAR
+    VAR_IN_OUT
+        total: DINT;
+    END_VAR
+    VAR_OUTPUT
+        overflow: BOOL;
+    END_VAR
+
+    scale := value * factor;
+    total := total + scale;
+    overflow := scale &gt; 100;
+END_FUNCTION
+
+FUNCTION_BLOCK Buffer
+    VAR_INPUT
+        limit: INT;
+    END_VAR
+    VAR
+        count: DINT;
+        values: ARRAY[0..3] OF DINT;
+    END_VAR
+
+    IF count &lt; limit THEN
+        values[count] := count;
+        count := count + 1;
+    END_IF
+END_FUNCTION_BLOCK
+
+PROGRAM main
+    VAR
+        bufferInstance: Buffer;
+        i: DINT := 1;
+        sintVar: SINT;
+        text: STRING := 'hello';
+        p: Point;
+        speed: Speed;
+        ptr: REF_TO DINT;
+        flag: BOOL;
+    END_VAR
+
+    bufferInstance(limit := 5);
+    i := scale(i, factor := 3, total := counter, overflow =&gt; flag);
+    sintVar := i;
+    text := 'world';
+    p.x := i;
+    ptr := REF(i);
+    ptr^ := 2;
+    CASE speed OF
+        Slow: i := 0;
+        Fast: i := 1;
+    END_CASE
+END_PROGRAM
+</code></pre>
+<h2 id="building-a-module"><a class="header" href="#building-a-module">Building a module</a></h2>
+<p>Codegen builds a module in dependency order: types, globals, function declarations, initializer and string constants, then function bodies. A global needs its type; a function body needs declarations for the functions it calls.</p>
+<p>The global index describes declarations by name. A second index connects those names to LLVM types, values, and addresses. Each generation step adds entries for later steps:</p>
+<pre><code class="language-rust noplayground">pub struct LlvmTypedIndex&lt;'ink&gt; {
+    /// Lookups that fail here continue in the parent index
+    parent_index: Option&lt;&amp;'ink LlvmTypedIndex&lt;'ink&gt;&gt;,
+
+    /// Type name to LLVM type, for data types and for POU instance structs
+    type_associations: FxHashMap&lt;String, AnyTypeEnum&lt;'ink&gt;&gt;,
+    pou_type_associations: FxHashMap&lt;String, AnyTypeEnum&lt;'ink&gt;&gt;,
+
+    /// Variable name to global variable
+    global_values: FxHashMap&lt;String, GlobalValue&lt;'ink&gt;&gt;,
+
+    /// Type or variable name to its constant initial value
+    initial_value_associations: FxHashMap&lt;String, BasicValueEnum&lt;'ink&gt;&gt;,
+
+    /// Qualified variable name to the address it lives at inside the current function
+    loaded_variable_associations: FxHashMap&lt;String, PointerValue&lt;'ink&gt;&gt;,
+
+    /// POU name to LLVM function
+    implementations: FxHashMap&lt;String, FunctionValue&lt;'ink&gt;&gt;,
+
+    /// String literal to the global constant that holds it
+    utf08_literals: FxHashMap&lt;String, GlobalValue&lt;'ink&gt;&gt;,
+    utf16_literals: FxHashMap&lt;String, GlobalValue&lt;'ink&gt;&gt;,
+
+    // ... other omitted fields
+}</code></pre>
+<p>The module index holds types, globals, and functions. Each function body has a child index for its variable addresses. A lookup continues in the parent when the child has no entry. Keys are case-insensitive, as in the global index.</p>
+<h2 id="data-types"><a class="header" href="#data-types">Data types</a></h2>
+<p>Every type the unit depends on becomes an LLVM type:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Structured Text</th><th>LLVM</th></tr>
+</thead>
+<tbody>
+<tr><td><code>BOOL</code>, <code>SINT</code>, <code>USINT</code>, <code>BYTE</code></td><td><code>i8</code> (comparisons produce <code>i1</code> and are widened)</td></tr>
+<tr><td><code>INT</code>, <code>UINT</code>, <code>WORD</code></td><td><code>i16</code></td></tr>
+<tr><td><code>DINT</code>, <code>UDINT</code>, <code>DWORD</code>, <code>TIME</code>, <code>DATE</code></td><td><code>i32</code></td></tr>
+<tr><td><code>LINT</code>, <code>ULINT</code>, <code>LWORD</code>, <code>LTIME</code>, <code>LDATE</code></td><td><code>i64</code></td></tr>
+<tr><td><code>REAL</code>, <code>LREAL</code></td><td><code>float</code>, <code>double</code></td></tr>
+<tr><td><code>STRING[n]</code>, <code>WSTRING[n]</code></td><td><code>[n+1 x i8]</code>, <code>[n+1 x i16]</code>, one slot for the terminator</td></tr>
+<tr><td><code>ARRAY[a..b, c..d] OF T</code></td><td><code>[len x T]</code>, all dimensions flattened into one length</td></tr>
+<tr><td><code>STRUCT</code>, <code>FUNCTION_BLOCK</code>, <code>PROGRAM</code>, <code>CLASS</code></td><td>a named struct with one field per member, in declaration order</td></tr>
+<tr><td><code>POINTER TO</code>, <code>REF_TO</code>, <code>REFERENCE TO</code></td><td><code>ptr</code></td></tr>
+<tr><td>enum, subrange, alias</td><td>the LLVM type of the underlying type</td></tr>
+</tbody>
+</table>
+</div>
+<p>For the example, <code>Point</code>, <code>Buffer</code>, and <code>main</code> become named structs; <code>scale</code> is a function and gets none, its variables live on the stack; <code>Speed</code> is an <code>i32</code>:</p>
+<pre><code class="language-llvm">%Point  = type { i32, i32 }
+%Buffer = type { ptr, i16, i32, [4 x i32] }
+%main   = type { %Buffer, i32, i8, [81 x i8], %Point, i32, ptr, i8 }
+</code></pre>
+<p>The leading <code>ptr</code> of <code>Buffer</code> is the <code>__vtable</code> member that the polymorphism lowerer adds to every function block. <code>main</code> embeds its <code>Buffer</code> by value, and <code>text</code> is <code>[81 x i8]</code>: 80 characters plus the terminator.</p>
+<p>Codegen first registers empty named structs, then fills their members. This permits pointers to the same struct or one declared later. Function return variables and temporary variables live on the stack, outside these layouts.</p>
+<p>Codegen then computes a constant initial value for each type: a struct from the evaluated initializers of its members, an array or a string from its literal. One type’s initial value can depend on another’s, so the computation runs as a queue that stops when a full pass makes no progress.</p>
+<h2 id="global-variables"><a class="header" href="#global-variables">Global variables</a></h2>
+<p>The dependency set decides which globals a module declares: every global variable and every program instance the unit refers to becomes an LLVM global. A variable declared in this unit gets its initial value, which is the evaluated initializer, otherwise the initial value of its type, otherwise zero:</p>
+<pre><code class="language-llvm">@counter       = global i32 7
+@main_instance = global %main { %Buffer zeroinitializer, i32 1, i8 0, [81 x i8] c"hello\00...", %Point zeroinitializer, i32 0, ptr null, i8 0 }
+@Speed.Slow    = unnamed_addr constant i32 0
+@Speed.Fast    = unnamed_addr constant i32 1
+</code></pre>
+<p>A program instance is named after the program with an <code>_instance</code> suffix and starts at the constant of its type; <code>i := 1</code> and <code>text := 'hello'</code> are visible in it. An enum variant is a constant named by its qualified name. A variable declared in another file appears as <code>@counter = external global i32</code>, without a value, and the linker connects the two.</p>
+<h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<p>Structured Text separates stateless from stateful POUs, and codegen makes the split visible in every signature:</p>
+<ul>
+<li><strong>Stateless:</strong> a <strong>function</strong>. A call knows nothing of the call before it, so its variables live on the stack; the LLVM function takes the inputs as arguments and returns the result.</li>
+<li><strong>Stateful:</strong> a <strong>function block</strong> or <strong>program</strong>. Inputs, outputs, and locals are members of its instance struct, which survives between calls; the LLVM function takes one argument, a pointer to that instance, and returns nothing. <strong>Methods</strong> and <strong>actions</strong> are ordinary LLVM functions that take the instance pointer first; a method adds its own parameters after it.</li>
+</ul>
+<pre><code class="language-llvm">define i32  @scale(i32 %0, i16 %1, ptr %2, ptr %3)   ; value, factor, total (in-out), overflow (output)
+define void @Buffer(ptr %0)                           ; the instance
+define void @main(ptr %0)                             ; the instance
+</code></pre>
+<p>In a function, <code>VAR_IN_OUT</code> and <code>VAR_OUTPUT</code> parameters are pointers, and an aggregate input (struct, array, string) is passed as a pointer and copied into a local inside the callee. In a stateful POU only <code>VAR_IN_OUT</code> is a pointer; an output and an aggregate input are ordinary members of the instance, which the caller fills before the call and reads after it.</p>
+<p>Functions are created in two passes, like structs: first a declaration for every POU the unit depends on, including POUs from other units, then the bodies of the POUs declared in this unit. If <code>scale</code> were in a second file, the module of <code>main</code> would contain <code>declare i32 @scale(i32, i16, ptr, ptr)</code> with no body.</p>
+<p>A body starts by making every variable addressable, so the statements can treat both kinds alike. A function copies each argument into a stack slot and starts its return variable at zero; a stateful POU computes one pointer per member into the instance:</p>
+<pre><code class="language-llvm">define i32 @scale(i32 %0, i16 %1, ptr %2, ptr %3) {
+entry:
+  %scale = alloca i32                 ; stack slot for the return variable
+  %value = alloca i32                 ; stack slot for value
+  store i32 %0, ptr %value            ; copy the argument into it
+  %factor = alloca i16
+  store i16 %1, ptr %factor
+  %total = alloca ptr                 ; in-out: the slot holds the caller's address
+  store ptr %2, ptr %total
+  %overflow = alloca ptr              ; output: same
+  store ptr %3, ptr %overflow
+  store i32 0, ptr %scale             ; the return variable starts at zero
+  ...
+  %scale_ret = load i32, ptr %scale   ; read the return variable
+  ret i32 %scale_ret                  ; and return it
+}
+
+define void @Buffer(ptr %0) {
+entry:
+  %this = alloca ptr                                                     ; the instance pointer, for THIS
+  store ptr %0, ptr %this
+  %__vtable = getelementptr inbounds nuw %Buffer, ptr %0, i32 0, i32 0   ; address of member 0 in the instance
+  %limit    = getelementptr inbounds nuw %Buffer, ptr %0, i32 0, i32 1   ; member 1
+  %count    = getelementptr inbounds nuw %Buffer, ptr %0, i32 0, i32 2   ; member 2
+  %values   = getelementptr inbounds nuw %Buffer, ptr %0, i32 0, i32 3   ; member 3
+  ...
+  ret void                                                               ; nothing to return
+}
+</code></pre>
+<p>Every address is registered in the function’s child index under its qualified name (<code>Buffer.count</code>). A function ends by loading the variable that carries its own name and returning it.</p>
+<h2 id="expressions"><a class="header" href="#expressions">Expressions</a></h2>
+<p>Two rules drive almost everything the expression generator does.</p>
+<h3 id="a-reference-is-an-address-until-a-value-is-needed"><a class="header" href="#a-reference-is-an-address-until-a-value-is-needed">A reference is an address until a value is needed</a></h3>
+<p><code>p.x</code> is one <code>getelementptr</code> per member step, <code>values[count]</code> a pointer computation into the array. On the left of an assignment the address is the target of a store; as an operand, its value is loaded. For <code>p.x := i</code>:</p>
+<pre><code class="language-llvm">%x       = getelementptr inbounds nuw %Point, ptr %p, i32 0, i32 0   ; address of p.x: member 0 of p
+%load_i2 = load i32, ptr %i                                          ; read i
+store i32 %load_i2, ptr %x                                           ; write it to p.x
+</code></pre>
+<p>An array index becomes an offset first: the index minus the lower bound, times the stride of the dimension. For <code>values[count] := count</code>, with lower bound <code>0</code> and one dimension, both corrections do nothing and are still emitted:</p>
+<pre><code class="language-llvm">%tmpVar2 = mul i32 1, %load_count                                              ; count times the stride (1)
+%tmpVar3 = add i32 %tmpVar2, 0                                                 ; minus the lower bound (0)
+%tmpVar4 = getelementptr inbounds [4 x i32], ptr %values, i32 0, i32 %tmpVar3  ; address of values[offset]
+store i32 %load_count5, ptr %tmpVar4                                           ; write count there
+</code></pre>
+<p>Pointer variables that the resolver marked as auto-dereferencing (<code>VAR_IN_OUT</code>, <code>REFERENCE TO</code>) get one extra load. Inside <code>scale</code>, reading <code>total</code> loads the address from the stack slot first, then the value behind it. An explicit pointer works the same way without the marker: <code>ptr := REF(i)</code> stores the address of <code>i</code>, and <code>ptr^ := 2</code> loads that address and stores through it:</p>
+<pre><code class="language-llvm">%deref1     = load ptr, ptr %total     ; the address the caller passed
+%load_total = load i32, ptr %deref1    ; the value behind it
+
+store ptr %i, ptr %ptr                 ; ptr := REF(i)
+%deref = load ptr, ptr %ptr            ; ptr^ := 2
+store i32 2, ptr %deref
+</code></pre>
+<h3 id="the-type-hint-decides-the-conversion"><a class="header" href="#the-type-hint-decides-the-conversion">The type hint decides the conversion</a></h3>
+<p>Whenever a value flows into a place of a different type, codegen compares the annotated type with the hint and emits the cast: extension and truncation between integers, conversion between integers and floats, widening or narrowing between floats. In <code>scale := value * factor</code>, <code>factor</code> is an <code>INT</code> hinted to <code>DINT</code>; <code>sintVar := i</code> is the introduction’s truncation:</p>
+<pre><code class="language-llvm">%4      = sext i16 %load_factor to i32   ; widen factor from INT to DINT
+%tmpVar = mul i32 %load_value, %4        ; value * factor
+
+%2 = trunc i32 %load_i1 to i8            ; cut i from DINT to SINT
+store i8 %2, ptr %sintVar                ; write sintVar
+</code></pre>
+<p>Literals are created directly in the hinted type, so <code>factor := 3</code> for an <code>INT</code> parameter produces <code>i16 3</code> and no cast.</p>
+<p>Binary and unary expressions become the matching integer or float instruction. Comparisons produce an <code>i1</code>, which is widened to <code>i8</code> because that is the width of <code>BOOL</code>; where a branch needs a condition, the <code>i8</code> is compared against zero to get an <code>i1</code> back. For <code>overflow := scale &gt; 100</code>:</p>
+<pre><code class="language-llvm">%tmpVar5 = icmp sgt i32 %load_scale4, 100   ; scale &gt; 100, as i1
+%5       = zext i1 %tmpVar5 to i8           ; widen to the width of BOOL
+store i8 %5, ptr %deref3                    ; write overflow through the output pointer
+</code></pre>
+<p>Codegen expects earlier stages to have resolved names and checked types. An unsupported expression stops the run with an internal codegen error.</p>
+<h2 id="statements"><a class="header" href="#statements">Statements</a></h2>
+<h3 id="assignments"><a class="header" href="#assignments">Assignments</a></h3>
+<p>A single value (integer, real, pointer) is a store. An aggregate (struct, array, string) is a <code>memcpy</code> of the target’s size; for a string the copy stops at the target’s length, so a longer value is cut and never overflows. A string literal is a private global constant, created once per module. For <code>text := 'world'</code>:</p>
+<pre><code class="language-llvm">@utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"   ; the literal, once per module
+
+call void @llvm.memcpy.p0.p0.i32(ptr align 1 %text, ptr align 1 @utf08_literal_1, i32 6, i1 false)   ; copy 6 bytes into text
+</code></pre>
+<h3 id="calls-to-functions"><a class="header" href="#calls-to-functions">Calls to functions</a></h3>
+<p>Codegen places named and positional arguments in parameter order and fills omitted parameters with defaults. It passes scalar inputs by value and <code>VAR_IN_OUT</code> and <code>VAR_OUTPUT</code> arguments by address. The callee writes through these addresses. For <code>i := scale(i, factor := 3, total := counter, overflow =&gt; flag)</code>:</p>
+<pre><code class="language-llvm">%call = call i32 @scale(i32 %load_i, i16 3, ptr @counter, ptr %flag)   ; value, factor, address of total, address of overflow
+store i32 %call, ptr %i                                                ; write the result to i
+</code></pre>
+<h3 id="calls-to-function-blocks-and-programs"><a class="header" href="#calls-to-function-blocks-and-programs">Calls to function blocks and programs</a></h3>
+<p>Their inputs are members of the instance, so codegen stores every passed argument into the member, calls the POU with the instance pointer, and copies <code>=&gt;</code> outputs back out afterwards. For <code>bufferInstance(limit := 5)</code>:</p>
+<pre><code class="language-llvm">%1 = getelementptr inbounds %Buffer, ptr %bufferInstance, i32 0, i32 1   ; address of bufferInstance.limit
+store i16 5, ptr %1                                                      ; limit := 5
+call void @Buffer(ptr %bufferInstance)                                   ; run the body on the instance
+</code></pre>
+<p>Built-in functions such as <code>ADR</code>, <code>REF</code>, <code>SIZEOF</code>, or <code>MUX</code> have their own code generators; <code>REF(i)</code> above produced no call, only the address of <code>i</code>.</p>
+<h3 id="if"><a class="header" href="#if"><code>IF</code></a></h3>
+<p><code>IF</code> becomes one block per branch and a <code>continue</code> block after them; the condition is narrowed to <code>i1</code> and branched on. For the <code>IF</code> in <code>Buffer</code>:</p>
+<pre><code class="language-llvm">  %3 = icmp ne i8 %2, 0                                 ; narrow the BOOL to i1
+  br i1 %3, label %condition_body, label %continue      ; jump to the branch or past it
+
+condition_body:
+  ...
+  br label %continue                                    ; join after the branch
+
+continue:
+  ret void
+</code></pre>
+<h3 id="case"><a class="header" href="#case"><code>CASE</code></a></h3>
+<p><code>CASE</code> becomes a <code>switch</code> for literal labels and a chain of comparisons for range labels. The enum variants are constants, so both labels end up in the switch:</p>
+<pre><code class="language-llvm">  switch i32 %load_speed, label %else [   ; no label matched: ELSE (empty here)
+    i32 0, label %case                    ; Slow
+    i32 1, label %case3                   ; Fast
+  ]
+</code></pre>
+<h3 id="loops"><a class="header" href="#loops">Loops</a></h3>
+<p><code>FOR</code>, <code>WHILE</code>, and <code>REPEAT</code> all arrive as <code>WHILE TRUE</code> loops from the <a href="../participants/01-loop-desugar.html">loop desugarer</a>, with the exit conditions as ordinary <code>IF ... EXIT</code> statements in the body. Codegen emits only the skeleton, a <code>while_body</code> block that branches back to itself and a <code>continue</code> block after it; <code>EXIT</code> and <code>CONTINUE</code> become jumps to those two blocks.</p>
+<h2 id="initialization"><a class="header" href="#initialization">Initialization</a></h2>
+<p>A constant initial value goes into the global instance directly, as shown under Global variables. Everything that cannot be a compile-time constant, such as a pointer to another variable or a nested function block, is the work of the constructor functions. The <a href="../participants/06-init.html">init participant</a> created them before codegen as ordinary POUs with a <code>__ctor</code> suffix, one per type and one per unit, and codegen treats them like any other function. For the example (the real name of the unit constructor also carries a hash of the file path):</p>
+<pre><code class="language-llvm">@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit_cg_st__ctor, ptr null }]   ; run before the program starts
+
+define void @main__ctor(ptr %0) {
+entry:
+  ...
+  call void @Buffer__ctor(ptr %bufferInstance)   ; construct the embedded function block
+  store i32 1, ptr %i                            ; i := 1
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %text, ptr align 1 @utf08_literal_0, i32 6, i1 false)   ; text := 'hello'
+  call void @Point__ctor(ptr %p)                 ; construct the struct member
+  ...
+  ret void
+}
+
+define void @__unit_cg_st__ctor() {
+entry:
+  store i32 7, ptr @counter                                          ; counter := 7
+  call void @__vtable_Buffer__ctor(ptr @__vtable_Buffer_instance)   ; fill the method table
+  call void @main__ctor(ptr @main_instance)                         ; construct the program instance
+  ret void
+}
+</code></pre>
+<p><code>main__ctor</code> receives the instance, calls the constructor of the embedded <code>Buffer</code>, and stores the initial values of <code>i</code> and <code>text</code>. The unit constructor calls it for the global instance, and the <code>llvm.global_ctors</code> entry runs the unit constructor before the program starts.</p>
+<blockquote class="blockquote-tag blockquote-tag-note">
+<p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p>The unoptimized IR includes redundant work. It computes unused member pointers, repeats some initialization, and emits offset arithmetic such as multiplication by one. LLVM removes much of this at <code>-O1</code> and above. Method table members remain part of function block layouts.</p>
+</blockquote>
+<h2 id="output"><a class="header" href="#output">Output</a></h2>
+<p>For an object file, LLVM runs its optimization passes at the chosen <code>-O</code> level and emits machine code for the target triple; the output format and the <code>--fpic</code> and <code>--fno-pic</code> flags decide whether the code is position-independent. IR and bitcode are written as they are, without optimization. With <code>-g</code>, a debug builder runs next to the generators and attaches DWARF debug information: one entry per POU, one per member and local variable, and a source location per statement.</p>
+<h2 id="where-it-lives"><a class="header" href="#where-it-lives">Where it lives</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>What</th><th>Where</th></tr>
+</thead>
+<tbody>
+<tr><td>Codegen</td><td><code>src/codegen.rs</code>, <code>src/codegen/</code></td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="whats-next"><a class="header" href="#whats-next">What’s next</a></h2>
+<p>The generated objects can refer to symbols defined in other files. The <a href="06-linker.html">Linker</a> resolves these references, adds libraries, and produces the requested artifact.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../technical/pipeline/04-validation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../technical/pipeline/06-linker.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../technical/pipeline/04-validation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../technical/pipeline/06-linker.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-09f2665d.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../assets/iecst-83312e6c.min.js"></script>
+        <script src="../../assets/llvm-f75dd1ee.min.js"></script>
+        <script src="../../assets/custom-d3415838.js"></script>
+        <script src="../../assets/highlight-2bf385f2.js"></script>
+        <script src="../../assets/mermaid-eefea253.min.js"></script>
+        <script src="../../assets/mermaid-init-53b67c53.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

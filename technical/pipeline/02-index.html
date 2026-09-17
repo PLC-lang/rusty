@@ -1,0 +1,470 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Index - RuSTy Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="The IEC 61131-3 Structured Text compiler: how to use it, and how it works inside.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-e96d0476.css">
+        <link rel="stylesheet" href="../../css/chrome-d279d366.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../assets/custom-510357f6.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-d2af6354.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-ec926692.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">RuSTy Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty/edit/master/book/./technical/pipeline/02-index.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="index"><a class="header" href="#index">Index</a></h1>
+<p>The index is the project’s symbol table. It records declared names, their kinds, and their types. The indexer reads declaration sections and records implementations, but does not resolve expressions in their bodies. For</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Buffer
+    // Declarations: indexed, they introduce Buffer.limit and Buffer.values
+    VAR_INPUT
+        limit: INT;
+    END_VAR
+    VAR
+        values: ARRAY[1..5] OF DINT;
+    END_VAR
+END_FUNCTION_BLOCK
+
+PROGRAM main
+    // Declarations: indexed, they introduce main.bufferInstance and main.i
+    VAR
+        bufferInstance: Buffer;
+        i: DINT;
+    END_VAR
+
+    // Body: skipped, it only references names defined in declarations elsewhere
+    bufferInstance.values[i] := bufferInstance.limit;
+END_PROGRAM
+</code></pre>
+<p>the index records:</p>
+<ul>
+<li><code>Buffer</code> is a function block.</li>
+<li><code>Buffer.limit</code> is an input variable of type <code>INT</code>.</li>
+<li><code>Buffer.values</code> is a local variable of an array type.</li>
+<li><code>main</code> is a program.</li>
+<li><code>main.bufferInstance</code> is a local variable of type <code>Buffer</code>.</li>
+<li><code>main.i</code> is a local variable of type <code>DINT</code>.</li>
+</ul>
+<p>The declarations can be in different files. The index combines them so that later stages can look up names across the project.</p>
+<pre class="mermaid">flowchart LR
+    parse[Parse] --&gt; index[Index] --&gt; annotate[Annotate] --&gt; validate[Validate] --&gt; codegen[Codegen] --&gt; link[Link]
+    style index fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
+</pre>
+
+<p>The stage receives the parsed compilation units and returns them with one global index. Each unit is pre-processed and indexed into a table of its own, the tables are merged with the built-in declarations, and the constant expressions collected on the way are evaluated.</p>
+<h2 id="pre-processing"><a class="header" href="#pre-processing">Pre-processing</a></h2>
+<p>Index entries refer to types by name. For <code>limit: INT</code>, the variable entry stores <code>"INT"</code>; finding that type requires another lookup. An inline type such as <code>ARRAY[1..5] OF DINT</code> has no name yet.</p>
+<p>Pre-processing fixes this before indexing starts. It walks each unit, turns every anonymous type into a named type declaration, and replaces the inline definition with a reference to the new name. The name is built from the container and the member; for a return type it is the function name and <code>return</code>:</p>
+<pre><code class="language-diff">+TYPE
++    __describe_return: STRING[80];
++    __describe_values: ARRAY[1..5] OF DINT;
++END_TYPE
++
+-FUNCTION describe: STRING[80]
++FUNCTION describe: __describe_return
+     VAR_INPUT
+-        values: ARRAY[1..5] OF DINT;
++        values: __describe_values;
+     END_VAR
+ END_FUNCTION
+</code></pre>
+<p>The same happens to pointers (<code>REF_TO INT</code>) and to the type parameters of generic functions (<code>__ADD__T</code> for parameter <code>T</code> of <code>ADD</code>).</p>
+<p>Pre-processing also gives enum variants explicit values. <code>TYPE Speed: (Slow, Normal, Fast := 10); END_TYPE</code> becomes <code>Slow := 0, Normal := Speed#Slow + 1, Fast := 10</code>.</p>
+<p>For a hardware binding such as <code>sensor AT %IX0.0: BOOL</code>, it creates the global <code>__PI_0_0</code>. The variable <code>sensor</code> becomes an alias pointer to that global, with the generated type <code>__global_sensor</code>. The <a href="../outputs/01-hardware-map.html">Hardware Map</a> chapter follows this connection.</p>
+<p>Generated helper names often use a double underscore prefix. This is a naming convention, not an enforced restriction. The <code>pre_index</code> participants run before pre-processing, so some generated declarations already exist at this point.</p>
+<h2 id="the-index"><a class="header" href="#the-index">The index</a></h2>
+<p>This is what the index holds, trimmed to its fields:</p>
+<pre><code class="language-rust noplayground">pub struct Index {
+    /// Variables declared in VAR_GLOBAL blocks
+    global_variables: SymbolMap&lt;String, VariableIndexEntry&gt;,
+
+    /// Generated globals holding the default value of a struct, array, string, or POU instance
+    global_initializers: SymbolMap&lt;String, VariableIndexEntry&gt;,
+
+    /// Enum variants, keyed by the variant name alone
+    enum_global_variables: SymbolMap&lt;String, VariableIndexEntry&gt;,
+
+    /// Programs, functions, function blocks, classes, methods, and actions
+    pous: SymbolMap&lt;String, PouIndexEntry&gt;,
+
+    /// Interfaces
+    interfaces: SymbolMap&lt;String, InterfaceIndexEntry&gt;,
+
+    /// Properties, keyed by the POU that declares them
+    properties: SymbolMap&lt;String, Identifier&gt;,
+
+    /// Bodies, keyed by call name
+    implementations: FxIndexMap&lt;String, ImplementationIndexEntry&gt;,
+
+    /// Types: built-in, user-declared, created by pre-processing, and the instance struct of every POU
+    type_index: TypeIndex,
+
+    /// Initializers, array bounds, and string sizes, as expressions until evaluated
+    constant_expressions: ConstExpressions,
+
+    /// Size and alignment of the primitive types on the target
+    data_layout: DataLayout,
+
+    /// Jump labels, keyed by POU
+    labels: FxIndexMap&lt;String, SymbolMap&lt;String, Label&gt;&gt;,
+
+    /// VAR_CONFIG declarations
+    config_variables: Vec&lt;ConfigVariable&gt;,
+}</code></pre>
+<p>Structured Text is case-insensitive, so every key is lowercased on insert and on lookup: <code>Buffer</code>, <code>buffer</code>, and <code>BUFFER</code> find the same entry. Above the raw maps sit lookup helpers for the common questions of the later stages: the effective type behind an alias chain, a member of a container including its super classes, the parameters of a POU in call order.</p>
+<h2 id="indexing-a-unit"><a class="header" href="#indexing-a-unit">Indexing a unit</a></h2>
+<p>The indexer walks the declarations of a unit and puts an entry into the maps above for each one. For</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Counter
+    VAR_INPUT
+        step: DINT := 1;
+    END_VAR
+    VAR_OUTPUT
+        count: DINT;
+    END_VAR
+
+    count := count + step;
+END_FUNCTION_BLOCK
+</code></pre>
+<p>the indexer creates two member entries in declaration order: <code>Counter.step</code> and <code>Counter.count</code>. Both have type <code>DINT</code>; <code>step</code> is input 0 and <code>count</code> is output 1. The indexer stores the initializer <code>1</code> in the constant store and keeps its ID on <code>step</code>. It does not evaluate the expression yet.</p>
+<p>With the declaration part done, the indexer knows the full shape of a <code>Counter</code> and registers it in three maps. The type index gets the instance struct, a type named <code>Counter</code> with the two entries as members in order; this struct is the memory layout of every instance. The POU map gets the entry that says <code>Counter</code> is a function block with that struct.</p>
+<p>The global initializers get a variable <code>__Counter__init</code> of type <code>Counter</code>, a default instance to copy from (see the <a href="../internals/07-initializers.html">Initializers</a> chapter).</p>
+<p>The implementation entry records that <code>Counter</code> has a body. The resolver later connects <code>count := count + step</code> to the member entries.</p>
+<p>Visualized, trimmed to the maps that received entries:</p>
+<pre><code>Index {
+    pous: {
+        "counter": FunctionBlock { name: "Counter", instance_struct_name: "Counter" },
+    },
+    type_index: {
+        pou_types: {
+            "counter": Struct {
+                name: "Counter",
+                members: [
+                    { name: "step",  qualified_name: "Counter.step",  data_type_name: "DINT", argument_type: ByVal(Input),  location_in_parent: 0, initial_value: ConstId(0) },
+                    { name: "count", qualified_name: "Counter.count", data_type_name: "DINT", argument_type: ByVal(Output), location_in_parent: 1, initial_value: None },
+                ],
+            },
+        },
+    },
+    global_initializers: {
+        "__counter__init": { name: "__Counter__init", data_type_name: "Counter" },
+    },
+    implementations: {
+        "counter": { call_name: "Counter", type_name: "Counter", implementation_type: FunctionBlock },
+    },
+    constant_expressions: [
+        ConstId(0): { expression: 1, target_type_name: "DINT", state: Unresolved },
+    ],
+}
+</code></pre>
+<p>The keys are the lowercased names. The member entries live inside the struct type; the index has no map of members of its own, and <code>find_member("Counter", "step")</code> looks up the type and searches its members.</p>
+<p>The other declaration kinds follow the same walk with fewer stops. Global variables become entries in <code>global_variables</code>. A struct becomes a type in <code>type_index</code> with its members as variable entries, plus a <code>global_initializers</code> entry. An enum becomes a type and, in addition, one constant global per variant in <code>enum_global_variables</code>, so that <code>Slow</code> resolves without the qualifier <code>Speed.Slow</code>. Array bounds and string sizes go to <code>constant_expressions</code> like initializers.</p>
+<p>The <a href="../internals/README.html">Internals</a> chapters show how each language construct uses these records.</p>
+<h2 id="merging"><a class="header" href="#merging">Merging</a></h2>
+<p>Units are indexed concurrently, one table each, and the tables are merged in unit order into one global index. Merging appends: a name declared in two files ends with two entries under one key, which validation later reports as a duplicate. Constant expressions are copied into the global constant store, receive new IDs, and the entries that hold an ID are updated.</p>
+<p>Two more tables are merged in after the user’s units. The built-in types, <code>BOOL</code>, <code>INT</code>, <code>DINT</code>, <code>REAL</code>, <code>STRING</code>, <code>TIME</code>, and the rest, are constructed directly. The built-in functions, <code>ADR</code>, <code>SIZEOF</code>, <code>MUX</code>, <code>SEL</code>, the generic arithmetic and comparison functions, and the array bound functions, are Structured Text declarations embedded in the compiler. They are parsed, pre-processed, and indexed like any other unit, and merged last. A user function named <code>add</code> therefore shares a key with the built-in <code>ADD</code> and is a duplicate symbol.</p>
+<p>Visualized for two files, showing only the POU map:</p>
+<pre><code>a.st      pous: { scale }
+b.st      pous: { main, buffer }
+built-in  pous: { adr, sizeof, mux, sel, ... }
+
+merged    pous: { scale, main, buffer, adr, sizeof, mux, sel, ... }
+</code></pre>
+<h2 id="constant-evaluation"><a class="header" href="#constant-evaluation">Constant evaluation</a></h2>
+<p>Later stages need constant values for array bounds, string sizes, initializers, and enum variants. Evaluation runs after merging, when all declarations are available. In</p>
+<pre><code class="language-iecst">VAR_GLOBAL CONSTANT
+    SCALE_FACTOR: DINT := MAX_ITEMS + 1;
+    MAX_ITEMS: DINT := 3;
+    TOO_BIG: SINT := 300;
+END_VAR
+
+VAR_GLOBAL
+    sensor AT %IX0.0: BOOL;
+    NOT_CONST: DINT := 5;
+END_VAR
+
+VAR_GLOBAL CONSTANT
+    C: DINT := NOT_CONST + 1;
+END_VAR
+</code></pre>
+<p>the constant store holds one expression per initializer, plus the address <code>__PI_0_0</code> that pre-processing gave <code>sensor</code> and one expression per segment of that address. The evaluator works through them as a queue and tries to fold each into a literal. An expression that depends on a name that is not resolved yet goes to the back of the queue; every other expression is marked resolved, or unresolvable with a reason. The first pass over the example:</p>
+<ol>
+<li><code>MAX_ITEMS + 1</code>: <code>MAX_ITEMS</code> is not resolved yet, back of the queue.</li>
+<li><code>3</code>: already a literal, resolved.</li>
+<li><code>300</code>: a literal, but it initializes a <code>SINT</code> and does not fit; unresolvable, “This will overflow for type SINT”.</li>
+<li><code>__PI_0_0</code>: an address, and addresses exist only after codegen has allocated the globals; unresolvable, “Try to re-resolve during codegen”, which codegen understands as an instruction.</li>
+<li><code>5</code>: resolved.</li>
+<li><code>NOT_CONST + 1</code>: references a variable that is not declared constant; unresolvable, “NOT_CONST is no const reference”.</li>
+</ol>
+<p>The queue now holds only <code>MAX_ITEMS + 1</code>. On the second pass <code>MAX_ITEMS</code> is known to be <code>3</code>, and the expression resolves to <code>4</code>. The loop stops when a full pass makes no progress.</p>
+<p>Visualized:</p>
+<pre><code>VAR_GLOBAL CONSTANT
+    SCALE_FACTOR: DINT := MAX_ITEMS + 1;
+                          ^^^^^^^^^^^^^   { target_type_name: "DINT", Resolved(4) }
+    MAX_ITEMS: DINT := 3;
+                       ^                  { target_type_name: "DINT", Resolved(3) }
+    TOO_BIG: SINT := 300;
+                     ^^^                  { target_type_name: "SINT", Unresolvable("This will overflow for type SINT") }
+END_VAR
+
+VAR_GLOBAL
+    sensor AT %IX0.0: BOOL;
+              ^^^^^^                       { target_type_name: "__global_sensor", Unresolvable("Try to re-resolve during codegen") }
+    NOT_CONST: DINT := 5;
+                       ^                  { target_type_name: "DINT", Resolved(5) }
+END_VAR
+
+VAR_GLOBAL CONSTANT
+    C: DINT := NOT_CONST + 1;
+               ^^^^^^^^^^^^^              { target_type_name: "DINT", Unresolvable("NOT_CONST is no const reference") }
+END_VAR
+</code></pre>
+<p>Validation turns the stored reasons into diagnostics: <code>TOO_BIG</code> becomes a warning, and <code>C</code> an error that aborts the compilation, because codegen has no value to write for it. As a last step, every enum without an explicit default gets one: the variant that evaluates to zero, or the first variant if none does.</p>
+<h2 id="where-it-lives"><a class="header" href="#where-it-lives">Where it lives</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>What</th><th>Where</th></tr>
+</thead>
+<tbody>
+<tr><td>Pre-processing</td><td><code>compiler/plc_ast</code></td></tr>
+<tr><td>Index</td><td><code>src/index.rs</code>, <code>src/index/</code></td></tr>
+<tr><td>Constant evaluation</td><td><code>src/resolver/</code></td></tr>
+<tr><td>Types</td><td><code>src/typesystem.rs</code></td></tr>
+<tr><td>Built-ins</td><td><code>src/builtins.rs</code></td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="whats-next"><a class="header" href="#whats-next">What’s next</a></h2>
+<p>The index now holds the declarations, but body references still need meaning. The <a href="03-resolver.html">Resolver</a> connects <code>bufferInstance.values[i]</code> and <code>bufferInstance.limit</code> to these entries and determines their types.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../technical/pipeline/01-lexer-parser.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../technical/pipeline/03-resolver.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../technical/pipeline/01-lexer-parser.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../technical/pipeline/03-resolver.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-09f2665d.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../assets/iecst-83312e6c.min.js"></script>
+        <script src="../../assets/llvm-f75dd1ee.min.js"></script>
+        <script src="../../assets/custom-d3415838.js"></script>
+        <script src="../../assets/highlight-2bf385f2.js"></script>
+        <script src="../../assets/mermaid-eefea253.min.js"></script>
+        <script src="../../assets/mermaid-init-53b67c53.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

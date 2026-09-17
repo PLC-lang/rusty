@@ -1,0 +1,476 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Reference Expressions - RuSTy Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="The IEC 61131-3 Structured Text compiler: how to use it, and how it works inside.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-e96d0476.css">
+        <link rel="stylesheet" href="../../css/chrome-d279d366.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../assets/custom-510357f6.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-d2af6354.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-ec926692.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">RuSTy Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty/edit/master/book/./technical/internals/06-reference-expressions.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="reference-expressions"><a class="header" href="#reference-expressions">Reference Expressions</a></h1>
+<p>A reference expression connects a name to a variable, member, element, pointer target, or part of a value. In <code>pShape^.points[i].x</code>, each segment performs one step. The resolver identifies its declaration or type; codegen uses it to compute an address or value. This chapter connects the member and array accesses from the preceding chapters.</p>
+<p>The example combines member access, array indexing, pointers, casts, direct access, and an explicit global reference:</p>
+<pre><code class="language-iecst">TYPE Point:
+    STRUCT
+        x: DINT;
+        y: DINT;
+    END_STRUCT
+END_TYPE
+
+TYPE Color: (Red, Green, Blue); END_TYPE
+
+FUNCTION_BLOCK Shape
+    VAR_INPUT
+        origin: Point;
+    END_VAR
+    VAR_OUTPUT
+        points: ARRAY[0..3] OF Point;
+    END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION bump: DINT
+    VAR_IN_OUT
+        target: DINT;
+    END_VAR
+    VAR_INPUT
+        step: INT;
+    END_VAR
+
+    target := target + step;
+    bump := target;
+END_FUNCTION
+
+VAR_GLOBAL
+    count: DINT;
+END_VAR
+
+PROGRAM main
+    VAR
+        shape: Shape;
+        pShape: POINTER TO Shape;
+        pDint: REF_TO DINT;
+        rDint: REFERENCE TO DINT;
+        i: DINT;
+        paint: Color;
+        word: WORD;
+        flag: BOOL;
+        count: DINT;
+    END_VAR
+
+    pShape := ADR(shape);
+    pShape^.points[i].x := 1;
+    pDint := REF(i);
+    rDint REF= i;
+    rDint := rDint + 1;
+    i := bump(count, 2);
+    paint := Color#Red;
+    i := INT#5;
+    flag := word.%X0;
+    i := word.%B1;
+    .count := 3;
+    i := pShape^.origin.x + shape.points[2].y;
+END_PROGRAM
+</code></pre>
+<h2 id="declaration"><a class="header" href="#declaration">Declaration</a></h2>
+<p>The parser has one node kind for every reference. It holds an access, which is the kind of step, and an optional base, which is the reference the step is applied to.</p>
+<p>The parser reads a chain from left to right, wrapping each new step around the previous result. Thus the root of <code>pShape^.points[i].x</code> is <code>x</code>, whose base is <code>[i]</code>, then <code>points</code>, then <code>^</code>, then <code>pShape</code>. A plain name is a member step with no base. Each step can inspect its base to find the type it operates on.</p>
+<p>Six kinds of access exist:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Access</th><th>Spelling</th><th>Holds</th></tr>
+</thead>
+<tbody>
+<tr><td>Member</td><td><code>a</code>, <code>a.b</code></td><td>the identifier, or a direct access such as <code>%X0</code></td></tr>
+<tr><td>Index</td><td><code>a[i]</code>, <code>a[i, j]</code></td><td>the index expression, or a list of them</td></tr>
+<tr><td>Dereference</td><td><code>p^</code></td><td>nothing; the base is the pointer</td></tr>
+<tr><td>Cast</td><td><code>INT#5</code>, <code>Color#Red</code></td><td>the value to cast; the base is the type name</td></tr>
+<tr><td>Global</td><td><code>.count</code></td><td>the identifier, looked up in the global scope only</td></tr>
+<tr><td>Address</td><td>none</td><td>reserved; the parser never produces it</td></tr>
+</tbody>
+</table>
+</div>
+<p>A cast takes only the name that follows the <code>#</code>, and the chain goes on from the cast: <code>INT#a.b</code> means <code>(INT#a).b</code>, so a member step after a cast applies to the result of the cast. <code>x.5</code> is a shorthand for <code>x.%X5</code> and becomes a bit access. Pointer declarations are inline type definitions, so pre-processing moves <code>POINTER TO Shape</code> out into the named type <code>__main_pShape</code> before indexing, like every other anonymous type.</p>
+<blockquote class="blockquote-tag blockquote-tag-note">
+<p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p><strong>Developer note.</strong> The address access exists in the node kind, in the resolver, in codegen, and in the validator, but no spelling reaches it: the parser rejects <code>&amp;i</code>, and no lowering creates it. The address of a variable is taken with the built-in calls <code>ADR</code> and <code>REF</code>, described below.</p>
+</blockquote>
+<h2 id="index"><a class="header" href="#index">Index</a></h2>
+<p>The index does not record body references. It supplies their declarations and types, including the pointer types used for explicit and automatic dereferencing:</p>
+<pre><code class="language-rust noplayground">Pointer {
+    /// The type pointed to, by name
+    inner_type_name: TypeId,
+
+    /// None for a pointer the user dereferences with ^; otherwise the kind of implicit dereference
+    auto_deref: Option&lt;AutoDerefType&gt;,
+
+    /// false for POINTER TO, true for REF_TO and REFERENCE TO
+    type_safe: bool,
+
+    /// Whether the pointer targets a POU rather than data
+    is_function: bool,
+}</code></pre>
+<p>The auto-dereference marker distinguishes explicit pointers from implicit references. <code>Default</code> marks by-reference parameters, <code>Reference</code> marks <code>REFERENCE TO</code>, and <code>Alias</code> marks <code>x AT y</code>. These variables read and write through their pointers without an explicit <code>^</code>:</p>
+<pre><code>__main_pShape           { inner_type_name: "Shape", auto_deref: None,            type_safe: false }   from POINTER TO Shape
+__main_pDint            { inner_type_name: "DINT",  auto_deref: None,            type_safe: true }    from REF_TO DINT
+__main_rDint            { inner_type_name: "DINT",  auto_deref: Some(Reference), type_safe: true }    from REFERENCE TO DINT
+__auto_pointer_to_DINT  { inner_type_name: "DINT",  auto_deref: Some(Default),   type_safe: true }    for bump.target
+</code></pre>
+<p>The indexer creates pointer types for <code>VAR_IN_OUT</code>, <code>VAR_INPUT {ref}</code>, and function <code>VAR_OUTPUT</code> parameters. Thus <code>bump.target</code> uses <code>__auto_pointer_to_DINT</code>. By-reference parameters with the same target type share this generated type, whose inner type preserves the declared <code>DINT</code>.</p>
+<p>Enum variants are the other index entries a reference can land on. <code>Color.Red</code> is a constant global variable of type <code>Color</code> with the initializer <code>0</code>, and it is also findable under the bare name <code>Red</code>, which is what lets <code>paint := Red</code> and <code>Color#Red</code> both resolve.</p>
+<h2 id="annotations"><a class="header" href="#annotations">Annotations</a></h2>
+<p>The resolver visits the base of a reference first, then applies the step. Each segment gets its own annotation, and the whole chain takes the annotation of its last segment (see <a href="../pipeline/03-resolver.html">Resolver</a>, Walking a unit, for the lookup order of a plain name). What a step produces depends on its kind:</p>
+<ul>
+<li><strong>Member with a base.</strong> The type of the base becomes the qualifier, and the member is looked up inside that type, following <code>EXTENDS</code> chains and properties. The annotation is the variable entry: its qualified name, type, and auto-deref kind.</li>
+<li><strong>Member without a base.</strong> The lookup order is a member of the current POU, then a global or enum variant, then a POU, then a type. When the reference is the operator of a call, functions are tried first.</li>
+<li><strong>Index.</strong> The base must be an array; the step is annotated as a value of the element type. The index expression is resolved on its own and gets no hint; codegen widens it to <code>DINT</code> before the offset arithmetic.</li>
+<li><strong>Dereference.</strong> The base must be a pointer without auto-deref; the step is a value of the inner type.</li>
+<li><strong>Cast.</strong> The base is resolved as a type, and the target is resolved as a variable under that type when the type is an enum, so <code>Color#Red</code> finds <code>Color.Red</code>. The step is a value of the type; a cast literal is retyped to the cast type.</li>
+<li><strong>Global.</strong> The identifier is looked up among global variables only; local names cannot shadow it.</li>
+<li><strong>Direct access.</strong> A <code>%X</code>, <code>%B</code>, <code>%W</code>, <code>%D</code>, or <code>%L</code> member is a value of <code>BOOL</code>, <code>BYTE</code>, <code>WORD</code>, <code>DWORD</code>, or <code>LWORD</code>.</li>
+</ul>
+<p>For the body of <code>main</code>, two statements show most of these at once:</p>
+<pre><code>    pShape^.points[i].x := 1;
+    ^^^^^^                        { kind: Variable, qualified_name: "main.pShape",   resulting_type: "__main_pShape", auto_deref: None }
+    ^^^^^^^                       { kind: Value,                                     resulting_type: "Shape" }
+    ^^^^^^^^^^^^^^                { kind: Variable, qualified_name: "Shape.points",  resulting_type: "__Shape_points", auto_deref: None }
+                   ^              { kind: Variable, qualified_name: "main.i",        resulting_type: "DINT" }
+    ^^^^^^^^^^^^^^^^^             { kind: Value,                                     resulting_type: "Point" }
+    ^^^^^^^^^^^^^^^^^^^           { kind: Variable, qualified_name: "Point.x",       resulting_type: "DINT" }
+
+    i := bump(count, 2);
+              ^^^^^               { kind: Variable, qualified_name: "main.count",    resulting_type: "DINT",  hint: Argument { resulting_type: "__auto_pointer_to_DINT", position: 0 } }
+</code></pre>
+<p><code>count</code> resolves to the local <code>main.count</code>, not the global; the global is reachable only as <code>.count</code>. Its hint names the pointer type of the parameter, which is how codegen knows to pass the address of <code>count</code> rather than its value.</p>
+<p>The auto-deref pointers show up as a flag on the variable annotation, not as a type. <code>rDint</code> is annotated with the resulting type <code>DINT</code>, its inner type, and <code>auto_deref: Reference</code>; inside <code>bump</code>, <code>target</code> is annotated <code>DINT</code> with <code>auto_deref: Default</code>. Every stage after the resolver treats such a variable as a <code>DINT</code> and adds one load when it needs the address:</p>
+<pre><code>    rDint REF= i;
+    ^^^^^                         { kind: Variable, qualified_name: "main.rDint",    resulting_type: "DINT",  auto_deref: Some(Reference("__main_rDint")) }
+    rDint := rDint + 1;
+    ^^^^^                         { kind: Variable, qualified_name: "main.rDint",    resulting_type: "DINT",  auto_deref: Some(Reference("__main_rDint")) }
+</code></pre>
+<p>The address of a variable is not a reference step but a call. <code>ADR(shape)</code> is annotated as a call of the built-in <code>ADR</code> returning <code>LWORD</code>, an integer wide enough for any address, and the assignment hints it to <code>__main_pShape</code>. <code>REF(i)</code> is typed: its annotation reads the type of the argument and registers a pointer type to it on the fly, <code>__POINTER_TO_DINT</code>, in the resolver’s own index, and the call is a value of that type. Casts and direct accesses complete the picture:</p>
+<pre><code>    pShape := ADR(shape);
+              ^^^^^^^^^^          { kind: Value,                                     resulting_type: "LWORD",            hint: "__main_pShape" }
+    pDint := REF(i);
+             ^^^^^^               { kind: Value,                                     resulting_type: "__POINTER_TO_DINT", hint: "__main_pDint" }
+    paint := Color#Red;
+             ^^^^^                { kind: Type,     type_name: "Color" }
+                   ^^^            { kind: Variable, qualified_name: "Color.Red",     resulting_type: "Color", constant: true }
+             ^^^^^^^^^            { kind: Value,                                     resulting_type: "Color",            hint: "Color" }
+    i := INT#5;
+         ^^^^^                    { kind: Value,                                     resulting_type: "INT",              hint: "DINT" }
+    flag := word.%X0;
+                 ^^^              { kind: Value,                                     resulting_type: "BOOL" }
+    i := word.%B1;
+              ^^^                 { kind: Value,                                     resulting_type: "BYTE",             hint: "DINT" }
+    .count := 3;
+    ^^^^^^                        { kind: Variable, qualified_name: "count",         resulting_type: "DINT", argument_type: Global }
+</code></pre>
+<h2 id="lowering"><a class="header" href="#lowering">Lowering</a></h2>
+<p>No participant rewrites reference expressions as such, but several rewrite what they refer to. The <a href="../participants/10-inheritance.html">inheritance lowerer</a> inserts <code>__&lt;Base&gt;</code> member steps in front of inherited members. The <a href="../participants/02-property.html">property lowerer</a> replaces a member step that names a property with a call. The <a href="../participants/03-polymorphism.html">polymorphism lowerer</a> turns a method call through a pointer into a dereference of a function pointer. Codegen sees only the six access kinds above.</p>
+<h2 id="codegen"><a class="header" href="#codegen">Codegen</a></h2>
+<p>For a reference to storage, codegen computes the address from the base outward and loads only when a value is needed. Casts and direct accesses have separate value rules, described below. See <a href="../pipeline/05-codegen.html#expressions">Codegen</a>.</p>
+<h3 id="member"><a class="header" href="#member">Member</a></h3>
+<p>A plain name is the address the function setup registered for it: a member pointer into the instance struct for a program or function block variable, a stack slot for a function variable, a global otherwise. A member with a base is one <code>getelementptr</code> from the address of the base, with the position of the member in the struct as the index. <code>origin.x</code> is two such steps:</p>
+<pre><code class="language-llvm">  %origin = getelementptr inbounds nuw %Shape, ptr %deref8, i32 0, i32 1
+  %x9 = getelementptr inbounds nuw %Point, ptr %origin, i32 0, i32 0
+  %load_x = load i32, ptr %x9, align 4
+</code></pre>
+<p>The struct positions come from the index. A function block struct starts with the <code>__vtable</code> member, so <code>origin</code>, the first variable that <code>Shape</code> declares, is at position 1. A program or function block struct also skips <code>VAR_TEMP</code> variables, which live on the stack, so the position is computed rather than read from the entry.</p>
+<h3 id="index-1"><a class="header" href="#index-1">Index</a></h3>
+<p>Array access subtracts the lower bound from each index, then multiplies by the lengths of later dimensions. The sum is the flat offset used by <code>getelementptr</code>. For <code>points[i]</code> on <code>ARRAY[0..3]</code>:</p>
+<pre><code class="language-llvm">  %load_i = load i32, ptr %i, align 4
+  %tmpVar = mul i32 1, %load_i
+  %tmpVar1 = add i32 %tmpVar, 0
+  %tmpVar2 = getelementptr inbounds [4 x %Point], ptr %points, i32 0, i32 %tmpVar1
+</code></pre>
+<p>The multiplication by one and the addition of zero are the general formula applied to one dimension with lower bound zero; the optimizer removes them. No bounds check is emitted.</p>
+<h3 id="dereference"><a class="header" href="#dereference">Dereference</a></h3>
+<p>A pointer variable holds an address, so <code>pShape^</code> loads that address from the variable’s slot, and the result is the address of the target. <code>pShape^.points</code> is the load followed by the member step:</p>
+<pre><code class="language-llvm">  %deref = load ptr, ptr %pShape, align 8
+  %points = getelementptr inbounds nuw %Shape, ptr %deref, i32 0, i32 2
+</code></pre>
+<h3 id="auto-dereference"><a class="header" href="#auto-dereference">Auto-dereference</a></h3>
+<p>A variable whose annotation carries an auto-deref kind gets the same load inserted without a <code>^</code> in the source. In <code>bump</code>, <code>target</code> is a stack slot that holds the caller’s address, and every use loads the address first. In <code>main</code>, <code>rDint</code> is a struct member that holds an address:</p>
+<pre><code class="language-llvm">  %deref3 = load ptr, ptr %rDint, align 8
+  %deref4 = load ptr, ptr %rDint, align 8
+  %load_rDint = load i32, ptr %deref4, align 4
+  %tmpVar5 = add i32 %load_rDint, 1
+  store i32 %tmpVar5, ptr %deref3, align 4
+</code></pre>
+<p>The left and right side of <code>rDint := rDint + 1</code> each load the pointer once. A <code>REF=</code> assignment is the one place where an auto-deref variable is not dereferenced: <code>rDint REF= i</code> stores the address of <code>i</code> into the slot, <code>store ptr %i, ptr %rDint</code>.</p>
+<h3 id="address"><a class="header" href="#address">Address</a></h3>
+<p><code>ADR(x)</code> and <code>REF(x)</code> generate the address of their argument and stop there, so <code>pShape := ADR(shape)</code> is one store of the member pointer: <code>store ptr %shape, ptr %pShape</code>. When the argument names a function or a method, the address of that function is taken instead. Passing <code>count</code> to the <code>VAR_IN_OUT</code> parameter of <code>bump</code> works the same way without a call to <code>ADR</code>: the argument hint names a pointer type, so codegen passes the address, <code>call i32 @bump(ptr %count, i16 2)</code>.</p>
+<h3 id="cast"><a class="header" href="#cast">Cast</a></h3>
+<p>A typed literal is created in the named type, then converted as required by its hint. Thus <code>i := INT#5</code> produces <code>store i32 5</code>. An enum variant can be folded into a constant, so <code>paint := Color#Red</code> produces <code>store i32 0</code>. A cast of a non-literal, non-identifier expression uses a bit cast.</p>
+<h3 id="direct-access"><a class="header" href="#direct-access">Direct access</a></h3>
+<p><code>word.%X0</code> and <code>word.%B1</code> load the whole base, shift it right by the bit offset (the index times the access width), truncate to the access type, and for a bit mask the result to one bit:</p>
+<pre><code class="language-llvm">  %load_word = load i16, ptr %word, align 2
+  %shift = lshr i16 %load_word, 0
+  %1 = trunc i16 %shift to i8
+  %2 = and i8 %1, 1
+  store i8 %2, ptr %flag, align 1
+</code></pre>
+<p>A direct access is therefore a value, not an address. Assigning to one, <code>word.%X0 := TRUE</code>, is handled by the assignment generator as a read-modify-write of the base.</p>
+<h3 id="global"><a class="header" href="#global">Global</a></h3>
+<p><code>.count</code> is the global’s address, <code>store i32 3, ptr @count</code>, whatever the local scope declares.</p>
+<h2 id="validation"><a class="header" href="#validation">Validation</a></h2>
+<p><a href="../pipeline/04-validation.html">Validation</a> checks each access kind. A member access through a pointer needs an explicit <code>^</code> unless the pointer is auto-dereferenced, so <code>pShape.points</code> is E141, for <code>REF_TO</code> as much as for <code>POINTER TO</code>. Dereferencing a non-pointer is E068; indexing a non-array is E059. Access to a private function block member from outside is E049. For <code>REF=</code>, the left side must be a pointer or auto-dereferenced variable, and the right side a reference (E098).</p>
+<p>The parser reports a <code>POINTER TO</code> declaration as type-unsafe (E015), but that code is registered as ignored, so a normal run prints nothing and <code>--error-config</code> has to raise it. The validator compares the inner types of an assignment between type-safe pointers (E090). It compares the kind of type, not the exact name, so <code>REF_TO DINT</code> accepts a pointer to any integer but not a pointer to a struct. A <code>POINTER TO</code> accepts any address, except that a pointer to a function block or a class must point at a related one (E125).</p>
+<h2 id="at-a-glance"><a class="header" href="#at-a-glance">At a glance</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Structured Text</th><th>Index</th><th>Annotation</th><th>LLVM</th></tr>
+</thead>
+<tbody>
+<tr><td><code>x</code></td><td>the variable entry</td><td><code>Variable</code>, qualified name and type</td><td>the registered address of the slot or member</td></tr>
+<tr><td><code>a.b</code></td><td>member <code>b</code> of the type of <code>a</code></td><td><code>Variable</code> on <code>b</code>, chain takes it</td><td><code>getelementptr</code> by struct position</td></tr>
+<tr><td><code>a[i]</code></td><td>the array type of <code>a</code></td><td><code>Value</code> of the element type</td><td>offset from the lower bound, one <code>getelementptr</code></td></tr>
+<tr><td><code>p^</code></td><td>pointer type, <code>auto_deref: None</code></td><td><code>Value</code> of the inner type</td><td><code>load ptr</code> from the slot</td></tr>
+<tr><td><code>r: REFERENCE TO T</code>, <code>VAR_IN_OUT</code></td><td>pointer type, <code>auto_deref: Reference</code> or <code>Default</code></td><td><code>Variable</code> of type <code>T</code> with an auto-deref flag</td><td>an extra <code>load ptr</code> on every use</td></tr>
+<tr><td><code>ADR(x)</code>, <code>REF(x)</code></td><td>built-in functions</td><td><code>Value</code> of <code>LWORD</code>, or of a generated <code>__POINTER_TO_T</code></td><td>the address of <code>x</code>, no load</td></tr>
+<tr><td><code>T#v</code></td><td>the type <code>T</code></td><td><code>Type</code> on <code>T</code>, <code>Value</code> of <code>T</code> on the whole</td><td>none; the value is created in <code>T</code></td></tr>
+<tr><td><code>w.%Xn</code>, <code>w.%Bn</code></td><td></td><td><code>Value</code> of <code>BOOL</code>, <code>BYTE</code>, and so on</td><td>load, shift, truncate, mask</td></tr>
+<tr><td><code>.g</code></td><td>the global <code>g</code></td><td><code>Variable</code> with <code>argument_type: Global</code></td><td>the global’s address</td></tr>
+</tbody>
+</table>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../technical/internals/05-variable-length-arrays.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../technical/internals/07-initializers.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../technical/internals/05-variable-length-arrays.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../technical/internals/07-initializers.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-09f2665d.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../assets/iecst-83312e6c.min.js"></script>
+        <script src="../../assets/llvm-f75dd1ee.min.js"></script>
+        <script src="../../assets/custom-d3415838.js"></script>
+        <script src="../../assets/highlight-2bf385f2.js"></script>
+        <script src="../../assets/mermaid-eefea253.min.js"></script>
+        <script src="../../assets/mermaid-init-53b67c53.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

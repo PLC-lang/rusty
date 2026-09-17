@@ -1,0 +1,531 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>CFC - RuSTy Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="The IEC 61131-3 Structured Text compiler: how to use it, and how it works inside.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-e96d0476.css">
+        <link rel="stylesheet" href="../../css/chrome-d279d366.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../assets/custom-510357f6.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-d2af6354.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-ec926692.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">RuSTy Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty/edit/master/book/./technical/participants/00-cfc.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="cfc"><a class="header" href="#cfc">CFC</a></h1>
+<p>A Continuous Function Chart (CFC) stores a POU body as a diagram. Its XML file contains a Structured Text declaration and a network of elements, numbered pins, and wires. The network</p>
+<pre><code>          myAdd (0)
+        +--------------------+
+in1 --&gt; | in1          myAdd | --&gt; function_call (1)
+in2 --&gt; | in2   myAddDoubled | --&gt; doubledOut (2)
+        +--------------------+
+</code></pre>
+<p>calls <code>myAdd</code> with the function’s two inputs and routes its return value to the function’s result and its output <code>myAddDoubled</code> to the output <code>doubledOut</code>. The numbers in parentheses are the evaluation priorities the user assigned. Trimmed to what matters, the document reads:</p>
+<pre><code class="language-xml">&lt;ppx:Function name="function_call"&gt;
+    &lt;ppx:AddData&gt;
+        &lt;ppx:Data&gt;
+            &lt;bmx:TextDeclaration&gt;FUNCTION function_call: INT
+VAR_INPUT
+    in1, in2: DINT;
+END_VAR
+VAR_OUTPUT
+    doubledOut: DINT;
+END_VAR&lt;/bmx:TextDeclaration&gt;
+        &lt;/ppx:Data&gt;
+    &lt;/ppx:AddData&gt;
+    &lt;ppx:MainBody&gt;&lt;ppx:BodyContent&gt;&lt;ppx:Network&gt;
+        &lt;ppx:FbdObject xsi:type="ppx:Block" typeName="myAdd" globalId="1"&gt;
+            &lt;ppx:InputVariables&gt;
+                &lt;ppx:InputVariable parameterName="in1"&gt;
+                    &lt;ppx:ConnectionPointIn&gt;&lt;ppx:Connection refConnectionPointOutId="2"/&gt;&lt;/ppx:ConnectionPointIn&gt;
+                &lt;/ppx:InputVariable&gt;
+                ...
+            &lt;/ppx:InputVariables&gt;
+            &lt;ppx:OutputVariables&gt;
+                &lt;ppx:OutputVariable parameterName=""&gt;
+                    &lt;ppx:ConnectionPointOut connectionPointOutId="4"/&gt;
+                &lt;/ppx:OutputVariable&gt;
+                &lt;ppx:OutputVariable parameterName="myAddDoubled"&gt;
+                    &lt;ppx:ConnectionPointOut connectionPointOutId="5"/&gt;
+                &lt;/ppx:OutputVariable&gt;
+            &lt;/ppx:OutputVariables&gt;
+        &lt;/ppx:FbdObject&gt;
+        &lt;ppx:FbdObject xsi:type="ppx:DataSource" identifier="in1" globalId="6"&gt;
+            &lt;ppx:ConnectionPointOut connectionPointOutId="2"/&gt;
+        &lt;/ppx:FbdObject&gt;
+        &lt;ppx:FbdObject xsi:type="ppx:DataSink" identifier="doubledOut" globalId="9"&gt;
+            &lt;ppx:ConnectionPointIn&gt;&lt;ppx:Connection refConnectionPointOutId="5"/&gt;&lt;/ppx:ConnectionPointIn&gt;
+        &lt;/ppx:FbdObject&gt;
+        ...
+    &lt;/ppx:Network&gt;&lt;/ppx:BodyContent&gt;&lt;/ppx:MainBody&gt;
+&lt;/ppx:Function&gt;
+</code></pre>
+<p>Each element has a <code>globalId</code>; each output pin has a <code>connectionPointOutId</code>. An input pin names the output pin it reads. The POU declaration is Structured Text without its closing keyword. A block’s unnamed output pin carries its return value. The CFC participant converts the network into an AST statement list:</p>
+<pre><code class="language-iecst">FUNCTION function_call: INT
+VAR_INPUT
+    in1, in2: DINT;
+END_VAR
+VAR_OUTPUT
+    doubledOut: DINT;
+END_VAR
+VAR
+    __out_myAdd_1: DINT;
+    __out_myAddDoubled_1: DINT;
+END_VAR
+    __out_myAdd_1 := myAdd(in1 := in1, in2 := in2, myAddDoubled =&gt; __out_myAddDoubled_1);
+    function_call := __out_myAdd_1;
+    doubledOut := __out_myAddDoubled_1;
+END_FUNCTION
+</code></pre>
+<pre class="mermaid">flowchart LR
+    pre_index[pre_index] --&gt; index[Index] --&gt; post_index[post_index] --&gt; pre_annotate[pre_annotate] --&gt; annotate[Annotate] --&gt; post_annotate[post_annotate]
+    style post_index fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
+</pre>
+
+<p>The participant acts during parsing and at <code>post_index</code>. Parsing routes <code>.cfc</code>, <code>.fbd</code>, and <code>.xml</code> files to the CFC parser. It reads the XML and parses the text declaration, then returns a compilation unit with an empty body. This lets the index register the POU and its parameters before the network is converted.</p>
+<p>To build the body, the participant needs the index. A block’s callee kind and output parameters determine which call and temporary variables it requires.</p>
+<p>At <code>post_index</code> the participant transpiles every CFC document against the index, replaces the unit of the parse step with the full one, and indexes the project again, so that the bodies and their temporaries are known. Then it runs the inference rounds for generic temporaries described below. Its diagnostics are collected after annotation, like those of the other participants. A project without CFC sources passes through the hook unchanged.</p>
+<h2 id="transformation"><a class="header" href="#transformation">Transformation</a></h2>
+<p>The CFC resolver converts the document into assignments, returns, jumps, labels, and calls, each with an evaluation priority. It also records temporary variables. The transpiler converts this intermediate list into AST nodes. The following sections describe the resolver’s decisions, then the rendering step.</p>
+<h2 id="elements-and-wires"><a class="header" href="#elements-and-wires">Elements and wires</a></h2>
+<p>Each element is classified by its <code>xsi:type</code>:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Element</th><th>Role</th><th>Result</th></tr>
+</thead>
+<tbody>
+<tr><td><code>DataSource</code></td><td>a value: a variable or literal, read by others</td><td>nothing on its own</td></tr>
+<tr><td><code>DataSink</code></td><td>a variable that receives a value</td><td>one assignment</td></tr>
+<tr><td><code>Block</code></td><td>a call of a function, function block, program, or action</td><td>one call</td></tr>
+<tr><td><code>Connector</code>, <code>Continuation</code></td><td>a named wire break: the connector receives, continuations of the same label re-emit</td><td>nothing; wires pass through</td></tr>
+<tr><td><code>Return</code></td><td>a conditional return</td><td>one <code>RETURN</code> with a condition</td></tr>
+<tr><td><code>CfcJump</code>, <code>CfcLabel</code></td><td>a conditional jump and its target</td><td>one jump, one label</td></tr>
+<tr><td><code>Unconnected</code></td><td>an element the user placed but never wired</td><td>a warning</td></tr>
+</tbody>
+</table>
+</div>
+<p>The resolver first surveys the network. It maps every output pin ID to the element that owns it and every connector label to its connector, and it collects the label names and the jump targets, so each can check the other. To read an input, it follows the referenced output pin until it reaches a value producer.</p>
+<p>Two kinds of element are stepped over. A continuation is replaced by whatever feeds the connector of the same label, so a connector pair behaves like a wire. An <code>ENO</code> pin of a block is replaced by whatever feeds the <code>EN</code> pin of that block, because <code>ENO</code> mirrors the guard (see below). Both hops are cycle-guarded. A continuation without a connector, a connector without an input, or a block whose <code>ENO</code> leads back to itself is a dead end, reported once per element however many consumers reach it.</p>
+<p>A trace ends at a block output pin, which is read as described under blocks, or at a plain element, whose <code>identifier</code> text goes through the compiler’s expression parser. The trace also collects the negation bubbles on the way. A bubble on the producer and one on the consumer each wrap the value in one more <code>NOT</code>. The bubble of a hopped <code>ENO</code> pin and the one of the <code>EN</code> pin behind it invert the same value, so a pair of them cancels.</p>
+<p>The rest of this section takes one element kind at a time. Each example shows the network the user drew, then the statements the transpiler renders from it. A number in parentheses is the evaluation priority of the element, a bubble <code>o--&gt;</code> is a negation, and <code>[name |S]</code> is a sink with a storage mode.</p>
+<h3 id="data-source"><a class="header" href="#data-source">Data source</a></h3>
+<p>A data source supplies a variable or literal through its output pin. It produces no statement by itself. Each consumer follows the wire independently, so a source connected to two sinks produces two assignments:</p>
+<pre><code>foo --+--&gt; bar (0)
+      '--&gt; baz (1)
+</code></pre>
+<pre><code class="language-iecst">bar := foo;
+baz := foo;
+</code></pre>
+<p>A literal source works in the same way. The identifier goes through the compiler’s expression parser, so <code>5</code> becomes a literal node and <code>foo</code> becomes a reference node:</p>
+<pre><code>5 --&gt; foo (0)
+</code></pre>
+<pre><code class="language-iecst">foo := 5;
+</code></pre>
+<p>The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as <code>in1 + 1</code> is rejected (E083), because a diagram models arithmetic as blocks. The condition of a return or a jump is the exception and accepts any expression.</p>
+<p>A negation bubble on the pin wraps the value in a <code>NOT</code>:</p>
+<pre><code>foo o--&gt; bar (0)
+</code></pre>
+<pre><code class="language-iecst">bar := NOT foo;
+</code></pre>
+<h3 id="data-sink"><a class="header" href="#data-sink">Data sink</a></h3>
+<p>A data sink is a write. It traces its input back to a producer and assigns the value to its own identifier. A source wired to a sink is therefore one assignment:</p>
+<pre><code>foo --&gt; bar (0)
+</code></pre>
+<pre><code class="language-iecst">bar := foo;
+</code></pre>
+<p>The result of a CFC function is written in the same way, by a sink whose identifier is the name of the function. A sink that the user left unwired renders nothing and is not reported.</p>
+<p>A storage mode turns the sink from an assignment into a latch. In <code>Set</code> mode the traced value is no longer the value stored: it is the guard, and the value stored is <code>TRUE</code>. Nothing is written while the guard is false, so a variable that was set once keeps its value:</p>
+<pre><code>a --&gt; [b |S] (0)
+</code></pre>
+<pre><code class="language-iecst">IF a THEN b := TRUE; END_IF
+</code></pre>
+<p><code>Reset</code> mode is the counterpart and stores <code>FALSE</code> under the same guard. <code>Reference</code> mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:</p>
+<pre><code>a --&gt; [b |REF] (0)
+</code></pre>
+<pre><code class="language-iecst">b REF= a;
+</code></pre>
+<p>A negation bubble has no meaning on a reference assignment and is rejected (E154).</p>
+<h3 id="block"><a class="header" href="#block">Block</a></h3>
+<p>A block is a call. Its <code>typeName</code> names the callee, its input pins are the parameters, and its output pins are the outputs of the callee. A callee with state keeps its outputs in its own instance, so the network needs nothing more than the call and a read of the member:</p>
+<pre><code>localIn --&gt; in [inst : counter] out (0) --&gt; localOut (1)
+</code></pre>
+<pre><code class="language-iecst">inst(in := localIn);
+localOut := inst.out;
+</code></pre>
+<p>Blocks carry more rules than the other elements, because the shape of the call depends on what the index says the callee is. The <a href="#blocks">Blocks</a> section below covers them.</p>
+<h3 id="connector-and-continuation"><a class="header" href="#connector-and-continuation">Connector and continuation</a></h3>
+<p>A connector ends a wire and names it. Each continuation with that name resumes the wire. Neither produces a statement; the resolver follows the connection to its source. One connector can feed several continuations:</p>
+<pre><code>foo --&gt; x&gt;
+&gt;x --&gt; bar (0)
+&gt;x --&gt; baz (1)
+</code></pre>
+<pre><code class="language-iecst">bar := foo;
+baz := foo;
+</code></pre>
+<p>A pair can feed another pair. The trace follows the chain, with a cycle guard, until it reaches a producer:</p>
+<pre><code>foo --&gt; a&gt;
+&gt;a --&gt; b&gt;
+&gt;b --&gt; c&gt;
+&gt;c --&gt; bar (0)
+</code></pre>
+<pre><code class="language-iecst">bar := foo;
+</code></pre>
+<p>A pair that nothing reads renders nothing, and a connector without an input is only reported when something reads it (E086). The user can leave a routing aid unfinished without a diagnostic:</p>
+<pre><code>x&gt;       (no source)
+&gt;x       (nobody reads it)
+</code></pre>
+<p>A label that two connectors claim is E081, and a continuation whose label no connector defines is E082.</p>
+<h3 id="return"><a class="header" href="#return">Return</a></h3>
+<p>A return leaves the POU early. It is always conditional: the traced value becomes the guard. The return carries no value, because the result of a function is written by the sink named after the function.</p>
+<pre><code>myCondition --&gt; RETURN (0)
+</code></pre>
+<pre><code class="language-iecst">IF myCondition THEN RETURN; END_IF
+</code></pre>
+<p>A return without a wired condition could never fire. It is dropped and reported (E085).</p>
+<h3 id="jump-and-label"><a class="header" href="#jump-and-label">Jump and label</a></h3>
+<p>A jump is a conditional <code>GOTO</code>, and a label is its target. The two are separate elements with no wire between them; the jump names its target as text, and the survey matches the names. Both render directly, in priority order like every other element, so the priorities of the user decide whether a jump goes forward or backward:</p>
+<pre><code>myCondition --&gt; JMP skipAssignment (0)
+x --&gt; y (1)
+LABEL skipAssignment (2)
+</code></pre>
+<pre><code class="language-iecst">IF myCondition THEN GOTO skipAssignment;
+y := x;
+LABEL: skipAssignment
+</code></pre>
+<p>A jump without a wired condition is kept instead of dropped, with a <code>FALSE</code> guard, so the label it targets stays the target of a valid statement. A warning says that the jump can never be taken (E145):</p>
+<pre><code>(unwired) --&gt; JMP skipAssignment (0)
+x --&gt; y (1)
+LABEL skipAssignment (2)
+</code></pre>
+<pre><code class="language-iecst">IF FALSE THEN GOTO skipAssignment;
+y := x;
+LABEL: skipAssignment
+</code></pre>
+<p>A jump to a name that no label defines is E142, a label that no jump targets is kept and reported with E143, and the same label defined twice is E144.</p>
+<h3 id="unconnected"><a class="header" href="#unconnected">Unconnected</a></h3>
+<p>An unconnected element is a box that the user placed and never wired. It renders nothing, and the warning it produces (E084) is its only result, once per box. The rest of the network is unaffected:</p>
+<pre><code>foo          (unconnected)
+bar          (unconnected)
+foo --&gt; bar (0)
+</code></pre>
+<pre><code class="language-iecst">bar := foo;
+</code></pre>
+<h2 id="blocks"><a class="header" href="#blocks">Blocks</a></h2>
+<p>The index decides how a block is rendered. A callee that is a function and has no instance name is stateless: its outputs exist only during the call. Every output that a consumer reads is therefore captured into a temporary named <code>__out_&lt;pin&gt;_&lt;globalId&gt;</code>, declared in a <code>VAR</code> block of the POU with the type the callee declares for that output. The return pin carries no parameter name, so it contributes the name of the callee (<code>__out_myAdd_1</code> below); it is captured by an assignment of the call, every other output with <code>=&gt;</code>. A fan-out then calls once and reads twice:</p>
+<pre><code>        myAdd (0)
+      +--------------------+
+a --&gt; | in1          myAdd | --+--&gt; x (1)
+b --&gt; | in2   myAddDoubled |   |
+      +--------------------+   '--&gt; y (2)
+      (myAddDoubled unread)
+</code></pre>
+<pre><code class="language-iecst">__out_myAdd_1 := myAdd(in1 := a, in2 := b, myAddDoubled =&gt; );
+x := __out_myAdd_1;
+y := __out_myAdd_1;
+</code></pre>
+<p>An unwired function input is passed as an empty argument, <code>in2 := </code>, to use the callee’s default. An unread output uses an empty <code>=&gt;</code>, as with <code>myAddDoubled</code> above. Variadic calls such as <code>ADD</code> receive positional values in pin order and omit unwired pins. Feedback from the block’s own output reads the previous temporary value because capture follows the call.</p>
+<p>A callee with state, a function block instance or a program, keeps its outputs in the instance, so no temporaries are necessary: the call passes the wired inputs only, and a consumer of an output reads the member. The <a href="#block">Block</a> example above shows the plain case. An action is called through its owner, and its outputs are the members of the owner, not of the action:</p>
+<pre><code>localIn --&gt; in [inst : counter.increment] out (0) --&gt; localOut (1)
+</code></pre>
+<pre><code class="language-iecst">inst.increment(in := localIn);
+localOut := inst.out;
+</code></pre>
+<p>A program is read in the same way through the name of its one instance, <code>counter.out</code>. Two programs wired in a cycle are legal for the same reason: each one reads the member of the other from the previous evaluation, and the priorities decide which one runs first.</p>
+<p>Execution control adds <code>EN</code> and <code>ENO</code> pins. <code>EN</code> becomes an <code>IF</code> around the call and its output capture; a skipped call leaves temporaries unchanged. <code>ENO</code> refers to the <code>EN</code> source rather than a result of the callee. Thus <code>done := trigger</code> reads the same source as the guard. A chain of these pins produces a sequence of <code>IF trigger</code> guards:</p>
+<pre><code>                  myAdd (0)
+            +--------------------+
+trigger --&gt; | EN             ENO | --&gt; done (2)
+      a --&gt; | in1          myAdd | --&gt; sum (1)
+      b --&gt; | in2   myAddDoubled |
+            +--------------------+
+            (myAddDoubled unread)
+</code></pre>
+<pre><code class="language-iecst">IF trigger THEN
+    __out_myAdd_7 := myAdd(in1 := a, in2 := b, myAddDoubled =&gt; );
+END_IF
+sum := __out_myAdd_7;
+done := trigger;
+</code></pre>
+<p>The flag decides whether a pin named <code>EN</code> is the control pin; without the flag, <code>EN</code> and <code>ENO</code> are ordinary parameters.</p>
+<blockquote class="blockquote-tag blockquote-tag-note">
+<p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p><strong>Developer note.</strong> The export format does not say how to tell the control pin from a parameter of the same name that the callee declares itself. Two pins named <code>EN</code> on one block therefore stop the compiler with a panic instead of a guess.</p>
+</blockquote>
+<h2 id="order"><a class="header" href="#order">Order</a></h2>
+<p>Each element renders on its own. A whole network is a set of them, and the wires do not say which of them runs first. The user’s priorities do: statements and temporaries are sorted by evaluation priority, and elements without a priority come last, in document order.</p>
+<h2 id="rendering"><a class="header" href="#rendering">Rendering</a></h2>
+<p>With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. Every statement carries a location of a kind that only this participant creates: the <code>globalId</code> of the element instead of a line and column. A diagnostic on such a node is printed as <code>file.cfc: Block 6</code> without a source snippet. The temporaries go into one additional <code>VAR</code> block, and the statement list replaces the empty body the parse step left.</p>
+<h2 id="generic-temporaries"><a class="header" href="#generic-temporaries">Generic temporaries</a></h2>
+<p>The rendered body is complete, except where a callee is generic. A temporary takes its output parameter’s declared type, and for a generic function such as <code>myGenAdd&lt;T: ANY_NUM&gt;: T</code> that type is <code>__myGenAdd__T</code>. Codegen needs a concrete type. The compiler’s expression resolver can derive it from the call arguments after transpilation.</p>
+<p>After indexing the new units, the participant runs type inference rounds. Each round annotates the unit and checks generic temporaries whose inputs already have concrete types. It updates their declarations and index entries with the inferred types. A chain of generic calls resolves one step per round:</p>
+<pre><code class="language-iecst">__out_myGenAdd_1 := myGenAdd(a := a, b := b);                  (* a, b : INT   -&gt; round 1: INT  *)
+__out_myGenAdd_5 := myGenAdd(a := __out_myGenAdd_1, b := c);   (* c : DINT     -&gt; round 2: DINT *)
+</code></pre>
+<p>The rounds stop when a round patches nothing. A temporary that is still generic then, because nothing but its own generic outputs feeds the call, is reported in terms of the block the user placed (E149).</p>
+<h2 id="interactions"><a class="header" href="#interactions">Interactions</a></h2>
+<p>The participant is registered first and runs at <code>post_index</code>, so the <code>pre_index</code> participants have already processed the interface-only unit the parse step produced. The transpiled unit that replaces it is a fresh parse of the declaration plus the rendered body; from the re-index on, every later participant sees the CFC POU as ordinary declarations and statements. Calls of CFC POUs from Structured Text resolve against the parse step’s unit already, because the declaration is complete before the body exists.</p>
+<p>The generic lowerer, at <code>post_annotate</code>, replaces the generic calls in the rendered body by calls of concrete implementations. It relies on the inference rounds having replaced every generic temporary type first; the concrete declarations are what let the annotator type those calls.</p>
+<p>The transpiler does not generate loops. Its <code>IF</code> guards are the shape parsed text produces, so the later participants treat them like any other. Its jumps, its labels, and its conditional <code>RETURN</code> have no Structured Text syntax at all; they exist for this participant, and codegen has a branch for each.</p>
+<h2 id="validation"><a class="header" href="#validation">Validation</a></h2>
+<p>The participant checks the diagram before pins and wires disappear from the AST. This lets diagnostics name the user’s elements instead of generated temporaries:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Code</th><th>Reported for</th></tr>
+</thead>
+<tbody>
+<tr><td>E081</td><td>a connector label claimed twice</td></tr>
+<tr><td>E082</td><td>a continuation with no connector</td></tr>
+<tr><td>E083</td><td>an expression where only a name or a literal is allowed</td></tr>
+<tr><td>E084</td><td>an element that is placed but not wired</td></tr>
+<tr><td>E085</td><td>a return without a condition</td></tr>
+<tr><td>E086</td><td>a connector without an input</td></tr>
+<tr><td>E142</td><td>a jump to a label nobody defines</td></tr>
+<tr><td>E143</td><td>a label no jump targets</td></tr>
+<tr><td>E144</td><td>a label defined twice</td></tr>
+<tr><td>E145</td><td>a jump without a condition</td></tr>
+<tr><td>E146</td><td>a block whose type the index does not know</td></tr>
+<tr><td>E147</td><td>a wired output the callee does not declare</td></tr>
+<tr><td>E149</td><td>a generic output no round could type</td></tr>
+<tr><td>E152</td><td>an execution-controlled block whose <code>EN</code> is unwired</td></tr>
+<tr><td>E153</td><td>an <code>ENO</code> chain that loops</td></tr>
+<tr><td>E154</td><td>a negation bubble on a reference assignment</td></tr>
+<tr><td>E155</td><td>a block with two unnamed return pins</td></tr>
+</tbody>
+</table>
+</div>
+<p>Everything about the rendered statements themselves (unknown variables, type mismatches, wrong argument counts) is left to the validation stage, which reports it at the block location of the element too.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../technical/participants/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../../technical/participants/01-loop-desugar.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../technical/participants/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../../technical/participants/01-loop-desugar.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-09f2665d.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../assets/iecst-83312e6c.min.js"></script>
+        <script src="../../assets/llvm-f75dd1ee.min.js"></script>
+        <script src="../../assets/custom-d3415838.js"></script>
+        <script src="../../assets/highlight-2bf385f2.js"></script>
+        <script src="../../assets/mermaid-eefea253.min.js"></script>
+        <script src="../../assets/mermaid-init-53b67c53.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

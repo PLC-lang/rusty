@@ -1,0 +1,555 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Annotated AST - RuSTy Documentation</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="The IEC 61131-3 Structured Text compiler: how to use it, and how it works inside.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-e96d0476.css">
+        <link rel="stylesheet" href="../../css/chrome-d279d366.css">
+        <link rel="stylesheet" href="../../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../assets/custom-510357f6.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../../searchindex-d2af6354.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc-ec926692.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">RuSTy Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/PLC-lang/rusty/edit/master/book/./technical/internals/08-annotated-ast.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="annotated-ast"><a class="header" href="#annotated-ast">Annotated AST</a></h1>
+<p>The resolver records meaning in a map keyed by AST node ID. An <em>annotation</em> identifies a declaration or result type. A <em>type hint</em> records the type expected where an expression is used. Validation and codegen combine this information with the index. Participants can rewrite the tree and request new annotations.</p>
+<p>The <a href="../pipeline/03-resolver.html">Resolver</a> chapter explains how the table is filled. This chapter is the reference for what it holds: one section per annotation kind, with its fields, an example, and the stages that read it.</p>
+<p>The example produces the annotations used below. Labels are introduced separately because they come from CFC diagrams:</p>
+<pre><code class="language-iecst">TYPE Color: (Red, Green, Blue); END_TYPE
+TYPE Percent: INT(0..100); END_TYPE
+
+FUNCTION CheckRangeSigned: INT
+    VAR_INPUT
+        value, lower, upper: INT;
+    END_VAR
+
+    CheckRangeSigned := value;
+END_FUNCTION
+
+{external}
+FUNCTION STRING_EQUAL: BOOL
+    VAR_INPUT
+        a, b: STRING;
+    END_VAR
+END_FUNCTION
+
+FUNCTION scale: DINT
+    VAR_INPUT
+        value: DINT;
+        factor: INT := 1;
+    END_VAR
+
+    scale := value * factor;
+END_FUNCTION
+
+FUNCTION_BLOCK Base
+    VAR_INPUT
+        limit: INT;
+    END_VAR
+
+    METHOD area: DINT
+        area := limit;
+    END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK Counter EXTENDS Base
+    VAR_INPUT
+        step: DINT;
+    END_VAR
+    VAR_OUTPUT
+        count: DINT;
+    END_VAR
+
+    PROPERTY_GET scaled: DINT
+        scaled := count * 10;
+    END_PROPERTY
+
+    METHOD area: DINT
+        area := SUPER^.area() + step;
+    END_METHOD
+
+    count := count + step;
+END_FUNCTION_BLOCK
+
+PROGRAM logger
+    VAR_INPUT
+        text: STRING;
+    END_VAR
+END_PROGRAM
+
+PROGRAM main
+    VAR
+        counter: Counter;
+        i: DINT;
+        pct: Percent;
+        hue: Color;
+        fp: __FPOINTER Base.area := ADR(Base.area);
+        same: BOOL;
+        text: STRING;
+        r: REFERENCE TO DINT;
+    END_VAR
+    VAR CONSTANT
+        MAX: DINT := 10;
+    END_VAR
+
+    i := MAX;
+    counter(limit := 3, step := 2, count =&gt; i);
+    i := scale(i, factor := INT#5);
+    i := counter.area();
+    logger(text := 'x');
+    hue := Color#Red;
+    i := fp^(counter);
+    pct := i;
+    same := text = 'hello';
+    i := counter.scaled;
+    r REF= i;
+END_PROGRAM
+</code></pre>
+<p>The annotations below are the ones after the first resolver pass, with the accessor methods of the property lowerer already in place. Later participants rewrite some of these statements and the resolver runs again. A rewrite can change which kind a node gets, but not the set of kinds described below.</p>
+<p>Entries store type names, which consumers resolve through the index. Most entries describe expressions; method and POU declarations also receive annotations for validation.</p>
+<h2 id="type-hints"><a class="header" href="#type-hints">Type hints</a></h2>
+<p>A hint is a second entry for the same node. It usually uses <code>Value</code> or <code>Argument</code> and specifies the required type: an assignment target, parameter, promoted operand, or condition type. A hint can equal the annotated type; no conversion is then needed.</p>
+<pre><code>    i := MAX;
+         ^^^          Variable "DINT"   hint Value "DINT"
+    pct := i;
+           ^          Variable "DINT"   hint Argument "INT", position 0, pou CheckRangeSigned
+</code></pre>
+<p>The second line shows a hint that was replaced: <code>pct</code> is a subrange of <code>INT</code>, so the value is not hinted to <code>Percent</code> but to the parameter of the range check function the hidden call below inserts. Codegen compares annotation and hint and emits the conversion (see <a href="../pipeline/05-codegen.html#the-type-hint-decides-the-conversion">Codegen</a>); the validator compares them to report the implicit downcast (E067).</p>
+<h2 id="hidden-function-calls"><a class="header" href="#hidden-function-calls">Hidden function calls</a></h2>
+<p>An assignment to a subrange such as <code>INT(0..100)</code> can call a range-check function. The signedness and the width of the type choose the name: <code>CheckRangeSigned</code> and <code>CheckRangeUnsigned</code> up to 32 bits, <code>CheckLRangeSigned</code> and <code>CheckLRangeUnsigned</code> above. If the project declares that function, the resolver builds a call with the value and bounds. It annotates the call and stores it under the assigned value’s node ID. The original value keeps its annotation.</p>
+<p>When codegen stores into a subrange variable, it asks the table and generates the call in place of the value. Without the function declared, the store is plain.</p>
+<pre><code>    pct := i;
+           ^          hidden: CheckRangeSigned(i, 0, 100)
+</code></pre>
+<h2 id="annotation-kinds"><a class="header" href="#annotation-kinds">Annotation kinds</a></h2>
+<p>Each entry below shows its fields, an example, and the stages that use it.</p>
+<h3 id="value"><a class="header" href="#value">Value</a></h3>
+<pre><code class="language-rust noplayground">Value {
+    /// The type the expression evaluates to
+    resulting_type: String,
+}</code></pre>
+<p><code>Value</code> records a result type without identifying a variable declaration. It covers literals, arithmetic, casts, call results, and array element accesses. In the example:</p>
+<pre><code>    i := scale(i, factor := INT#5);
+         ^^^^^^^^^^^^^^^^^^^^^^^^^   Value "DINT"      the call takes the function's return type
+                            ^^^^^    Value "INT"       the cast takes the type it names
+                                ^    Value "INT"       the literal inside a cast is typed by the cast
+    logger(text := 'x');
+                   ^^^               Value "__STRING_1" a literal is typed by its own value
+</code></pre>
+<p>Consumers read the type through <a href="#deriving-a-type"><code>get_type</code></a>. <code>Value</code> alone does not determine whether an expression has an address: an array element does, while <code>i + 1</code> does not. The AST form also matters to codegen.</p>
+<h3 id="variable"><a class="header" href="#variable">Variable</a></h3>
+<pre><code class="language-rust noplayground">Variable {
+    /// The type name of the variable
+    resulting_type: String,
+
+    /// The declaration it refers to, such as "main.i" or "Base.limit"
+    qualified_name: String,
+
+    /// Declared in a CONSTANT block, or an enum variant
+    constant: bool,
+
+    /// Which variable block declares it, and whether it is held by value or by reference
+    argument_type: ArgumentType,
+
+    /// Set when reading the variable reads through a pointer: REFERENCE TO, AT alias, or VAR_IN_OUT
+    auto_deref: Option&lt;AutoDerefType&gt;,
+}</code></pre>
+<p>The kind for a reference that resolves to a declared variable, wherever it is declared: a local, a member reached through an instance, a global, an enum variant, the return variable of a function. A qualified reference <code>a.b.c</code> gets the entry of its last segment, and every segment has an entry of its own.</p>
+<pre><code>    i := MAX;
+    ^                Variable "DINT",  main.i,      constant: false, Local
+         ^^^         Variable "DINT",  main.MAX,    constant: true,  Local
+    counter(limit := 3, step := 2, count =&gt; i);
+    ^^^^^^^          Variable "Counter", main.counter                 the operator of a function block call
+            ^^^^^    Variable "INT",   Base.limit,  Input             looked up in the callee, not in main
+    hue := Color#Red;
+                 ^^^ Variable "Color", Color.Red,   constant: true,  Global
+    r REF= i;
+    ^                Variable "DINT",  main.r,      auto_deref: Reference("__main_r")
+</code></pre>
+<p><code>r</code> is declared as <code>REFERENCE TO DINT</code>, and its type is reported as <code>DINT</code>, the type behind the reference. <code>auto_deref</code> records that one load through the pointer type <code>__main_r</code> is needed to reach that <code>DINT</code>. An <code>AT</code> alias records its own pointer type the same way. A <code>VAR_IN_OUT</code> parameter is also read through a pointer, but the entry keeps no type name for it.</p>
+<p>This is the kind codegen uses most. It looks the address of a reference up in the LLVM index by <code>qualified_name</code>, replaces a constant variable of a scalar type by its evaluated value instead of a load, and adds the load through the pointer for <code>auto_deref</code>.</p>
+<p>Validation uses variable annotations for constant assignments (E036), private-member access (E049), and reference assignments (E098). It also checks constants passed by reference and references in <code>VAR_CONFIG</code>.</p>
+<h3 id="function"><a class="header" href="#function">Function</a></h3>
+<pre><code class="language-rust noplayground">Function {
+    /// The declared return type, or VOID
+    return_type: String,
+
+    /// The function or method, such as "scale" or "Counter.area"
+    qualified_name: String,
+
+    /// For a call to a generic function: the template's name
+    generic_name: Option&lt;String&gt;,
+
+    /// For a call to a generic function: the concrete implementation to call, when it differs
+    call_name: Option&lt;String&gt;,
+}</code></pre>
+<p>The kind for the operator of a call to a function or method, and for a bare reference to one. The resolver looks the operator up with functions first, so inside <code>scale</code> the name <code>scale</code> as an operator is the function and everywhere else the return variable.</p>
+<pre><code>    i := scale(i, factor := INT#5);
+         ^^^^^                       Function return "DINT", scale
+    i := counter.area();
+                 ^^^^                Function return "DINT", Counter.area
+</code></pre>
+<p>The resolver uses the return type to annotate the call result. Generic lowering uses the callee and argument information to select an implementation. Aggregate-return lowering identifies calls that need result storage. Codegen uses <code>call_name</code> when present and <code>qualified_name</code> otherwise.</p>
+<h3 id="functionpointer"><a class="header" href="#functionpointer">FunctionPointer</a></h3>
+<pre><code class="language-rust noplayground">FunctionPointer {
+    /// The return type of the referenced function
+    return_type: String,
+
+    /// The method or function block the pointer type names, such as "Base.area"
+    qualified_name: String,
+}</code></pre>
+<p>The kind for the operator of an indirect call: a dereferenced variable whose type is a pointer to a method or to a function block body. Method tables are built from such pointers, so almost every entry of this kind comes from the <a href="../participants/03-polymorphism.html">polymorphism lowerer</a>. The example writes one by hand:</p>
+<pre><code>    i := fp^(counter);
+         ^^^             FunctionPointer return "DINT", Base.area
+         ^^              Variable "__main_fp", main.fp
+</code></pre>
+<p>Codegen generates an indirect call through the loaded pointer and takes the parameter list from the declaration <code>qualified_name</code> names. The aggregate-return lowerer treats it like <code>Function</code>.</p>
+<h3 id="type"><a class="header" href="#type">Type</a></h3>
+<pre><code class="language-rust noplayground">Type {
+    /// The name of the type
+    type_name: String,
+}</code></pre>
+<p>The kind for a reference that names a type: the left side of a cast <code>INT#5</code> or <code>Color#Red</code>, a function block type used as a qualifier, a data type in an expression position.</p>
+<pre><code>    i := scale(i, factor := INT#5);
+                            ^^^      Type "INT"
+    hue := Color#Red;
+           ^^^^^                     Type "Color"
+</code></pre>
+<p>The resolver reads it to type the right side of the cast. The validator reads it to check a literal against the type it is cast to: a value that does not fit the type or a literal kind the type cannot take (E053, E054, E061).</p>
+<h3 id="program"><a class="header" href="#program">Program</a></h3>
+<pre><code class="language-rust noplayground">Program {
+    /// The program, class, or action
+    qualified_name: String,
+}</code></pre>
+<p>The kind for a reference to a program, and also for a reference to a class or to an action, whatever POU the action belongs to. A program has exactly one instance, so the name is enough to find its memory.</p>
+<pre><code>    logger(text := 'x');
+    ^^^^^^                Program logger
+</code></pre>
+<p>Codegen loads the global instance of the program by <code>qualified_name</code> and passes its address to the call. The validator uses it to report an action referenced without parentheses (E095).</p>
+<h3 id="argument"><a class="header" href="#argument">Argument</a></h3>
+<pre><code class="language-rust noplayground">Argument {
+    /// The declared type of the parameter
+    resulting_type: String,
+
+    /// The position of the parameter among the members of the POU that declares it
+    position: usize,
+
+    /// How many EXTENDS steps lie between the called block and the block that declares the parameter
+    depth: usize,
+
+    /// The block that declares the parameter, which may be a base of the called block
+    pou: String,
+}</code></pre>
+<p><code>Argument</code> is used only as a hint. It connects each argument to a parameter. A positional argument carries the hint on its expression; a named argument carries it on the assignment node.</p>
+<pre><code>    counter(limit := 3, step := 2, count =&gt; i);
+            ^^^^^^^^^^                 hint Argument "INT",  position 1, depth 1, pou Base
+                        ^^^^^^^^^      hint Argument "DINT", position 1, depth 0, pou Counter
+                                   ^^^^^^^^^^  hint Argument "DINT", position 2, depth 0, pou Counter
+    i := scale(i, factor := INT#5);
+               ^                       hint Argument "DINT", position 0, depth 0, pou scale
+                  ^^^^^^^^^^^^^^^      hint Argument "INT",  position 1, depth 0, pou scale
+</code></pre>
+<p><code>limit</code> is declared in <code>Base</code>, one <code>EXTENDS</code> step above <code>Counter</code>, so the hint says <code>Base</code> at depth 1, not <code>Counter</code> at depth 0. The position counts members, not parameters, inside the block that declares the parameter. <code>limit</code> is the first input of <code>Base</code> but sits at position 1, because the <a href="../participants/03-polymorphism.html"><code>__vtable</code></a> member takes position 0. <code>step</code> and <code>count</code> sit behind the <a href="../participants/10-inheritance.html"><code>__Base</code></a> member of <code>Counter</code> for the same reason. A function gets neither member, so the parameters of <code>scale</code> start at position 0.</p>
+<p>Codegen uses <code>pou</code> and <code>position</code> to find the member of the instance struct that receives the value, and <code>depth</code> to walk through the embedded base parts first. The aggregate-return lowerer reads <code>pou</code> and <code>position</code> to rewrite an output argument. The type is the hint for the conversion of the argument value, like any other hint.</p>
+<h3 id="property"><a class="header" href="#property">Property</a></h3>
+<pre><code class="language-rust noplayground">Property {
+    /// The accessor to call: "__get_&lt;name&gt;" or "__set_&lt;name&gt;"
+    name: String,
+}</code></pre>
+<p>The kind for a reference to a property, before it is lowered. The <a href="../participants/02-property.html">property lowerer</a> has already turned the accessors into methods when the resolver runs. The resolver recognizes the member as a property, decides from the position of the reference whether the getter or the setter is meant, and stores the name of that accessor.</p>
+<pre><code>    i := counter.scaled;
+                 ^^^^^^    Property "__get_scaled"
+</code></pre>
+<p>Only the property lowerer reads it: at <code>post_annotate</code> it replaces every such reference by a call to the named accessor and annotates again. A <code>Property</code> entry that survives to codegen is an error; codegen has no case for it.</p>
+<h3 id="replacementast"><a class="header" href="#replacementast">ReplacementAst</a></h3>
+<pre><code class="language-rust noplayground">ReplacementAst {
+    /// The statement to generate instead of the annotated one
+    statement: AstNode,
+}</code></pre>
+<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. The replacement has its own annotations.</p>
+<pre><code>    same := text = 'hello';
+            ^^^^^^^^^^^^^^    ReplacementAst STRING_EQUAL(text, 'hello'),  hint "BOOL"
+            ^^^^              Variable "STRING", main.text,  hint Argument "STRING", position 0, pou STRING_EQUAL
+                   ^^^^^^^    Value "__STRING_5",            hint Argument "STRING", position 1, pou STRING_EQUAL
+</code></pre>
+<p>Codegen checks every expression for this kind first and generates the replacement instead of the node. The type of the node is the type of its replacement; see <a href="#deriving-a-type">Deriving a type</a>.</p>
+<h3 id="label"><a class="header" href="#label">Label</a></h3>
+<pre><code class="language-rust noplayground">Label {
+    /// The label the jump targets
+    name: String,
+}</code></pre>
+<p>The kind for a jump statement. Structured Text has no spelling for jumps and labels; they come from the <a href="../participants/00-cfc.html">CFC participant</a>, which renders a jump element into a jump statement and a label element into a label statement. The resolver collects every jump per POU and, once the labels of the POU are known, annotates each jump with the label it targets. Codegen looks the basic block of the label up by <code>name</code> and emits the branch.</p>
+<h3 id="methoddeclarations-and-override"><a class="header" href="#methoddeclarations-and-override">MethodDeclarations and Override</a></h3>
+<pre><code class="language-rust noplayground">MethodDeclarations {
+    /// Method name to the declarations of it that reach the block
+    declarations: FxHashMap&lt;String, Vec&lt;MethodDeclarationType&gt;&gt;,
+}
+
+Override {
+    /// Every method this method overrides, in the bases and interfaces
+    definitions: Vec&lt;MethodDeclarationType&gt;,
+}</code></pre>
+<p>These two kinds do not sit on expressions. <code>MethodDeclarations</code> is stored under the ID of a function block, class, or interface declaration. For every method name it lists the declarations that reach the block: one <code>Concrete</code> entry for the declaration nearest the block in its <code>EXTENDS</code> chain, and one <code>Abstract</code> entry for each interface that declares the same method. A declaration that an entry further down the chain overrides is not listed. <code>Override</code> is stored under the ID of a method declaration and lists the methods it overrides.</p>
+<pre><code>FUNCTION_BLOCK Base           MethodDeclarations { area: [Concrete Base.area] }
+FUNCTION_BLOCK Counter        MethodDeclarations { area: [Concrete Counter.area], __get_scaled: [Concrete Counter.__get_scaled] }
+    METHOD area               Override { [Concrete Base.area] }
+</code></pre>
+<p>Only the validator reads them: the first for the abstract-signature and implemented-methods checks (E111, E112), the second for the override checks (E112, E118).</p>
+<blockquote class="blockquote-tag blockquote-tag-note">
+<p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p><strong>Developer note.</strong> Two variants of the annotation enum are never produced. <code>Super</code> was meant for the <code>SUPER</code> keyword, but the inheritance lowerer rewrites <code>SUPER^</code> before it needs a type of its own, and the resolver leaves the keyword node unannotated. <code>None</code> is the default value and is not stored. The wrapper the driver puts around the map, which answers one reserved node ID with a <code>BOOL</code> value, is not read by any stage either.</p>
+</blockquote>
+<h2 id="deriving-a-type"><a class="header" href="#deriving-a-type">Deriving a type</a></h2>
+<p>Consumers use <code>get_type</code> for the annotation’s type and <code>get_type_hint</code> for its hint. Both resolve a stored name through the index.</p>
+<p><code>Value</code>, <code>Variable</code>, and <code>Argument</code> use <code>resulting_type</code>; <code>Type</code> uses <code>type_name</code>. POU annotations use <code>qualified_name</code> to find the instance type. <code>ReplacementAst</code> uses the replacement’s hint or annotation. <code>Label</code>, <code>Override</code>, <code>MethodDeclarations</code>, and <code>Property</code> have no type.</p>
+<p>Codegen compares the annotated type with the expected type from the hint. The annotation describes the value; the hint determines any conversion needed at its use. The <a href="../pipeline/05-codegen.html#expressions">Codegen</a> chapter shows the resulting instructions.</p>
+<h2 id="at-a-glance"><a class="header" href="#at-a-glance">At a glance</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Kind</th><th>Produced for</th><th>Fields</th><th>Read by</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Value</code></td><td>literals, expressions, casts, call results, element accesses</td><td>type</td><td>everyone, through <code>get_type</code></td></tr>
+<tr><td><code>Variable</code></td><td>references to declared variables, members, globals, enum variants, return variables</td><td>type, qualified name, constant, argument type, auto-deref</td><td>codegen (address, constant folding, deref load), validator (E036, E049, E098)</td></tr>
+<tr><td><code>Function</code></td><td>call operators and references naming a function or method</td><td>return type, qualified name, generic name, call name</td><td>resolver, generic lowerer, aggregate-return lowerer, codegen</td></tr>
+<tr><td><code>FunctionPointer</code></td><td>dereferenced pointer-to-method operators</td><td>return type, qualified name</td><td>aggregate-return lowerer, codegen (indirect call)</td></tr>
+<tr><td><code>Type</code></td><td>the type side of a cast, a type used as qualifier</td><td>type name</td><td>resolver, validator (literal casts)</td></tr>
+<tr><td><code>Program</code></td><td>references to programs, classes, actions</td><td>qualified name</td><td>codegen (instance address), validator (E095)</td></tr>
+<tr><td><code>Argument</code> (hint only)</td><td>every call argument</td><td>type, position, depth, declaring POU</td><td>codegen (parameter slot), aggregate-return lowerer, conversion like any hint</td></tr>
+<tr><td><code>Property</code></td><td>property references before lowering</td><td>accessor name</td><td>property lowerer</td></tr>
+<tr><td><code>ReplacementAst</code></td><td>string and other library-compared comparisons</td><td>the replacement statement</td><td>codegen</td></tr>
+<tr><td><code>Label</code></td><td>jump statements from CFC</td><td>label name</td><td>codegen</td></tr>
+<tr><td><code>MethodDeclarations</code></td><td>block, class, and interface declarations (by declaration ID)</td><td>method name to declarations</td><td>validator (E111, E112)</td></tr>
+<tr><td><code>Override</code></td><td>method declarations that override (by declaration ID)</td><td>overridden methods</td><td>validator (E112, E118)</td></tr>
+</tbody>
+</table>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../technical/internals/07-initializers.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../technical/internals/07-initializers.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../../mark-09e88c2c.min.js"></script>
+        <script src="../../searcher-09f2665d.js"></script>
+
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../assets/iecst-83312e6c.min.js"></script>
+        <script src="../../assets/llvm-f75dd1ee.min.js"></script>
+        <script src="../../assets/custom-d3415838.js"></script>
+        <script src="../../assets/highlight-2bf385f2.js"></script>
+        <script src="../../assets/mermaid-eefea253.min.js"></script>
+        <script src="../../assets/mermaid-init-53b67c53.js"></script>
+
+
+
+    </div>
+    </body>
+</html>
