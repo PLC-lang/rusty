@@ -496,12 +496,11 @@ fn numeric_array_literal_elements_are_cast_to_the_element_type() {
         r#"
         FUNCTION main : DINT
         VAR
-            dints : ARRAY[0..1] OF DINT := [TRUE, FALSE];
-            reals : ARRAY[0..1] OF REAL := [TRUE, FALSE];
             ints : ARRAY[0..1] OF INT := [1.5, 2];
-            later : ARRAY[0..1] OF LREAL;
+            dints : ARRAY[0..1] OF DINT := [2.5, 3.75];
+            later : ARRAY[0..1] OF INT;
         END_VAR
-            later := [TRUE, FALSE];
+            later := [4.5, 5];
         END_FUNCTION
         "#,
     );
@@ -512,24 +511,21 @@ fn numeric_array_literal_elements_are_cast_to_the_element_type() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @__main.dints__init = unnamed_addr constant [2 x i32] [i32 1, i32 0]
-    @__main.reals__init = unnamed_addr constant [2 x float] [float 1.000000e+00, float 0.000000e+00]
     @__main.ints__init = unnamed_addr constant [2 x i16] [i16 1, i16 2]
-    @.const_init = private unnamed_addr constant [2 x double] [double 1.000000e+00, double 0.000000e+00]
+    @__main.dints__init = unnamed_addr constant [2 x i32] [i32 2, i32 3]
+    @.const_init = private unnamed_addr constant [2 x i16] [i16 4, i16 5]
 
     define i32 @main() {
     entry:
       %main = alloca i32, align [filtered]
-      %dints = alloca [2 x i32], align [filtered]
-      %reals = alloca [2 x float], align [filtered]
       %ints = alloca [2 x i16], align [filtered]
-      %later = alloca [2 x double], align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %dints, ptr align [filtered] @__main.dints__init, i64 ptrtoint (ptr getelementptr ([2 x i32], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %reals, ptr align [filtered] @__main.reals__init, i64 ptrtoint (ptr getelementptr ([2 x float], ptr null, i32 1) to i64), i1 false)
+      %dints = alloca [2 x i32], align [filtered]
+      %later = alloca [2 x i16], align [filtered]
       call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %ints, ptr align [filtered] @__main.ints__init, i64 ptrtoint (ptr getelementptr ([2 x i16], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memset.p0.i64(ptr align [filtered] %later, i8 0, i64 ptrtoint (ptr getelementptr ([2 x double], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %dints, ptr align [filtered] @__main.dints__init, i64 ptrtoint (ptr getelementptr ([2 x i32], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %later, i8 0, i64 ptrtoint (ptr getelementptr ([2 x i16], ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %later, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([2 x double], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %later, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([2 x i16], ptr null, i32 1) to i64), i1 false)
       %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }

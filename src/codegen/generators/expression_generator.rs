@@ -2908,7 +2908,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         for e in elements {
             //generate with correct type hint using context-free generator
             let value = ctx_free_gen.generate_literal(e)?.get_basic_value_enum();
-            // numeric literals take the type of the array element, e.g. `TRUE` in an ARRAY OF REAL
+            // numeric literals take the type of the array element, e.g. `1.5` in an ARRAY OF INT
             let value = match value {
                 BasicValueEnum::IntValue(_) | BasicValueEnum::FloatValue(_) => cast_if_needed!(
                     ctx_free_gen,

@@ -467,11 +467,11 @@ fn assignment_suggestion_for_equal_operation_with_no_effect() {
         "
         PROGRAM main
             VAR
-                value       : DINT;
+                value       : BOOL;
                 condition   : BOOL;
 
                 // These Should work
-                arr_dint : ARRAY[0..5] OF DINT := [1 = 1, 2, 3, 4, 5 = 5];
+                arr_eq   : ARRAY[0..4] OF BOOL := [1 = 1, 2 = 2, 3 = 3, 4 = 4, 5 = 5];
                 arr_bool : ARRAY[1..5] OF BOOL := [1 = 1, 2 = 2, 3 = 3, 4 = 4, 5 = 10];
             END_VAR
 
@@ -1608,7 +1608,7 @@ fn output_variables_must_be_assignable_within_the_scope_of_inheritance() {
             END_VAR
 
             out1 := 1;
-            out2 := 2;
+            out2 := TRUE;
         END_FUNCTION_BLOCK
 
         PROGRAM mainProg
@@ -2048,7 +2048,10 @@ fn initializers_with_incompatible_types_are_reported() {
             strFromReal : STRING := 3.5;
             strFromBool : STRING := TRUE;
             int : INT := 'abc';
+            dintFromBool : DINT := TRUE;
+            boolFromInt : BOOL := 5;
             validStr : STRING := 'abc';
+            validBool : BOOL := 1;
             validInt : DINT := 3;
             validReal : LREAL := 3;
             validStruct : MyStruct := (member := 'abc');
@@ -2060,6 +2063,12 @@ fn initializers_with_incompatible_types_are_reported() {
     );
 
     assert_snapshot!(diagnostics, @"
+    warning[E039]: This will overflow for type BOOL
+       ┌─ <internal>:23:35
+       │
+    23 │             boolFromInt : BOOL := 5;
+       │                                   ^ This will overflow for type BOOL
+
     error[E037]: Invalid assignment: cannot assign 'DINT' to 'WSTRING'
        ┌─ <internal>:12:32
        │
@@ -2089,6 +2098,18 @@ fn initializers_with_incompatible_types_are_reported() {
        │
     21 │             int : INT := 'abc';
        │                          ^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
+
+    error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT'
+       ┌─ <internal>:22:36
+       │
+    22 │             dintFromBool : DINT := TRUE;
+       │                                    ^^^^ Invalid assignment: cannot assign 'BOOL' to 'DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL'
+       ┌─ <internal>:23:35
+       │
+    23 │             boolFromInt : BOOL := 5;
+       │                                   ^ Invalid assignment: cannot assign 'DINT' to 'BOOL'
 
     error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
       ┌─ <internal>:3:32
