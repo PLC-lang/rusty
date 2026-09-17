@@ -34,7 +34,7 @@ use plc::{
         TypeAnnotator,
     },
     validation::Validator,
-    ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
+    ConfigFormat, ErrorFormat, OnlineChange, Target, TargetExt, Threads,
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,

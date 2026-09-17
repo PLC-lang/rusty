@@ -27,8 +27,8 @@ plc_diagnostics = { path = "./compiler/plc_diagnostics", version = "1.1.0-dev" }
 plc_index = { path = "./compiler/plc_index", version = "1.1.0-dev" }
 section_mangler = { path = "./compiler/section_mangler", version = "1.1.0-dev" }
 plc_llvm = { path = "./compiler/plc_llvm", version = "1.1.0-dev" }
+plc_options = { path = "./compiler/plc_options", version = "1.1.0-dev" }
 logos.workspace = true
-clap = { version = "3.0", features = ["derive"] }
 indexmap = { workspace = true, features = ["serde"] }
 generational-arena = { version = "0.2.8", features = ["serde"] }
 shell-words = "1.1.0"
@@ -86,6 +86,7 @@ members = [
     "compiler/section_mangler",
     "compiler/plc_lowering",
     "compiler/plc_llvm",
+    "compiler/plc_options",
     "compiler/plc_header_generator",
     "compiler/plc_cfc",
     "tests/test_utils",

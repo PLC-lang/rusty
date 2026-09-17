@@ -22,7 +22,7 @@ use self::{
 use crate::{
     output::{FormatOption, RelocationPreference},
     resolver::{AstAnnotations, Dependency, StringLiterals},
-    DebugLevel, OnlineChange, OptimizationLevel, Target,
+    DebugLevel, OnlineChange, OptimizationLevel, OptimizationLevelExt, Target, TargetExt,
 };
 
 use super::index::*;

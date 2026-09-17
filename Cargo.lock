@@ -2227,7 +2227,6 @@ version = "1.1.0-dev"
 dependencies = [
  "anyhow",
  "chrono",
- "clap 3.2.25",
  "encoding_rs",
  "encoding_rs_io",
  "generational-arena",
@@ -2247,6 +2246,7 @@ dependencies = [
  "plc_lexer",
  "plc_llvm",
  "plc_lowering",
+ "plc_options",
  "plc_parser",
  "plc_project",
  "plc_source",
@@ -2419,6 +2419,14 @@ dependencies = [
  "plc_diagnostics",
  "plc_driver",
  "plc_source",
+]
+
+[[package]]
+name = "plc_options"
+version = "1.1.0-dev"
+dependencies = [
+ "clap 3.2.25",
+ "serde",
 ]
 
 [[package]]

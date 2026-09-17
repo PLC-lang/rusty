@@ -50,12 +50,10 @@ enum DebugEncoding {
     DW_ATE_UTF = 0x10,
 }
 
-impl From<DebugLevel> for DWARFEmissionKind {
-    fn from(level: DebugLevel) -> Self {
-        match level {
-            DebugLevel::Full(_) | DebugLevel::VariablesOnly(_) => DWARFEmissionKind::Full,
-            _ => DWARFEmissionKind::None,
-        }
+fn emission_kind(level: DebugLevel) -> DWARFEmissionKind {
+    match level {
+        DebugLevel::Full(_) | DebugLevel::VariablesOnly(_) => DWARFEmissionKind::Full,
+        _ => DWARFEmissionKind::None,
     }
 }
 
@@ -399,7 +397,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     "",
                     0,
                     "",
-                    debug_level.into(),
+                    emission_kind(debug_level),
                     0,
                     false,
                     false,
