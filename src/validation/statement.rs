@@ -1997,6 +1997,8 @@ fn is_valid_assignment(
         // because those would fail
         return true;
     } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
+        | is_invalid_bool_assignment(left_type.get_type_information(), right_type.get_type_information())
+        | is_invalid_bool_literal_assignment(left_type.get_type_information(), right)
         | is_invalid_pointer_assignment(
             left_type.get_type_information(),
             right_type.get_type_information(),
@@ -2099,6 +2101,23 @@ fn is_invalid_char_assignment(left_type: &DataTypeInformation, right_type: &Data
         return true;
     }
     false
+}
+
+/// a BOOL value is not implicitly converted to another numeric type
+fn is_invalid_bool_assignment(left_type: &DataTypeInformation, right_type: &DataTypeInformation) -> bool {
+    right_type.is_bool() && left_type.is_numerical() && !left_type.is_bool()
+}
+
+/// only the literals 0 and 1 are BOOL values
+fn is_invalid_bool_literal_assignment(left_type: &DataTypeInformation, right: &AstNode) -> bool {
+    if !left_type.is_bool() {
+        return false;
+    }
+    match right.get_stmt_peeled() {
+        AstStatement::Literal(AstLiteral::Integer(value)) => *value != 0 && *value != 1,
+        AstStatement::Literal(AstLiteral::Real(_)) => true,
+        _ => false,
+    }
 }
 
 /// aggregate types can only be assigned to aggregate types

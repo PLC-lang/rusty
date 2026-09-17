@@ -33,6 +33,18 @@ VAR
     strFromBool : STRING := TRUE;
     // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
     int : INT := 'abc';
+    // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT'
+    dintFromBool : DINT := TRUE;
+    // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'BOOL' to 'INT'
+    intFromBool : INT := TRUE;
+    // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'BOOL' to 'REAL'
+    realFromBool : REAL := TRUE;
+    // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL'
+    boolFromInt : BOOL := 5;
+    // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT'
+    dintsFromBool : ARRAY[0..0] OF DINT := [TRUE];
+    // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
+    dintsFromStr : ARRAY[0..0] OF DINT := ['a'];
 
     // Compatible initializers are not reported
     validStr : STRING := 'abc';
@@ -40,6 +52,9 @@ VAR
     validReal : LREAL := 3;
     validStruct : MyStruct := (member := 'abc');
     validArray : ARRAY[0..1] OF DINT := [1, 2];
+    validBool : BOOL := 1;
+    validBools : ARRAY[0..1] OF BOOL := [TRUE, 0];
+    validNested : ARRAY[0..1] OF ARRAY[0..0] OF INT := [[1], [2]];
     validFb : MyFb;
 END_VAR
 END_PROGRAM
