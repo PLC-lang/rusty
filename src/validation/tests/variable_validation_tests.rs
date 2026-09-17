@@ -576,7 +576,13 @@ fn invalid_initial_constant_values_in_pou_variables() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:10:28
+       │
+    10 │             my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
+       │                            ^^^ Implicit downcast from 'DINT' to 'INT'.
+
     error[E033]: Unresolved constant `my_len` variable: `LEN` is no const reference
        ┌─ <internal>:10:28
        │
@@ -899,7 +905,13 @@ fn unresolved_references_to_const_builtins_in_initializer_are_reported() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
+    warning[E090]: Pointers REF_TO BOOL and VOID have different types
+      ┌─ <internal>:4:38
+      │
+    4 │                 bar : REF_TO BOOL := REF(gb); // unresolved reference to gb
+      │                                      ^^^^^^^ Pointers REF_TO BOOL and VOID have different types
+
     error[E048]: Could not resolve reference to gb
       ┌─ <internal>:4:42
       │
@@ -1012,12 +1024,18 @@ fn trying_to_initialize_a_pointer_with_builtin_ref_with_type_mismatch_leads_to_e
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r"
-    error[E037]: Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING := REF(a)'
+    assert_snapshot!(diagnostics, @"
+    warning[E090]: Pointers REF_TO STRING and DINT have different types
       ┌─ <internal>:7:36
       │
     7 │             bar : REF_TO STRING := REF(a);
-      │                                    ^^^^^^ Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING := REF(a)'
+      │                                    ^^^^^^ Pointers REF_TO STRING and DINT have different types
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING'
+      ┌─ <internal>:7:36
+      │
+    7 │             bar : REF_TO STRING := REF(a);
+      │                                    ^^^^^^ Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING'
     ");
 }
 
@@ -2016,4 +2034,84 @@ fn fb_var_temp_visible_inside_fb_body_and_actions() {
     );
 
     assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn initializers_with_incompatible_types_are_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        TYPE MyStruct : STRUCT
+            member : STRING := 3;
+        END_STRUCT END_TYPE
+
+        VAR_GLOBAL
+            gInt : DINT := 'abc';
+        END_VAR
+
+        FUNCTION_BLOCK MyFb
+        VAR
+            fbStr : WSTRING := 3;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM mainProg
+        VAR
+            str : STRING := 3;
+            strFromReal : STRING := 3.5;
+            strFromBool : STRING := TRUE;
+            int : INT := 'abc';
+            validStr : STRING := 'abc';
+            validInt : DINT := 3;
+            validReal : LREAL := 3;
+            validStruct : MyStruct := (member := 'abc');
+            validArray : ARRAY[0..1] OF DINT := [1, 2];
+            validFb : MyFb;
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'WSTRING'
+       ┌─ <internal>:12:32
+       │
+    12 │             fbStr : WSTRING := 3;
+       │                                ^ Invalid assignment: cannot assign 'DINT' to 'WSTRING'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
+       ┌─ <internal>:18:29
+       │
+    18 │             str : STRING := 3;
+       │                             ^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'REAL' to 'STRING'
+       ┌─ <internal>:19:37
+       │
+    19 │             strFromReal : STRING := 3.5;
+       │                                     ^^^ Invalid assignment: cannot assign 'REAL' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'BOOL' to 'STRING'
+       ┌─ <internal>:20:37
+       │
+    20 │             strFromBool : STRING := TRUE;
+       │                                     ^^^^ Invalid assignment: cannot assign 'BOOL' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
+       ┌─ <internal>:21:26
+       │
+    21 │             int : INT := 'abc';
+       │                          ^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
+      ┌─ <internal>:3:32
+      │
+    3 │             member : STRING := 3;
+      │                                ^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
+      ┌─ <internal>:7:28
+      │
+    7 │             gInt : DINT := 'abc';
+      │                            ^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+    ");
 }
