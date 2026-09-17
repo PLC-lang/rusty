@@ -413,20 +413,19 @@ fn validate_variable<T: AnnotationMap>(
                 .as_ref()
                 .is_some_and(|initializer| initializer.is_struct_literal_initializer());
 
-        // `REFERENCE TO` and alias declarations bind a reference instead of assigning a value, their
-        // initializer is checked by `validate_reference_to_declaration`
-        let is_reference_declaration = context
+        // pointer declarations are checked by `validate_reference_to_declaration` and by the
+        // address branch below
+        let is_pointer_declaration = context
             .index
             .find_effective_type_by_name(v_entry.get_type_name())
-            .map(|ty| ty.get_type_information())
-            .is_some_and(|ty| ty.is_reference_to() || ty.is_alias());
+            .is_some_and(|ty| ty.get_type_information().is_pointer());
 
         if let Some(initializer) = &variable.initializer {
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the last function call (`visit_statement`) validates the
             // initializer in case it has further sub-assignments.
             validate_array_assignment(validator, context, variable);
-            if !is_reference_declaration {
+            if !is_pointer_declaration {
                 validate_assignment(validator, initializer, None, &initializer.location, context);
             }
             visit_statement(validator, initializer, context);
@@ -470,13 +469,7 @@ fn validate_variable<T: AnnotationMap>(
                                 validator, context, v_entry, node,
                             );
 
-                            validate_assignment_mismatch(
-                                context,
-                                validator,
-                                context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
-                                rhs_ty,
-                                &node.get_location(),
-                            );
+                            validate_assignment(validator, node, None, &node.get_location(), context);
                         }
                     };
                 }

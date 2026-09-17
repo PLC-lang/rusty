@@ -906,12 +906,6 @@ fn unresolved_references_to_const_builtins_in_initializer_are_reported() {
     );
 
     assert_snapshot!(diagnostics, @"
-    warning[E090]: Pointers REF_TO BOOL and VOID have different types
-      ┌─ <internal>:4:38
-      │
-    4 │                 bar : REF_TO BOOL := REF(gb); // unresolved reference to gb
-      │                                      ^^^^^^^ Pointers REF_TO BOOL and VOID have different types
-
     error[E048]: Could not resolve reference to gb
       ┌─ <internal>:4:42
       │
@@ -1010,7 +1004,7 @@ fn trying_to_initialize_a_pointer_of_unknown_type_is_reported() {
 }
 
 #[test]
-fn trying_to_initialize_a_pointer_with_builtin_ref_with_type_mismatch_leads_to_error() {
+fn trying_to_initialize_a_pointer_with_builtin_ref_with_type_mismatch_leads_to_warning() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         VAR_GLOBAL
@@ -1030,12 +1024,6 @@ fn trying_to_initialize_a_pointer_with_builtin_ref_with_type_mismatch_leads_to_e
       │
     7 │             bar : REF_TO STRING := REF(a);
       │                                    ^^^^^^ Pointers REF_TO STRING and DINT have different types
-
-    error[E037]: Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING'
-      ┌─ <internal>:7:36
-      │
-    7 │             bar : REF_TO STRING := REF(a);
-      │                                    ^^^^^^ Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING'
     ");
 }
 
