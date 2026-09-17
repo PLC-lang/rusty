@@ -137,7 +137,10 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
+            // lowered copies of variable initializers are validated at their declaration
+            if !statement.location.is_internal() {
+                validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
+            }
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::OutputAssignment(data) => {
@@ -1557,7 +1560,7 @@ fn validate_alias_assignment<T: AnnotationMap>(
     }
 }
 
-fn validate_assignment<T: AnnotationMap>(
+pub(super) fn validate_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     right: &AstNode,
     left: Option<&AstNode>,

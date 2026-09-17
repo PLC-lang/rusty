@@ -97,3 +97,33 @@ warning[E039]: This will overflow for type ULINT
    │
 26 │                 max_ulint   : ULINT  := ((18_446_744_073_709_551_615 * 1) * 2); // 18_446_744_073_709_551_615
    │                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type ULINT
+
+warning[E067]: Implicit downcast from 'UINT' to 'USINT'.
+  ┌─ <internal>:8:43
+  │
+8 │                 max_usint   : USINT  := ((256 * 1) * 2);    // 256
+  │                                           ^^^ Implicit downcast from 'UINT' to 'USINT'.
+
+warning[E067]: Implicit downcast from 'UDINT' to 'UINT'.
+   ┌─ <internal>:14:42
+   │
+14 │                 max_uint    : UINT  := ((65_536 * 1) * 2);  // 65536
+   │                                          ^^^^^^ Implicit downcast from 'UDINT' to 'UINT'.
+
+warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
+   ┌─ <internal>:17:42
+   │
+17 │                 min_dint    : DINT  := ((-2_147_483_649 * 1) * 2);  // -2_147_483_648
+   │                                          ^^^^^^^^^^^^^^ Implicit downcast from 'LINT' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
+   ┌─ <internal>:18:43
+   │
+18 │                 max_dint    : DINT  := (( 2_147_483_648 * 1) * 2);  //  2_147_483_647
+   │                                           ^^^^^^^^^^^^^ Implicit downcast from 'LINT' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'ULINT' to 'UDINT'.
+   ┌─ <internal>:20:43
+   │
+20 │                 max_udint   : UDINT  := ((4_294_967_296 * 1) * 2);  // 4_294_967_296
+   │                                           ^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'UDINT'.
