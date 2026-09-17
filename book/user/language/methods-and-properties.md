@@ -1,0 +1,105 @@
+# Methods and Properties
+
+A function block can do more than run one body. A method adds an operation, a property adds a value that looks like a variable but runs code.
+
+
+## Methods
+
+A method is declared inside the function block, it has its own parameters and its own result, and it works on the data of the instance:
+
+```iecst
+FUNCTION_BLOCK Tank
+    VAR
+        level: DINT;
+    END_VAR
+
+    METHOD Fill: DINT
+        VAR_INPUT
+            amount: DINT;
+        END_VAR
+
+        level := level + amount;
+        Fill := level;
+    END_METHOD
+END_FUNCTION_BLOCK
+```
+
+Call it through an instance:
+
+```iecst
+VAR
+    inlet: Tank;
+    value: DINT;
+END_VAR
+
+value := inlet.Fill(amount := 3);
+```
+
+`value` is now `3`, the new level. A method is called like a [function](functions.md#calling): the arguments come by position, in the order of the declaration, or by name. Give every parameter a value, because a parameter that the call leaves out takes the default value of its declaration, and a parameter without a default holds no defined value. The body of the block and its methods share the data of the instance, but a local variable of a method does not survive the call.
+
+Inside a method, `THIS^` names the instance itself. You need it when a parameter and a member have the same name, because the parameter hides the member:
+
+```iecst
+METHOD SetLevel
+    VAR_INPUT
+        level: DINT;
+    END_VAR
+
+    THIS^.level := level;
+END_METHOD
+```
+
+`THIS` works in a function block, in its methods, and in its actions. A `CLASS` does not have it, and a use of `THIS` there is rejected.
+
+
+## Properties
+
+Where a method is called, a property is read and written. It is a value with code behind it, and it has a getter, a setter, or both. Inside an accessor, the name of the property is the value, exactly as the name of a function is its result:
+
+```iecst
+FUNCTION_BLOCK Tank
+    VAR
+        level: DINT;
+    END_VAR
+
+    PROPERTY_GET Percent: DINT
+        Percent := level * 10;
+    END_PROPERTY
+
+    PROPERTY_SET Percent: DINT
+        level := Percent / 10;
+    END_PROPERTY
+END_FUNCTION_BLOCK
+```
+
+From outside, the property is used like a member, and the accessor runs:
+
+```iecst
+VAR
+    inlet: Tank;
+    reading: DINT;
+END_VAR
+
+inlet.Percent := 50;      (* runs the setter, level becomes 5 *)
+reading := inlet.Percent; (* runs the getter, 50 *)
+```
+
+When a property has both accessors, both must name the same type. A property with a getter only is read-only, and a write to it is reported:
+
+```
+error[E048]: PROPERTY_SET for property `Percent` is not defined
+```
+
+A property with a setter only is write-only, and a read of it is reported the same way.
+
+A `CLASS` declares a property like a function block does. An `INTERFACE` declares one without bodies, and every block that implements the interface must supply the accessors that the interface names.
+
+
+## Method or property
+
+Use a property when the caller thinks of the thing as a value: a level, a limit, a state. Use a method when the caller thinks of it as an action. An accessor takes no parameters, so an operation that needs arguments is always a method. Keep the work behind a property small, because the caller reads it as a plain variable.
+
+
+## What's next
+
+The next chapter lets one function block build on another, with [inheritance and interfaces](inheritance.md).
