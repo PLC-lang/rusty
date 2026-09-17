@@ -2245,6 +2245,7 @@ dependencies = [
  "plc_driver",
  "plc_index",
  "plc_lexer",
+ "plc_linker",
  "plc_llvm",
  "plc_lowering",
  "plc_parser",
@@ -2263,7 +2264,6 @@ dependencies = [
  "tempfile",
  "test_utils",
  "toml 0.8.23",
- "which",
 ]
 
 [[package]]
@@ -2392,6 +2392,18 @@ dependencies = [
  "plc_diagnostics",
  "plc_source",
  "pretty_assertions",
+]
+
+[[package]]
+name = "plc_linker"
+version = "1.1.0-dev"
+dependencies = [
+ "insta",
+ "log",
+ "plc_diagnostics",
+ "serial_test",
+ "tempfile",
+ "which",
 ]
 
 [[package]]

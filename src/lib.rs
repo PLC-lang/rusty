@@ -39,7 +39,7 @@ pub mod hw_map;
 pub mod index;
 pub use plc_lexer as lexer;
 pub use plc_lexer::expect_token;
-pub mod linker;
+pub use plc_linker as linker;
 pub mod lowering;
 pub mod output;
 pub mod parser;

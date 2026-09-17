@@ -829,7 +829,7 @@ fn quote_response_file_arg(arg: &str, style: ResponseFileStyle) -> String {
 
 #[cfg(test)]
 mod test {
-    use crate::linker::{probe_args, resolve_external_linker, CcLinker, Linker, LinkerInterface, LinkerType};
+    use crate::{probe_args, resolve_external_linker, CcLinker, Linker, LinkerInterface, LinkerType};
 
     #[test]
     fn windows_target_triple_should_result_in_ok() {
@@ -1024,7 +1024,7 @@ mod test {
         assert!(linker.command_args().contains(&format!("--target={target}")));
     }
 
-    use crate::linker::{diagnose_spawn_error, LinkerError};
+    use crate::{diagnose_spawn_error, LinkerError};
     use insta::assert_snapshot;
     use std::path::Path;
 
@@ -1087,13 +1087,13 @@ mod test {
     }
 
     #[cfg(windows)]
-    use crate::linker::RESPONSE_FILE_THRESHOLD;
-    use crate::linker::{
+    use crate::RESPONSE_FILE_THRESHOLD;
+    use crate::{
         approximate_cmdline_len, quote_response_file_arg, should_use_response_file, write_response_file,
     };
     use serial_test::serial;
 
-    use crate::linker::ResponseFileStyle;
+    use crate::ResponseFileStyle;
 
     const LITERAL: ResponseFileStyle = ResponseFileStyle::LiteralBackslash;
     const ESCAPED: ResponseFileStyle = ResponseFileStyle::EscapedBackslash;
