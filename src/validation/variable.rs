@@ -413,8 +413,6 @@ fn validate_variable<T: AnnotationMap>(
                 .as_ref()
                 .is_some_and(|initializer| initializer.is_struct_literal_initializer());
 
-        // pointer declarations are checked by `validate_reference_to_declaration` and by the
-        // address branch below
         let is_pointer_declaration = context
             .index
             .find_effective_type_by_name(v_entry.get_type_name())
@@ -425,7 +423,13 @@ fn validate_variable<T: AnnotationMap>(
             // assignment as a whole whereas the last function call (`visit_statement`) validates the
             // initializer in case it has further sub-assignments.
             validate_array_assignment(validator, context, variable);
-            if !is_pointer_declaration {
+            // pointer declarations accept integer initializers; address initializers are checked by the
+            // address branch below and `REFERENCE TO` bindings by `validate_reference_to_declaration`
+            let initializer_type =
+                context.annotations.get_type_or_void(initializer, context.index).get_type_information();
+            let is_accepted_pointer_initializer = is_pointer_declaration
+                && (initializer_type.is_pointer() || initializer_type.is_int() || initializer_type.is_void());
+            if !is_accepted_pointer_initializer {
                 validate_assignment(validator, initializer, None, &initializer.location, context);
             }
             visit_statement(validator, initializer, context);
