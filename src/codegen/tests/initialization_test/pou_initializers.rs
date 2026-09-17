@@ -489,3 +489,58 @@ fn pou_local_constant_as_array_bound_of_a_constructed_element_type() {
     assert!(result.contains("icmp sgt i32 %load___prog_arr__idx0, 5"), "{result}");
     assert!(!result.contains("DINT_GREATER"), "{result}");
 }
+
+#[test]
+fn numeric_array_literal_elements_are_cast_to_the_element_type() {
+    let result = codegen(
+        r#"
+        FUNCTION main : DINT
+        VAR
+            dints : ARRAY[0..1] OF DINT := [TRUE, FALSE];
+            reals : ARRAY[0..1] OF REAL := [TRUE, FALSE];
+            ints : ARRAY[0..1] OF INT := [1.5, 2];
+            later : ARRAY[0..1] OF LREAL;
+        END_VAR
+            later := [TRUE, FALSE];
+        END_FUNCTION
+        "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @__main.dints__init = unnamed_addr constant [2 x i32] [i32 1, i32 0]
+    @__main.reals__init = unnamed_addr constant [2 x float] [float 1.000000e+00, float 0.000000e+00]
+    @__main.ints__init = unnamed_addr constant [2 x i16] [i16 1, i16 2]
+    @.const_init = private unnamed_addr constant [2 x double] [double 1.000000e+00, double 0.000000e+00]
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %dints = alloca [2 x i32], align [filtered]
+      %reals = alloca [2 x float], align [filtered]
+      %ints = alloca [2 x i16], align [filtered]
+      %later = alloca [2 x double], align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %dints, ptr align [filtered] @__main.dints__init, i64 ptrtoint (ptr getelementptr ([2 x i32], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %reals, ptr align [filtered] @__main.reals__init, i64 ptrtoint (ptr getelementptr ([2 x float], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %ints, ptr align [filtered] @__main.ints__init, i64 ptrtoint (ptr getelementptr ([2 x i16], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %later, i8 0, i64 ptrtoint (ptr getelementptr ([2 x double], ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %later, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([2 x double], ptr null, i32 1) to i64), i1 false)
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
+}
