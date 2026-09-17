@@ -11,6 +11,7 @@ use plc_ast::{
         TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
+    type_names::DINT_TYPE,
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
@@ -22,16 +23,13 @@ use plc_source::{
 };
 use plc_util::convention::qualified_name;
 
-use crate::{
-    expect_token,
-    index::FxIndexMap,
-    lexer::{
-        self, ParseSession,
-        Token::{self, *},
-        TokenClass,
-    },
-    typesystem::DINT_TYPE,
+use plc_lexer as lexer;
+use plc_lexer::{
+    expect_token, ParseSession,
+    Token::{self, *},
+    TokenClass,
 };
+use plc_util::FxIndexMap;
 
 use self::{
     control_parser::parse_control_statement,
@@ -41,8 +39,6 @@ use self::{
 mod control_parser;
 pub mod expressions_parser;
 
-#[cfg(test)]
-pub mod tests;
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
 pub fn parse_file(

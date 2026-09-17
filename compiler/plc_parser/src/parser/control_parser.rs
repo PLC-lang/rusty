@@ -5,11 +5,8 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use crate::{
-    expect_token,
-    lexer::Token::*,
-    parser::{parse_any_in_region, parse_body_in_region},
-};
+use crate::parser::{parse_any_in_region, parse_body_in_region};
+use plc_lexer::{expect_token, Token::*};
 
 use super::ParseSession;
 use super::{parse_expression, parse_reference, parse_statement};

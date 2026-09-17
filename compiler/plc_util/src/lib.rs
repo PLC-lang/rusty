@@ -1,6 +1,17 @@
 pub mod convention;
 pub mod path;
 
+use std::hash::BuildHasherDefault;
+
+use indexmap::{IndexMap, IndexSet};
+use rustc_hash::FxHasher;
+
+/// Type alias for an IndexMap using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
+pub type FxIndexMap<K, V> = IndexMap<K, V, BuildHasherDefault<FxHasher>>;
+
+/// Type alias for a IndexSet using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
+pub type FxIndexSet<K> = IndexSet<K, BuildHasherDefault<FxHasher>>;
+
 #[doc(hidden)]
 pub fn escape_regex_literal(value: &str) -> String {
     let mut escaped = String::with_capacity(value.len());

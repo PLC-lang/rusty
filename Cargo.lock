@@ -2425,11 +2425,13 @@ dependencies = [
 name = "plc_parser"
 version = "1.1.0-dev"
 dependencies = [
+ "indexmap 2.14.0",
  "plc_ast",
  "plc_diagnostics",
  "plc_lexer",
  "plc_literals",
  "plc_source",
+ "plc_util",
 ]
 
 [[package]]
@@ -2465,6 +2467,10 @@ dependencies = [
 [[package]]
 name = "plc_util"
 version = "1.1.0-dev"
+dependencies = [
+ "indexmap 2.14.0",
+ "rustc-hash",
+]
 
 [[package]]
 name = "polling"

@@ -1,19 +1,13 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::{
-    expect_token,
-    lexer::Token::*,
-    lexer::{ParseSession, Token},
-    parser::parse_any_in_region,
-};
+use crate::parser::parse_any_in_region;
+use crate::{parse_literal_date, parse_literal_date_and_time, parse_literal_time, parse_literal_time_of_day};
 use plc_ast::{
     ast::{AstFactory, AstNode, AstStatement, DirectAccessType, Operator},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_parser::{
-    parse_literal_date, parse_literal_date_and_time, parse_literal_time, parse_literal_time_of_day,
-};
+use plc_lexer::{expect_token, ParseSession, Token, Token::*};
 use plc_source::source_location::SourceLocation;
 use std::ops::Range;
 
