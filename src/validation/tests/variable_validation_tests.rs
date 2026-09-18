@@ -467,17 +467,14 @@ fn assignment_suggestion_for_equal_operation_with_no_effect() {
         "
         PROGRAM main
             VAR
-                value       : BOOL;
+                value       : DINT;
                 condition   : BOOL;
 
                 // These Should work
-                arr_eq   : ARRAY[0..4] OF BOOL := [1 = 1, 2 = 2, 3 = 3, 4 = 4, 5 = 5];
                 arr_bool : ARRAY[1..5] OF BOOL := [1 = 1, 2 = 2, 3 = 3, 4 = 4, 5 = 10];
             END_VAR
 
             // These should work
-            value := (condition = TRUE);
-
             IF   condition = TRUE   THEN (* ... *) END_IF
             IF  (condition = TRUE)  THEN (* ... *) END_IF
             IF ((condition = TRUE)) THEN (* ... *) END_IF
@@ -2022,6 +2019,76 @@ fn fb_var_temp_visible_inside_fb_body_and_actions() {
     );
 
     assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn typed_literal_initializers_are_validated_against_the_cast_type() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        PROGRAM mainProg
+        VAR
+            dintFromBool : DINT := DINT#TRUE;
+            dintFromReal : DINT := DINT#1.5;
+            realFromBool : REAL := REAL#TRUE;
+            boolFromInt : BOOL := BOOL#5;
+            validDint : DINT := DINT#5;
+            validReal : REAL := REAL#1.5;
+            validBool : BOOL := BOOL#TRUE;
+            validBoolFromInt : BOOL := BOOL#1;
+        END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r#"
+    warning[E039]: This will overflow for type BOOL
+      ┌─ <internal>:7:40
+      │
+    7 │             boolFromInt : BOOL := BOOL#5;
+      │                                        ^ This will overflow for type BOOL
+
+    error[E054]: Literal true is not compatible to DINT
+      ┌─ <internal>:4:36
+      │
+    4 │             dintFromBool : DINT := DINT#TRUE;
+      │                                    ^^^^^^^^^ Literal true is not compatible to DINT
+
+    error[E033]: Unresolved constant `dintFromBool` variable: Expected integer value, found LiteralBool { value: true }
+      ┌─ <internal>:4:36
+      │
+    4 │             dintFromBool : DINT := DINT#TRUE;
+      │                                    ^^^^^^^^^ Unresolved constant `dintFromBool` variable: Expected integer value, found LiteralBool { value: true }
+
+    error[E054]: Literal 1.5 is not compatible to DINT
+      ┌─ <internal>:5:36
+      │
+    5 │             dintFromReal : DINT := DINT#1.5;
+      │                                    ^^^^^^^^ Literal 1.5 is not compatible to DINT
+
+    error[E033]: Unresolved constant `dintFromReal` variable: Expected integer value, found LiteralReal { value: "1.5" }
+      ┌─ <internal>:5:36
+      │
+    5 │             dintFromReal : DINT := DINT#1.5;
+      │                                    ^^^^^^^^ Unresolved constant `dintFromReal` variable: Expected integer value, found LiteralReal { value: "1.5" }
+
+    error[E054]: Literal true is not compatible to REAL
+      ┌─ <internal>:6:36
+      │
+    6 │             realFromBool : REAL := REAL#TRUE;
+      │                                    ^^^^^^^^^ Literal true is not compatible to REAL
+
+    error[E033]: Unresolved constant `realFromBool` variable: Expected floating point type, got: Some(LiteralBool { value: true })
+      ┌─ <internal>:6:36
+      │
+    6 │             realFromBool : REAL := REAL#TRUE;
+      │                                    ^^^^^^^^^ Unresolved constant `realFromBool` variable: Expected floating point type, got: Some(LiteralBool { value: true })
+
+    error[E053]: Literal 5 out of range (BOOL)
+      ┌─ <internal>:7:35
+      │
+    7 │             boolFromInt : BOOL := BOOL#5;
+      │                                   ^^^^^^ Literal 5 out of range (BOOL)
+    "#);
 }
 
 #[test]

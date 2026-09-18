@@ -45,6 +45,44 @@ fn bool_literal_casts_are_validated() {
 }
 
 #[test]
+fn numeric_literal_casts_reject_bool_literals() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM prg
+        VAR
+            x : DINT;
+            r : REAL;
+        END_VAR
+            x := DINT#TRUE;
+            x := INT#FALSE;
+            r := REAL#TRUE;
+            x := DINT#1;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    error[E054]: Literal true is not compatible to DINT
+      ┌─ <internal>:7:18
+      │
+    7 │             x := DINT#TRUE;
+      │                  ^^^^^^^^^ Literal true is not compatible to DINT
+
+    error[E054]: Literal false is not compatible to INT
+      ┌─ <internal>:8:18
+      │
+    8 │             x := INT#FALSE;
+      │                  ^^^^^^^^^ Literal false is not compatible to INT
+
+    error[E054]: Literal true is not compatible to REAL
+      ┌─ <internal>:9:18
+      │
+    9 │             r := REAL#TRUE;
+      │                  ^^^^^^^^^ Literal true is not compatible to REAL
+    ");
+}
+
+#[test]
 fn string_literal_casts_are_validated() {
     let diagnostics = parse_and_validate_buffered(
         r#"

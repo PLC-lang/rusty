@@ -724,18 +724,28 @@ fn get_cast_statement_literal(
 ) -> Result<AstNode, UnresolvableKind> {
     let dti = index.find_effective_type_info(type_name);
     match dti {
-        Some(&DataTypeInformation::Integer { .. }) => {
-            let evaluated_initial =
-                evaluate_with_target_hint(cast_statement, scope, index, Some(type_name), lhs)?
-                    .as_ref()
-                    .map(|v| {
-                        if let AstStatement::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
-                            Ok(*value)
-                        } else {
-                            Err(UnresolvableKind::Misc(format!("Expected integer value, found {v:?}")))
-                        }
-                    })
-                    .transpose()?;
+        Some(dti @ &DataTypeInformation::Integer { .. }) => {
+            let evaluated = evaluate_with_target_hint(cast_statement, scope, index, Some(type_name), lhs)?;
+            // BOOL#TRUE stays a BOOL literal
+            if let (true, Some(AstStatement::Literal(AstLiteral::Bool(value)))) =
+                (dti.is_bool(), evaluated.as_ref().map(|it| it.get_stmt()))
+            {
+                return Ok(AstNode::new(
+                    AstStatement::Literal(AstLiteral::Bool(*value)),
+                    cast_statement.get_id(),
+                    cast_statement.get_location(),
+                ));
+            }
+            let evaluated_initial = evaluated
+                .as_ref()
+                .map(|v| {
+                    if let AstStatement::Literal(AstLiteral::Integer(value)) = v.get_stmt() {
+                        Ok(*value)
+                    } else {
+                        Err(UnresolvableKind::Misc(format!("Expected integer value, found {v:?}")))
+                    }
+                })
+                .transpose()?;
 
             if let Some(value) = evaluated_initial {
                 return Ok(AstNode::new(
