@@ -611,6 +611,13 @@ fn validate_cast_literal<T: AnnotationMap>(
             .with_error_code("E061")
             .with_location(location),
         )
+    } else if matches!(literal, AstLiteral::Bool(_)) && !cast_type.is_bool() {
+        // a BOOL literal is no numeric value, e.g. DINT#TRUE
+        validator.push_diagnostic(incompatible_literal_cast(
+            cast_type.get_name(),
+            literal.get_literal_value().as_str(),
+            location.clone(),
+        ));
     } else if cast_type.is_date_or_time_type() || literal_type.is_date_or_time_type() {
         validator.push_diagnostic(incompatible_literal_cast(
             cast_type.get_name(),
