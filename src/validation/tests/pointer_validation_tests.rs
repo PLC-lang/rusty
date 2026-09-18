@@ -273,16 +273,280 @@ fn pointer_to_validates_assignment_when_not_dealing_with_memory_address_in_initi
         .filter(|diagnostic| !matches!(diagnostic.error_code, "E015" | "E065"))
         .collect::<Vec<_>>();
 
-    // TODO: Validation between variable initialization / assignment in the variable block versus body are handled differently, these
-    //       must be unified at some point. Once done, this assertion MUST fail and be identical to the test
-    //       `pointer_to_validates_assignment_when_not_dealing_with_memory_address_in_body`. Furthermore, we should unify these tests by
-    //       having two source code strings, one for the variable block and one for the implementation, run validation on both of them and
-    //       assert that the diagnostics (with exception of the location) are identical with regards to their assignment validation.
-    assert_eq!(
-        filtered_diagnostics,
-        Vec::new(),
-        "these are empty for now, but eventually should be the same as the test below"
-    );
+    insta::assert_debug_snapshot!(filtered_diagnostics, @r#"
+    [
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(24:55 - 24:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO INT'",
+                primary_location: SourceLocation {
+                    span: Range(25:55 - 25:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO REAL'",
+                primary_location: SourceLocation {
+                    span: Range(26:55 - 26:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO TIME'",
+                primary_location: SourceLocation {
+                    span: Range(27:55 - 27:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO TIME_OF_DAY'",
+                primary_location: SourceLocation {
+                    span: Range(28:55 - 28:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO DATE'",
+                primary_location: SourceLocation {
+                    span: Range(29:55 - 29:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO Position1D'",
+                primary_location: SourceLocation {
+                    span: Range(30:55 - 30:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO Position2D'",
+                primary_location: SourceLocation {
+                    span: Range(31:55 - 31:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO Position3D'",
+                primary_location: SourceLocation {
+                    span: Range(32:55 - 32:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(34:55 - 34:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO INT'",
+                primary_location: SourceLocation {
+                    span: Range(35:55 - 35:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO REAL'",
+                primary_location: SourceLocation {
+                    span: Range(36:55 - 36:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO TIME'",
+                primary_location: SourceLocation {
+                    span: Range(37:55 - 37:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO TIME_OF_DAY'",
+                primary_location: SourceLocation {
+                    span: Range(38:55 - 38:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO DATE'",
+                primary_location: SourceLocation {
+                    span: Range(39:55 - 39:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO Position1D'",
+                primary_location: SourceLocation {
+                    span: Range(40:55 - 40:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO Position2D'",
+                primary_location: SourceLocation {
+                    span: Range(41:55 - 41:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO Position3D'",
+                primary_location: SourceLocation {
+                    span: Range(42:55 - 42:60),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -690,16 +954,28 @@ fn pointer_to_validates_assignment_of_non_pointer_sized_integers_in_initializer(
         .filter(|diagnostic| !matches!(diagnostic.error_code, "E015"))
         .collect::<Vec<_>>();
 
-    // TODO: Validation between variable initialization / assignment in the variable block versus body are handled differently, these
-    //       must be unified at some point. Once done, this assertion MUST fail and be identical to the test
-    //       `pointer_to_validates_assignment_of_non_pointer_sized_integers`. Furthermore, we should unify these tests by
-    //       having two source code strings, one for the variable block and one for the implementation, run validation on both of them and
-    //       assert that the diagnostics (with exception of the location) are identical with regards to their assignment validation.
-    assert_eq!(
-        filtered_diagnostics,
-        Vec::new(),
-        "these are empty for now, but eventually should be the same as the test below"
-    );
+    // Integer values stored into a pointer are not reported in a declaration yet, only the REAL value
+    // is. Once they are, this must be identical to
+    // `pointer_to_validates_assignment_of_non_pointer_sized_integers` (which validates the body).
+    insta::assert_debug_snapshot!(filtered_diagnostics, @r#"
+    [
+        Diagnostic {
+            inner: DiagnosticsInner {
+                message: "The type REAL 32 is too small to be stored in a Pointer",
+                primary_location: SourceLocation {
+                    span: Range(30:45 - 30:53),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E065",
+                sub_diagnostics: [],
+                internal_error: None,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]

@@ -2,6 +2,12 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
+error[E037]: Invalid assignment: cannot assign 'BOOL' to 'USINT'
+  ┌─ <internal>:3:58
+  │
+3 │         FUNCTION func1  : INT VAR x : BOOL; END_VAR test(x); END_FUNCTION
+  │                                                          ^ Invalid assignment: cannot assign 'BOOL' to 'USINT'
+
 error[E062]: Invalid type nature for generic argument. BOOL is no ANY_NUMBER
   ┌─ <internal>:3:58
   │
