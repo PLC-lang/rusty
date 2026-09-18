@@ -2339,9 +2339,9 @@ fn allowed_assignable_types() {
             v := 0;
             x[0] := 1;
             y^ := 2;
-            y^.1 := 3;
+            y^.1 := 1;
             z^[0] := 4;
-            z^[1].1 := 5;
+            z^[1].1 := 1;
         END_PROGRAM
         "#,
     );
