@@ -1245,6 +1245,11 @@ impl AnnotationMapImpl {
         self.type_hint_map.insert(id, annotation);
     }
 
+    /// Drops the type hint of the given statement, such that the statement falls back to its own type
+    pub fn clear_type_hint(&mut self, s: &AstNode) {
+        self.type_hint_map.shift_remove(&s.get_id());
+    }
+
     /// annotates the given statement s with the call-statement f so codegen can generate
     /// a hidden call f instead of generating s
     pub fn annotate_hidden_function_call(&mut self, s: &AstNode, f: AstNode) {

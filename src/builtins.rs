@@ -178,7 +178,7 @@ lazy_static! {
                         //Create a temp var
                         let result_type = generator.llvm_index.get_associated_type(type_hint.get_name())?;
                         let result_var = generator.llvm.create_local_variable("", &result_type)?;
-                        let k = generator.generate_expression(k)?;
+                        let k = generator.generate_expression(extract_actual_parameter(k))?;
 
                         let mut blocks = vec![];
                         for it in params.iter() {
@@ -827,6 +827,32 @@ fn validate_builtin_symbol_parameter_count(
     }
 }
 
+/// Orders the arguments of a builtin call by the declared parameter names and unwraps every named
+/// argument to its value, such that `NE(IN2 := b, IN1 := a)` yields `[a, b]`.
+///
+/// The type hint of a named argument is also dropped. The resolver hints it with the declared
+/// parameter type, which no longer applies once the call is replaced by a binary expression, and
+/// a positional argument carries no hint at this point either.
+fn order_and_extract_arguments<'a>(
+    annotator: &mut TypeAnnotator,
+    parameters: &'a AstNode,
+    option_named_parameters: Option<&[&str]>,
+) -> Vec<&'a AstNode> {
+    let params = flatten_expression_list(parameters);
+    let ordered = match option_named_parameters {
+        Some(named_parameters) => (0..params.len())
+            .map(|index| extract_parameter_by_name_or_position(&params, named_parameters.get(index), index))
+            .collect(),
+        None => params,
+    };
+
+    for param in ordered.iter().filter(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
+        annotator.annotation_map.clear_type_hint(extract_actual_parameter(param));
+    }
+
+    ordered.into_iter().map(extract_actual_parameter).collect()
+}
+
 // creates nested BinaryExpressions for each parameter, such that
 // GT(a, b, c, d) ends up as (a > b) & (b > c) & (c > d)
 fn annotate_comparison_function(
@@ -839,20 +865,7 @@ fn annotate_comparison_function(
     option_named_parameters: Option<&[&str]>,
 ) {
     let mut ctx = ctx;
-    let params_flattened = if let Some(named_parameters) = option_named_parameters {
-        let params = flatten_expression_list(parameters);
-        let mut ordered_params: Vec<&AstNode> = Vec::new();
-
-        for (index, _) in params.iter().enumerate() {
-            let named_parameter = named_parameters.get(index);
-            let actual_parameter = extract_parameter_by_name_or_position(&params, named_parameter, index);
-            ordered_params.push(actual_parameter);
-        }
-
-        ordered_params
-    } else {
-        flatten_expression_list(parameters)
-    };
+    let params_flattened = order_and_extract_arguments(annotator, parameters, option_named_parameters);
 
     if params_flattened.iter().any(|it| {
         !annotator
@@ -905,43 +918,7 @@ fn annotate_arithmetic_function(
     operation: Operator,
     option_named_parameters: Option<&[&str]>,
 ) {
-    let (params, params_extracted) = if let Some(named_parameters) = option_named_parameters {
-        let params = flatten_expression_list(parameters);
-        let mut ordered_params: Vec<&AstNode> = Vec::new();
-
-        for (index, _) in params.iter().enumerate() {
-            let named_parameter = named_parameters.get(index);
-            let actual_parameter = extract_parameter_by_name_or_position(&params, named_parameter, index);
-            ordered_params.push(actual_parameter);
-        }
-
-        let params_extracted: Vec<_> =
-            ordered_params.iter().map(|param| extract_actual_parameter(param).clone()).collect();
-        (ordered_params, params_extracted)
-    } else {
-        (
-            flatten_expression_list(parameters),
-            flatten_expression_list(parameters)
-                .iter()
-                .map(|param| extract_actual_parameter(param).clone())
-                .collect(),
-        )
-    };
-
-    // Add type hints (only named arguments)
-    params
-        .iter()
-        .zip(&params_extracted)
-        .filter(|(it, _)| matches!(it.get_stmt(), AstStatement::Assignment(_)))
-        .for_each(|(_, extracted)| {
-            let param_type = annotator
-                .annotation_map
-                .get_type_or_void(extracted, annotator.index)
-                .get_type_information()
-                .get_name()
-                .to_owned();
-            annotator.annotation_map.annotate_type_hint(extracted, StatementAnnotation::value(param_type));
-        });
+    let params_extracted = order_and_extract_arguments(annotator, parameters, option_named_parameters);
 
     if params_extracted.iter().any(|param| {
         !annotator
@@ -974,7 +951,7 @@ fn annotate_arithmetic_function(
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    let left = (*params_extracted.first().expect("Must exist")).clone();
+    let left = (**params_extracted.first().expect("Must exist")).clone();
     let new_statement = params_extracted.into_iter().skip(1).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
@@ -1120,7 +1097,7 @@ fn validate_constant_parameters(
 /// Returns the extracted parameter
 fn extract_parameter_by_name_or_position<'a>(
     params: &Vec<&'a AstNode>,
-    option_name: Option<&&'a str>,
+    option_name: Option<&&str>,
     expected_position: usize,
 ) -> &'a AstNode {
     if let Some(name) = option_name {
