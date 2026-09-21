@@ -139,6 +139,8 @@ function run_doc() {
     log "Building book"
     log "Building preprocessor for the book"
     cargo build --release -p errorcode_book_generator
+    # The book renders its diagrams with mermaid
+    command -v mdbook-mermaid > /dev/null || cargo install mdbook-mermaid --locked
     cd book && mdbook build
     # test is disabled because not all files in the book exist. The pre-processor for error codes adds new files
     # mdbook test

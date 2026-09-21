@@ -3112,10 +3112,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let converted = match target_type_name {
             // Short DATE/DT are stored in seconds, so we lower nanosecond literals to whole seconds.
-            // See `book/src/datatypes.md` for the representation table.
             DATE_TYPE | DATE_AND_TIME_TYPE => value_in_nanos / 1_000_000_000,
             // Short TIME/TOD are stored in milliseconds, so we lower nanoseconds to whole milliseconds.
-            // See `book/src/datatypes.md` for the representation table.
             TIME_TYPE | TIME_OF_DAY_TYPE => value_in_nanos / 1_000_000,
             // Long temporal families retain nanosecond precision.
             LONG_DATE_TYPE | LONG_DATE_AND_TIME_TYPE | LONG_TIME_TYPE | LONG_TIME_OF_DAY_TYPE => {
