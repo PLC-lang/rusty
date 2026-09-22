@@ -224,9 +224,8 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let actual_g = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"G"), 0));
-                    let actual_in0 = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN0"), 1));
-                    let actual_in1 = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN1"), 2));
+                    let ordered = order_arguments(params, &["G", "IN0", "IN1"]);
+                    let [actual_g, actual_in0, actual_in1] = [0, 1, 2].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     // evaluate the parameters
                     let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder)?;
@@ -716,8 +715,8 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let actual_in = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN"), 0));
-                    let actual_n = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"n"), 1));
+                    let ordered = order_arguments(params, &["IN", "n"]);
+                    let [actual_in, actual_n] = [0, 1].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     let left = generator.generate_expression(actual_in)?.into_int_value();
                     let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(actual_n, actual_in)?.into_int_value();
@@ -747,8 +746,8 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let actual_in = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN"), 0));
-                    let actual_n = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"n"), 1));
+                    let ordered = order_arguments(params, &["IN", "n"]);
+                    let [actual_in, actual_n] = [0, 1].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     let left = generator.generate_expression(actual_in)?.into_int_value();
                     let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(actual_n, actual_in)?.into_int_value();
@@ -827,8 +826,8 @@ fn validate_builtin_symbol_parameter_count(
     }
 }
 
-/// Orders the arguments of a builtin call by the declared parameter names and unwraps every named
-/// argument to its value, such that `NE(IN2 := b, IN1 := a)` yields `[a, b]`.
+/// Orders the arguments of a builtin call into declaration order and unwraps every named argument
+/// to its value, such that `NE(IN2 := b, IN1 := a)` yields `[a, b]`.
 ///
 /// The type hint of a named argument is also dropped. The resolver hints it with the declared
 /// parameter type, which no longer applies once the call is replaced by a binary expression, and
@@ -840,17 +839,26 @@ fn order_and_extract_arguments<'a>(
 ) -> Vec<&'a AstNode> {
     let params = flatten_expression_list(parameters);
     let ordered = match option_named_parameters {
-        Some(named_parameters) => (0..params.len())
-            .map(|index| extract_parameter_by_name_or_position(&params, named_parameters.get(index), index))
-            .collect(),
+        Some(named_parameters) => order_arguments(&params, named_parameters),
         None => params,
     };
 
     for param in ordered.iter().filter(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
-        annotator.annotation_map.clear_type_hint(extract_actual_parameter(param));
+        clear_argument_type_hint(annotator, extract_actual_parameter(param));
     }
 
     ordered.into_iter().map(extract_actual_parameter).collect()
+}
+
+/// Drops the type hint of an argument and of every expression nested in its parentheses. A
+/// parenthesis inherits the hint of the expression it wraps, thus clearing only the outermost node
+/// would let the inherited hint come back.
+fn clear_argument_type_hint(annotator: &mut TypeAnnotator, argument: &AstNode) {
+    annotator.annotation_map.clear_type_hint(argument);
+
+    if let AstStatement::ParenExpression(inner) = argument.get_stmt() {
+        clear_argument_type_hint(annotator, inner);
+    }
 }
 
 // creates nested BinaryExpressions for each parameter, such that
@@ -969,7 +977,7 @@ fn annotate_variable_length_array_bound_function(
     let Some(parameters) = parameters else {
         return;
     };
-    let params = ast::flatten_expression_list(parameters);
+    let params = order_arguments(&ast::flatten_expression_list(parameters), &["arr", "dim"]);
     let vla = params.first().expect("must exist; covered by validation");
     let vla_param = extract_actual_parameter(vla);
     // if the VLA parameter is a VLA struct, annotate it as such
@@ -1010,10 +1018,10 @@ fn validate_variable_length_array_bound_function(
         return;
     };
 
-    let params = ast::flatten_expression_list(parameters);
+    let params = order_arguments(&ast::flatten_expression_list(parameters), &["arr", "dim"]);
 
-    if let &[vla, dim] = params.as_slice() {
-        let [actual_vla, actual_idx] = [vla, dim].map(extract_actual_parameter);
+    if let [vla, dim] = params.as_slice() {
+        let [actual_vla, actual_idx] = [*vla, *dim].map(extract_actual_parameter);
 
         let idx_type = annotations.get_type_or_void(actual_idx, index);
 
@@ -1092,31 +1100,33 @@ fn validate_constant_parameters(
     }
 }
 
-/// Extracts a parameter from the list of parameters by either the name or expected position
+/// Orders the arguments of a call into the order `declared_names` declares the parameters in.
 ///
-/// Returns the extracted parameter
-fn extract_parameter_by_name_or_position<'a>(
-    params: &Vec<&'a AstNode>,
-    option_name: Option<&&str>,
-    expected_position: usize,
-) -> &'a AstNode {
-    if let Some(name) = option_name {
-        let param = params.iter().find(|param| {
-            let opt_identifier = param.get_assignment_identifier();
+/// A named argument claims the slot its name declares. A positional argument fills the first slot
+/// that no name claims, in the order the arguments are written, thus `SUB(IN2 := b, a)` yields the
+/// same order as `SUB(a, b)`. This is the rule the resolver applies to every other call; see
+/// `TypeAnnotator::annotate_arguments_mixed`. Calls with too few arguments keep the order they are
+/// written in and are reported during validation.
+fn order_arguments<'a>(params: &[&'a AstNode], declared_names: &[&str]) -> Vec<&'a AstNode> {
+    let claimed_slots: Vec<Option<usize>> = declared_names
+        .iter()
+        .map(|name| {
+            params.iter().position(|param| {
+                param
+                    .get_assignment_identifier()
+                    .is_some_and(|identifier| identifier.to_lowercase() == name.to_lowercase())
+            })
+        })
+        .collect();
 
-            if let Some(identifier) = opt_identifier {
-                return identifier.to_lowercase() == name.to_lowercase();
-            }
+    let mut positional = params.iter().filter(|param| param.get_assignment_identifier().is_none()).copied();
 
-            false
-        });
-
-        if let Some(actual_param) = param {
-            return actual_param;
-        }
-    }
-
-    params[expected_position]
+    (0..params.len())
+        .map(|slot| match claimed_slots.get(slot).copied().flatten() {
+            Some(index) => params[index],
+            None => positional.next().unwrap_or(params[slot]),
+        })
+        .collect()
 }
 
 /// Helper function to extract the actual parameter from Assignment nodes when dealing with named arguments
@@ -1143,8 +1153,8 @@ fn generate_variable_length_array_bound_function<'ink>(
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
 
-    if let &[vla, dim] = params {
-        let [actual_vla, actual_dim] = [vla, dim].map(extract_actual_parameter);
+    if let [vla, dim] = order_arguments(params, &["arr", "dim"]).as_slice() {
+        let [actual_vla, actual_dim] = [*vla, *dim].map(extract_actual_parameter);
 
         let data_type_information =
             generator.annotations.get_type_or_void(actual_vla, generator.index).get_type_information();
