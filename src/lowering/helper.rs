@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::index::Index;
 use plc_ast::{
@@ -487,7 +487,7 @@ pub fn get_unit_name(unit: &CompilationUnit) -> String {
     // environments (CI vs developer machine) are masked in test snapshots
     // by the `__unit_..._<hex>__ctor` filter in
     // `__plc_add_common_snapshot_filters`.
-    let suffix = path_hash_suffix(&path.to_string_lossy());
+    let suffix = path_hash_suffix(&path);
     format!("{basename_slug}_{suffix}")
 }
 
@@ -497,27 +497,24 @@ fn sanitize_to_identifier(raw: &str) -> String {
     raw.chars().map(|c| if c.is_ascii_alphanumeric() || c == '_' { c } else { '_' }).collect()
 }
 
-/// Returns 8 lowercase-hex characters (32 bits) from a SipHash-1-3 digest of
-/// `input`, keyed with `(0, 0)` so the result is deterministic and stable
-/// across runs, platforms, and processes. Used by [`get_unit_name`] to
-/// disambiguate per-source-file constructor symbols when two units share a
-/// basename.
+/// Returns 8 lowercase-hex characters (32 bits) from the digest of `path`, see
+/// `plc_util::path::path_digest`. Used by [`get_unit_name`] to disambiguate
+/// per-source-file constructor symbols when two units share a basename.
 ///
 /// 32 bits of suffix space is plenty for typical PLC projects: the
 /// birthday-paradox 50%-collision threshold is ~65 k files, and a collision
 /// would manifest as the same loud "duplicate symbol" linker error this fix
 /// is closing — not a silent miscompile — so the worst-case failure mode is
-/// graceful. We take the high 32 bits of the SipHash output for the suffix.
-fn path_hash_suffix(input: &str) -> String {
-    use std::hash::Hasher;
-    let mut hasher = siphasher::sip::SipHasher13::new_with_keys(0, 0);
-    hasher.write(input.as_bytes());
-    let truncated = (hasher.finish() >> 32) as u32;
+/// graceful. We take the high 32 bits of the digest for the suffix.
+fn path_hash_suffix(path: &Path) -> String {
+    let truncated = (plc_util::path::path_digest(path) >> 32) as u32;
     format!("{truncated:08x}")
 }
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use super::{path_hash_suffix, sanitize_to_identifier};
     use insta::assert_snapshot;
 
@@ -568,8 +565,8 @@ mod tests {
     fn path_hash_suffix_is_deterministic() {
         // Same input must yield the same suffix on every call so re-compiling
         // the same project produces stable symbol names across runs.
-        let first = path_hash_suffix("a/globals.st");
-        let second = path_hash_suffix("a/globals.st");
+        let first = path_hash_suffix(Path::new("a/globals.st"));
+        let second = path_hash_suffix(Path::new("a/globals.st"));
         assert_eq!(first, second);
     }
 
@@ -595,7 +592,7 @@ mod tests {
                 "anything",
                 "",
             ],
-            path_hash_suffix,
+            |it| path_hash_suffix(Path::new(it)),
         );
         assert_snapshot!(table, @r"
           a/globals.st -> 944ecddc

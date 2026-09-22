@@ -537,8 +537,7 @@ impl<'ink> GeneratedModule<'ink> {
         }
     }
 
-    /// The caller decides where the artifacts of a target land, see `target_compile_dir`
-    /// in the driver.
+    /// The caller decides where the artifacts of a target land.
     fn get_output_file(output_dir: Option<&Path>, output_name: &str) -> PathBuf {
         output_dir.map(Path::to_path_buf).unwrap_or_default().join(output_name)
     }

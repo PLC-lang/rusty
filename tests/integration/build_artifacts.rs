@@ -10,9 +10,10 @@ use std::{
 
 use driver::compile;
 
-/// Longest artifact name the compiler produces: 32 characters of file name, the
-/// separator, 16 characters of digest, the dot and the extension.
-const ARTIFACT_NAME_LIMIT: usize = 32 + 1 + 16 + 1 + 2;
+/// Longest artifact name the compiler produces for a `.st` source: 32 characters of
+/// stem, the dot and the extension of the source, the separator, 16 characters of
+/// digest, the dot and the extension of the artifact.
+const ARTIFACT_NAME_LIMIT: usize = 32 + 1 + 2 + 1 + 16 + 1 + 2;
 
 /// Path limit of the Windows file system for programs that do not opt into long paths.
 const WINDOWS_PATH_LIMIT: usize = 260;

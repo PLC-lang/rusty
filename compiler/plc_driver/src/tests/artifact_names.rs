@@ -7,10 +7,10 @@
 //
 // Like the `debug_paths` tests, the platform dependent scenarios live in two sibling
 // modules: `linux` (compiled with `cfg(not(windows))`) and `windows` (compiled with
-// `cfg(windows)`). `Path::file_name` splits on the separators of the host, so the
-// readable part of a name depends on the platform. When you add a test to one side,
-// add a mirror with the same name to the other side, or document why the scenario
-// fits one platform only.
+// `cfg(windows)`). `Path::file_stem` and `Path::extension` split on the separators of
+// the host, so the readable part of a name depends on the platform. When you add a
+// test to one side, add a mirror with the same name to the other side, or document why
+// the scenario fits one platform only.
 
 use std::path::Path;
 
@@ -18,10 +18,11 @@ use insta::assert_snapshot;
 
 use crate::artifacts;
 
-/// Longest name the scheme can produce: 32 characters of file name, the separator,
-/// 16 characters of digest, the dot and the extension.
-fn name_limit(extension: &str) -> usize {
-    32 + 1 + 16 + 1 + extension.len()
+/// Longest name the scheme can produce: 32 characters of stem, the dot and the
+/// extension of the source, the separator, 16 characters of digest, the dot and the
+/// extension of the artifact.
+fn name_limit(source_extension: &str, extension: &str) -> usize {
+    32 + 1 + source_extension.len() + 1 + 16 + 1 + extension.len()
 }
 
 /// Returns the digest of an artifact name, which is the part between the last `-` and
@@ -118,7 +119,7 @@ fn long_file_names_are_cut_to_the_limit() {
 
     let name = artifacts::file_name(Path::new(&key), "o");
 
-    assert!(name.len() <= name_limit("o"), "{} characters: {name}", name.len());
+    assert!(name.len() <= name_limit("st", "o"), "{} characters: {name}", name.len());
 }
 
 /// Two long file names can end up with the same readable part. The digest is what
@@ -134,18 +135,17 @@ fn units_whose_file_name_is_cut_stay_apart() {
 
 /// A library is pulled in with one glob per extension, `include/*.st` and
 /// `include/*.pli` for the standard library, so two units can share a stem and differ
-/// only in their extension. Once the stem is long enough to be cut at the limit, the
-/// readable part of both names is the same and the digest is all that is left to tell
-/// the two artifacts apart.
+/// only in their extension. The cut applies to the stem alone, so the extension stays
+/// in the readable part and still tells the two artifacts apart.
 #[test]
-fn units_cut_at_the_limit_that_differ_only_in_their_extension_stay_apart() {
-    let structured_text = artifacts::file_name(Path::new("include/endianness_conversion_functions.st"), "o");
-    let interface = artifacts::file_name(Path::new("include/endianness_conversion_functions.pli"), "o");
+fn a_cut_name_keeps_the_extension_of_the_source() {
+    let stem = "a".repeat(64);
+    let structured_text = artifacts::file_name(Path::new(&format!("{stem}.st")), "o");
+    let interface = artifacts::file_name(Path::new(&format!("{stem}.pli")), "o");
 
-    // The cut falls on the dot of the source extension, so neither name keeps it.
-    assert!(structured_text.starts_with("endianness_conversion_functions.-"), "{structured_text}");
-    assert!(interface.starts_with("endianness_conversion_functions.-"), "{interface}");
-    assert_ne!(structured_text, interface);
+    let cut = "a".repeat(32);
+    assert!(structured_text.starts_with(&format!("{cut}.st-")), "{structured_text}");
+    assert!(interface.starts_with(&format!("{cut}.pli-")), "{interface}");
 }
 
 #[test]
@@ -155,20 +155,32 @@ fn a_key_without_a_file_name_gets_a_fallback_name() {
     assert!(name.starts_with("unit-"), "{name}");
 }
 
-/// The same project is built on Linux and on Windows, where the callers hand in the
-/// separator of their platform. The digest ignores that difference, so a unit keeps
-/// the name of its artifact.
+/// The same project is built on Linux and on Windows, and the key of a unit inside the
+/// project is its path relative to the project. The digest follows the components of
+/// that path and not the separator between them, so a unit keeps the name of its
+/// artifact on both platforms.
 #[test]
-fn the_digest_ignores_the_separator_style() {
-    let unix = artifacts::file_name(Path::new("a/b/main.st"), "o");
-    let windows = artifacts::file_name(Path::new(r"a\b\main.st"), "o");
+fn the_digest_ignores_the_separator_of_the_platform() {
+    let joined = Path::new("a").join("b").join("main.st");
+    let plain = artifacts::file_name(Path::new("a/b/main.st"), "o");
 
-    assert_eq!(digest_of(&unix), digest_of(&windows));
+    assert_eq!(digest_of(&artifacts::file_name(&joined, "o")), digest_of(&plain));
 }
 
 #[cfg(not(windows))]
 mod linux {
     use super::{artifacts, Path};
+
+    /// `\` is a legal character in a file name here, so `a\b` is one directory and the
+    /// unit is not the one in `a/b`. The two must not share an artifact. Windows splits
+    /// on `\`, so the mirror there is `the_digest_ignores_the_separator_style`.
+    #[test]
+    fn a_backslash_in_the_key_names_another_unit() {
+        let plain = artifacts::file_name(Path::new("a/b/main.st"), "o");
+        let escaped = artifacts::file_name(Path::new(r"a\b/main.st"), "o");
+
+        assert_ne!(plain, escaped);
+    }
 
     #[test]
     fn an_absolute_key_keeps_only_the_file_name() {
@@ -191,12 +203,24 @@ mod linux {
 // The scenarios below have no mirror in `linux`, and the reason is the same for all of
 // them: they are about what the host reads as a path prefix. Linux does not split on
 // `\`, so every one of these keys is a single file name there, which
-// `a_windows_key_is_sanitized_into_a_single_name` already covers. The two scenarios that
-// are not about a prefix, the reserved device name and the casing, say in their own
-// comment why they belong to this platform.
+// `a_windows_key_is_sanitized_into_a_single_name` already covers. The scenarios that are
+// not about a prefix, the separator style, the reserved device name and the casing, say
+// in their own comment why they belong to this platform.
 #[cfg(windows)]
 mod windows {
-    use super::{artifacts, Path};
+    use super::{artifacts, digest_of, Path};
+
+    /// Callers hand in either separator on this platform, and both split a path. The
+    /// digest ignores that difference, so a unit keeps the name of its artifact. Linux
+    /// splits on `/` alone, so the mirror there is
+    /// `a_backslash_in_the_key_names_another_unit`.
+    #[test]
+    fn the_digest_ignores_the_separator_style() {
+        let unix = artifacts::file_name(Path::new("a/b/main.st"), "o");
+        let windows = artifacts::file_name(Path::new(r"a\b\main.st"), "o");
+
+        assert_eq!(digest_of(&unix), digest_of(&windows));
+    }
 
     #[test]
     fn an_absolute_key_keeps_only_the_file_name() {

@@ -1,4 +1,9 @@
-use std::path::{Component, Path, PathBuf};
+use std::{
+    hash::Hasher,
+    path::{Component, Path, PathBuf},
+};
+
+use siphasher::sip::SipHasher13;
 
 /// Normalize a path lexically without touching the filesystem: drop `.`
 /// components, collapse `..` against preceding normal components, preserve
@@ -41,9 +46,26 @@ pub fn normalize_lexical_path(path: &Path) -> PathBuf {
     }
 }
 
+/// SipHash-1-3 digest of a path with a fixed zero key, so the result is the same on
+/// every run, process and platform.
+///
+/// The path is hashed component by component. So the same path gives the same digest no
+/// matter which separator was used to write it, while a character that is no separator
+/// on the platform, such as `\` on Linux, stays part of the name it appears in.
+pub fn path_digest(path: &Path) -> u64 {
+    let mut hasher = SipHasher13::new_with_keys(0, 0);
+    for (index, component) in path.components().enumerate() {
+        if index > 0 {
+            hasher.write(b"/");
+        }
+        hasher.write(component.as_os_str().to_string_lossy().as_bytes());
+    }
+    hasher.finish()
+}
+
 #[cfg(test)]
 mod tests {
-    use super::normalize_lexical_path;
+    use super::{normalize_lexical_path, path_digest};
     use std::path::{Path, PathBuf};
 
     #[test]
@@ -87,5 +109,13 @@ mod tests {
     #[test]
     fn redundant_separators_and_dots_collapse() {
         assert_eq!(normalize_lexical_path(Path::new("foo/./././bar")), PathBuf::from("foo/bar"));
+    }
+
+    #[test]
+    fn digest_follows_the_components_and_not_the_separators() {
+        let joined = Path::new("a").join("b").join("main.st");
+
+        assert_eq!(path_digest(&joined), path_digest(Path::new("a/b/main.st")));
+        assert_ne!(path_digest(Path::new("a/b/main.st")), path_digest(Path::new("a/c/main.st")));
     }
 }

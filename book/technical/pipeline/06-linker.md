@@ -67,7 +67,7 @@ A direct linker receives `--linker-arg` values unchanged. A compiler driver rece
 The command starts with the driver and the arguments it needs itself, then the supplied and generated objects, then the `-L` paths and the `-l` libraries. The sysroot and implicit search paths follow, then linker options, mode, and output path. For the two-file example with a library:
 
 ```
-cc -fuse-ld=lld build/scale.st.o build/main.st.o -L/opt/plc/lib -liec61131std -L. -Lbuild -o out
+cc -fuse-ld=lld build/scale.st-1ae933b05dc18c2b.o build/main.st-13f45988f71756e9.o -L/opt/plc/lib -liec61131std -L. -Lbuild -o out
 ```
 
 The command is written to the debug log before it runs, and `--log-level debug` shows it. The linker's own output goes to the terminal unchanged, and a non-zero exit code becomes the diagnostic E077, "An error occurred during linking". When the project comes from a build description, the `build` subcommand ends by copying every library marked as `Copy` next to the artifact, so that the result can be deployed as one directory.

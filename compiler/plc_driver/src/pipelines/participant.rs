@@ -105,6 +105,8 @@ pub struct CodegenParticipant<T: SourceContainer> {
     pub target: Target,
     pub got_layout: Mutex<HashMap<String, u64>>,
     pub compile_dirs: HashMap<Target, PathBuf>,
+    /// Canonical root of the project, resolved once before the first unit is generated.
+    pub root: PathBuf,
     pub objects: Arc<RwLock<GeneratedProject>>,
     pub libraries: Vec<LibraryInformation<T>>,
 }
@@ -116,9 +118,21 @@ impl<T: SourceContainer> CodegenParticipant<T> {
             let tempdir = tempfile::tempdir().expect("Could not create tempdir");
             tempdir.keep()
         });
-        let dir = super::target_compile_dir(&compile_directory, &self.target);
+        let dir = self.target.append_to(&compile_directory);
         fs::create_dir_all(&dir)?;
         self.compile_dirs.insert(self.target.clone(), dir);
+        Ok(())
+    }
+
+    /// Resolves the root that the keys of the units inside the project are relative to.
+    /// The unit locations are canonical, so the root has to be canonical as well for the
+    /// comparison in `unit_key` to hold.
+    fn resolve_root(&mut self) -> Result<(), Diagnostic> {
+        let root = match self.compile_options.root.clone() {
+            Some(root) => root,
+            None => env::current_dir()?,
+        };
+        self.root = fs::canonicalize(&root).unwrap_or(root);
         Ok(())
     }
 
@@ -132,15 +146,7 @@ impl<T: SourceContainer> CodegenParticipant<T> {
             unit_location.to_path_buf()
         };
 
-        let root = match self.compile_options.root.clone() {
-            Some(root) => root,
-            None => env::current_dir()?,
-        };
-        // The unit location is canonical, so the root has to be canonical as well for the
-        // comparison to hold.
-        let root = fs::canonicalize(&root).unwrap_or(root);
-
-        match unit_location.strip_prefix(&root) {
+        match unit_location.strip_prefix(&self.root) {
             Ok(relative) => Ok(relative.to_path_buf()),
             Err(_) => Ok(unit_location),
         }
@@ -167,6 +173,7 @@ impl<T: SourceContainer> CodegenParticipant<T> {
 impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
     fn pre_generate(&mut self, _annotated_project: &AnnotatedProject) -> Result<(), Diagnostic> {
         self.ensure_compile_dirs()?;
+        self.resolve_root()?;
 
         let got_layout =
             if let OnlineChange::Enabled { file_name, format } = &self.compile_options.online_change {
