@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // This test verifies that array of struct initialization in the body works correctly
 // when the array is declared as VAR_TEMP and only partial elements are provided.
 // Case: Missing initialization - only first element is assigned, second should be zero

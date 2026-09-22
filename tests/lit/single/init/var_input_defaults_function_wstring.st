@@ -1,5 +1,5 @@
 
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test VAR_INPUT defaults with WSTRING and overrides
 
 TYPE ArrType : ARRAY[1..3] OF DINT;

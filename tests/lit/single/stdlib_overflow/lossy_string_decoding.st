@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that string functions tolerate invalid UTF-8/UTF-16 content
 // (bytes written through pointers, comms buffers or C interop)
 // instead of aborting the process

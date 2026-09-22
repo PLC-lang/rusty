@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Arrays of function blocks declared as globals and as locals of stateless
 // POUs (stack-constructed on each call) must construct every element.
 VAR_GLOBAL

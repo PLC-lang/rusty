@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // A callee that never assigns its STRING return must yield an empty string, even
 // after a previous call left non-empty content in another result temp.
 

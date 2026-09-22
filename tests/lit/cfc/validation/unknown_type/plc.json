@@ -1,0 +1,9 @@
+{
+	"name" : "cfc_unknown_type",
+	"files" : [
+		"unknown_type.cfc"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

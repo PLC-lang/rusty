@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION foo : ARRAY[0..1] OF STRING[10]
     VAR
         result : ARRAY[0..1] OF STRING[10];

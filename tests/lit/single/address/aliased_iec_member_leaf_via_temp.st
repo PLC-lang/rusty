@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Positive coverage for using the qualified leaf as an operand in a larger BOOL flow.
 
 TYPE PI_T_mainTask_bToggle1 : STRUCT

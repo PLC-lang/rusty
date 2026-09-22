@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // XFAIL: *
 // Fails because of #1389
 FUNCTION foo : ARRAY[0..1] OF ARRAY[0..1] OF INT

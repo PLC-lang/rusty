@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Single interface with a property declaring both PROPERTY_GET and PROPERTY_SET, implemented by a single
 // function block. Assign the concrete instance to an interface variable and exercise both accessors
 // through it. Baseline sanity test for property dispatch through interfaces.

@@ -1,5 +1,5 @@
 // Issue #1295: Array of structs with ref-initialized fields
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 VAR_GLOBAL
     g1: INT := 10;

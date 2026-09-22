@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: An interface method returns a user-defined STRUCT (aggregate) and takes an interface-typed
 // argument. Combines struct return lowering with fat pointer wrapping. Also tests that two different
 // concrete types dispatched through the same interface produce distinct results.

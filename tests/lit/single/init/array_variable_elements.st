@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Tests that arrays initialized with variable references (non-constant
 // expressions) are correctly lowered into indexed assignments.
 FUNCTION main : DINT

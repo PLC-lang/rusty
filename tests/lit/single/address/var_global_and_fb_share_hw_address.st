@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Issue #1736: a complete hardware address (AT %MX1.2.3.4) on a POU-scoped variable used to be
 // silently dropped at codegen — the FB field stayed null and the first access SIGSEGV'd at
 // runtime. The preprocessor now synthesises the backing __M_1_2_3_4 global and the existing

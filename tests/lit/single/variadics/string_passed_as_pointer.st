@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that STRING types are correctly passed as pointers to variadic functions
 // per C spec (strings decay to char* pointers)
 // CHECK: My string is: hello

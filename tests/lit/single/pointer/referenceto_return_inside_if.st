@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression test for critical issue #2: ensure call-site lowering works
 // for reference-to-return function calls inside IF control flow.
 FUNCTION referenceFunc : REFERENCE TO INT

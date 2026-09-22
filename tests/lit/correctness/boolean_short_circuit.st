@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Tests that AND_THEN / OR_ELSE short-circuit, and that AND / OR do not.
 
 VAR_GLOBAL

@@ -1,5 +1,5 @@
 // Issue #921: Array field initialization from another array in struct literal
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 TYPE myStruct : STRUCT
     var1 : DINT;

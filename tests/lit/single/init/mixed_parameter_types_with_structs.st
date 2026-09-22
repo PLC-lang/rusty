@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test mixed VAR_INPUT and VAR_IN_OUT parameters
 
 FUNCTION test_mixed_params

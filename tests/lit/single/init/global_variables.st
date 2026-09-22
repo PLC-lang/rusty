@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 VAR_GLOBAL
     arr : ARRAY[0..3] OF STRING := ['a', 'b', 'c', 'd'];
     alias AT arr : ARRAY[0..3] OF STRING;

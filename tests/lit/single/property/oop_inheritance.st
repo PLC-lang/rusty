@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 INTERFACE intf
     PROPERTY_GET prop: DINT END_PROPERTY

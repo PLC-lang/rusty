@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Test various integer types work correctly
 TYPE ByteEnum : BYTE (a := 1, b := 2);

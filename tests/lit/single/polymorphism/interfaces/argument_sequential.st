@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Multiple sequential calls pass different concrete types to the same interface-typed parameter.
 // The single __tmp variable is reused across calls — each call should dispatch to the correct implementation.
 

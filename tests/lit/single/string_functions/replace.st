@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // End-to-end tests for the REPLACE stdlib function (STRING and WSTRING).
 // REPLACE can grow a string when the replacement is longer than the replaced
 // region, so its result can exceed the STRING[2048] / WSTRING[2048] result

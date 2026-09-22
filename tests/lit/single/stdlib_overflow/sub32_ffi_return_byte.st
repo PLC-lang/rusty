@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Stress test for u8 (BYTE) FFI return values. ROL__BYTE / ROR__BYTE in the
 // Rust stdlib take and return u8. Under the target-aware extension gate
 // (#1146 follow-up), the rusty side either emits `zeroext i8` on both call

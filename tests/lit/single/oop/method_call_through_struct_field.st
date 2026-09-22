@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Anchors that a chained qualified call (`h.inst.bar()`) resolves end-to-end
 // when the call's operator is a multi-level ReferenceExpr whose base is itself

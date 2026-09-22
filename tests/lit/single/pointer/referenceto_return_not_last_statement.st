@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression test for critical issue #3: return lowering must still occur even
 // when the REF= assignment to the function name is not the last statement in
 // the function body.

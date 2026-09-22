@@ -7,13 +7,13 @@
 // identical strings across input objects.
 
 // Compile each unit alone to produce two independent `.o` files.
-RUN: %COMPILE -c %S/main.st && mv %T/%basename_t.out %T/main.o
-RUN: %COMPILE -c %S/helper.st && mv %T/%basename_t.out %T/helper.o
+RUN: %COMPILE -c %S/main.st && mv %t.out %t.main.o
+RUN: %COMPILE -c %S/helper.st && mv %t.out %t.helper.o
 
 // Link the two objects to a single executable, then inspect `.comment`
 // and count the `plc version` lines. After mergeable-strings dedup the
 // linked binary must show exactly one such line.
-RUN: %COMPILE %T/main.o %T/helper.o
-RUN: readelf -p .comment %T/%basename_t.out | grep -c "plc version" | FileCheck-21 --check-prefix=COUNT %s
+RUN: %COMPILE %t.main.o %t.helper.o
+RUN: readelf -p .comment %t.out | grep -c "plc version" | FileCheck-21 --check-prefix=COUNT %s
 
 COUNT: 1

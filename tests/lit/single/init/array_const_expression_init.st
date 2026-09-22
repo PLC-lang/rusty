@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 //
 // Regression test for PRG-4521: constant expressions (typed literals like
 // `UDINT#0 + UDINT#1`, plain arithmetic, and const references) inside array

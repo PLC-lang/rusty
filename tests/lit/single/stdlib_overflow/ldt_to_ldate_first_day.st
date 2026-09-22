@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that LDATE_AND_TIME_TO_LDATE saturates at the LDATE range minimum for
 // values on the first representable day (its midnight lies below the range)
 // instead of aborting the process

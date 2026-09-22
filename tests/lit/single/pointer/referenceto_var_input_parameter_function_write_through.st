@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // A write through a `REFERENCE TO` VAR_INPUT must reach the caller's
 // variable, also when the argument is a plain variable.

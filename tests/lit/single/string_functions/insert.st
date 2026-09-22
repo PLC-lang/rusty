@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // End-to-end tests for the INSERT stdlib function (STRING and WSTRING).
 // INSERT combines two strings, so its result can exceed the STRING[2048] /
 // WSTRING[2048] result buffer. That used to overflow the buffer and crash;

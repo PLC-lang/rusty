@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test LDATE arithmetic operations return correct types and values
 
 FUNCTION main
@@ -12,6 +12,6 @@ FUNCTION main
     ldate1 := LDATE#2024-01-15;
     ldate2 := LDATE#2024-01-10;
     lresult := SUB_LDATE_LDATE(ldate1, ldate2);
-    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: 5d
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#5d
 
 END_FUNCTION

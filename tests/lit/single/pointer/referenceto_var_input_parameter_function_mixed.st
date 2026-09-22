@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 // Mixes reference and plain arguments to `REFERENCE TO` inputs of several
 // functions in one unit. This exact combination once produced mistyped call

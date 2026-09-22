@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression: an inherited `FB_INIT` must only run once per construction.
 // Pre-fix the derived ctor invoked it both via the base ctor chain and via a
 // spurious second emit (find_method walked up the super class).

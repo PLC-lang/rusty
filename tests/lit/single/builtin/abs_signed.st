@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 //
 // ABS is a builtin; signed integers lower to the llvm.abs intrinsic with
 // is_int_min_poison = false, so ABS(INT_MIN) wraps to INT_MIN.

@@ -139,6 +139,8 @@ function run_doc() {
     log "Building book"
     log "Building preprocessor for the book"
     cargo build --release -p errorcode_book_generator
+    # The book renders its diagrams with mermaid
+    command -v mdbook-mermaid > /dev/null || cargo install mdbook-mermaid --locked
     cd book && mdbook build
     # test is disabled because not all files in the book exist. The pre-processor for error codes adds new files
     # mdbook test
@@ -459,44 +461,45 @@ function run_package_deb() {
     echo "Revision: $deb_rev"
     echo "Stdlib package: $stdlib_pkg_name"
 
-    # --- plc binary package via cargo-deb (name comes from Cargo.toml metadata) ---
-    log "Building plc-compiler binary deb via cargo-deb"
-    if command -v cargo-deb &> /dev/null; then
-        cargo deb -p plc_driver --no-build --no-strip \
-            --output "$deb_output_dir" \
-            --deb-revision "$deb_rev"
-        echo "plc-compiler binary deb built"
-    else
-        echo "Warning: cargo-deb not found, skipping plc-compiler binary deb"
-        echo "Install with: cargo install cargo-deb"
+    # --- required packagers ---
+    if ! command -v cargo-deb &> /dev/null; then
+        echo "Error: cargo-deb not found, install it with: cargo install cargo-deb" >&2
+        exit 1
+    fi
+    if ! command -v dpkg-deb &> /dev/null; then
+        echo "Error: dpkg-deb not found" >&2
+        exit 1
     fi
 
+    # --- plc binary package via cargo-deb (name comes from Cargo.toml metadata) ---
+    log "Building plc-compiler binary deb via cargo-deb"
+    cargo deb -p plc_driver --no-build --no-strip \
+        --output "$deb_output_dir" \
+        --deb-revision "$deb_rev"
+    echo "plc-compiler binary deb built"
+
     # --- stdlib library package via dpkg-deb ---
-    if command -v dpkg-deb &> /dev/null; then
-        if [[ -n "$target" ]]; then
-            local built_archs=""
-            for val in ${target//,/ }; do
-                # Skip empty values (trailing commas)
-                [[ -z "$val" ]] && continue
-                # Deduplicate by deb architecture to avoid rebuilding the same .deb
-                local arch
-                arch=$(target_to_deb_arch "$val")
-                if [[ "$built_archs" == *"$arch"* ]]; then
-                    log "Skipping $val, already built deb for $arch"
-                    continue
-                fi
-                built_archs="$built_archs $arch"
-                build_lib_deb "$val" "$version" "$deb_rev" "$deb_output_dir" "$stdlib_pkg_name"
-            done
-        else
-            local native_target
-            native_target=$(get_native_target)
-            build_lib_deb "$native_target" "$version" "$deb_rev" "$deb_output_dir" "$stdlib_pkg_name"
-        fi
-        echo "$stdlib_pkg_name deb(s) built"
+    if [[ -n "$target" ]]; then
+        local built_archs=""
+        for val in ${target//,/ }; do
+            # Skip empty values (trailing commas)
+            [[ -z "$val" ]] && continue
+            # Deduplicate by deb architecture to avoid rebuilding the same .deb
+            local arch
+            arch=$(target_to_deb_arch "$val")
+            if [[ "$built_archs" == *"$arch"* ]]; then
+                log "Skipping $val, already built deb for $arch"
+                continue
+            fi
+            built_archs="$built_archs $arch"
+            build_lib_deb "$val" "$version" "$deb_rev" "$deb_output_dir" "$stdlib_pkg_name"
+        done
     else
-        echo "Warning: dpkg-deb not found, skipping $stdlib_pkg_name deb"
+        local native_target
+        native_target=$(get_native_target)
+        build_lib_deb "$native_target" "$version" "$deb_rev" "$deb_output_dir" "$stdlib_pkg_name"
     fi
+    echo "$stdlib_pkg_name deb(s) built"
 
     echo "-----------------------------------"
     echo "Debian packages in: $deb_output_dir/"

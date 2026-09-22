@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test TIME arithmetic operations return correct types and values
 
 FUNCTION main
@@ -12,12 +12,12 @@ FUNCTION main
     t1 := TIME#5s;
     t2 := TIME#3s;
     result := ADD_TIME(t1, t2);
-    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: 8s
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#8s
 
     // SUB_TIME: TIME - TIME -> TIME (u32)
     t1 := TIME#10s;
     t2 := TIME#3s;
     result := SUB_TIME(t1, t2);
-    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: 7s
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#7s
 
 END_FUNCTION

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Scenario: Ensure interface references passed as VAR_INPUT arguments are correctly dispatched to the
 // implementing function block's method.
 

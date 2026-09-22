@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Tests that partial array initialization zero-pads at runtime.
 
 PROGRAM mainProg

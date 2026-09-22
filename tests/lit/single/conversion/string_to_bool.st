@@ -1,5 +1,5 @@
 // STRING_TO_BOOL accepts true values and rejects malformed values.
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 
 FUNCTION main
     printf('garbage=%d$N', STRING_TO_BOOL('garbage'));       // CHECK: garbage=0

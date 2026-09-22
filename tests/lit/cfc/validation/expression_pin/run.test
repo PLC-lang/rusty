@@ -1,0 +1,6 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+A source without an execution order is not targetable; a fault on it is located
+at the consuming block and the pin it enters through: `<order>:<pin>`.
+CHECK: {{.*}}expression_pin.cfc.expression_pin:0:0: error[E083]: Unsupported CFC expression: `a1 + 1`
+CHECK: error: Compilation aborted due to critical errors

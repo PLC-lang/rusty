@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression for #1463: `methodCall()^ := value` must parse and write through
 // the returned pointer. Prior to the fix, the parser closed the call and
 // rejected `^` with E007.

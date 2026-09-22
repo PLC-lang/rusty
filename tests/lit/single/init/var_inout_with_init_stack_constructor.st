@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Test that VAR_IN_OUT with initializers keeps passed values
 
 FUNCTION test_inout_no_init

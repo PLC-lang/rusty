@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Array elements must have their vtable pointer set up: virtual dispatch
 // through a dereferenced pointer reads the element's __vtable field and
 // crashes if construction skipped it.

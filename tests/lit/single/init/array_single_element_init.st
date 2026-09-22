@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Tests that single-element array initialization compiles and zero-pads correctly.
 
 PROGRAM mainProg

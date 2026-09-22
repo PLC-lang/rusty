@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression for #1443: pointer arithmetic on a paren-REF result followed by
 // a deref must read the adjacent slot, not segfault.
 

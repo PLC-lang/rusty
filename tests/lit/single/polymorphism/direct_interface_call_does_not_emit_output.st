@@ -1,6 +1,6 @@
-// RUN: rm -f %T/%basename_t.out
+// RUN: rm -f %t.out
 // RUN: not %COMPILE --error-format clang %s 2>&1 | %CHECK %s
-// RUN: test ! -e %T/%basename_t.out
+// RUN: test ! -e %t.out
 
 // Regression test: diagnostics emitted by lowering participants must not produce a binary.
 // Lowerers aggregate diagnostics and let the main validation step decide whether to abort,

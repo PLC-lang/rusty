@@ -35,8 +35,10 @@ impl SourceLocationFactory {
         SourceLocation { span: CodeSpan::Range(start..end), file: self.file.into() }
     }
 
-    pub fn create_block_location(&self, local_id: usize) -> SourceLocation {
-        SourceLocation { span: CodeSpan::Block { local_id }, file: self.file.into() }
+    /// creates a location for a diagram element, addressed by its execution order within the named diagram
+    pub fn create_block_location(&self, diagram: &str, order: usize) -> SourceLocation {
+        let span = CodeSpan::Block { diagram: diagram.to_string(), order, pin: None };
+        SourceLocation { span, file: self.file.into() }
     }
 
     pub fn create_file_only_location(&self) -> SourceLocation {
@@ -77,8 +79,9 @@ impl TextLocation {
 /// Represents the location of a code element in a source code
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum CodeSpan {
-    /// The location of a block in a diagram
-    Block { local_id: usize },
+    /// A diagram element, addressed by its execution order within a named diagram, narrowed to one
+    /// input pin when the location concerns that pin only
+    Block { diagram: String, order: usize, pin: Option<usize> },
     /// An element spanning multiple IDs
     Combined(Vec<CodeSpan>),
     /// A location inside a text
@@ -90,7 +93,12 @@ pub enum CodeSpan {
 impl std::fmt::Debug for CodeSpan {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Block { local_id } => f.debug_struct("Block").field("local_id", local_id).finish(),
+            Self::Block { diagram, order, pin } => f
+                .debug_struct("Block")
+                .field("diagram", diagram)
+                .field("order", order)
+                .field("pin", pin)
+                .finish(),
             Self::Combined(arg0) => f.debug_tuple("Combined").field(arg0).finish(),
             Self::None => write!(f, "None"),
 
@@ -110,7 +118,8 @@ impl std::fmt::Debug for CodeSpan {
 impl Display for CodeSpan {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            CodeSpan::Block { .. } => write!(f, "Block {}", self.get_line()),
+            CodeSpan::Block { diagram, order, pin: None } => write!(f, "{diagram}:{order}"),
+            CodeSpan::Block { diagram, order, pin: Some(pin) } => write!(f, "{diagram}:{order}:{pin}"),
             CodeSpan::Combined(spans) => {
                 write!(f, "{}", spans.iter().map(|it| it.to_string()).collect::<String>())
             }
@@ -137,11 +146,11 @@ impl CodeSpan {
 
     /// Gets the line representation for a source location
     /// If the location does not represent a line, the closest equivalent is returned
-    // That is 0 for None and the ID for id/inner spans
+    // That is 0 for None and the execution order for block spans
     pub fn get_line(&self) -> usize {
         match self {
             Self::Range(range) => range.start.line,
-            Self::Block { local_id } => *local_id,
+            Self::Block { order, .. } => *order,
             _ => 0,
         }
     }
@@ -155,10 +164,12 @@ impl CodeSpan {
         }
     }
 
+    /// The 1-based line for debug info; DWARF reserves line 0 for "no location", so an execution
+    /// order shifts by one like a text line does
     pub fn get_line_plus_one(&self) -> usize {
         match self {
             Self::Range(range) => range.start.line + 1,
-            Self::Block { local_id } => *local_id,
+            Self::Block { order, .. } => *order + 1,
             _ => 0,
         }
     }
@@ -268,7 +279,10 @@ impl Display for SourceLocation {
         if !(self.file.is_internal() || self.file.is_undefined()) {
             write!(f, "{}", self.get_file_name().unwrap())?;
         }
-        write!(f, ":{}", self.span)
+        match self.span {
+            CodeSpan::Block { .. } => write!(f, ".{}", self.span),
+            _ => write!(f, ":{}", self.span),
+        }
     }
 }
 
@@ -323,18 +337,22 @@ impl SourceLocation {
     /// In other words this results in `self.start .. other.end`
     pub fn span(&self, other: &SourceLocation) -> SourceLocation {
         let span = match (&self.span, &other.span) {
-            //ID -> ID = Combine
-            (CodeSpan::Block { local_id }, CodeSpan::Block { local_id: other }) if local_id == other => {
-                CodeSpan::Block { local_id: *local_id }
+            //Same element -> the element; two different pins widen to the element itself
+            (
+                CodeSpan::Block { diagram, order, pin },
+                CodeSpan::Block { diagram: other_diagram, order: other_order, pin: other_pin },
+            ) if diagram == other_diagram && order == other_order => {
+                let pin = (pin == other_pin).then_some(*pin).flatten();
+                CodeSpan::Block { diagram: diagram.clone(), order: *order, pin }
             }
             (CodeSpan::Block { .. }, CodeSpan::Block { .. }) => {
                 CodeSpan::Combined(vec![self.span.clone(), other.span.clone()])
             }
             //Range -> Range = Range
             (CodeSpan::Range(start), CodeSpan::Range(end)) => CodeSpan::Range(start.start..end.end),
-            //ID -> Range = keep the block identity
-            (CodeSpan::Block { local_id }, CodeSpan::Range(_))
-            | (CodeSpan::Range(_), CodeSpan::Block { local_id }) => CodeSpan::Block { local_id: *local_id },
+            //Block -> Range = keep the block identity
+            (block @ CodeSpan::Block { .. }, CodeSpan::Range(_))
+            | (CodeSpan::Range(_), block @ CodeSpan::Block { .. }) => block.clone(),
             //None any -> None (unsupported)
             (CodeSpan::None, _) | (_, CodeSpan::None) => CodeSpan::None,
             (CodeSpan::Combined(inner), CodeSpan::Combined(other)) => {
@@ -358,6 +376,31 @@ impl SourceLocation {
 
     pub fn get_file_name(&self) -> Option<&'static str> {
         self.file.get_name()
+    }
+
+    /// The file debug info attributes this location to: the file itself for text, `<file>.<diagram>`
+    /// for a diagram element, so a debugger can tell a diagram line from a declaration line
+    pub fn get_debug_file_name(&self) -> Option<String> {
+        let file = self.get_file_name()?;
+        match &self.span {
+            CodeSpan::Block { diagram, .. } => Some(format!("{file}.{diagram}")),
+            _ => Some(file.to_string()),
+        }
+    }
+
+    /// Narrows a diagram element location to one of its input pins; any other location is unchanged
+    pub fn with_pin(&self, pin: usize) -> SourceLocation {
+        let span = match &self.span {
+            CodeSpan::Block { diagram, order, .. } => {
+                CodeSpan::Block { diagram: diagram.clone(), order: *order, pin: Some(pin) }
+            }
+            other => other.clone(),
+        };
+        SourceLocation { span, file: self.file }
+    }
+
+    pub fn is_block(&self) -> bool {
+        matches!(self.span, CodeSpan::Block { .. })
     }
 
     /// returns true if this SourceRange points to an undefined location.
@@ -522,21 +565,36 @@ mod tests {
 
     #[test]
     fn span_two_blocks() {
-        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
-        let loc2 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 2 } };
+        let loc1 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 1, pin: None },
+        };
+        let loc2 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 2, pin: None },
+        };
         assert_debug_snapshot!(loc1.span(&loc2));
     }
 
     #[test]
     fn span_two_blocks_with_same_id() {
-        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
-        let loc2 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
+        let loc1 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 1, pin: None },
+        };
+        let loc2 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 1, pin: None },
+        };
         assert_debug_snapshot!(loc1.span(&loc2));
     }
 
     #[test]
     fn span_id_and_range() {
-        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
+        let loc1 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 1, pin: None },
+        };
         let loc2 = SourceLocation {
             file: None.into(),
             span: CodeSpan::from_text_info(TextLocation::new(1, 0, 0), TextLocation::new(2, 0, 4)),
@@ -559,16 +617,31 @@ mod tests {
 
     #[test]
     fn span_combined() {
-        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
-        let loc2 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 2 } };
-        let loc3 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 3 } };
-        let loc4 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 4 } };
+        let loc1 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 1, pin: None },
+        };
+        let loc2 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 2, pin: None },
+        };
+        let loc3 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 3, pin: None },
+        };
+        let loc4 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 4, pin: None },
+        };
         assert_debug_snapshot!(loc1.span(&loc2).span(&loc3.span(&loc4)));
     }
 
     #[test]
     fn span_none() {
-        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
+        let loc1 = SourceLocation {
+            file: None.into(),
+            span: CodeSpan::Block { diagram: "main".into(), order: 1, pin: None },
+        };
         let loc2 = SourceLocation { file: None.into(), span: CodeSpan::None };
         assert_debug_snapshot!(loc1.span(&loc2));
     }

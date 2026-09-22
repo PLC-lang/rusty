@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Tests mixed multiplied segments with REF() calls.
 FUNCTION main : DINT
 VAR

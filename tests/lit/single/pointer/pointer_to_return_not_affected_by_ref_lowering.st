@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Regression test: ensure reference-to-return lowering does not affect POINTER TO returns.
 // A function returning POINTER TO INT should keep its return type and continue to work
 // normally rather than being lowered as though it returned REFERENCE TO.

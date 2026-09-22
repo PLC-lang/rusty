@@ -1,4 +1,4 @@
-// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 // Every element of an array of function blocks must be fully constructed:
 // declared defaults applied and FB_INIT invoked once per element.
 VAR_GLOBAL
