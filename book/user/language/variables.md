@@ -99,6 +99,34 @@ A list that is shorter than the array fills the rest with the default value of t
 
 Values that are addresses, such as `REF(x)`, are not constants and cannot be written into the static data of a program. Such a variable starts as a null pointer, and the compiler emits start-up code that sets it before the first call of your code. The [pointers](pointers.md) chapter explains `REF` and the types that hold an address.
 
+### Network Publish Mode
+
+Sysmac Studio publishes global variables to the network. Each variable carries a `networkPublish`attribute in the generated XML. The default is `DoNotPublish`.
+
+To set the mode, write a `network_publish` pragma directly before a `VAR_GLOBAL` block. The mode applies to every variable in that block:
+
+```iecst
+{network_publish := 'Input'}
+VAR_GLOBAL
+    speed : INT;
+    torque : INT;
+END_VAR
+```
+
+The accepted modes are `DoNotPublish`, `PublishOnly`, `Input` and `Output`. The mode name is not case sensitive. The pragma applies to one block only. A later `VAR_GLOBAL` block without its own pragma goes back to `DoNotPublish`:
+
+```iecst
+{network_publish := 'Output'}
+VAR_GLOBAL
+    published : INT;
+END_VAR
+
+VAR_GLOBAL
+    notPublished : INT;
+END_VAR
+```
+
+Local variables are not published, so the pragma has no effect on a `VAR` block inside a POU. An unknown mode name gives warning `E024`, and the block falls back to `DoNotPublish`.
 
 ## What's next
 

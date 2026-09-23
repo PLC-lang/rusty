@@ -47,6 +47,7 @@ The extension decides how a file is read: `.cfc`, `.fbd`, and `.xml` are graphic
 | `--bc` | LLVM bitcode | `<first input>.bc` |
 | `--ast` | The syntax tree after parsing | standard output |
 | `--ast-lowered` | The syntax tree after every rewrite | standard output |
+| `--xml-omron` | IEC 61131-10 XML format for Omron Sysmac Studio |
 
 The default name comes from the first argument as it was written, so a glob pattern gives a file whose name holds the pattern. Give `-o` with a pattern.
 

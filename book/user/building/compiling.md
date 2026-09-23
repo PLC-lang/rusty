@@ -46,6 +46,7 @@ The [project file reference](../reference/project-file.md) describes every key, 
 | `-c` | An object file, not linked |
 | `--shared` | A shared object |
 | `--ir` | LLVM intermediate representation, as text |
+| `--xml-omron` | IEC 61131-10 XML format for Omron Sysmac Studio |
 
 In a project file, the key `compile_type` does the same. Use `Static`, `Object`, `Shared`, `Relocatable`, `Bitcode`, or `IR`.
 
