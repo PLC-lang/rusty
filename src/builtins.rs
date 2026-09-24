@@ -826,38 +826,55 @@ fn validate_builtin_symbol_parameter_count(
     }
 }
 
-/// Orders the arguments of a builtin call into declaration order and unwraps every named argument
-/// to its value, such that `NE(IN2 := b, IN1 := a)` yields `[a, b]`.
-///
-/// The type hint of a named argument is also dropped. The resolver hints it with the declared
-/// parameter type, which no longer applies once the call is replaced by a binary expression, and
-/// a positional argument carries no hint at this point either.
-fn order_and_extract_arguments<'a>(
-    annotator: &mut TypeAnnotator,
+/// Orders the arguments of a builtin call into declaration order, such that `NE(IN2 := b, IN1 := a)`
+/// yields `[IN1 := a, IN2 := b]`. A named argument stays wrapped in its assignment, see
+/// `extract_actual_parameter` for its value.
+fn order_call_arguments<'a>(
     parameters: &'a AstNode,
     option_named_parameters: Option<&[&str]>,
 ) -> Vec<&'a AstNode> {
     let params = flatten_expression_list(parameters);
-    let ordered = match option_named_parameters {
+    match option_named_parameters {
         Some(named_parameters) => order_arguments(&params, named_parameters),
         None => params,
-    };
-
-    for param in ordered.iter().filter(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
-        clear_argument_type_hint(annotator, extract_actual_parameter(param));
     }
-
-    ordered.into_iter().map(extract_actual_parameter).collect()
 }
 
-/// Drops the type hint of an argument and of every expression nested in its parentheses. A
-/// parenthesis inherits the hint of the expression it wraps, thus clearing only the outermost node
-/// would let the inherited hint come back.
-fn clear_argument_type_hint(annotator: &mut TypeAnnotator, argument: &AstNode) {
-    annotator.annotation_map.clear_type_hint(argument);
+/// Returns the name of the biggest type among the given argument values. This is the type the generic
+/// parameter of the builtin resolves to, and the type the operands of its replacement expression share.
+fn find_biggest_type_name(annotator: &TypeAnnotator, arguments: &[&AstNode]) -> String {
+    let mut bigger = annotator
+        .annotation_map
+        .get_type_or_void(arguments.first().expect("must have this parameter"), annotator.index);
 
-    if let AstStatement::ParenExpression(inner) = argument.get_stmt() {
-        clear_argument_type_hint(annotator, inner);
+    for argument in arguments.iter().skip(1) {
+        let right_type = annotator.annotation_map.get_type_or_void(argument, annotator.index);
+        bigger = get_bigger_type(bigger, right_type, annotator.index);
+    }
+
+    bigger.get_name().to_owned()
+}
+
+/// Hints the value of every named argument with the type the generic parameter of the builtin resolves to.
+///
+/// The resolver hints the value of a named argument with the declared parameter type, which for a builtin
+/// is its unresolved generic `T`. A regular generic call replaces that hint with the derived type once its
+/// candidates are known (see `TypeAnnotator::update_generic_function_parameters`); the builtins annotated
+/// here bypass that step, thus do the same before the replacement expression is visited, which reads the
+/// hints of its operands. A positional argument carries no hint at this point and is left alone.
+fn hint_named_arguments(annotator: &mut TypeAnnotator, arguments: &[&AstNode], type_name: &str) {
+    for argument in arguments.iter().filter(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
+        hint_argument_value(annotator, extract_actual_parameter(argument), type_name);
+    }
+}
+
+/// Hints an argument value and every expression nested in its parentheses. A parenthesis inherits the hint
+/// of the expression it wraps, thus hinting only the outermost node would leave the inherited hint stale.
+fn hint_argument_value(annotator: &mut TypeAnnotator, value: &AstNode, type_name: &str) {
+    annotator.annotation_map.annotate_type_hint(value, StatementAnnotation::value(type_name));
+
+    if let AstStatement::ParenExpression(inner) = value.get_stmt() {
+        hint_argument_value(annotator, inner, type_name);
     }
 }
 
@@ -873,7 +890,8 @@ fn annotate_comparison_function(
     option_named_parameters: Option<&[&str]>,
 ) {
     let mut ctx = ctx;
-    let params_flattened = order_and_extract_arguments(annotator, parameters, option_named_parameters);
+    let params = order_call_arguments(parameters, option_named_parameters);
+    let params_flattened: Vec<&AstNode> = params.iter().map(|it| extract_actual_parameter(it)).collect();
 
     if params_flattened.iter().any(|it| {
         !annotator
@@ -885,6 +903,9 @@ fn annotate_comparison_function(
         annotator.annotate_arguments(operator, parameters, &ctx);
         return;
     }
+
+    let bigger_type = find_biggest_type_name(annotator, &params_flattened);
+    hint_named_arguments(annotator, &params, &bigger_type);
 
     let comparisons = params_flattened
         .windows(2)
@@ -926,7 +947,8 @@ fn annotate_arithmetic_function(
     operation: Operator,
     option_named_parameters: Option<&[&str]>,
 ) {
-    let params_extracted = order_and_extract_arguments(annotator, parameters, option_named_parameters);
+    let params = order_call_arguments(parameters, option_named_parameters);
+    let params_extracted: Vec<&AstNode> = params.iter().map(|it| extract_actual_parameter(it)).collect();
 
     if params_extracted.iter().any(|param| {
         !annotator
@@ -940,22 +962,8 @@ fn annotate_arithmetic_function(
     }
 
     let mut ctx = ctx;
-    // find biggest type to later annotate it as type hint. this is done in a closure to avoid a borrow-checker tantrum later on due to
-    // mutable and immutable borrow of TypeAnnotator
-    let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
-        let mut bigger = annotator
-            .annotation_map
-            .get_type_or_void(params_extracted.first().expect("must have this parameter"), annotator.index);
-
-        for param in params_extracted.iter().skip(1) {
-            let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
-            bigger = get_bigger_type(bigger, right_type, annotator.index);
-        }
-
-        bigger.get_name().to_owned()
-    };
-
-    let bigger_type = find_biggest_param_type_name(annotator);
+    let bigger_type = find_biggest_type_name(annotator, &params_extracted);
+    hint_named_arguments(annotator, &params, &bigger_type);
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
