@@ -364,11 +364,14 @@ pub fn parse_project_into_nodetree(
             continue; //skip this unit since it is an internally generated file, not the users source code
         }
         let borrowed_root = &mut output_root;
+        let unit_source = std::fs::read_to_string(unit_name).ok();
+        let unit_source = unit_source.as_deref();
 
         let _ = generate_globals(
             generation_parameters,
             current_unit,
             unit_name,
+            unit_source,
             schema_path,
             &type_names,
             &namespaces,
@@ -385,6 +388,7 @@ pub fn parse_project_into_nodetree(
         let _ = generate_pous(
             generation_parameters,
             current_unit,
+            unit_source,
             schema_path,
             &type_names,
             &namespaces,
@@ -414,6 +418,7 @@ pub(crate) fn generate_globals(
     generation_parameters: &GenerationParameters,
     current_unit: &CompilationUnit,
     unit_name: &str,
+    unit_source: Option<&str>,
     schema_path: &'static str,
     type_names: &TypeNameMap,
     namespaces: &NamespaceMap,
@@ -463,6 +468,7 @@ pub(crate) fn generate_globals(
                 current_variable,
                 generation_parameters,
                 &cloned_unitname,
+                unit_source,
                 schema_path,
                 type_names,
                 namespaces,
@@ -744,9 +750,11 @@ pub fn format_enum_initials(mut enum_variants: Vec<NameAndInitialValue>) -> Vec<
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn generate_pous(
     generation_parameters: &GenerationParameters,
     current_unit: &CompilationUnit,
+    unit_source: Option<&str>,
     schema_path: &'static str,
     type_names: &TypeNameMap,
     namespaces: &NamespaceMap,
@@ -818,15 +826,14 @@ pub(crate) fn generate_pous(
         let adddata_node = SOmronAddData::new() //<AddData>
             .child(&data_node);
 
-        let documentation = matching_metadata
-            .filter(|metadata| metadata.linkage != LinkageType::External)
-            .and_then(|metadata| match (metadata.location.get_span(), metadata.location.file) {
-                (CodeSpan::Range(range), plc_source::source_location::FileMarker::File(file_path)) => {
-                    grab_leading_comment(file_path, range.start.get_offset())
-                }
-                _ => None,
-            })
-            .map(|text| SDocumentation::new().attribute_str("xsi:type", SIMPLE_TEXT).content(text));
+        let documentation = documentation_node(
+            matching_metadata.filter(|metadata| metadata.linkage != LinkageType::External).and_then(
+                |metadata| match metadata.location.get_span() {
+                    CodeSpan::Range(range) => leading_comment(unit_source?, range.start.get_offset()),
+                    _ => None,
+                },
+            ),
+        );
 
         let mut resulttype_node = SResultType::new(); //<ResultType>
 
@@ -898,6 +905,7 @@ pub(crate) fn generate_pous(
                     current_variable,
                     generation_parameters,
                     owning_name,
+                    unit_source,
                     schema_path,
                     type_names,
                     namespaces,
@@ -1041,6 +1049,7 @@ fn generate_variable_element(
     current_variable: &Variable,
     _generation_parameters: &GenerationParameters,
     pou_name: &str,
+    unit_source: Option<&str>,
     schema_path: &'static str,
     type_names: &TypeNameMap,
     namespaces: &NamespaceMap,
@@ -1051,6 +1060,16 @@ fn generate_variable_element(
 ) -> Option<SGenVariable> {
     let mut variable_node =
         SGenVariable::new().attribute(String::from("name"), current_variable.name.clone());
+
+    //<Documentation>
+    let comment = match (unit_source, current_variable.location.get_span()) {
+        (Some(source), CodeSpan::Range(range)) => variable_comment(source, range.start.get_offset()),
+        _ => None,
+    };
+
+    if let Some(documentation) = documentation_node(comment) {
+        variable_node = variable_node.child(&documentation);
+    }
 
     //<AddData>
     if let Some(network_publish) = network_publish {
@@ -1167,17 +1186,8 @@ fn flatten_body_indent(text: &str) -> String {
 
 pub const SIMPLE_TEXT: &str = "SimpleText";
 
-pub(crate) fn grab_leading_comment(file_path: &'static str, declaration_start: usize) -> Option<String> {
-    if declaration_start == 0 {
-        return None;
-    }
-
-    let mut file = File::open(file_path).ok()?;
-    let mut buffer = vec![0u8; declaration_start];
-    file.read_exact(buffer.as_mut_slice()).ok()?;
-
-    let head = String::from_utf8(buffer).ok()?;
-    let preceding = head.trim_end();
+pub(crate) fn leading_comment(source: &str, declaration_start: usize) -> Option<String> {
+    let preceding = source.get(..declaration_start)?.trim_end();
 
     if let Some(body) = preceding.strip_suffix("*)") {
         let opening = body.rfind("(*")?;
@@ -1186,6 +1196,30 @@ pub(crate) fn grab_leading_comment(file_path: &'static str, declaration_start: u
     }
 
     tidy_comment(&collect_line_comments(preceding))
+}
+
+pub(crate) fn variable_comment(source: &str, declaration_start: usize) -> Option<String> {
+    let line_start = source.get(..declaration_start)?.rfind('\n').map_or(0, |index| index + 1);
+    let line_end =
+        source[declaration_start..].find('\n').map_or(source.len(), |index| declaration_start + index);
+
+    let tail = source.get(declaration_start..line_end)?;
+
+    if let Some((_, text)) = tail.split_once("//") {
+        return tidy_comment(text);
+    }
+
+    if let Some((_, rest)) = tail.split_once("(*")
+        && let Some((text, _)) = rest.split_once("*)")
+    {
+        return tidy_comment(text);
+    }
+
+    leading_comment(source, line_start)
+}
+
+fn documentation_node(text: Option<String>) -> Option<SDocumentation> {
+    text.map(|text| SDocumentation::new().attribute_str("xsi:type", SIMPLE_TEXT).content(text))
 }
 
 pub(crate) fn collect_line_comments(preceding: &str) -> String {

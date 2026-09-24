@@ -117,6 +117,19 @@ FUNCTION_BLOCK TransferArmLiftSubSequence
 
 A `(* *)` block and a run of `//` lines both work. The compiler removes the comment markers and the indentation that every line shares, so the relative indentation of a list stays. A comment that holds no text writes no element.
 
+A variable takes its comment the same way, which fills the comment column of the Sysmac variable table. A comment on the same line documents that variable, and a comment on the line above documents the variable below it:
+
+```iecst
+VAR_GLOBAL
+    DO_CameraCapture: BOOL;                 // Camera capture output
+    DI_PlateEjectCylinderRetracted: BOOL;   (* Eject cylinder retracted limit *)
+    (* Extends the plate eject cylinder *)
+    DO_PlateEjectCylinderExtend: BOOL;
+END_VAR
+```
+
+This applies to every variable that the export writes, global or local, and a variable with no comment writes no element.
+
 
 ## Optimization
 

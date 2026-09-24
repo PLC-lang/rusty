@@ -210,6 +210,7 @@ mod xml_gen_tests {
             &params,
             &unit,
             "globals.st",
+            None,
             OMRON_SCHEMA,
             &build_type_name_map(&[&unit], &NamespaceMap::default()),
             &NamespaceMap::default(),
@@ -375,6 +376,7 @@ mod xml_gen_tests {
         let result = generate_pous(
             &params,
             &unit,
+            None,
             OMRON_SCHEMA,
             &build_type_name_map(&[&unit], &NamespaceMap::default()),
             &NamespaceMap::default(),
@@ -464,6 +466,7 @@ mod xml_gen_tests {
         let result = generate_pous(
             &params,
             &unit,
+            None,
             OMRON_SCHEMA,
             &build_type_name_map(&[&unit], &NamespaceMap::default()),
             &NamespaceMap::default(),
@@ -1059,17 +1062,55 @@ mod xml_gen_tests {
         );
     }
 
-    /// Helper: Write a source file and read back the comment that precedes its POU.
-    fn read_leading_comment(source: &str, file_name: &str) -> Option<String> {
-        let path = std::env::temp_dir().join(file_name);
-        std::fs::write(&path, source).unwrap();
+    /// Helper: Read back the comment that precedes a POU declaration.
+    fn read_leading_comment(source: &str, _file_name: &str) -> Option<String> {
+        leading_comment(source, source.find("FUNCTION_BLOCK").unwrap())
+    }
 
-        let declaration_start = source.find("FUNCTION_BLOCK").unwrap();
-        let leaked: &'static str = Box::leak(path.to_string_lossy().into_owned().into_boxed_str());
-        let found = grab_leading_comment(leaked, declaration_start);
+    #[test]
+    fn test_trailing_line_comment_documents_a_variable() {
+        let source = "VAR_GLOBAL\n    DO_CameraCapture: BOOL; // Camera capture output\nEND_VAR";
 
-        let _ = std::fs::remove_file(&path);
-        found
+        assert_eq!(
+            read_variable_comment(source, "DO_CameraCapture"),
+            Some(String::from("Camera capture output"))
+        );
+    }
+
+    #[test]
+    fn test_trailing_block_comment_documents_a_variable() {
+        let source = "VAR_GLOBAL\n    Retracted: BOOL; (* Eject cylinder retracted *)\nEND_VAR";
+
+        assert_eq!(
+            read_variable_comment(source, "Retracted"),
+            Some(String::from("Eject cylinder retracted"))
+        );
+    }
+
+    #[test]
+    fn test_comment_above_a_variable_documents_it() {
+        let source = "VAR_GLOBAL\n    (* Extends the cylinder *)\n    DO_Cylinder: BOOL;\nEND_VAR";
+
+        assert_eq!(read_variable_comment(source, "DO_Cylinder"), Some(String::from("Extends the cylinder")));
+    }
+
+    #[test]
+    fn test_variable_without_a_comment_has_no_documentation() {
+        let source = "VAR_GLOBAL\n    Undocumented: BOOL;\nEND_VAR";
+
+        assert_eq!(read_variable_comment(source, "Undocumented"), None);
+    }
+
+    #[test]
+    fn test_variable_does_not_borrow_the_comment_of_the_line_above_it() {
+        let source = "VAR_GLOBAL\n    First: BOOL; // belongs to First\n    Second: BOOL;\nEND_VAR";
+
+        assert_eq!(read_variable_comment(source, "Second"), None);
+    }
+
+    /// Helper: Read back the comment that documents a named variable.
+    fn read_variable_comment(source: &str, variable_name: &str) -> Option<String> {
+        variable_comment(source, source.find(variable_name).unwrap())
     }
 
     /// Helper: Read back the emitted TypeName of one member of one declared type.
@@ -1349,6 +1390,7 @@ mod xml_gen_tests {
             &params,
             &unit,
             "strings.st",
+            None,
             OMRON_SCHEMA,
             &build_type_name_map(&[&unit], &NamespaceMap::default()),
             &NamespaceMap::default(),
@@ -1413,6 +1455,7 @@ mod xml_gen_tests {
             &params,
             &unit,
             "aliases.st",
+            None,
             OMRON_SCHEMA,
             &build_type_name_map(&[&unit], &NamespaceMap::default()),
             &NamespaceMap::default(),
@@ -1558,6 +1601,7 @@ mod xml_gen_tests {
         let result = generate_pous(
             params,
             &unit,
+            None,
             OMRON_SCHEMA,
             &build_type_name_map(&[&unit], &NamespaceMap::default()),
             &NamespaceMap::default(),
