@@ -59,9 +59,7 @@ pub fn get_omron_template() -> Node {
                 .attribute_str("name", "Sample")
                 .attribute(String::from("creationDateTime"), Local::now().to_rfc3339())
                 .child(&SAddDataInfo::new().child(
-                    &SInfo::new()
-                        .attribute_str("name", OMRON_SCHEMA)
-                        .attribute_str("vendor", OMRON_VENDOR),
+                    &SInfo::new().attribute_str("name", OMRON_SCHEMA).attribute_str("vendor", OMRON_VENDOR),
                 )),
         )
         .child(&STypes::new().child(&SGlobalNamespace::new()))
@@ -182,9 +180,66 @@ fn unsupported_reason(declaration: &DataTypeDeclaration) -> Option<&'static str>
 
 pub type TypeNameMap = std::collections::HashMap<String, String>;
 
+pub type NamespaceMap = std::collections::HashMap<String, String>;
+
 type TypeSources<'a> = std::collections::HashMap<&'a str, &'a DataType>;
 
-pub fn build_type_name_map(units: &[&CompilationUnit]) -> TypeNameMap {
+pub const NAMESPACE_SEPARATOR: char = '\\';
+
+pub fn build_namespace_map(units: &[&CompilationUnit]) -> NamespaceMap {
+    let mut resolved = NamespaceMap::default();
+
+    for &current_unit in units {
+        let Some(namespace) = &current_unit.namespace else {
+            continue;
+        };
+
+        for current_usertype in &current_unit.user_types {
+            if let Some(type_name) = current_usertype.data_type.get_name() {
+                resolved.insert(String::from(type_name), namespace.clone());
+            }
+        }
+
+        for current_pou in &current_unit.pous {
+            resolved.insert(current_pou.name.clone(), namespace.clone());
+        }
+    }
+
+    resolved
+}
+
+fn qualify_type_name(declared: &str, namespaces: &NamespaceMap) -> String {
+    match namespaces.get(declared) {
+        Some(namespace) => format!("{namespace}{NAMESPACE_SEPARATOR}{declared}"),
+        None => String::from(declared),
+    }
+}
+
+fn declaration_root<'a>(output_root: &'a mut Node, namespace: Option<&str>) -> Result<&'a mut Node, ()> {
+    let types_root = output_root.children.iter_mut().find(|a| a.name == TYPES).ok_or(())?;
+
+    let Some(namespace) = namespace else {
+        return types_root.children.iter_mut().find(|a| a.name == GLOBAL_NAMESPACE).ok_or(());
+    };
+
+    let existing = types_root.children.iter().position(|a| {
+        a.name == NAMESPACE && a.attributes.get("name").is_some_and(|value| value == namespace)
+    });
+
+    let index = match existing {
+        Some(index) => index,
+        None => {
+            types_root
+                .child_borrowed(&SNamespace::new().attribute(String::from("name"), String::from(namespace)));
+
+            types_root.children.len() - 1
+        }
+    };
+
+    types_root.children.get_mut(index).ok_or(())
+}
+
+pub fn build_type_name_map(units: &[&CompilationUnit], namespaces: &NamespaceMap) -> TypeNameMap {
     let mut sources = TypeSources::default();
 
     for &current_unit in units {
@@ -200,7 +255,7 @@ pub fn build_type_name_map(units: &[&CompilationUnit]) -> TypeNameMap {
     let mut resolved = TypeNameMap::default();
 
     for (type_name, data_type) in &sources {
-        if let Some(rendered) = render_data_type(data_type, &sources, 0) {
+        if let Some(rendered) = render_data_type(data_type, &sources, namespaces, 0) {
             resolved.insert(String::from(*type_name), rendered);
         }
     }
@@ -208,7 +263,12 @@ pub fn build_type_name_map(units: &[&CompilationUnit]) -> TypeNameMap {
     resolved
 }
 
-fn render_data_type(data_type: &DataType, sources: &TypeSources, depth: usize) -> Option<String> {
+fn render_data_type(
+    data_type: &DataType,
+    sources: &TypeSources,
+    namespaces: &NamespaceMap,
+    depth: usize,
+) -> Option<String> {
     if depth > MAX_ALIAS_HOPS {
         return None;
     }
@@ -216,7 +276,7 @@ fn render_data_type(data_type: &DataType, sources: &TypeSources, depth: usize) -
     match data_type {
         DataType::StringType { is_wide, size, .. } => Some(format_string_type(*is_wide, size.as_ref())),
         DataType::SubRangeType { referenced_type, bounds: None, .. } => {
-            Some(render_named_type(referenced_type, sources, depth + 1))
+            Some(render_named_type(referenced_type, sources, namespaces, depth + 1))
         }
         DataType::ArrayType { bounds, referenced_type, .. } => {
             let dimensions = extract_dimensions(bounds);
@@ -228,7 +288,7 @@ fn render_data_type(data_type: &DataType, sources: &TypeSources, depth: usize) -
             let ranges: Vec<String> =
                 dimensions.iter().map(|(lower, upper)| format!("{lower}..{upper}")).collect();
 
-            let base = render_declared_type(referenced_type, sources, depth + 1)?;
+            let base = render_declared_type(referenced_type, sources, namespaces, depth + 1)?;
 
             Some(format!("ARRAY[{}] OF {}", ranges.join(","), base))
         }
@@ -236,23 +296,31 @@ fn render_data_type(data_type: &DataType, sources: &TypeSources, depth: usize) -
     }
 }
 
-fn render_named_type(type_name: &str, sources: &TypeSources, depth: usize) -> String {
+fn render_named_type(
+    type_name: &str,
+    sources: &TypeSources,
+    namespaces: &NamespaceMap,
+    depth: usize,
+) -> String {
     match sources.get(type_name) {
-        Some(inner) => render_data_type(inner, sources, depth).unwrap_or_else(|| String::from(type_name)),
-        None => String::from(type_name),
+        Some(inner) => render_data_type(inner, sources, namespaces, depth)
+            .unwrap_or_else(|| qualify_type_name(type_name, namespaces)),
+        None => qualify_type_name(type_name, namespaces),
     }
 }
 
 fn render_declared_type(
     declaration: &DataTypeDeclaration,
     sources: &TypeSources,
+    namespaces: &NamespaceMap,
     depth: usize,
 ) -> Option<String> {
     match declaration {
         DataTypeDeclaration::Definition { data_type, .. } => {
-            render_data_type(data_type, sources, depth).or_else(|| data_type.get_name().map(String::from))
+            render_data_type(data_type, sources, namespaces, depth)
+                .or_else(|| data_type.get_name().map(|name| qualify_type_name(name, namespaces)))
         }
-        _ => declaration.get_name().map(|a| render_named_type(a, sources, depth)),
+        _ => declaration.get_name().map(|a| render_named_type(a, sources, namespaces, depth)),
     }
 }
 
@@ -284,7 +352,8 @@ pub fn parse_project_into_nodetree(
 
     let mut param_order: HashSet<(String, usize)> = HashSet::new(); //the unique combination of (ParameterName, orderWithinParamSet) for the entire generation.
     let borrowed_order = &mut param_order;
-    let type_names = build_type_name_map(units);
+    let namespaces = build_namespace_map(units);
+    let type_names = build_type_name_map(units, &namespaces);
 
     for &current_unit in units {
         let unit_name = current_unit.file.get_name().unwrap_or("");
@@ -300,29 +369,48 @@ pub fn parse_project_into_nodetree(
             unit_name,
             schema_path,
             &type_names,
+            &namespaces,
             borrowed_order,
             borrowed_root,
         );
-        let _ = generate_custom_types(generation_parameters, current_unit, &type_names, borrowed_root);
+        let _ = generate_custom_types(
+            generation_parameters,
+            current_unit,
+            &type_names,
+            &namespaces,
+            borrowed_root,
+        );
         let _ = generate_pous(
             generation_parameters,
             current_unit,
             schema_path,
             &type_names,
+            &namespaces,
             borrowed_order,
             borrowed_root,
         );
     }
+    prune_empty_namespaces(&mut output_root);
     write_xml_file(output_path, output_root)?;
     Ok(())
 }
 
+fn prune_empty_namespaces(output_root: &mut Node) {
+    let Some(types_root) = output_root.children.iter_mut().find(|a| a.name == TYPES) else {
+        return;
+    };
+
+    types_root.children.retain(|a| a.name != NAMESPACE || !a.children.is_empty());
+}
+
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn generate_globals(
     generation_parameters: &GenerationParameters,
     current_unit: &CompilationUnit,
     unit_name: &str,
     schema_path: &'static str,
     type_names: &TypeNameMap,
+    namespaces: &NamespaceMap,
     preused_order: &mut HashSet<(String, usize)>,
     output_root: &mut Node,
 ) -> Result<(), ()> {
@@ -371,6 +459,7 @@ pub(crate) fn generate_globals(
                 &cloned_unitname,
                 schema_path,
                 type_names,
+                namespaces,
                 network_publish,
                 preused_order,
                 b,
@@ -422,13 +511,10 @@ pub(crate) fn generate_custom_types(
     _generation_parameters: &GenerationParameters,
     current_unit: &CompilationUnit,
     type_names: &TypeNameMap,
+    namespaces: &NamespaceMap,
     output_root: &mut Node,
 ) -> Result<(), ()> {
-    let maybe_types_root: Option<&mut Node> = output_root.children.iter_mut().find(|a| a.name == TYPES);
-    let types_root: &mut Node = maybe_types_root.ok_or(())?;
-    let maybe_global_root: Option<&mut Node> =
-        types_root.children.iter_mut().find(|a| a.name == GLOBAL_NAMESPACE);
-    let global_root: &mut Node = maybe_global_root.ok_or(())?;
+    let global_root: &mut Node = declaration_root(output_root, current_unit.namespace.as_deref())?;
 
     for a in 0..current_unit.user_types.len() {
         let current_usertype = &current_unit.user_types[a];
@@ -454,13 +540,16 @@ pub(crate) fn generate_custom_types(
                 let mut spec_node = SUserDefinedTypeSpec::new().attribute_str("xsi:type", STRUCT_TYPE_SPEC);
 
                 for current_variable in variables {
-                    let typename =
-                        match resolve_type_name(&current_variable.data_type_declaration, type_names) {
-                            Some(a) => a,
-                            None => {
-                                continue;
-                            } //every variable must have a type
-                        };
+                    let typename = match resolve_type_name(
+                        &current_variable.data_type_declaration,
+                        type_names,
+                        namespaces,
+                    ) {
+                        Some(a) => a,
+                        None => {
+                            continue;
+                        } //every variable must have a type
+                    };
 
                     let typename_node = STypeName::new().content(typename);
 
@@ -531,7 +620,11 @@ pub(crate) fn generate_custom_types(
     Ok(())
 }
 
-fn resolve_type_name(declaration: &DataTypeDeclaration, type_names: &TypeNameMap) -> Option<String> {
+fn resolve_type_name(
+    declaration: &DataTypeDeclaration,
+    type_names: &TypeNameMap,
+    namespaces: &NamespaceMap,
+) -> Option<String> {
     if let DataTypeDeclaration::Definition { data_type, .. } = declaration
         && let DataType::StringType { is_wide, size, .. } = data_type.as_ref()
     {
@@ -552,7 +645,7 @@ fn resolve_type_name(declaration: &DataTypeDeclaration, type_names: &TypeNameMap
         return Some(format_string_type(true, None));
     }
 
-    Some(String::from(declared))
+    Some(qualify_type_name(declared, namespaces))
 }
 
 fn extract_literal(input: &AstNode) -> Option<String> {
@@ -650,14 +743,11 @@ pub(crate) fn generate_pous(
     current_unit: &CompilationUnit,
     schema_path: &'static str,
     type_names: &TypeNameMap,
+    namespaces: &NamespaceMap,
     param_order: &mut HashSet<(String, usize)>,
     output_root: &mut Node,
 ) -> Result<(), ()> {
-    let maybe_types_root: Option<&mut Node> = output_root.children.iter_mut().find(|a| a.name == TYPES);
-    let types_root: &mut Node = maybe_types_root.ok_or(())?;
-    let maybe_global_root: Option<&mut Node> =
-        types_root.children.iter_mut().find(|a| a.name == GLOBAL_NAMESPACE);
-    let global_root: &mut Node = maybe_global_root.ok_or(())?;
+    let global_root: &mut Node = declaration_root(output_root, current_unit.namespace.as_deref())?;
 
     for a in 0..current_unit.implementations.len() {
         let current_impl = &current_unit.implementations[a];
@@ -733,7 +823,7 @@ pub(crate) fn generate_pous(
             && let Some(result_type) = &metadata.return_type
             && let Some(type_name) = result_type.get_name()
         {
-            typename_node = typename_node.content(String::from(type_name));
+            typename_node = typename_node.content(qualify_type_name(type_name, namespaces));
         } else {
             typename_node = typename_node.content(String::from("BOOL")); //default to boolean output
         }
@@ -794,6 +884,7 @@ pub(crate) fn generate_pous(
                     owning_name,
                     schema_path,
                     type_names,
+                    namespaces,
                     network_publish,
                     param_order,
                     c,
@@ -930,6 +1021,7 @@ fn generate_variable_element(
     pou_name: &str,
     schema_path: &'static str,
     type_names: &TypeNameMap,
+    namespaces: &NamespaceMap,
     network_publish: Option<String>,
     preused_order: &mut HashSet<(String, usize)>,
     order: usize,
@@ -955,7 +1047,7 @@ fn generate_variable_element(
     }
 
     //<Type>
-    let typename = match resolve_type_name(&current_variable.data_type_declaration, type_names) {
+    let typename = match resolve_type_name(&current_variable.data_type_declaration, type_names, namespaces) {
         Some(a) => a,
         None => {
             return None;

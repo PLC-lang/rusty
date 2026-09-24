@@ -97,6 +97,11 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                 lexer.advance();
                 continue;
             }
+            PropertyNamespace => {
+                unit.namespace = parse_namespace_pragma(&mut lexer);
+                lexer.advance();
+                continue;
+            }
             KeywordVarGlobal => {
                 let mut block = parse_variable_block(&mut lexer, linkage);
                 block.network_publish = network_publish;
@@ -1605,6 +1610,25 @@ fn parse_network_publish_pragma(lexer: &mut ParseSession) -> NetworkPublish {
                 .with_location(lexer.location()),
             );
             NetworkPublish::default()
+        }
+    }
+}
+
+fn parse_namespace_pragma(lexer: &mut ParseSession) -> Option<String> {
+    let slice = lexer.slice();
+    let parsed = slice.split('\'').nth(1).map(str::trim).filter(|name| !name.is_empty());
+
+    match parsed {
+        Some(name) => Some(String::from(name)),
+        None => {
+            lexer.accept_diagnostic(
+                Diagnostic::new(format!(
+                    "Invalid namespace in `{slice}`, expected a quoted library name such as {{namespace := 'Common'}}"
+                ))
+                .with_error_code("E024")
+                .with_location(lexer.location()),
+            );
+            None
         }
     }
 }

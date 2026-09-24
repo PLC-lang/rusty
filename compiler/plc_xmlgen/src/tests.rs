@@ -211,7 +211,8 @@ mod xml_gen_tests {
             &unit,
             "globals.st",
             OMRON_SCHEMA,
-            &build_type_name_map(&[&unit]),
+            &build_type_name_map(&[&unit], &NamespaceMap::default()),
+            &NamespaceMap::default(),
             &mut order,
             &mut template,
         );
@@ -278,7 +279,13 @@ mod xml_gen_tests {
             linkage: LinkageType::Internal,
         });
 
-        let result = generate_custom_types(&params, &unit, &build_type_name_map(&[&unit]), &mut template);
+        let result = generate_custom_types(
+            &params,
+            &unit,
+            &build_type_name_map(&[&unit], &NamespaceMap::default()),
+            &NamespaceMap::default(),
+            &mut template,
+        );
         assert!(result.is_ok());
 
         // Write and verify
@@ -369,7 +376,8 @@ mod xml_gen_tests {
             &params,
             &unit,
             OMRON_SCHEMA,
-            &build_type_name_map(&[&unit]),
+            &build_type_name_map(&[&unit], &NamespaceMap::default()),
+            &NamespaceMap::default(),
             &mut order,
             &mut template,
         );
@@ -457,7 +465,8 @@ mod xml_gen_tests {
             &params,
             &unit,
             OMRON_SCHEMA,
-            &build_type_name_map(&[&unit]),
+            &build_type_name_map(&[&unit], &NamespaceMap::default()),
+            &NamespaceMap::default(),
             &mut order,
             &mut template,
         );
@@ -799,7 +808,13 @@ mod xml_gen_tests {
         let mut unit = make_unit("test_types.st");
         unit.user_types.push(make_user_type(data_type));
 
-        let result = generate_custom_types(params, &unit, &build_type_name_map(&[&unit]), &mut template);
+        let result = generate_custom_types(
+            params,
+            &unit,
+            &build_type_name_map(&[&unit], &NamespaceMap::default()),
+            &NamespaceMap::default(),
+            &mut template,
+        );
         assert!(result.is_ok());
 
         template.serialize(0)
@@ -859,7 +874,7 @@ mod xml_gen_tests {
         }));
         unit.user_types.push(make_user_type(make_array_type("Counts", make_range(1, 4), "Count")));
 
-        let map = build_type_name_map(&[&unit]);
+        let map = build_type_name_map(&[&unit], &NamespaceMap::default());
 
         assert_eq!(map.get("Counts").map(String::as_str), Some("ARRAY[1..4] OF DINT"));
     }
@@ -875,7 +890,7 @@ mod xml_gen_tests {
         }));
         unit.user_types.push(make_user_type(make_array_type("Labels", make_range(0, 2), "__Label")));
 
-        let map = build_type_name_map(&[&unit]);
+        let map = build_type_name_map(&[&unit], &NamespaceMap::default());
 
         assert_eq!(map.get("Labels").map(String::as_str), Some("ARRAY[0..2] OF String[12]"));
     }
@@ -890,9 +905,139 @@ mod xml_gen_tests {
         }));
         unit.user_types.push(make_user_type(make_array_type("Motors", make_range(0, 1), "Motor")));
 
-        let map = build_type_name_map(&[&unit]);
+        let map = build_type_name_map(&[&unit], &NamespaceMap::default());
 
         assert_eq!(map.get("Motors").map(String::as_str), Some("ARRAY[0..1] OF Motor"));
+    }
+
+    #[test]
+    fn test_namespaced_unit_qualifies_its_own_types() {
+        let mut library = make_unit("common.st").with_namespace(Some(String::from("Common")));
+
+        library.user_types.push(make_user_type(DataType::StructType {
+            name: Some(String::from("ServoDev")),
+            variables: vec![make_variable("Position", "LREAL")],
+        }));
+
+        let namespaces = build_namespace_map(&[&library]);
+
+        assert_eq!(namespaces.get("ServoDev").map(String::as_str), Some("Common"));
+    }
+
+    #[test]
+    fn test_unit_without_namespace_contributes_nothing() {
+        let mut unit = make_unit("arm.st");
+
+        unit.user_types.push(make_user_type(DataType::StructType {
+            name: Some(String::from("TransferArmMod")),
+            variables: vec![make_variable("Angle", "LREAL")],
+        }));
+
+        assert!(build_namespace_map(&[&unit]).is_empty());
+    }
+
+    #[test]
+    fn test_member_referencing_a_library_type_is_qualified() {
+        let params = GenerationParameters::new();
+        let mut template = get_omron_template();
+
+        let mut library = make_unit("common.st").with_namespace(Some(String::from("Common")));
+
+        library.user_types.push(make_user_type(DataType::StructType {
+            name: Some(String::from("ServoDev")),
+            variables: vec![make_variable("Position", "LREAL")],
+        }));
+
+        let mut unit = make_unit("arm.st");
+
+        unit.user_types.push(make_user_type(DataType::StructType {
+            name: Some(String::from("TransferArmMod")),
+            variables: vec![make_variable("RotationalServo", "ServoDev")],
+        }));
+
+        let namespaces = build_namespace_map(&[&library, &unit]);
+        let type_names = build_type_name_map(&[&library, &unit], &namespaces);
+
+        let result = generate_custom_types(&params, &unit, &type_names, &namespaces, &mut template);
+        assert!(result.is_ok());
+
+        assert_eq!(find_type_name(&template, "TransferArmMod", "RotationalServo"), "Common\\ServoDev");
+    }
+
+    #[test]
+    fn test_array_of_library_type_qualifies_the_element() {
+        let mut library = make_unit("common.st").with_namespace(Some(String::from("Common")));
+
+        library.user_types.push(make_user_type(DataType::StructType {
+            name: Some(String::from("LogEntry")),
+            variables: vec![make_variable("Level", "INT")],
+        }));
+
+        let mut unit = make_unit("arm.st");
+
+        unit.user_types.push(make_user_type(make_array_type("History", make_range(0, 9), "LogEntry")));
+
+        let namespaces = build_namespace_map(&[&library, &unit]);
+        let map = build_type_name_map(&[&library, &unit], &namespaces);
+
+        assert_eq!(map.get("History").map(String::as_str), Some("ARRAY[0..9] OF Common\\LogEntry"));
+    }
+
+    #[test]
+    fn test_namespaced_types_land_in_their_own_namespace_element() {
+        let params = GenerationParameters::new();
+        let mut template = get_omron_template();
+
+        let mut library = make_unit("common.st").with_namespace(Some(String::from("Common")));
+
+        library.user_types.push(make_user_type(DataType::StructType {
+            name: Some(String::from("ServoDev")),
+            variables: vec![make_variable("Position", "LREAL")],
+        }));
+
+        let namespaces = build_namespace_map(&[&library]);
+        let type_names = build_type_name_map(&[&library], &namespaces);
+
+        let result = generate_custom_types(&params, &library, &type_names, &namespaces, &mut template);
+        assert!(result.is_ok());
+
+        let types_root = template.children.iter().find(|a| a.name == TYPES).unwrap();
+        let namespace_root = types_root
+            .children
+            .iter()
+            .find(|a| a.name == NAMESPACE && a.attributes.get("name").unwrap() == "Common")
+            .unwrap();
+
+        assert!(namespace_root.children.iter().any(|a| a.attributes.get("name").unwrap() == "ServoDev"));
+
+        let global_root = types_root.children.iter().find(|a| a.name == GLOBAL_NAMESPACE).unwrap();
+
+        assert!(global_root.children.is_empty());
+    }
+
+    /// Helper: Read back the emitted TypeName of one member of one declared type.
+    fn find_type_name(template: &Node, type_name: &str, member_name: &str) -> String {
+        let types_root = template.children.iter().find(|a| a.name == TYPES).unwrap();
+
+        for container in &types_root.children {
+            let Some(declaration) =
+                container.children.iter().find(|a| a.attributes.get("name").is_some_and(|b| b == type_name))
+            else {
+                continue;
+            };
+
+            for spec in &declaration.children {
+                let Some(member) =
+                    spec.children.iter().find(|a| a.attributes.get("name").is_some_and(|b| b == member_name))
+                else {
+                    continue;
+                };
+
+                return member.children[0].children[0].content.clone().unwrap();
+            }
+        }
+
+        panic!("no TypeName found for {type_name}.{member_name}");
     }
 
     #[test]
@@ -906,7 +1051,7 @@ mod xml_gen_tests {
             is_variable_length: true,
         }));
 
-        assert!(!build_type_name_map(&[&unit]).contains_key("Vla"));
+        assert!(!build_type_name_map(&[&unit], &NamespaceMap::default()).contains_key("Vla"));
     }
 
     #[test]
@@ -1144,7 +1289,8 @@ mod xml_gen_tests {
             &unit,
             "strings.st",
             OMRON_SCHEMA,
-            &build_type_name_map(&[&unit]),
+            &build_type_name_map(&[&unit], &NamespaceMap::default()),
+            &NamespaceMap::default(),
             &mut order,
             &mut template,
         );
@@ -1207,7 +1353,8 @@ mod xml_gen_tests {
             &unit,
             "aliases.st",
             OMRON_SCHEMA,
-            &build_type_name_map(&[&unit]),
+            &build_type_name_map(&[&unit], &NamespaceMap::default()),
+            &NamespaceMap::default(),
             &mut order,
             &mut template,
         );
@@ -1264,7 +1411,7 @@ mod xml_gen_tests {
             bounds: None,
         }));
 
-        let map = build_type_name_map(&[&unit]);
+        let map = build_type_name_map(&[&unit], &NamespaceMap::default());
 
         assert_eq!(map.get("Outer").map(String::as_str), Some("DINT"));
         assert_eq!(map.get("Inner").map(String::as_str), Some("DINT"));
@@ -1281,7 +1428,7 @@ mod xml_gen_tests {
             bounds: None,
         }));
 
-        let map = build_type_name_map(&[&unit]);
+        let map = build_type_name_map(&[&unit], &NamespaceMap::default());
 
         assert_eq!(map.get("Loop").map(String::as_str), Some("Loop"));
     }
@@ -1351,7 +1498,8 @@ mod xml_gen_tests {
             params,
             &unit,
             OMRON_SCHEMA,
-            &build_type_name_map(&[&unit]),
+            &build_type_name_map(&[&unit], &NamespaceMap::default()),
+            &NamespaceMap::default(),
             &mut order,
             &mut template,
         );

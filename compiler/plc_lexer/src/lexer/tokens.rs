@@ -29,6 +29,9 @@ pub enum Token {
     #[regex(r"\{network_publish[^}]*\}")]
     PropertyNetworkPublish,
 
+    #[regex(r"\{namespace[^}]*\}")]
+    PropertyNamespace,
+
     #[token("PROGRAM", ignore(case))]
     KeywordProgram,
 

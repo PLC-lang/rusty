@@ -54,6 +54,47 @@ In a project file, the key `compile_type` does the same. Use `Static`, `Object`,
 > `Static` and `--static` mean "link the units into one executable". They do not produce a fully static binary. The system libraries, the C library included, stay dynamic.
 
 
+## Library namespaces in the Omron XML
+
+Sysmac Studio keeps library types in a namespace and refers to them with a backslash, as in `Common\ServoDev`. `--xml-omron` writes that qualified form when the file that declares the type carries the [`{namespace}` attribute](../language/source-files.md#library-namespaces).
+
+```iecst
+{namespace := 'Common'}
+
+{external}
+TYPE ServoDev : STRUCT
+    Position: LREAL;
+END_STRUCT END_TYPE
+```
+
+A type in another file that refers to `ServoDev` then exports as `Common\ServoDev`, and an array exports as `ARRAY[0..9] OF Common\LogEntry`. Sysmac Studio resolves the member against the library and keeps it. Without the attribute the export says `ServoDev`, Sysmac Studio finds no such type in the global namespace, and it discards the member when you import the file.
+
+Declarations that the namespaced file owns go into a `<Namespace>` element of their own, next to `<GlobalNamespace>`:
+
+```xml
+<Types>
+  <GlobalNamespace>
+    <DataTypeDecl name="TransferArmMod">
+      <UserDefinedTypeSpec xsi:type="StructTypeSpec">
+        <Member name="RotationalServo">
+          <Type>
+            <TypeName><![CDATA[Common\ServoDev]]></TypeName>
+          </Type>
+        </Member>
+      </UserDefinedTypeSpec>
+    </DataTypeDecl>
+  </GlobalNamespace>
+  <Namespace name="Common">
+    <DataTypeDecl name="ServoDev">
+      ...
+    </DataTypeDecl>
+  </Namespace>
+</Types>
+```
+
+An `{external}` type declares the name but contributes no declaration, so a library of external types qualifies the references and writes no `<Namespace>` element. An empty namespace never reaches the file.
+
+
 ## Optimization
 
 ```bash

@@ -96,6 +96,25 @@ There is no block scope. A variable belongs to its POU, not to the `IF` or the `
 An attribute in braces changes how the compiler treats a declaration. Three of them matter for everyday code. `{external}` stands before a POU and says that the implementation is elsewhere, which is how you [call C](../interop/calling-c.md). `{ref}` stands after `VAR_INPUT`, the only block that accepts it, and passes the whole block by reference. `{sized}` stands before a variadic type and gives the callee a count and an array.
 
 
+## Library namespaces
+
+`{namespace := 'Common'}` declares that the file holds a library. It stands at the top of the file and applies to every type and every POU that the file declares. One file is one library, so a library that spans several files repeats the attribute in each of them.
+
+```iecst
+{namespace := 'Common'}
+
+{external}
+TYPE ServoDev : STRUCT
+    Position: LREAL;
+END_STRUCT END_TYPE
+```
+
+The name stays out of the way while you write code. A file that uses `ServoDev` writes `ServoDev`, not `Common\ServoDev`, and the compiler resolves the name as it resolves every other name. The attribute changes the [Omron XML output](../building/compiling.md#library-namespaces-in-the-omron-xml) only.
+
+> [!NOTE]
+> A backslash in a type reference is a parse error. The namespace is an attribute, never part of a name that you write.
+
+
 ## What's next
 
 The next chapter declares [variables](variables.md) and gives them their first values.

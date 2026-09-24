@@ -490,6 +490,8 @@ pub struct CompilationUnit {
     pub user_types: Vec<UserTypeDeclaration>,
     pub file: FileMarker,
     pub linkage: LinkageType,
+    /// library namespace that qualifies every type and POU declared in this unit
+    pub namespace: Option<String>,
 }
 
 impl CompilationUnit {
@@ -503,7 +505,13 @@ impl CompilationUnit {
             user_types: Vec::new(),
             file: FileMarker::File(file_name),
             linkage: LinkageType::Internal,
+            namespace: None,
         }
+    }
+
+    pub fn with_namespace(mut self, namespace: Option<String>) -> Self {
+        self.namespace = namespace;
+        self
     }
 
     pub fn with_implementations(mut self, implementations: Vec<Implementation>) -> Self {
