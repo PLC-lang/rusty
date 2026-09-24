@@ -381,6 +381,7 @@ pub fn parse_project_into_nodetree(
         let _ = generate_custom_types(
             generation_parameters,
             current_unit,
+            unit_source,
             &type_names,
             &namespaces,
             borrowed_root,
@@ -522,6 +523,7 @@ pub(crate) fn generate_globals(
 pub(crate) fn generate_custom_types(
     _generation_parameters: &GenerationParameters,
     current_unit: &CompilationUnit,
+    unit_source: Option<&str>,
     type_names: &TypeNameMap,
     namespaces: &NamespaceMap,
     output_root: &mut Node,
@@ -567,9 +569,21 @@ pub(crate) fn generate_custom_types(
 
                     let type_node = SType::new().child(&typename_node);
 
-                    let member_node = SMember::new()
-                        .attribute(String::from("name"), current_variable.name.clone())
-                        .child(&type_node);
+                    let comment = match (unit_source, current_variable.location.get_span()) {
+                        (Some(source), CodeSpan::Range(range)) => {
+                            variable_comment(source, range.start.get_offset())
+                        }
+                        _ => None,
+                    };
+
+                    let mut member_node =
+                        SMember::new().attribute(String::from("name"), current_variable.name.clone());
+
+                    if let Some(documentation) = documentation_node(comment) {
+                        member_node = member_node.child(&documentation);
+                    }
+
+                    member_node = member_node.child(&type_node);
 
                     spec_node = spec_node.child(&member_node);
                 }

@@ -283,6 +283,7 @@ mod xml_gen_tests {
         let result = generate_custom_types(
             &params,
             &unit,
+            None,
             &build_type_name_map(&[&unit], &NamespaceMap::default()),
             &NamespaceMap::default(),
             &mut template,
@@ -814,6 +815,7 @@ mod xml_gen_tests {
         let result = generate_custom_types(
             params,
             &unit,
+            None,
             &build_type_name_map(&[&unit], &NamespaceMap::default()),
             &NamespaceMap::default(),
             &mut template,
@@ -961,7 +963,7 @@ mod xml_gen_tests {
         let namespaces = build_namespace_map(&[&library, &unit]);
         let type_names = build_type_name_map(&[&library, &unit], &namespaces);
 
-        let result = generate_custom_types(&params, &unit, &type_names, &namespaces, &mut template);
+        let result = generate_custom_types(&params, &unit, None, &type_names, &namespaces, &mut template);
         assert!(result.is_ok());
 
         assert_eq!(find_type_name(&template, "TransferArmMod", "RotationalServo"), "Common\\ServoDev");
@@ -1001,7 +1003,7 @@ mod xml_gen_tests {
         let namespaces = build_namespace_map(&[&library]);
         let type_names = build_type_name_map(&[&library], &namespaces);
 
-        let result = generate_custom_types(&params, &library, &type_names, &namespaces, &mut template);
+        let result = generate_custom_types(&params, &library, None, &type_names, &namespaces, &mut template);
         assert!(result.is_ok());
 
         let types_root = template.children.iter().find(|a| a.name == TYPES).unwrap();
