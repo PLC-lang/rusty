@@ -510,7 +510,7 @@ FUNCTION SINT_TO_BOOL : BOOL
 VAR_INPUT
     IN : SINT;
 END_VAR
-   SINT_TO_BOOL := LINT_TO_BOOL(IN);
+   SINT_TO_BOOL := IN <> 0;
 END_FUNCTION
 
 (******************************************************************************
@@ -522,7 +522,7 @@ FUNCTION USINT_TO_BOOL : BOOL
 VAR_INPUT
     IN : USINT;
 END_VAR
-   USINT_TO_BOOL := LINT_TO_BOOL(IN);
+   USINT_TO_BOOL := IN <> 0;
 END_FUNCTION
 
 (******************************************************************************
@@ -534,7 +534,7 @@ FUNCTION INT_TO_BOOL : BOOL
 VAR_INPUT
     IN : INT;
 END_VAR
-   INT_TO_BOOL := LINT_TO_BOOL(IN);
+   INT_TO_BOOL := IN <> 0;
 END_FUNCTION
 
 (******************************************************************************
@@ -546,7 +546,7 @@ FUNCTION UINT_TO_BOOL : BOOL
 VAR_INPUT
     IN : UINT;
 END_VAR
-   UINT_TO_BOOL := LINT_TO_BOOL(IN);
+   UINT_TO_BOOL := IN <> 0;
 END_FUNCTION
 
 (******************************************************************************
@@ -558,7 +558,7 @@ FUNCTION UDINT_TO_BOOL : BOOL
 VAR_INPUT
     IN : UDINT;
 END_VAR
-   UDINT_TO_BOOL := LINT_TO_BOOL(IN);
+   UDINT_TO_BOOL := IN <> 0;
 END_FUNCTION
 
 (******************************************************************************
@@ -570,7 +570,7 @@ FUNCTION ULINT_TO_BOOL : BOOL
 VAR_INPUT
     IN : ULINT;
 END_VAR
-   ULINT_TO_BOOL := LINT_TO_BOOL(IN);
+   ULINT_TO_BOOL := IN <> 0;
 END_FUNCTION
 
 (******************************************************************************

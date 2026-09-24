@@ -38,7 +38,7 @@ types = [
 
 generic = """(********************
 *
-* Converts any other numerical value to {0}
+* Converts {2} to {0}
 *
 *********************)
 FUNCTION TO_{0}<T: {1}> : {0}
@@ -78,7 +78,10 @@ END_FUNCTION
 
 # a real target also takes BOOL and the bit string types, so its constraint is the wider ANY
 for type_from in types:
-    f.write(generic.format(type_from, "ANY" if type_from in real_types else "ANY_NUM"))
+    if type_from in real_types:
+        f.write(generic.format(type_from, "ANY", "any numerical, BOOL or bit string value"))
+    else:
+        f.write(generic.format(type_from, "ANY_NUM", "any other numerical value"))
     f.write("\n")
 
     for type_to in types:

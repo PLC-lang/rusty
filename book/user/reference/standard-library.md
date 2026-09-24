@@ -43,11 +43,11 @@ Some parts of the language call the library by themselves, so link it also when 
 | Date and time | `date_time_extra_functions.st` | `CONCAT_DATE`, `CONCAT_TOD`, the `SPLIT_` family that takes such a value apart again, and `DAY_OF_WEEK` |
 | Numeric conversion | `num_conversion.st` | `<TYPE>_TO_<TYPE>` for every pair of numeric types |
 | Bit conversion | `bit_conversion.st` | Between the bit string types and `BOOL`, and between them and `CHAR` and `WCHAR` |
-| Bit and number | `bit_num_conversion.st` | Between the bit string types and the numeric types |
+| Bit and number | `bit_num_conversion.st` | Between `BOOL` and the bit string types on one side and the integer and real types on the other |
 | Truncation | `trunc_int.st` | `TRUNC_<TYPE>`, which cuts the fraction of a real |
 | Truncation | `real_trunc_int.st` | `REAL_TRUNC_<TYPE>` and `LREAL_TRUNC_<TYPE>`, the same for one source type each |
 | Generic conversion | `to_num.st`, `to_bit.st`, `to_string.st`, `to_date_time.st` | `TO_<TYPE>`, one generic function per target type |
-| Text output and input | `extra_functions.st` | `<TYPE>_TO_STRING` and `<TYPE>_TO_WSTRING`, the `STRING_TO_<TYPE>` family that reads a value back, `TRUNC`, and `TIME()`, which gives the time since midnight |
+| Text output and input | `extra_functions.st` | `<TYPE>_TO_STRING` and `<TYPE>_TO_WSTRING`, the `STRING_TO_<TYPE>` family that reads a value back, `<TYPE>_TO_BOOL` for the integer and real types, `TRUNC`, and `TIME()`, which gives the time since midnight |
 
 The text conversion family covers eight of the twelve directions: each of the four text types converts to two of the other three. `STRING` to `WCHAR`, `WSTRING` to `CHAR`, `CHAR` to `WSTRING`, and `WCHAR` to `STRING` do not exist.
 

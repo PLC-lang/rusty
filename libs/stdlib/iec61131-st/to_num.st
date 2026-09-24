@@ -1128,7 +1128,7 @@ END_FUNCTION
 
 (********************
 *
-* Converts any other numerical value to REAL
+* Converts any numerical, BOOL or bit string value to REAL
 *
 *********************)
 FUNCTION TO_REAL<T: ANY> : REAL
@@ -1269,7 +1269,7 @@ END_FUNCTION
 
 (********************
 *
-* Converts any other numerical value to LREAL
+* Converts any numerical, BOOL or bit string value to LREAL
 *
 *********************)
 FUNCTION TO_LREAL<T: ANY> : LREAL
