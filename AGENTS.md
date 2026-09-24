@@ -36,6 +36,12 @@ cargo fmt --all && cargo clippy --workspace
 - Do not reference external plans, phases, tickets, or roadmap items in source code, doc comments, or tests. Describe the current behavior directly instead.
 
 
+## Documentation
+
+- The book in `book/` has two parts: `book/user/` explains how to use the compiler, `book/technical/` explains how it works inside. Code and book MUST stay in sync: a change that makes a page outdated MUST update that page in the same change, in the style of the pages around it.
+- Before opening a PR, check the diff against the book with the `doc-sync` skill.
+
+
 ## Git
 
 - Use conventional commits: `<type>(<scope>): <description>`. Keep titles under 72 characters.
