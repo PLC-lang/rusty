@@ -493,7 +493,7 @@ impl SGenVariable {
 
 //Omron specific xml
 newtype_impl!(SGlobalNamespace, GLOBAL_NAMESPACE, false);
-newtype_impl!(SNamespace, NAMESPACE, false);
+newtype_impl!(SNamespaceDecl, NAMESPACE_DECL, false);
 newtype_impl!(SInstances, INSTANCES, false);
 newtype_impl!(SConfiguration, CONFIGURATION, false);
 newtype_impl!(SResource, RESOURCE, false);
@@ -533,7 +533,7 @@ newtype_impl!(SOutputVars, "OutputVars", false);
 newtype_impl!(SAddress, "Address", false);
 
 pub const GLOBAL_NAMESPACE: &str = "GlobalNamespace";
-pub const NAMESPACE: &str = "Namespace";
+pub const NAMESPACE_DECL: &str = "NamespaceDecl";
 pub const INSTANCES: &str = "Instances";
 pub const CONFIGURATION: &str = "Configuration";
 pub const RESOURCE: &str = "Resource";

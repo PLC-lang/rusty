@@ -217,26 +217,28 @@ fn qualify_type_name(declared: &str, namespaces: &NamespaceMap) -> String {
 
 fn declaration_root<'a>(output_root: &'a mut Node, namespace: Option<&str>) -> Result<&'a mut Node, ()> {
     let types_root = output_root.children.iter_mut().find(|a| a.name == TYPES).ok_or(())?;
+    let global_root = types_root.children.iter_mut().find(|a| a.name == GLOBAL_NAMESPACE).ok_or(())?;
 
     let Some(namespace) = namespace else {
-        return types_root.children.iter_mut().find(|a| a.name == GLOBAL_NAMESPACE).ok_or(());
+        return Ok(global_root);
     };
 
-    let existing = types_root.children.iter().position(|a| {
-        a.name == NAMESPACE && a.attributes.get("name").is_some_and(|value| value == namespace)
+    let existing = global_root.children.iter().position(|a| {
+        a.name == NAMESPACE_DECL && a.attributes.get("name").is_some_and(|value| value == namespace)
     });
 
     let index = match existing {
         Some(index) => index,
         None => {
-            types_root
-                .child_borrowed(&SNamespace::new().attribute(String::from("name"), String::from(namespace)));
+            global_root.child_borrowed(
+                &SNamespaceDecl::new().attribute(String::from("name"), String::from(namespace)),
+            );
 
-            types_root.children.len() - 1
+            global_root.children.len() - 1
         }
     };
 
-    types_root.children.get_mut(index).ok_or(())
+    global_root.children.get_mut(index).ok_or(())
 }
 
 pub fn build_type_name_map(units: &[&CompilationUnit], namespaces: &NamespaceMap) -> TypeNameMap {
@@ -400,7 +402,11 @@ fn prune_empty_namespaces(output_root: &mut Node) {
         return;
     };
 
-    types_root.children.retain(|a| a.name != NAMESPACE || !a.children.is_empty());
+    let Some(global_root) = types_root.children.iter_mut().find(|a| a.name == GLOBAL_NAMESPACE) else {
+        return;
+    };
+
+    global_root.children.retain(|a| a.name != NAMESPACE_DECL || !a.children.is_empty());
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -812,6 +818,16 @@ pub(crate) fn generate_pous(
         let adddata_node = SOmronAddData::new() //<AddData>
             .child(&data_node);
 
+        let documentation = matching_metadata
+            .filter(|metadata| metadata.linkage != LinkageType::External)
+            .and_then(|metadata| match (metadata.location.get_span(), metadata.location.file) {
+                (CodeSpan::Range(range), plc_source::source_location::FileMarker::File(file_path)) => {
+                    grab_leading_comment(file_path, range.start.get_offset())
+                }
+                _ => None,
+            })
+            .map(|text| SDocumentation::new().attribute_str("xsi:type", SIMPLE_TEXT).content(text));
+
         let mut resulttype_node = SResultType::new(); //<ResultType>
 
         let mut typename_node = STypeName::new();
@@ -1007,7 +1023,13 @@ pub(crate) fn generate_pous(
             _ => continue,
         };
 
-        global_root.child_borrowed(chosen_element);
+        let mut pou_node = chosen_element.inner();
+
+        if let Some(documentation) = documentation {
+            pou_node.children.insert(0, documentation.inner());
+        }
+
+        global_root.children.push(pou_node);
     }
     Ok(())
 }
@@ -1141,6 +1163,66 @@ fn flatten_body_indent(text: &str) -> String {
     }
 
     result
+}
+
+pub const SIMPLE_TEXT: &str = "SimpleText";
+
+pub(crate) fn grab_leading_comment(file_path: &'static str, declaration_start: usize) -> Option<String> {
+    if declaration_start == 0 {
+        return None;
+    }
+
+    let mut file = File::open(file_path).ok()?;
+    let mut buffer = vec![0u8; declaration_start];
+    file.read_exact(buffer.as_mut_slice()).ok()?;
+
+    let head = String::from_utf8(buffer).ok()?;
+    let preceding = head.trim_end();
+
+    if let Some(body) = preceding.strip_suffix("*)") {
+        let opening = body.rfind("(*")?;
+
+        return tidy_comment(&body[opening + 2..]);
+    }
+
+    tidy_comment(&collect_line_comments(preceding))
+}
+
+pub(crate) fn collect_line_comments(preceding: &str) -> String {
+    let mut collected: Vec<&str> = Vec::new();
+
+    for line in preceding.lines().rev() {
+        match line.trim().strip_prefix("//") {
+            Some(text) => collected.push(text),
+            None => break,
+        }
+    }
+
+    collected.reverse();
+    collected.join("\n")
+}
+
+pub(crate) fn tidy_comment(text: &str) -> Option<String> {
+    let lines: Vec<&str> = text.lines().map(str::trim_end).collect();
+    let mut shared: Option<&str> = None;
+
+    for line in lines.iter().filter(|line| !line.trim().is_empty()) {
+        let indent = &line[..line.len() - line.trim_start().len()];
+
+        shared = Some(match shared {
+            Some(current) => common_indent_prefix(current, indent),
+            None => indent,
+        });
+    }
+
+    let shared = shared.unwrap_or("");
+
+    let stripped: Vec<&str> = lines.iter().map(|line| line.strip_prefix(shared).unwrap_or(line)).collect();
+
+    let joined = stripped.join("\n");
+    let trimmed = joined.trim_matches('\n');
+
+    (!trimmed.trim().is_empty()).then(|| String::from(trimmed))
 }
 
 fn grab_file_statement_from_span(file_path: &'static str, range: &Range<TextLocation>) -> Option<String> {

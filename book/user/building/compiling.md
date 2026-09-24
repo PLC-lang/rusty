@@ -69,7 +69,7 @@ END_STRUCT END_TYPE
 
 A type in another file that refers to `ServoDev` then exports as `Common\ServoDev`, and an array exports as `ARRAY[0..9] OF Common\LogEntry`. Sysmac Studio resolves the member against the library and keeps it. Without the attribute the export says `ServoDev`, Sysmac Studio finds no such type in the global namespace, and it discards the member when you import the file.
 
-Declarations that the namespaced file owns go into a `<Namespace>` element of their own, next to `<GlobalNamespace>`:
+Declarations that the namespaced file owns go into a `<NamespaceDecl>` element inside `<GlobalNamespace>`:
 
 ```xml
 <Types>
@@ -83,16 +83,39 @@ Declarations that the namespaced file owns go into a `<Namespace>` element of th
         </Member>
       </UserDefinedTypeSpec>
     </DataTypeDecl>
+    <NamespaceDecl name="Common">
+      <DataTypeDecl name="ServoDev">
+        ...
+      </DataTypeDecl>
+    </NamespaceDecl>
   </GlobalNamespace>
-  <Namespace name="Common">
-    <DataTypeDecl name="ServoDev">
-      ...
-    </DataTypeDecl>
-  </Namespace>
 </Types>
 ```
 
-An `{external}` type declares the name but contributes no declaration, so a library of external types qualifies the references and writes no `<Namespace>` element. An empty namespace never reaches the file.
+An `{external}` type declares the name but contributes no declaration, so a library of external types qualifies the references and writes no `<NamespaceDecl>` element. An empty namespace never reaches the file.
+
+
+## POU comments in the Omron XML
+
+The body that `--xml-omron` writes is the source text between the first statement and the last, so a comment reaches the `<ST>` element only when statements surround it. A comment above the POU, or one in the declaration section, falls outside that range.
+
+The comment that stands immediately above a POU becomes its `<Documentation>` instead:
+
+```iecst
+(*
+    Moves the transfer arm to the upper, middle or lower position
+*)
+FUNCTION_BLOCK TransferArmLiftSubSequence
+```
+
+```xml
+<FunctionBlock name="TransferArmLiftSubSequence">
+  <Documentation xsi:type="SimpleText"><![CDATA[Moves the transfer arm to the upper, middle or lower position]]></Documentation>
+  <AddData>
+    ...
+```
+
+A `(* *)` block and a run of `//` lines both work. The compiler removes the comment markers and the indentation that every line shares, so the relative indentation of a list stays. A comment that holds no text writes no element.
 
 
 ## Optimization

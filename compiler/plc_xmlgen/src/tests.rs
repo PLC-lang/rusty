@@ -1002,24 +1002,85 @@ mod xml_gen_tests {
         assert!(result.is_ok());
 
         let types_root = template.children.iter().find(|a| a.name == TYPES).unwrap();
-        let namespace_root = types_root
+        let global_root = types_root.children.iter().find(|a| a.name == GLOBAL_NAMESPACE).unwrap();
+
+        assert_eq!(global_root.children.len(), 1);
+
+        let namespace_root = global_root
             .children
             .iter()
-            .find(|a| a.name == NAMESPACE && a.attributes.get("name").unwrap() == "Common")
+            .find(|a| a.name == NAMESPACE_DECL && a.attributes.get("name").unwrap() == "Common")
             .unwrap();
 
         assert!(namespace_root.children.iter().any(|a| a.attributes.get("name").unwrap() == "ServoDev"));
+    }
 
-        let global_root = types_root.children.iter().find(|a| a.name == GLOBAL_NAMESPACE).unwrap();
+    #[test]
+    fn test_block_comment_above_a_pou_becomes_documentation() {
+        let source = "(*\n    Moves the transfer arm\n*)\nFUNCTION_BLOCK Probe";
 
-        assert!(global_root.children.is_empty());
+        assert_eq!(
+            read_leading_comment(source, "block_comment.st"),
+            Some(String::from("Moves the transfer arm"))
+        );
+    }
+
+    #[test]
+    fn test_line_comments_above_a_pou_become_documentation() {
+        let source = "// first line\n// second line\nFUNCTION_BLOCK Probe";
+
+        assert_eq!(
+            read_leading_comment(source, "line_comment.st"),
+            Some(String::from("first line\nsecond line"))
+        );
+    }
+
+    #[test]
+    fn test_pou_without_a_leading_comment_has_no_documentation() {
+        let source = "FUNCTION_BLOCK Probe";
+
+        assert_eq!(read_leading_comment(source, "no_comment.st"), None);
+    }
+
+    #[test]
+    fn test_empty_comment_produces_no_documentation() {
+        let source = "(*\n\n*)\nFUNCTION_BLOCK Probe";
+
+        assert_eq!(read_leading_comment(source, "empty_comment.st"), None);
+    }
+
+    #[test]
+    fn test_comment_keeps_its_relative_indentation() {
+        let source = "(*\n    order:\n        1. lift\n        2. drop\n*)\nFUNCTION_BLOCK Probe";
+
+        assert_eq!(
+            read_leading_comment(source, "indent_comment.st"),
+            Some(String::from("order:\n    1. lift\n    2. drop"))
+        );
+    }
+
+    /// Helper: Write a source file and read back the comment that precedes its POU.
+    fn read_leading_comment(source: &str, file_name: &str) -> Option<String> {
+        let path = std::env::temp_dir().join(file_name);
+        std::fs::write(&path, source).unwrap();
+
+        let declaration_start = source.find("FUNCTION_BLOCK").unwrap();
+        let leaked: &'static str = Box::leak(path.to_string_lossy().into_owned().into_boxed_str());
+        let found = grab_leading_comment(leaked, declaration_start);
+
+        let _ = std::fs::remove_file(&path);
+        found
     }
 
     /// Helper: Read back the emitted TypeName of one member of one declared type.
     fn find_type_name(template: &Node, type_name: &str, member_name: &str) -> String {
         let types_root = template.children.iter().find(|a| a.name == TYPES).unwrap();
+        let global_root = types_root.children.iter().find(|a| a.name == GLOBAL_NAMESPACE).unwrap();
 
-        for container in &types_root.children {
+        let mut containers: Vec<&Node> = vec![global_root];
+        containers.extend(global_root.children.iter().filter(|a| a.name == NAMESPACE_DECL));
+
+        for container in containers {
             let Some(declaration) =
                 container.children.iter().find(|a| a.attributes.get("name").is_some_and(|b| b == type_name))
             else {
