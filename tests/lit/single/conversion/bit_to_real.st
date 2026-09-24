@@ -3,6 +3,7 @@
 // BOOL and the bit string types widen to REAL and LREAL by value. BOOL, BYTE and WORD fit a REAL
 // exactly, and DWORD fits an LREAL exactly. A REAL keeps 24 bits of mantissa, so a DWORD or LWORD
 // above 2^24 is rounded to the nearest representable value on the way in, without a diagnostic.
+// These conversions have the named form only; the generic TO_REAL and TO_LREAL take numeric sources.
 
 FUNCTION main
 VAR
@@ -28,7 +29,4 @@ printf('%.0f$N',      LWORD_TO_REAL(umax));                                     
 
 // LWORD into LREAL: 2^53 is the last exact integer
 printf('%.0f %.0f$N', LWORD_TO_LREAL(LWORD#4611686018427387904), LWORD_TO_LREAL(LWORD#9007199254740993));  // CHECK: 4611686018427387904 9007199254740992
-
-// the generic form calls the named one
-printf('%.0f %.0f %.1f$N', TO_REAL(BYTE#255), TO_LREAL(LWORD#16777217), TO_REAL(TRUE));  // CHECK: 255 16777217 1.0
 END_FUNCTION

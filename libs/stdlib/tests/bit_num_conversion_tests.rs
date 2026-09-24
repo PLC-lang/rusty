@@ -2076,7 +2076,7 @@ fn real_to_lword_conversion() {
     END_VAR
         ret.tie := REAL_TO_LWORD(REAL#2.5);
         ret.negative := REAL_TO_LWORD(REAL#-1.0);
-        ret.large := REAL_TO_LWORD(REAL#1.0E10);
+        ret.large := REAL_TO_LWORD(REAL#1.0E19);
         ret.overflow := REAL_TO_LWORD(REAL#1.0E20);
     END_PROGRAM
         ";
@@ -2086,7 +2086,7 @@ fn real_to_lword_conversion() {
     let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.tie, 3u64);
     assert_eq!(maintype.negative, 18446744073709551615u64);
-    assert_eq!(maintype.large, 10000000000u64);
+    assert_eq!(maintype.large, 9999999980506447872u64);
     assert_eq!(maintype.overflow, 9223372036854775808u64);
 }
 
@@ -2211,7 +2211,7 @@ fn lreal_to_lword_wrapping() {
     END_VAR
         ret.tie := LREAL_TO_LWORD(LREAL#2.5);
         ret.negative := LREAL_TO_LWORD(LREAL#-1.0);
-        ret.large := LREAL_TO_LWORD(LREAL#1.0E10);
+        ret.large := LREAL_TO_LWORD(LREAL#1.0E19);
         ret.overflow := LREAL_TO_LWORD(LREAL#1.0E20);
     END_PROGRAM
         ";
@@ -2221,6 +2221,6 @@ fn lreal_to_lword_wrapping() {
     let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.tie, 3u64);
     assert_eq!(maintype.negative, 18446744073709551615u64);
-    assert_eq!(maintype.large, 10000000000u64);
+    assert_eq!(maintype.large, 10000000000000000000u64);
     assert_eq!(maintype.overflow, 9223372036854775808u64);
 }

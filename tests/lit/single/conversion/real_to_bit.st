@@ -2,17 +2,21 @@
 //
 // REAL and LREAL to the bit string types round half away from zero, then keep the low bits of the
 // target width, so an out-of-range value wraps and a negative value lands at the top of the range.
-// A value outside the signed 64-bit range, NaN and the infinities included, becomes 2^63 first; the
-// smaller targets therefore see 0. The rows measured on CODESYS 3.5 SP22 are the anchors; the DWORD
-// and LWORD cells for NaN and the infinities follow from the same model and were not measured.
-
+// The rounded value first becomes a signed 64-bit integer; NaN, the infinities and anything outside
+// that range become 2^63 instead, so BYTE, WORD and DWORD see 0 for them. LWORD is the exception:
+// a value in [2^63, 2^64) converts exactly, and only NaN, the infinities, values below -2^63 and
+// values at or above 2^64 give 2^63. Every cell was measured on CODESYS 3.5 SP22.
 FUNCTION main
 VAR
-    ninf  : REAL;
-    lninf : LREAL;
+    ninf    : REAL;
+    lninf   : LREAL;
+    band_lo : LREAL := 9223372036854775808.0;   (* 2^63, the smallest LREAL above it is added below *)
+    two64   : LREAL := 9223372036854775808.0;
 END_VAR
-ninf  := -INF_REAL;
-lninf := -INF_LREAL;
+ninf    := -INF_REAL;
+lninf   := -INF_LREAL;
+band_lo := band_lo + 2048.0;
+two64   := two64 * 2.0;
 
 // ---- REAL source: BYTE WORD DWORD LWORD
 // rounding, ties away from zero
@@ -52,6 +56,12 @@ printf('%d %d %u %llu$N', LREAL_TO_BYTE(LREAL#1.0E20),  LREAL_TO_WORD(LREAL#1.0E
 printf('%d %d %u %llu$N', LREAL_TO_BYTE(INF_LREAL), LREAL_TO_WORD(INF_LREAL), LREAL_TO_DWORD(INF_LREAL), LREAL_TO_LWORD(INF_LREAL));  // CHECK: 0 0 0 9223372036854775808
 printf('%d %d %u %llu$N', LREAL_TO_BYTE(lninf),     LREAL_TO_WORD(lninf),     LREAL_TO_DWORD(lninf),     LREAL_TO_LWORD(lninf));      // CHECK: 0 0 0 9223372036854775808
 printf('%d %d %u %llu$N', LREAL_TO_BYTE(NAN_LREAL), LREAL_TO_WORD(NAN_LREAL), LREAL_TO_DWORD(NAN_LREAL), LREAL_TO_LWORD(NAN_LREAL));  // CHECK: 0 0 0 9223372036854775808
+
+// ---- the 64-bit band: LWORD keeps [2^63, 2^64) exact, the narrower targets go through the signed path
+printf('%u %llu$N', LREAL_TO_DWORD(LREAL#1.0E19), LREAL_TO_LWORD(LREAL#1.0E19));   // CHECK: 0 10000000000000000000
+printf('%llu %llu$N', LREAL_TO_LWORD(band_lo), LREAL_TO_LWORD(LREAL#1.8E19));      // CHECK: 9223372036854777856 18000000000000000000
+printf('%llu %llu$N', LREAL_TO_LWORD(two64), LREAL_TO_LWORD(LREAL#-1.0E19));       // CHECK: 9223372036854775808 9223372036854775808
+printf('%llu$N', REAL_TO_LWORD(REAL#1.0E19));                                       // CHECK: 9999999980506447872
 
 // ---- the generic form calls the named one
 printf('%d %d %u %llu$N', TO_BYTE(REAL#300.0), TO_WORD(LREAL#-1.0), TO_DWORD(REAL#1.0E10), TO_LWORD(LREAL#-0.5));  // CHECK: 44 65535 1410065408 18446744073709551615

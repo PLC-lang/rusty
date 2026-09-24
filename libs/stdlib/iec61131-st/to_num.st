@@ -1128,10 +1128,10 @@ END_FUNCTION
 
 (********************
 *
-* Converts any numerical, BOOL or bit string value to REAL
+* Converts any other numerical value to REAL
 *
 *********************)
-FUNCTION TO_REAL<T: ANY> : REAL
+FUNCTION TO_REAL<T: ANY_NUM> : REAL
     VAR_INPUT
         in : T;
     END_VAR
@@ -1269,10 +1269,10 @@ END_FUNCTION
 
 (********************
 *
-* Converts any numerical, BOOL or bit string value to LREAL
+* Converts any other numerical value to LREAL
 *
 *********************)
-FUNCTION TO_LREAL<T: ANY> : LREAL
+FUNCTION TO_LREAL<T: ANY_NUM> : LREAL
     VAR_INPUT
         in : T;
     END_VAR
@@ -1406,135 +1406,5 @@ FUNCTION TO_LREAL__LREAL : LREAL
     END_VAR
 
     TO_LREAL__LREAL := in;
-END_FUNCTION
-
-(********************
-*
-* Converts BOOL to REAL
-*
-*********************)
-FUNCTION TO_REAL__BOOL : REAL
-    VAR_INPUT
-        in : BOOL;
-    END_VAR
-
-    TO_REAL__BOOL := BOOL_TO_REAL(in);
-END_FUNCTION
-
-(********************
-*
-* Converts BOOL to LREAL
-*
-*********************)
-FUNCTION TO_LREAL__BOOL : LREAL
-    VAR_INPUT
-        in : BOOL;
-    END_VAR
-
-    TO_LREAL__BOOL := BOOL_TO_LREAL(in);
-END_FUNCTION
-
-(********************
-*
-* Converts BYTE to REAL
-*
-*********************)
-FUNCTION TO_REAL__BYTE : REAL
-    VAR_INPUT
-        in : BYTE;
-    END_VAR
-
-    TO_REAL__BYTE := BYTE_TO_REAL(in);
-END_FUNCTION
-
-(********************
-*
-* Converts BYTE to LREAL
-*
-*********************)
-FUNCTION TO_LREAL__BYTE : LREAL
-    VAR_INPUT
-        in : BYTE;
-    END_VAR
-
-    TO_LREAL__BYTE := BYTE_TO_LREAL(in);
-END_FUNCTION
-
-(********************
-*
-* Converts WORD to REAL
-*
-*********************)
-FUNCTION TO_REAL__WORD : REAL
-    VAR_INPUT
-        in : WORD;
-    END_VAR
-
-    TO_REAL__WORD := WORD_TO_REAL(in);
-END_FUNCTION
-
-(********************
-*
-* Converts WORD to LREAL
-*
-*********************)
-FUNCTION TO_LREAL__WORD : LREAL
-    VAR_INPUT
-        in : WORD;
-    END_VAR
-
-    TO_LREAL__WORD := WORD_TO_LREAL(in);
-END_FUNCTION
-
-(********************
-*
-* Converts DWORD to REAL
-*
-*********************)
-FUNCTION TO_REAL__DWORD : REAL
-    VAR_INPUT
-        in : DWORD;
-    END_VAR
-
-    TO_REAL__DWORD := DWORD_TO_REAL(in);
-END_FUNCTION
-
-(********************
-*
-* Converts DWORD to LREAL
-*
-*********************)
-FUNCTION TO_LREAL__DWORD : LREAL
-    VAR_INPUT
-        in : DWORD;
-    END_VAR
-
-    TO_LREAL__DWORD := DWORD_TO_LREAL(in);
-END_FUNCTION
-
-(********************
-*
-* Converts LWORD to REAL
-*
-*********************)
-FUNCTION TO_REAL__LWORD : REAL
-    VAR_INPUT
-        in : LWORD;
-    END_VAR
-
-    TO_REAL__LWORD := LWORD_TO_REAL(in);
-END_FUNCTION
-
-(********************
-*
-* Converts LWORD to LREAL
-*
-*********************)
-FUNCTION TO_LREAL__LWORD : LREAL
-    VAR_INPUT
-        in : LWORD;
-    END_VAR
-
-    TO_LREAL__LWORD := LWORD_TO_LREAL(in);
 END_FUNCTION
 

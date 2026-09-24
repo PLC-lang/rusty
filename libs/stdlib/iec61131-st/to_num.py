@@ -1,8 +1,5 @@
 f = open("to_num.st", "w")
 
-real_types = ["REAL", "LREAL"]
-bit_types = ["BOOL", "BYTE", "WORD", "DWORD", "LWORD"]
-
 types = [
     "SINT",
     "USINT",
@@ -38,10 +35,10 @@ types = [
 
 generic = """(********************
 *
-* Converts {2} to {0}
+* Converts any other numerical value to {0}
 *
 *********************)
-FUNCTION TO_{0}<T: {1}> : {0}
+FUNCTION TO_{0}<T: ANY_NUM> : {0}
     VAR_INPUT
         in : T;
     END_VAR
@@ -76,12 +73,8 @@ FUNCTION TO_{1}__{0} : {1}
 END_FUNCTION
 """
 
-# a real target also takes BOOL and the bit string types, so its constraint is the wider ANY
 for type_from in types:
-    if type_from in real_types:
-        f.write(generic.format(type_from, "ANY", "any numerical, BOOL or bit string value"))
-    else:
-        f.write(generic.format(type_from, "ANY_NUM", "any other numerical value"))
+    f.write(generic.format(type_from))
     f.write("\n")
 
     for type_to in types:
@@ -92,8 +85,3 @@ for type_from in types:
 
         f.write("\n")
 
-# BOOL and the bit string types widen to a real by value
-for type_from in bit_types:
-    for type_to in real_types:
-        f.write(generic_impl.format(type_from, type_to))
-        f.write("\n")
