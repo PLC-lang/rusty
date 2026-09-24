@@ -12,6 +12,10 @@ VAR
     a : DINT;
     b : DINT;
     c : DINT;
+    r0 : REAL := 1.5;
+    r1 : REAL := 2.5;
+    r : REAL;
+    s : REAL;
 END_VAR
 
 a := SEL(TRUE, x, y);
@@ -24,4 +28,10 @@ printf('SEL=%d %d %d$N', a, b, c);
 a := SEL(IN1 := y, FALSE, x);
 // CHECK: SEL-mixed=9
 printf('SEL-mixed=%d$N', a);
+
+// the selector G stays a BOOL when the selected type is not an integer
+r := SEL(IN1 := r1, FALSE, r0);
+s := SEL(IN1 := r1, TRUE, r0);
+// CHECK: SEL-mixed-real=1.5 2.5
+printf('SEL-mixed-real=%.1f %.1f$N', r, s);
 END_FUNCTION

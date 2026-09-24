@@ -1968,6 +1968,37 @@ fn assignment_to_reference_to_output_parameter_is_rejected() {
 }
 
 #[test]
+fn mixed_named_and_positional_args_are_validated_against_the_parameter_they_bind_to() {
+    // A positional argument fills the first slot no name claims. Thus in the first call the literal
+    // binds to the in-out parameter `b` and is rejected, while in the second call `b0` binds to `b`
+    // and the literal binds to the input `a`, which is valid.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION f : DINT
+            VAR_INPUT  a : DINT; END_VAR
+            VAR_IN_OUT b : DINT; END_VAR
+            VAR_INPUT  c : DINT; END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                a0, b0, c0 : DINT;
+            END_VAR
+            f(c := c0, a0, 0);
+            f(c := c0, 0, b0);
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E031]: Expected a reference for parameter b because their type is InOut
+       ┌─ <internal>:12:28
+       │
+    12 │             f(c := c0, a0, 0);
+       │                            ^ Expected a reference for parameter b because their type is InOut
+    ");
+}
+
+#[test]
 fn mixed_named_and_positional_args_do_not_double_report() {
     // Positional args don't carry a direction operator; the new check must skip them
     // without interfering with the existing E132 (mixing implicit/explicit) machinery.

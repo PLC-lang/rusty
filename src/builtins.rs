@@ -6,8 +6,8 @@ use inkwell::{
 use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, AstFactory, AstNode, AstStatement, CompilationUnit,
-        GenericBinding, LinkageType, Operator, TypeNature,
+        self, flatten_expression_list, pre_process, resolve_argument_slots, AstFactory, AstNode,
+        AstStatement, CompilationUnit, GenericBinding, LinkageType, Operator, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -1108,31 +1108,17 @@ fn validate_constant_parameters(
     }
 }
 
-/// Orders the arguments of a call into the order `declared_names` declares the parameters in.
-///
-/// A named argument claims the slot its name declares. A positional argument fills the first slot
-/// that no name claims, in the order the arguments are written, thus `SUB(IN2 := b, a)` yields the
-/// same order as `SUB(a, b)`. This is the rule the resolver applies to every other call; see
-/// `TypeAnnotator::annotate_arguments_mixed`. Calls with too few arguments keep the order they are
-/// written in and are reported during validation.
+/// Orders the arguments of a call into the order `declared_names` declares the parameters in, such that
+/// `SEL(IN1 := c, a, b)` yields `[a, b, IN1 := c]`; see `resolve_argument_slots` for the binding rule.
+/// A slot no argument binds to (a call with too few arguments, reported during validation) keeps the
+/// argument written at its position.
 fn order_arguments<'a>(params: &[&'a AstNode], declared_names: &[&str]) -> Vec<&'a AstNode> {
-    let claimed_slots: Vec<Option<usize>> = declared_names
-        .iter()
-        .map(|name| {
-            params.iter().position(|param| {
-                param
-                    .get_assignment_identifier()
-                    .is_some_and(|identifier| identifier.to_lowercase() == name.to_lowercase())
-            })
-        })
-        .collect();
-
-    let mut positional = params.iter().filter(|param| param.get_assignment_identifier().is_none()).copied();
+    let slots = resolve_argument_slots(params, declared_names.iter().copied());
 
     (0..params.len())
-        .map(|slot| match claimed_slots.get(slot).copied().flatten() {
+        .map(|slot| match slots.iter().position(|it| *it == Some(slot)) {
             Some(index) => params[index],
-            None => positional.next().unwrap_or(params[slot]),
+            None => params[slot],
         })
         .collect()
 }
