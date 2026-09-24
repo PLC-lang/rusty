@@ -722,12 +722,78 @@ fn const_super_variable_in_child_variable_initialization() {
        │
     10 │                 val1 : INT := SUPER^.value;
        │                                      ^^^^^ Illegal access to private member parent.value
+    ");
+}
 
-    error[E033]: Unresolved constant `val1` variable
-       ┌─ <internal>:10:31
+#[test]
+fn const_grandparent_variable_in_child_variable_initialization() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK grandparent
+            VAR CONSTANT
+                value : INT := 10;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK parent EXTENDS grandparent
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+            VAR CONSTANT
+                val1 : INT := SUPER^.value + 1;
+            END_VAR
+            VAR_TEMP
+                val2 : INT := value;
+            END_VAR
+        END_FUNCTION_BLOCK
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E049]: Illegal access to private member grandparent.value
+       ┌─ <internal>:13:38
        │
-    10 │                 val1 : INT := SUPER^.value;
-       │                               ^^^^^^^^^^^^ Unresolved constant `val1` variable
+    13 │                 val1 : INT := SUPER^.value + 1;
+       │                                      ^^^^^ Illegal access to private member grandparent.value
+
+    warning[E049]: Illegal access to private member grandparent.value
+       ┌─ <internal>:16:31
+       │
+    16 │                 val2 : INT := value;
+       │                               ^^^^^ Illegal access to private member grandparent.value
+    ");
+}
+
+#[test]
+fn non_const_super_variable_in_pointer_initialization_is_unresolved() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK parent
+            VAR
+                value : INT := 10;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+            VAR
+                ptr : REF_TO INT := SUPER^.value;
+            END_VAR
+        END_FUNCTION_BLOCK
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:10:44
+       │
+    10 │                 ptr : REF_TO INT := SUPER^.value;
+       │                                            ^^^^^ Illegal access to private member parent.value
+
+    error[E033]: Unresolved constant `ptr` variable
+       ┌─ <internal>:10:37
+       │
+    10 │                 ptr : REF_TO INT := SUPER^.value;
+       │                                     ^^^^^^^^^^^^ Unresolved constant `ptr` variable
     ");
 }
 
