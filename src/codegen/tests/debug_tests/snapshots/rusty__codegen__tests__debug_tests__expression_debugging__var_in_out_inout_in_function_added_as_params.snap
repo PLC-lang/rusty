@@ -19,9 +19,9 @@ entry:
   %load_x = load i16, ptr %deref, align [filtered], !dbg !16
   %1 = sext i16 %load_x to i32, !dbg !16
   %tmpVar = add i32 %1, 2, !dbg !16
-  store i32 %tmpVar, ptr %myFunc, align [filtered], !dbg !16
-  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
-  ret i32 %myFunc_ret, !dbg !17
+  store i32 %tmpVar, ptr %myFunc, align [filtered], !dbg !17
+  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
+  ret i32 %myFunc_ret, !dbg !19
 }
 
 !llvm.module.flags = !{!0, !1}
@@ -31,7 +31,7 @@ entry:
 !1 = !{i32 2, !"Debug Info Version", i32 3}
 !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
 !3 = !DIFile(filename: "<internal>", directory: "")
-!4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !10)
+!4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !10, keyInstructions: true)
 !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
 !6 = !{null, !7}
 !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_INT", scope: !3, file: !3, baseType: !8, align [filtered])
@@ -44,4 +44,6 @@ entry:
 !14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !15 = !DILocation(line: 2, column: 17, scope: !4)
 !16 = !DILocation(line: 6, column: 12, scope: !4)
-!17 = !DILocation(line: 7, column: 8, scope: !4)
+!17 = !DILocation(line: 6, column: 12, scope: !4, atomGroup: 1, atomRank: 1)
+!18 = !DILocation(line: 7, column: 8, scope: !4)
+!19 = !DILocation(line: 7, column: 8, scope: !4, atomGroup: 2, atomRank: 1)

@@ -547,47 +547,47 @@ fn switch_case_debug_info() {
 
     continue:                                         ; preds = %condition_body
       %main_ret = load i32, ptr %main, align [filtered], !dbg !20
-      ret i32 %main_ret, !dbg !20
+      ret i32 %main_ret, !dbg !21
 
     condition_body:                                   ; preds = %while_body
-      br label %continue, !dbg !21
+      br label %continue, !dbg !22
 
     buffer_block:                                     ; No predecessors!
-      br label %continue1, !dbg !21
+      br label %continue1, !dbg !23
 
     continue1:                                        ; preds = %buffer_block, %while_body
-      %load_x1 = load i16, ptr %x1, align [filtered], !dbg !22
-      %0 = sext i16 %load_x1 to i32, !dbg !22
-      %tmpVar = add i32 %0, 1, !dbg !22
-      %1 = trunc i32 %tmpVar to i16, !dbg !22
-      store i16 %1, ptr %x1, align [filtered], !dbg !22
-      %load_x13 = load i16, ptr %x1, align [filtered], !dbg !23
+      %load_x1 = load i16, ptr %x1, align [filtered], !dbg !24
+      %0 = sext i16 %load_x1 to i32, !dbg !24
+      %tmpVar = add i32 %0, 1, !dbg !24
+      %1 = trunc i32 %tmpVar to i16, !dbg !24
+      store i16 %1, ptr %x1, align [filtered], !dbg !25
+      %load_x13 = load i16, ptr %x1, align [filtered], !dbg !26
       switch i16 %load_x13, label %else [
         i16 1, label %case
         i16 2, label %case4
         i16 3, label %case5
-      ], !dbg !23
+      ], !dbg !27
 
     case:                                             ; preds = %continue1
-      store i16 1, ptr %x2, align [filtered], !dbg !24
-      br label %continue2, !dbg !25
+      store i16 1, ptr %x2, align [filtered], !dbg !28
+      br label %continue2, !dbg !29
 
     case4:                                            ; preds = %continue1
-      store i16 2, ptr %x2, align [filtered], !dbg !26
-      br label %continue2, !dbg !25
+      store i16 2, ptr %x2, align [filtered], !dbg !30
+      br label %continue2, !dbg !31
 
     case5:                                            ; preds = %continue1
-      store i16 3, ptr %x2, align [filtered], !dbg !27
-      br label %continue2, !dbg !25
+      store i16 3, ptr %x2, align [filtered], !dbg !32
+      br label %continue2, !dbg !33
 
     else:                                             ; preds = %continue1
-      store i16 0, ptr %x1, align [filtered], !dbg !28
-      store i16 1, ptr %x2, align [filtered], !dbg !29
-      store i16 2, ptr %x3, align [filtered], !dbg !30
-      br label %continue2, !dbg !25
+      store i16 0, ptr %x1, align [filtered], !dbg !34
+      store i16 1, ptr %x2, align [filtered], !dbg !35
+      store i16 2, ptr %x3, align [filtered], !dbg !36
+      br label %continue2, !dbg !37
 
     continue2:                                        ; preds = %else, %case5, %case4, %case
-      br label %while_body, !dbg !21
+      br label %while_body, !dbg !38
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -597,7 +597,7 @@ fn switch_case_debug_info() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 2, type: !5, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 2, type: !5, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -611,19 +611,27 @@ fn switch_case_debug_info() {
     !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16, align [filtered])
     !16 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !17 = !DILocation(line: 2, column: 17, scope: !4)
-    !18 = !DILocation(line: 9, column: 12, scope: !4)
-    !19 = !DILocation(line: 9, column: 18, scope: !4)
+    !18 = !DILocation(line: 9, column: 12, scope: !4, atomGroup: 1, atomRank: 1)
+    !19 = !DILocation(line: 9, column: 18, scope: !4, atomGroup: 2, atomRank: 1)
     !20 = !DILocation(line: 24, column: 8, scope: !4)
-    !21 = !DILocation(line: 0, scope: !4)
-    !22 = !DILocation(line: 10, column: 12, scope: !4)
-    !23 = !DILocation(line: 12, column: 17, scope: !4)
-    !24 = !DILocation(line: 13, column: 19, scope: !4)
-    !25 = !DILocation(line: 20, column: 12, scope: !4)
-    !26 = !DILocation(line: 14, column: 19, scope: !4)
-    !27 = !DILocation(line: 15, column: 19, scope: !4)
-    !28 = !DILocation(line: 17, column: 20, scope: !4)
-    !29 = !DILocation(line: 18, column: 20, scope: !4)
-    !30 = !DILocation(line: 19, column: 20, scope: !4)
+    !21 = !DILocation(line: 24, column: 8, scope: !4, atomGroup: 3, atomRank: 1)
+    !22 = !DILocation(line: 0, scope: !4, atomGroup: 4, atomRank: 1)
+    !23 = !DILocation(line: 0, scope: !4, atomGroup: 5, atomRank: 1)
+    !24 = !DILocation(line: 10, column: 12, scope: !4)
+    !25 = !DILocation(line: 10, column: 12, scope: !4, atomGroup: 6, atomRank: 1)
+    !26 = !DILocation(line: 12, column: 17, scope: !4)
+    !27 = !DILocation(line: 12, column: 17, scope: !4, atomGroup: 7, atomRank: 1)
+    !28 = !DILocation(line: 13, column: 19, scope: !4, atomGroup: 8, atomRank: 1)
+    !29 = !DILocation(line: 20, column: 12, scope: !4, atomGroup: 9, atomRank: 1)
+    !30 = !DILocation(line: 14, column: 19, scope: !4, atomGroup: 10, atomRank: 1)
+    !31 = !DILocation(line: 20, column: 12, scope: !4, atomGroup: 11, atomRank: 1)
+    !32 = !DILocation(line: 15, column: 19, scope: !4, atomGroup: 12, atomRank: 1)
+    !33 = !DILocation(line: 20, column: 12, scope: !4, atomGroup: 13, atomRank: 1)
+    !34 = !DILocation(line: 17, column: 20, scope: !4, atomGroup: 14, atomRank: 1)
+    !35 = !DILocation(line: 18, column: 20, scope: !4, atomGroup: 15, atomRank: 1)
+    !36 = !DILocation(line: 19, column: 20, scope: !4, atomGroup: 16, atomRank: 1)
+    !37 = !DILocation(line: 20, column: 12, scope: !4, atomGroup: 17, atomRank: 1)
+    !38 = !DILocation(line: 0, scope: !4, atomGroup: 18, atomRank: 1)
     "#);
 }
 
@@ -656,16 +664,16 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
-      ret void, !dbg !15
+      ret void, !dbg !16
     }
 
-    define void @fb__foo(ptr %0) !dbg !16 {
+    define void @fb__foo(ptr %0) !dbg !17 {
     entry:
-        #dbg_declare(ptr %0, !17, !DIExpression(), !18)
+        #dbg_declare(ptr %0, !18, !DIExpression(), !19)
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
-      ret void, !dbg !18
+      ret void, !dbg !20
     }
 
     define void @fb__ctor(ptr %0) {
@@ -734,7 +742,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !3, file: !3, line: 2, type: !5, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13)
+    !4 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !3, file: !3, line: 2, type: !5, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null, !7}
     !7 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !3, file: !3, line: 2, size: 64, align [filtered], flags: DIFlagPublic, elements: !8, identifier: "fb")
@@ -746,9 +754,11 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !13 = !{}
     !14 = !DILocalVariable(name: "fb", scope: !4, file: !3, line: 5, type: !7)
     !15 = !DILocation(line: 5, column: 8, scope: !4)
-    !16 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !4, file: !3, line: 3, type: !5, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13)
-    !17 = !DILocalVariable(name: "fb", scope: !16, file: !3, line: 4, type: !7)
-    !18 = !DILocation(line: 4, column: 8, scope: !16)
+    !16 = !DILocation(line: 5, column: 8, scope: !4, atomGroup: 1, atomRank: 1)
+    !17 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !4, file: !3, line: 3, type: !5, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13, keyInstructions: true)
+    !18 = !DILocalVariable(name: "fb", scope: !17, file: !3, line: 4, type: !7)
+    !19 = !DILocation(line: 4, column: 8, scope: !17)
+    !20 = !DILocation(line: 4, column: 8, scope: !17, atomGroup: 1, atomRank: 1)
     "#);
 }
 
@@ -796,42 +806,42 @@ fn action_with_var_temp() {
       call void @PLC_PRG(ptr @PLC_PRG_instance), !dbg !15
       call void @PLC_PRG__act(ptr @PLC_PRG_instance), !dbg !16
       %main_ret = load i32, ptr %main, align [filtered], !dbg !17
-      ret i32 %main_ret, !dbg !17
+      ret i32 %main_ret, !dbg !18
     }
 
-    define void @PLC_PRG(ptr %0) !dbg !18 {
+    define void @PLC_PRG(ptr %0) !dbg !19 {
     entry:
-        #dbg_declare(ptr %0, !21, !DIExpression(), !22)
+        #dbg_declare(ptr %0, !22, !DIExpression(), !23)
       %x = alloca i32, align [filtered]
-        #dbg_declare(ptr %x, !23, !DIExpression(), !24)
+        #dbg_declare(ptr %x, !24, !DIExpression(), !25)
       store i32 0, ptr %x, align [filtered]
-      store i32 0, ptr %x, align [filtered], !dbg !22
-      ret void, !dbg !25
+      store i32 0, ptr %x, align [filtered], !dbg !26
+      ret void, !dbg !27
     }
 
     define void @PLC_PRG__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !26
-      store ptr %0, ptr %self, align [filtered], !dbg !26
-      ret void, !dbg !26
+      %self = alloca ptr, align [filtered], !dbg !28
+      store ptr %0, ptr %self, align [filtered], !dbg !28
+      ret void, !dbg !28
     }
 
     define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
-      call void @PLC_PRG__ctor(ptr @PLC_PRG_instance), !dbg !26
-      ret void, !dbg !26
+      call void @PLC_PRG__ctor(ptr @PLC_PRG_instance), !dbg !28
+      ret void, !dbg !28
     }
 
-    define void @PLC_PRG__act(ptr %0) !dbg !27 {
+    define void @PLC_PRG__act(ptr %0) !dbg !29 {
     entry:
-        #dbg_declare(ptr %0, !28, !DIExpression(), !29)
+        #dbg_declare(ptr %0, !30, !DIExpression(), !31)
       %x = alloca i32, align [filtered]
-        #dbg_declare(ptr %x, !30, !DIExpression(), !31)
+        #dbg_declare(ptr %x, !32, !DIExpression(), !33)
       store i32 0, ptr %x, align [filtered]
-      %load_x = load i32, ptr %x, align [filtered], !dbg !29
-      %tmpVar = add i32 %load_x, 1, !dbg !29
-      store i32 %tmpVar, ptr %x, align [filtered], !dbg !29
-      ret void, !dbg !26
+      %load_x = load i32, ptr %x, align [filtered], !dbg !31
+      %tmpVar = add i32 %load_x, 1, !dbg !31
+      store i32 %tmpVar, ptr %x, align [filtered], !dbg !34
+      ret void, !dbg !35
     }
 
     !llvm.module.flags = !{!5, !6}
@@ -846,29 +856,33 @@ fn action_with_var_temp() {
     !6 = !{i32 2, !"Debug Info Version", i32 3}
     !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
     !8 = !{!0}
-    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 2, type: !10, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 2, type: !10, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4, keyInstructions: true)
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
     !11 = !{null}
     !12 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 2, type: !13, align [filtered])
     !13 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !14 = !DILocation(line: 2, column: 17, scope: !9)
-    !15 = !DILocation(line: 3, column: 12, scope: !9)
-    !16 = !DILocation(line: 4, column: 12, scope: !9)
+    !15 = !DILocation(line: 3, column: 12, scope: !9, atomGroup: 1, atomRank: 1)
+    !16 = !DILocation(line: 4, column: 12, scope: !9, atomGroup: 2, atomRank: 1)
     !17 = !DILocation(line: 5, column: 8, scope: !9)
-    !18 = distinct !DISubprogram(name: "PLC_PRG", linkageName: "PLC_PRG", scope: !2, file: !2, line: 7, type: !19, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
-    !19 = !DISubroutineType(flags: DIFlagPublic, types: !20)
-    !20 = !{null, !3}
-    !21 = !DILocalVariable(name: "PLC_PRG", scope: !18, file: !2, line: 12, type: !3)
-    !22 = !DILocation(line: 12, column: 12, scope: !18)
-    !23 = !DILocalVariable(name: "x", scope: !18, file: !2, line: 9, type: !13, align [filtered])
-    !24 = !DILocation(line: 9, column: 12, scope: !18)
-    !25 = !DILocation(line: 13, column: 8, scope: !18)
-    !26 = !DILocation(line: 18, column: 12, scope: !27)
-    !27 = distinct !DISubprogram(name: "PLC_PRG.act", linkageName: "PLC_PRG.act", scope: !2, file: !2, line: 16, type: !19, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
-    !28 = !DILocalVariable(name: "PLC_PRG", scope: !27, file: !2, line: 17, type: !3)
-    !29 = !DILocation(line: 17, column: 16, scope: !27)
-    !30 = !DILocalVariable(name: "x", scope: !27, file: !2, line: 9, type: !13, align [filtered])
-    !31 = !DILocation(line: 9, column: 12, scope: !27)
+    !18 = !DILocation(line: 5, column: 8, scope: !9, atomGroup: 3, atomRank: 1)
+    !19 = distinct !DISubprogram(name: "PLC_PRG", linkageName: "PLC_PRG", scope: !2, file: !2, line: 7, type: !20, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4, keyInstructions: true)
+    !20 = !DISubroutineType(flags: DIFlagPublic, types: !21)
+    !21 = !{null, !3}
+    !22 = !DILocalVariable(name: "PLC_PRG", scope: !19, file: !2, line: 12, type: !3)
+    !23 = !DILocation(line: 12, column: 12, scope: !19)
+    !24 = !DILocalVariable(name: "x", scope: !19, file: !2, line: 9, type: !13, align [filtered])
+    !25 = !DILocation(line: 9, column: 12, scope: !19)
+    !26 = !DILocation(line: 12, column: 12, scope: !19, atomGroup: 1, atomRank: 1)
+    !27 = !DILocation(line: 13, column: 8, scope: !19, atomGroup: 2, atomRank: 1)
+    !28 = !DILocation(line: 18, column: 12, scope: !29)
+    !29 = distinct !DISubprogram(name: "PLC_PRG.act", linkageName: "PLC_PRG.act", scope: !2, file: !2, line: 16, type: !20, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4, keyInstructions: true)
+    !30 = !DILocalVariable(name: "PLC_PRG", scope: !29, file: !2, line: 17, type: !3)
+    !31 = !DILocation(line: 17, column: 16, scope: !29)
+    !32 = !DILocalVariable(name: "x", scope: !29, file: !2, line: 9, type: !13, align [filtered])
+    !33 = !DILocation(line: 9, column: 12, scope: !29)
+    !34 = !DILocation(line: 17, column: 16, scope: !29, atomGroup: 1, atomRank: 1)
+    !35 = !DILocation(line: 18, column: 12, scope: !29, atomGroup: 2, atomRank: 1)
     "#);
 }
 
@@ -960,161 +974,161 @@ END_FUNCTION
         #dbg_declare(ptr %i, !44, !DIExpression(), !45)
       store i16 0, ptr %i, align [filtered]
       call void @struct___ctor(ptr %st), !dbg !46
-      call void @__main_arr__ctor(ptr %arr), !dbg !46
-      %s1 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 2, !dbg !47
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] %s1, i32 80, i1 false), !dbg !47
-      %inner = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !48
-      %s2 = getelementptr inbounds nuw %inner, ptr %inner, i32 0, i32 0, !dbg !48
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] %s2, i32 80, i1 false), !dbg !48
-      %b3 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 3, !dbg !49
-      %load_b = load i8, ptr %b3, align [filtered], !dbg !49
-      store i8 %load_b, ptr %b, align [filtered], !dbg !49
-      %inner4 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !50
-      %b5 = getelementptr inbounds nuw %inner, ptr %inner4, i32 0, i32 1, !dbg !50
-      %load_b6 = load i8, ptr %b5, align [filtered], !dbg !50
-      store i8 %load_b6, ptr %b, align [filtered], !dbg !50
-      %arr7 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !51
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] %arr7, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !51
-      %inner8 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !52
-      %arr9 = getelementptr inbounds nuw %inner, ptr %inner8, i32 0, i32 3, !dbg !52
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] %arr9, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !52
-      %i10 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 6, !dbg !53
-      %load_i = load i16, ptr %i10, align [filtered], !dbg !53
-      store i16 %load_i, ptr %i, align [filtered], !dbg !53
-      %inner11 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !54
-      %i12 = getelementptr inbounds nuw %inner, ptr %inner11, i32 0, i32 4, !dbg !54
-      %load_i13 = load i16, ptr %i12, align [filtered], !dbg !54
-      store i16 %load_i13, ptr %i, align [filtered], !dbg !54
-      %tmpVar = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 0, !dbg !55
-      %arr14 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !55
-      %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], ptr %arr14, i32 0, i32 0, !dbg !55
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar, ptr align [filtered] %tmpVar15, i32 80, i1 false), !dbg !55
-      %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 1, !dbg !56
-      %inner17 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !56
-      %arr18 = getelementptr inbounds nuw %inner, ptr %inner17, i32 0, i32 3, !dbg !56
-      %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], ptr %arr18, i32 0, i32 1, !dbg !56
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar16, ptr align [filtered] %tmpVar19, i32 80, i1 false), !dbg !56
-      %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 2, !dbg !57
-      %inner21 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !57
-      %arr22 = getelementptr inbounds nuw %inner, ptr %inner21, i32 0, i32 3, !dbg !57
-      %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], ptr %arr22, i32 0, i32 2, !dbg !57
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar20, ptr align [filtered] %tmpVar23, i32 80, i1 false), !dbg !57
-      ret void, !dbg !58
+      call void @__main_arr__ctor(ptr %arr), !dbg !47
+      %s1 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 2, !dbg !48
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] %s1, i32 80, i1 false), !dbg !49
+      %inner = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !50
+      %s2 = getelementptr inbounds nuw %inner, ptr %inner, i32 0, i32 0, !dbg !50
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] %s2, i32 80, i1 false), !dbg !51
+      %b3 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 3, !dbg !52
+      %load_b = load i8, ptr %b3, align [filtered], !dbg !52
+      store i8 %load_b, ptr %b, align [filtered], !dbg !53
+      %inner4 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !54
+      %b5 = getelementptr inbounds nuw %inner, ptr %inner4, i32 0, i32 1, !dbg !54
+      %load_b6 = load i8, ptr %b5, align [filtered], !dbg !54
+      store i8 %load_b6, ptr %b, align [filtered], !dbg !55
+      %arr7 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !56
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] %arr7, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !57
+      %inner8 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !58
+      %arr9 = getelementptr inbounds nuw %inner, ptr %inner8, i32 0, i32 3, !dbg !58
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] %arr9, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !59
+      %i10 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 6, !dbg !60
+      %load_i = load i16, ptr %i10, align [filtered], !dbg !60
+      store i16 %load_i, ptr %i, align [filtered], !dbg !61
+      %inner11 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !62
+      %i12 = getelementptr inbounds nuw %inner, ptr %inner11, i32 0, i32 4, !dbg !62
+      %load_i13 = load i16, ptr %i12, align [filtered], !dbg !62
+      store i16 %load_i13, ptr %i, align [filtered], !dbg !63
+      %tmpVar = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 0, !dbg !64
+      %arr14 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !64
+      %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], ptr %arr14, i32 0, i32 0, !dbg !64
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar, ptr align [filtered] %tmpVar15, i32 80, i1 false), !dbg !65
+      %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 1, !dbg !66
+      %inner17 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !66
+      %arr18 = getelementptr inbounds nuw %inner, ptr %inner17, i32 0, i32 3, !dbg !66
+      %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], ptr %arr18, i32 0, i32 1, !dbg !66
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar16, ptr align [filtered] %tmpVar19, i32 80, i1 false), !dbg !67
+      %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 2, !dbg !68
+      %inner21 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !68
+      %arr22 = getelementptr inbounds nuw %inner, ptr %inner21, i32 0, i32 3, !dbg !68
+      %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], ptr %arr22, i32 0, i32 2, !dbg !68
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar20, ptr align [filtered] %tmpVar23, i32 80, i1 false), !dbg !69
+      ret void, !dbg !70
     }
 
     define void @struct___ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !58
-      store ptr %0, ptr %self, align [filtered], !dbg !58
-      %deref = load ptr, ptr %self, align [filtered], !dbg !58
-      %inner = getelementptr inbounds nuw %struct_, ptr %deref, i32 0, i32 0, !dbg !58
-      call void @inner__ctor(ptr %inner), !dbg !58
-      %deref1 = load ptr, ptr %self, align [filtered], !dbg !58
-      %inner_arr = getelementptr inbounds nuw %struct_, ptr %deref1, i32 0, i32 1, !dbg !58
-      call void @__struct__inner_arr__ctor(ptr %inner_arr), !dbg !58
-      %deref2 = load ptr, ptr %self, align [filtered], !dbg !58
-      %s = getelementptr inbounds nuw %struct_, ptr %deref2, i32 0, i32 2, !dbg !58
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] @utf08_literal_0, i32 6, i1 false), !dbg !58
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !58
-      %b = getelementptr inbounds nuw %struct_, ptr %deref3, i32 0, i32 3, !dbg !58
-      store i8 1, ptr %b, align [filtered], !dbg !58
-      %deref4 = load ptr, ptr %self, align [filtered], !dbg !58
-      %r = getelementptr inbounds nuw %struct_, ptr %deref4, i32 0, i32 4, !dbg !58
-      store float 0x400921CAC0000000, ptr %r, align [filtered], !dbg !58
-      %deref5 = load ptr, ptr %self, align [filtered], !dbg !58
-      %arr = getelementptr inbounds nuw %struct_, ptr %deref5, i32 0, i32 5, !dbg !58
-      call void @__struct__arr__ctor(ptr %arr), !dbg !58
-      %deref6 = load ptr, ptr %self, align [filtered], !dbg !58
-      %arr7 = getelementptr inbounds nuw %struct_, ptr %deref6, i32 0, i32 5, !dbg !58
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr7, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !58
-      %deref8 = load ptr, ptr %self, align [filtered], !dbg !58
-      %i = getelementptr inbounds nuw %struct_, ptr %deref8, i32 0, i32 6, !dbg !58
-      store i16 42, ptr %i, align [filtered], !dbg !58
-      ret void, !dbg !58
+      %self = alloca ptr, align [filtered], !dbg !71
+      store ptr %0, ptr %self, align [filtered], !dbg !71
+      %deref = load ptr, ptr %self, align [filtered], !dbg !71
+      %inner = getelementptr inbounds nuw %struct_, ptr %deref, i32 0, i32 0, !dbg !71
+      call void @inner__ctor(ptr %inner), !dbg !71
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !71
+      %inner_arr = getelementptr inbounds nuw %struct_, ptr %deref1, i32 0, i32 1, !dbg !71
+      call void @__struct__inner_arr__ctor(ptr %inner_arr), !dbg !71
+      %deref2 = load ptr, ptr %self, align [filtered], !dbg !71
+      %s = getelementptr inbounds nuw %struct_, ptr %deref2, i32 0, i32 2, !dbg !71
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] @utf08_literal_0, i32 6, i1 false), !dbg !71
+      %deref3 = load ptr, ptr %self, align [filtered], !dbg !71
+      %b = getelementptr inbounds nuw %struct_, ptr %deref3, i32 0, i32 3, !dbg !71
+      store i8 1, ptr %b, align [filtered], !dbg !71
+      %deref4 = load ptr, ptr %self, align [filtered], !dbg !71
+      %r = getelementptr inbounds nuw %struct_, ptr %deref4, i32 0, i32 4, !dbg !71
+      store float 0x400921CAC0000000, ptr %r, align [filtered], !dbg !71
+      %deref5 = load ptr, ptr %self, align [filtered], !dbg !71
+      %arr = getelementptr inbounds nuw %struct_, ptr %deref5, i32 0, i32 5, !dbg !71
+      call void @__struct__arr__ctor(ptr %arr), !dbg !71
+      %deref6 = load ptr, ptr %self, align [filtered], !dbg !71
+      %arr7 = getelementptr inbounds nuw %struct_, ptr %deref6, i32 0, i32 5, !dbg !71
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr7, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !71
+      %deref8 = load ptr, ptr %self, align [filtered], !dbg !71
+      %i = getelementptr inbounds nuw %struct_, ptr %deref8, i32 0, i32 6, !dbg !71
+      store i16 42, ptr %i, align [filtered], !dbg !71
+      ret void, !dbg !71
     }
 
     define void @inner__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !58
-      store ptr %0, ptr %self, align [filtered], !dbg !58
-      %deref = load ptr, ptr %self, align [filtered], !dbg !58
-      %s = getelementptr inbounds nuw %inner, ptr %deref, i32 0, i32 0, !dbg !58
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] @utf08_literal_0, i32 6, i1 false), !dbg !58
-      %deref1 = load ptr, ptr %self, align [filtered], !dbg !58
-      %b = getelementptr inbounds nuw %inner, ptr %deref1, i32 0, i32 1, !dbg !58
-      store i8 1, ptr %b, align [filtered], !dbg !58
-      %deref2 = load ptr, ptr %self, align [filtered], !dbg !58
-      %r = getelementptr inbounds nuw %inner, ptr %deref2, i32 0, i32 2, !dbg !58
-      store float 0x400921CAC0000000, ptr %r, align [filtered], !dbg !58
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !58
-      %arr = getelementptr inbounds nuw %inner, ptr %deref3, i32 0, i32 3, !dbg !58
-      call void @__inner_arr__ctor(ptr %arr), !dbg !58
-      %deref4 = load ptr, ptr %self, align [filtered], !dbg !58
-      %arr5 = getelementptr inbounds nuw %inner, ptr %deref4, i32 0, i32 3, !dbg !58
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr5, ptr align [filtered] @.const_init.1, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !58
-      %deref6 = load ptr, ptr %self, align [filtered], !dbg !58
-      %i = getelementptr inbounds nuw %inner, ptr %deref6, i32 0, i32 4, !dbg !58
-      store i16 42, ptr %i, align [filtered], !dbg !58
-      ret void, !dbg !58
+      %self = alloca ptr, align [filtered], !dbg !71
+      store ptr %0, ptr %self, align [filtered], !dbg !71
+      %deref = load ptr, ptr %self, align [filtered], !dbg !71
+      %s = getelementptr inbounds nuw %inner, ptr %deref, i32 0, i32 0, !dbg !71
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] @utf08_literal_0, i32 6, i1 false), !dbg !71
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !71
+      %b = getelementptr inbounds nuw %inner, ptr %deref1, i32 0, i32 1, !dbg !71
+      store i8 1, ptr %b, align [filtered], !dbg !71
+      %deref2 = load ptr, ptr %self, align [filtered], !dbg !71
+      %r = getelementptr inbounds nuw %inner, ptr %deref2, i32 0, i32 2, !dbg !71
+      store float 0x400921CAC0000000, ptr %r, align [filtered], !dbg !71
+      %deref3 = load ptr, ptr %self, align [filtered], !dbg !71
+      %arr = getelementptr inbounds nuw %inner, ptr %deref3, i32 0, i32 3, !dbg !71
+      call void @__inner_arr__ctor(ptr %arr), !dbg !71
+      %deref4 = load ptr, ptr %self, align [filtered], !dbg !71
+      %arr5 = getelementptr inbounds nuw %inner, ptr %deref4, i32 0, i32 3, !dbg !71
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr5, ptr align [filtered] @.const_init.1, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !71
+      %deref6 = load ptr, ptr %self, align [filtered], !dbg !71
+      %i = getelementptr inbounds nuw %inner, ptr %deref6, i32 0, i32 4, !dbg !71
+      store i16 42, ptr %i, align [filtered], !dbg !71
+      ret void, !dbg !71
     }
 
     define void @__main_arr__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !58
-      store ptr %0, ptr %self, align [filtered], !dbg !58
-      ret void, !dbg !58
+      %self = alloca ptr, align [filtered], !dbg !71
+      store ptr %0, ptr %self, align [filtered], !dbg !71
+      ret void, !dbg !71
     }
 
     define void @__struct__inner_arr__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !58
-      store ptr %0, ptr %self, align [filtered], !dbg !58
+      %self = alloca ptr, align [filtered], !dbg !71
+      store ptr %0, ptr %self, align [filtered], !dbg !71
       %__struct__inner_arr__idx0 = alloca i32, align [filtered]
-      store i32 0, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
-      store i32 0, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
-      br label %while_body, !dbg !58
+      store i32 0, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !71
+      store i32 0, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !71
+      br label %while_body, !dbg !71
 
     while_body:                                       ; preds = %continue1, %entry
-      %load___struct__inner_arr__idx0 = load i32, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
-      %tmpVar = icmp sgt i32 %load___struct__inner_arr__idx0, 2, !dbg !58
-      %1 = zext i1 %tmpVar to i8, !dbg !58
-      %2 = icmp ne i8 %1, 0, !dbg !58
-      br i1 %2, label %condition_body, label %continue1, !dbg !58
+      %load___struct__inner_arr__idx0 = load i32, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !71
+      %tmpVar = icmp sgt i32 %load___struct__inner_arr__idx0, 2, !dbg !71
+      %1 = zext i1 %tmpVar to i8, !dbg !71
+      %2 = icmp ne i8 %1, 0, !dbg !71
+      br i1 %2, label %condition_body, label %continue1, !dbg !71
 
     continue:                                         ; preds = %condition_body
-      ret void, !dbg !58
+      ret void, !dbg !71
 
     condition_body:                                   ; preds = %while_body
-      br label %continue, !dbg !58
+      br label %continue, !dbg !71
 
     buffer_block:                                     ; No predecessors!
-      br label %continue1, !dbg !58
+      br label %continue1, !dbg !71
 
     continue1:                                        ; preds = %buffer_block, %while_body
-      %deref = load ptr, ptr %self, align [filtered], !dbg !58
-      %load___struct__inner_arr__idx02 = load i32, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
-      %tmpVar3 = mul i32 1, %load___struct__inner_arr__idx02, !dbg !58
-      %tmpVar4 = add i32 %tmpVar3, 0, !dbg !58
-      %tmpVar5 = getelementptr inbounds [3 x %inner], ptr %deref, i32 0, i32 %tmpVar4, !dbg !58
-      call void @inner__ctor(ptr %tmpVar5), !dbg !58
-      %load___struct__inner_arr__idx06 = load i32, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
-      %tmpVar7 = add i32 %load___struct__inner_arr__idx06, 1, !dbg !58
-      store i32 %tmpVar7, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
-      br label %while_body, !dbg !58
+      %deref = load ptr, ptr %self, align [filtered], !dbg !71
+      %load___struct__inner_arr__idx02 = load i32, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !71
+      %tmpVar3 = mul i32 1, %load___struct__inner_arr__idx02, !dbg !71
+      %tmpVar4 = add i32 %tmpVar3, 0, !dbg !71
+      %tmpVar5 = getelementptr inbounds [3 x %inner], ptr %deref, i32 0, i32 %tmpVar4, !dbg !71
+      call void @inner__ctor(ptr %tmpVar5), !dbg !71
+      %load___struct__inner_arr__idx06 = load i32, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !71
+      %tmpVar7 = add i32 %load___struct__inner_arr__idx06, 1, !dbg !71
+      store i32 %tmpVar7, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !71
+      br label %while_body, !dbg !71
     }
 
     define void @__struct__arr__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !58
-      store ptr %0, ptr %self, align [filtered], !dbg !58
-      ret void, !dbg !58
+      %self = alloca ptr, align [filtered], !dbg !71
+      store ptr %0, ptr %self, align [filtered], !dbg !71
+      ret void, !dbg !71
     }
 
     define void @__inner_arr__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !58
-      store ptr %0, ptr %self, align [filtered], !dbg !58
-      ret void, !dbg !58
+      %self = alloca ptr, align [filtered], !dbg !71
+      store ptr %0, ptr %self, align [filtered], !dbg !71
+      ret void, !dbg !71
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
@@ -1136,7 +1150,7 @@ END_FUNCTION
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 22, type: !5, scopeLine: 32, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 22, type: !5, scopeLine: 32, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -1179,18 +1193,31 @@ END_FUNCTION
     !44 = !DILocalVariable(name: "i", scope: !4, file: !3, line: 28, type: !29, align [filtered])
     !45 = !DILocation(line: 28, column: 4, scope: !4)
     !46 = !DILocation(line: 0, scope: !4)
-    !47 = !DILocation(line: 32, column: 4, scope: !4)
-    !48 = !DILocation(line: 33, column: 4, scope: !4)
-    !49 = !DILocation(line: 34, column: 4, scope: !4)
-    !50 = !DILocation(line: 35, column: 4, scope: !4)
-    !51 = !DILocation(line: 36, column: 4, scope: !4)
-    !52 = !DILocation(line: 37, column: 4, scope: !4)
-    !53 = !DILocation(line: 38, column: 4, scope: !4)
-    !54 = !DILocation(line: 39, column: 4, scope: !4)
-    !55 = !DILocation(line: 41, column: 4, scope: !4)
-    !56 = !DILocation(line: 42, column: 4, scope: !4)
-    !57 = !DILocation(line: 43, column: 4, scope: !4)
-    !58 = !DILocation(line: 45, scope: !4)
+    !47 = !DILocation(line: 0, scope: !4, atomGroup: 1, atomRank: 1)
+    !48 = !DILocation(line: 32, column: 4, scope: !4)
+    !49 = !DILocation(line: 32, column: 4, scope: !4, atomGroup: 2, atomRank: 1)
+    !50 = !DILocation(line: 33, column: 4, scope: !4)
+    !51 = !DILocation(line: 33, column: 4, scope: !4, atomGroup: 3, atomRank: 1)
+    !52 = !DILocation(line: 34, column: 4, scope: !4)
+    !53 = !DILocation(line: 34, column: 4, scope: !4, atomGroup: 4, atomRank: 1)
+    !54 = !DILocation(line: 35, column: 4, scope: !4)
+    !55 = !DILocation(line: 35, column: 4, scope: !4, atomGroup: 5, atomRank: 1)
+    !56 = !DILocation(line: 36, column: 4, scope: !4)
+    !57 = !DILocation(line: 36, column: 4, scope: !4, atomGroup: 6, atomRank: 1)
+    !58 = !DILocation(line: 37, column: 4, scope: !4)
+    !59 = !DILocation(line: 37, column: 4, scope: !4, atomGroup: 7, atomRank: 1)
+    !60 = !DILocation(line: 38, column: 4, scope: !4)
+    !61 = !DILocation(line: 38, column: 4, scope: !4, atomGroup: 8, atomRank: 1)
+    !62 = !DILocation(line: 39, column: 4, scope: !4)
+    !63 = !DILocation(line: 39, column: 4, scope: !4, atomGroup: 9, atomRank: 1)
+    !64 = !DILocation(line: 41, column: 4, scope: !4)
+    !65 = !DILocation(line: 41, column: 4, scope: !4, atomGroup: 10, atomRank: 1)
+    !66 = !DILocation(line: 42, column: 4, scope: !4)
+    !67 = !DILocation(line: 42, column: 4, scope: !4, atomGroup: 11, atomRank: 1)
+    !68 = !DILocation(line: 43, column: 4, scope: !4)
+    !69 = !DILocation(line: 43, column: 4, scope: !4, atomGroup: 12, atomRank: 1)
+    !70 = !DILocation(line: 45, scope: !4, atomGroup: 13, atomRank: 1)
+    !71 = !DILocation(line: 45, scope: !4)
     "#);
 }
 
@@ -1244,39 +1271,39 @@ fn constants_are_tagged_as_such() {
       %a = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
       %b = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
       %c = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 2
-      ret void, !dbg !35
+      ret void, !dbg !36
     }
 
-    define i32 @bar() !dbg !36 {
+    define i32 @bar() !dbg !37 {
     entry:
       %bar = alloca i32, align [filtered]
       %d = alloca i32, align [filtered]
-        #dbg_declare(ptr %d, !39, !DIExpression(), !40)
+        #dbg_declare(ptr %d, !40, !DIExpression(), !41)
       store i32 42, ptr %d, align [filtered]
-        #dbg_declare(ptr %bar, !41, !DIExpression(), !42)
+        #dbg_declare(ptr %bar, !42, !DIExpression(), !43)
       store i32 0, ptr %bar, align [filtered]
-      %bar_ret = load i32, ptr %bar, align [filtered], !dbg !43
-      ret i32 %bar_ret, !dbg !43
+      %bar_ret = load i32, ptr %bar, align [filtered], !dbg !44
+      ret i32 %bar_ret, !dbg !45
     }
 
     define void @prog__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !43
-      store ptr %0, ptr %self, align [filtered], !dbg !43
-      ret void, !dbg !43
+      %self = alloca ptr, align [filtered], !dbg !44
+      store ptr %0, ptr %self, align [filtered], !dbg !44
+      ret void, !dbg !44
     }
 
     define void @foo__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !43
-      store ptr %0, ptr %self, align [filtered], !dbg !43
-      ret void, !dbg !43
+      %self = alloca ptr, align [filtered], !dbg !44
+      store ptr %0, ptr %self, align [filtered], !dbg !44
+      ret void, !dbg !44
     }
 
     define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
-      call void @prog__ctor(ptr @prog_instance), !dbg !43
-      ret void, !dbg !43
+      call void @prog__ctor(ptr @prog_instance), !dbg !44
+      ret void, !dbg !44
     }
 
     !llvm.module.flags = !{!26, !27}
@@ -1312,20 +1339,22 @@ fn constants_are_tagged_as_such() {
     !27 = !{i32 2, !"Debug Info Version", i32 3}
     !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !29, splitDebugInlining: false)
     !29 = !{!0, !5, !13, !19}
-    !30 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 8, type: !31, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33)
+    !30 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 8, type: !31, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33, keyInstructions: true)
     !31 = !DISubroutineType(flags: DIFlagPublic, types: !32)
     !32 = !{null, !21}
     !33 = !{}
     !34 = !DILocalVariable(name: "prog", scope: !30, file: !2, line: 12, type: !21)
     !35 = !DILocation(line: 12, column: 8, scope: !30)
-    !36 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 19, type: !37, scopeLine: 23, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33)
-    !37 = !DISubroutineType(flags: DIFlagPublic, types: !38)
-    !38 = !{null}
-    !39 = !DILocalVariable(name: "d", scope: !36, file: !2, line: 21, type: !3, align [filtered])
-    !40 = !DILocation(line: 21, column: 12, scope: !36)
-    !41 = !DILocalVariable(name: "bar", scope: !36, file: !2, line: 19, type: !4, align [filtered])
-    !42 = !DILocation(line: 19, column: 17, scope: !36)
-    !43 = !DILocation(line: 23, column: 8, scope: !36)
+    !36 = !DILocation(line: 12, column: 8, scope: !30, atomGroup: 1, atomRank: 1)
+    !37 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 19, type: !38, scopeLine: 23, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33, keyInstructions: true)
+    !38 = !DISubroutineType(flags: DIFlagPublic, types: !39)
+    !39 = !{null}
+    !40 = !DILocalVariable(name: "d", scope: !37, file: !2, line: 21, type: !3, align [filtered])
+    !41 = !DILocation(line: 21, column: 12, scope: !37)
+    !42 = !DILocalVariable(name: "bar", scope: !37, file: !2, line: 19, type: !4, align [filtered])
+    !43 = !DILocation(line: 19, column: 17, scope: !37)
+    !44 = !DILocation(line: 23, column: 8, scope: !37)
+    !45 = !DILocation(line: 23, column: 8, scope: !37, atomGroup: 1, atomRank: 1)
     "#);
 }
 
@@ -1493,7 +1522,7 @@ fn test_debug_info_auto_deref_parameters() {
       %inout_value = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 2
       %inout_struct = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 3
       %local_ref = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 4
-      ret void, !dbg !43
+      ret void, !dbg !44
     }
 
     define void @test_with_ref_params__ctor(ptr %0) {
@@ -1578,12 +1607,13 @@ fn test_debug_info_auto_deref_parameters() {
     !35 = !{i32 2, !"Debug Info Version", i32 3}
     !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
     !37 = !{!0}
-    !38 = distinct !DISubprogram(name: "test_with_ref_params", linkageName: "test_with_ref_params", scope: !2, file: !2, line: 2, type: !39, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
+    !38 = distinct !DISubprogram(name: "test_with_ref_params", linkageName: "test_with_ref_params", scope: !2, file: !2, line: 2, type: !39, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41, keyInstructions: true)
     !39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
     !40 = !{null, !3, !6, !14, !21, !24}
     !41 = !{}
     !42 = !DILocalVariable(name: "test_with_ref_params", scope: !38, file: !2, line: 14, type: !3)
     !43 = !DILocation(line: 14, column: 4, scope: !38)
+    !44 = !DILocation(line: 14, column: 4, scope: !38, atomGroup: 1, atomRank: 1)
     "#)
 }
 
@@ -1725,7 +1755,7 @@ fn test_debug_info_mixed_pointer_types() {
       %inout_param = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 1
       %local_ptr = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 2
       %local_ref = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 3
-      ret void, !dbg !43
+      ret void, !dbg !44
     }
 
     define void @mixed_ptr__ctor(ptr %0) {
@@ -1827,12 +1857,13 @@ fn test_debug_info_mixed_pointer_types() {
     !35 = !{i32 2, !"Debug Info Version", i32 3}
     !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
     !37 = !{!0, !6, !12}
-    !38 = distinct !DISubprogram(name: "mixed_ptr", linkageName: "mixed_ptr", scope: !2, file: !2, line: 7, type: !39, scopeLine: 18, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
+    !38 = distinct !DISubprogram(name: "mixed_ptr", linkageName: "mixed_ptr", scope: !2, file: !2, line: 7, type: !39, scopeLine: 18, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41, keyInstructions: true)
     !39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
     !40 = !{null, !14, !17, !25}
     !41 = !{}
     !42 = !DILocalVariable(name: "mixed_ptr", scope: !38, file: !2, line: 18, type: !14)
     !43 = !DILocation(line: 18, column: 4, scope: !38)
+    !44 = !DILocation(line: 18, column: 4, scope: !38, atomGroup: 1, atomRank: 1)
     "#)
 }
 
@@ -1884,7 +1915,7 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
       %ref_param = getelementptr inbounds nuw %test_with_reference_params, ptr %0, i32 0, i32 0
       %array_ref_param = getelementptr inbounds nuw %test_with_reference_params, ptr %0, i32 0, i32 1
       %local_reference = getelementptr inbounds nuw %test_with_reference_params, ptr %0, i32 0, i32 2
-      ret void, !dbg !56
+      ret void, !dbg !57
     }
 
     define void @test_with_reference_params__ctor(ptr %0) {
@@ -2044,12 +2075,13 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     !48 = !{i32 2, !"Debug Info Version", i32 3}
     !49 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !50, splitDebugInlining: false)
     !50 = !{!0, !6, !13, !22, !31}
-    !51 = distinct !DISubprogram(name: "test_with_reference_params", linkageName: "test_with_reference_params", scope: !2, file: !2, line: 9, type: !52, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !49, retainedNodes: !54)
+    !51 = distinct !DISubprogram(name: "test_with_reference_params", linkageName: "test_with_reference_params", scope: !2, file: !2, line: 9, type: !52, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !49, retainedNodes: !54, keyInstructions: true)
     !52 = !DISubroutineType(flags: DIFlagPublic, types: !53)
     !53 = !{null, !33, !36, !39}
     !54 = !{}
     !55 = !DILocalVariable(name: "test_with_reference_params", scope: !51, file: !2, line: 17, type: !33)
     !56 = !DILocation(line: 17, column: 4, scope: !51)
+    !57 = !DILocation(line: 17, column: 4, scope: !51, atomGroup: 1, atomRank: 1)
     "#)
 }
 
@@ -2087,18 +2119,18 @@ fn range_datatype_debug() {
       call void @RangeType__ctor(ptr %r), !dbg !14
       store i32 50, ptr %r, align [filtered], !dbg !15
       %load_r = load i32, ptr %r, align [filtered], !dbg !16
-      store i32 %load_r, ptr %main, align [filtered], !dbg !16
-      %main_ret = load i32, ptr %main, align [filtered], !dbg !17
-      ret i32 %main_ret, !dbg !17
+      store i32 %load_r, ptr %main, align [filtered], !dbg !17
+      %main_ret = load i32, ptr %main, align [filtered], !dbg !18
+      ret i32 %main_ret, !dbg !19
     }
 
     define void @RangeType__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !17
-      store ptr %0, ptr %self, align [filtered], !dbg !17
-      %deref = load ptr, ptr %self, align [filtered], !dbg !17
-      store i32 0, ptr %deref, align [filtered], !dbg !17
-      ret void, !dbg !17
+      %self = alloca ptr, align [filtered], !dbg !18
+      store ptr %0, ptr %self, align [filtered], !dbg !18
+      %deref = load ptr, ptr %self, align [filtered], !dbg !18
+      store i32 0, ptr %deref, align [filtered], !dbg !18
+      ret void, !dbg !18
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -2108,7 +2140,7 @@ fn range_datatype_debug() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 6, type: !5, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 6, type: !5, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -2118,10 +2150,12 @@ fn range_datatype_debug() {
     !11 = !DILocation(line: 8, column: 12, scope: !4)
     !12 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 6, type: !10, align [filtered])
     !13 = !DILocation(line: 6, column: 17, scope: !4)
-    !14 = !DILocation(line: 0, scope: !4)
-    !15 = !DILocation(line: 10, column: 12, scope: !4)
+    !14 = !DILocation(line: 0, scope: !4, atomGroup: 1, atomRank: 1)
+    !15 = !DILocation(line: 10, column: 12, scope: !4, atomGroup: 2, atomRank: 1)
     !16 = !DILocation(line: 11, column: 12, scope: !4)
-    !17 = !DILocation(line: 12, column: 8, scope: !4)
+    !17 = !DILocation(line: 11, column: 12, scope: !4, atomGroup: 3, atomRank: 1)
+    !18 = !DILocation(line: 12, column: 8, scope: !4)
+    !19 = !DILocation(line: 12, column: 8, scope: !4, atomGroup: 4, atomRank: 1)
     "#)
 }
 
@@ -2165,18 +2199,18 @@ fn range_datatype_reference_expr_bounds_debug() {
       call void @RangeType__ctor(ptr %r), !dbg !18
       store i32 50, ptr %r, align [filtered], !dbg !19
       %load_r = load i32, ptr %r, align [filtered], !dbg !20
-      store i32 %load_r, ptr %main, align [filtered], !dbg !20
-      %main_ret = load i32, ptr %main, align [filtered], !dbg !21
-      ret i32 %main_ret, !dbg !21
+      store i32 %load_r, ptr %main, align [filtered], !dbg !21
+      %main_ret = load i32, ptr %main, align [filtered], !dbg !22
+      ret i32 %main_ret, !dbg !23
     }
 
     define void @RangeType__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered], !dbg !21
-      store ptr %0, ptr %self, align [filtered], !dbg !21
-      %deref = load ptr, ptr %self, align [filtered], !dbg !21
-      store i32 0, ptr %deref, align [filtered], !dbg !21
-      ret void, !dbg !21
+      %self = alloca ptr, align [filtered], !dbg !22
+      store ptr %0, ptr %self, align [filtered], !dbg !22
+      %deref = load ptr, ptr %self, align [filtered], !dbg !22
+      store i32 0, ptr %deref, align [filtered], !dbg !22
+      ret void, !dbg !22
     }
 
     !llvm.module.flags = !{!5, !6}
@@ -2191,7 +2225,7 @@ fn range_datatype_reference_expr_bounds_debug() {
     !6 = !{i32 2, !"Debug Info Version", i32 3}
     !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
     !8 = !{!0}
-    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 10, type: !10, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !12)
+    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 10, type: !10, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !12, keyInstructions: true)
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
     !11 = !{null}
     !12 = !{}
@@ -2200,10 +2234,12 @@ fn range_datatype_reference_expr_bounds_debug() {
     !15 = !DILocation(line: 12, column: 12, scope: !9)
     !16 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 10, type: !4, align [filtered])
     !17 = !DILocation(line: 10, column: 17, scope: !9)
-    !18 = !DILocation(line: 0, scope: !9)
-    !19 = !DILocation(line: 14, column: 12, scope: !9)
+    !18 = !DILocation(line: 0, scope: !9, atomGroup: 1, atomRank: 1)
+    !19 = !DILocation(line: 14, column: 12, scope: !9, atomGroup: 2, atomRank: 1)
     !20 = !DILocation(line: 15, column: 12, scope: !9)
-    !21 = !DILocation(line: 16, column: 8, scope: !9)
+    !21 = !DILocation(line: 15, column: 12, scope: !9, atomGroup: 3, atomRank: 1)
+    !22 = !DILocation(line: 16, column: 8, scope: !9)
+    !23 = !DILocation(line: 16, column: 8, scope: !9, atomGroup: 4, atomRank: 1)
     "#);
 }
 
@@ -2241,7 +2277,7 @@ fn range_datatype_fqn_reference_bounds_debug() {
         #dbg_declare(ptr %0, !18, !DIExpression(), !19)
       %TEN = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
       %r = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
-      ret void, !dbg !19
+      ret void, !dbg !20
     }
 
     define void @prog__ctor(ptr %0) {
@@ -2286,12 +2322,13 @@ fn range_datatype_fqn_reference_bounds_debug() {
     !11 = !{i32 2, !"Debug Info Version", i32 3}
     !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
     !13 = !{!0}
-    !14 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 6, type: !15, scopeLine: 13, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !17)
+    !14 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 6, type: !15, scopeLine: 13, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !17, keyInstructions: true)
     !15 = !DISubroutineType(flags: DIFlagPublic, types: !16)
     !16 = !{null, !3}
     !17 = !{}
     !18 = !DILocalVariable(name: "prog", scope: !14, file: !2, line: 13, type: !3)
     !19 = !DILocation(line: 13, column: 8, scope: !14)
+    !20 = !DILocation(line: 13, column: 8, scope: !14, atomGroup: 1, atomRank: 1)
     "#);
 }
 
@@ -2333,7 +2370,7 @@ fn range_datatype_debug_alias_reused() {
       %u = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
       %v = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 2
       %w = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 3
-      ret void, !dbg !21
+      ret void, !dbg !22
     }
 
     define void @prog__ctor(ptr %0) {
@@ -2393,11 +2430,12 @@ fn range_datatype_debug_alias_reused() {
     !13 = !{i32 2, !"Debug Info Version", i32 3}
     !14 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !15, splitDebugInlining: false)
     !15 = !{!0}
-    !16 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 6, type: !17, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19)
+    !16 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 6, type: !17, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19, keyInstructions: true)
     !17 = !DISubroutineType(flags: DIFlagPublic, types: !18)
     !18 = !{null, !3}
     !19 = !{}
     !20 = !DILocalVariable(name: "prog", scope: !16, file: !2, line: 15, type: !3)
     !21 = !DILocation(line: 15, column: 8, scope: !16)
+    !22 = !DILocation(line: 15, column: 8, scope: !16, atomGroup: 1, atomRank: 1)
     "#);
 }

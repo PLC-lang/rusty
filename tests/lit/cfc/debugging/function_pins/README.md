@@ -2,7 +2,8 @@ What: the debug info a diagram produces. The declaration's members keep text
 lines in `function_pins.cfc`; the block call, the two sinks and the captured
 block output live in the diagram's own debug file `function_pins.cfc.function_pins`,
 scoped by a lexical block, with their execution order plus one as the line
-(DWARF reserves line 0).
+(DWARF reserves line 0). The last side effect of each element is its key
+instruction, the only place a debugger stops.
 
 Illustrated:
 ```
