@@ -175,7 +175,7 @@ fn lword_to_bool() {
     let _res: bool = compile_and_run(sources, includes, &mut maintype);
     assert!(maintype.true_);
     assert!(!maintype.false_);
-    assert!(!maintype.max_overflow);
+    assert!(maintype.max_overflow);
     assert!(maintype.min_overflow);
 }
 
@@ -298,7 +298,7 @@ fn dword_to_bool() {
     let _res: bool = compile_and_run(sources, includes, &mut maintype);
     assert!(maintype.true_);
     assert!(!maintype.false_);
-    assert!(!maintype.max_overflow);
+    assert!(maintype.max_overflow);
     assert!(maintype.min_overflow);
 }
 
@@ -411,7 +411,7 @@ fn word_to_bool() {
     let _res: bool = compile_and_run(sources, includes, &mut maintype);
     assert!(maintype.true_);
     assert!(!maintype.false_);
-    assert!(!maintype.max_overflow);
+    assert!(maintype.max_overflow);
     assert!(maintype.min_overflow);
 }
 
@@ -514,7 +514,7 @@ fn byte_to_bool() {
     let _res: bool = compile_and_run(sources, includes, &mut maintype);
     assert!(maintype.true_);
     assert!(!maintype.false_);
-    assert!(!maintype.max_overflow);
+    assert!(maintype.max_overflow);
     assert!(maintype.min_overflow);
 }
 

@@ -2142,3 +2142,268 @@ fn ltod_to_wstring_conversion() {
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
+
+// x to BOOL: FALSE for exactly zero, TRUE for everything else
+#[derive(Default)]
+struct IntToBoolType {
+    one: bool,
+    zero: bool,
+    extreme: bool,
+    two: bool,
+}
+
+#[derive(Default)]
+struct RealToBoolType {
+    half: bool,
+    zero: bool,
+    negative_zero: bool,
+    tiny: bool,
+}
+
+#[test]
+fn sint_to_bool() {
+    let src = r"
+    TYPE myType : STRUCT
+        one : BOOL; zero : BOOL; extreme : BOOL; two : BOOL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.one := SINT_TO_BOOL(SINT#1);
+        ret.zero := SINT_TO_BOOL(SINT#0);
+        ret.extreme := SINT_TO_BOOL(SINT#-128);
+        ret.two := SINT_TO_BOOL(SINT#2);
+    END_PROGRAM
+        ";
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let mut maintype = IntToBoolType::default();
+    let _res: bool = compile_and_run(vec![src.into()], includes, &mut maintype);
+    assert!(maintype.one);
+    assert!(!maintype.zero);
+    assert!(maintype.extreme);
+    assert!(maintype.two);
+}
+
+#[test]
+fn usint_to_bool() {
+    let src = r"
+    TYPE myType : STRUCT
+        one : BOOL; zero : BOOL; extreme : BOOL; two : BOOL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.one := USINT_TO_BOOL(USINT#1);
+        ret.zero := USINT_TO_BOOL(USINT#0);
+        ret.extreme := USINT_TO_BOOL(USINT#255);
+        ret.two := USINT_TO_BOOL(USINT#2);
+    END_PROGRAM
+        ";
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let mut maintype = IntToBoolType::default();
+    let _res: bool = compile_and_run(vec![src.into()], includes, &mut maintype);
+    assert!(maintype.one);
+    assert!(!maintype.zero);
+    assert!(maintype.extreme);
+    assert!(maintype.two);
+}
+
+#[test]
+fn int_to_bool() {
+    let src = r"
+    TYPE myType : STRUCT
+        one : BOOL; zero : BOOL; extreme : BOOL; two : BOOL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.one := INT_TO_BOOL(INT#1);
+        ret.zero := INT_TO_BOOL(INT#0);
+        ret.extreme := INT_TO_BOOL(INT#-1);
+        ret.two := INT_TO_BOOL(INT#256);
+    END_PROGRAM
+        ";
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let mut maintype = IntToBoolType::default();
+    let _res: bool = compile_and_run(vec![src.into()], includes, &mut maintype);
+    assert!(maintype.one);
+    assert!(!maintype.zero);
+    assert!(maintype.extreme);
+    assert!(maintype.two);
+}
+
+#[test]
+fn uint_to_bool() {
+    let src = r"
+    TYPE myType : STRUCT
+        one : BOOL; zero : BOOL; extreme : BOOL; two : BOOL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.one := UINT_TO_BOOL(UINT#1);
+        ret.zero := UINT_TO_BOOL(UINT#0);
+        ret.extreme := UINT_TO_BOOL(UINT#65535);
+        ret.two := UINT_TO_BOOL(UINT#256);
+    END_PROGRAM
+        ";
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let mut maintype = IntToBoolType::default();
+    let _res: bool = compile_and_run(vec![src.into()], includes, &mut maintype);
+    assert!(maintype.one);
+    assert!(!maintype.zero);
+    assert!(maintype.extreme);
+    assert!(maintype.two);
+}
+
+#[test]
+fn udint_to_bool() {
+    let src = r"
+    TYPE myType : STRUCT
+        one : BOOL; zero : BOOL; extreme : BOOL; two : BOOL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.one := UDINT_TO_BOOL(UDINT#1);
+        ret.zero := UDINT_TO_BOOL(UDINT#0);
+        ret.extreme := UDINT_TO_BOOL(UDINT#4294967295);
+        ret.two := UDINT_TO_BOOL(UDINT#65536);
+    END_PROGRAM
+        ";
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let mut maintype = IntToBoolType::default();
+    let _res: bool = compile_and_run(vec![src.into()], includes, &mut maintype);
+    assert!(maintype.one);
+    assert!(!maintype.zero);
+    assert!(maintype.extreme);
+    assert!(maintype.two);
+}
+
+#[test]
+fn ulint_to_bool() {
+    let src = r"
+    TYPE myType : STRUCT
+        one : BOOL; zero : BOOL; extreme : BOOL; two : BOOL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.one := ULINT_TO_BOOL(ULINT#1);
+        ret.zero := ULINT_TO_BOOL(ULINT#0);
+        ret.extreme := ULINT_TO_BOOL(ULINT#9223372036854775807);
+        ret.two := ULINT_TO_BOOL(ULINT#4294967296);
+    END_PROGRAM
+        ";
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let mut maintype = IntToBoolType::default();
+    let _res: bool = compile_and_run(vec![src.into()], includes, &mut maintype);
+    assert!(maintype.one);
+    assert!(!maintype.zero);
+    assert!(maintype.extreme);
+    assert!(maintype.two);
+}
+
+#[test]
+fn real_to_bool() {
+    let src = r"
+    TYPE myType : STRUCT
+        half : BOOL; zero : BOOL; negative_zero : BOOL; tiny : BOOL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.half := REAL_TO_BOOL(REAL#0.5);
+        ret.zero := REAL_TO_BOOL(REAL#0.0);
+        ret.negative_zero := REAL_TO_BOOL(-REAL#0.0);
+        ret.tiny := REAL_TO_BOOL(REAL#1.0E-30);
+    END_PROGRAM
+        ";
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let mut maintype = RealToBoolType::default();
+    let _res: bool = compile_and_run(vec![src.into()], includes, &mut maintype);
+    assert!(maintype.half);
+    assert!(!maintype.zero);
+    assert!(!maintype.negative_zero);
+    assert!(maintype.tiny);
+}
+
+#[test]
+fn lreal_to_bool() {
+    let src = r"
+    TYPE myType : STRUCT
+        half : BOOL; zero : BOOL; negative_zero : BOOL; tiny : BOOL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.half := LREAL_TO_BOOL(LREAL#0.5);
+        ret.zero := LREAL_TO_BOOL(LREAL#0.0);
+        ret.negative_zero := LREAL_TO_BOOL(-LREAL#0.0);
+        ret.tiny := LREAL_TO_BOOL(LREAL#1.0E-300);
+    END_PROGRAM
+        ";
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let mut maintype = RealToBoolType::default();
+    let _res: bool = compile_and_run(vec![src.into()], includes, &mut maintype);
+    assert!(maintype.half);
+    assert!(!maintype.zero);
+    assert!(!maintype.negative_zero);
+    assert!(maintype.tiny);
+}

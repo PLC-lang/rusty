@@ -77,7 +77,6 @@ fn lword_to_lreal_conversion() {
         ret : myType;
     END_VAR
         ret.zero := LWORD_TO_LREAL(LWORD#0);
-        // bit transfer for conversion 4611686018427387904 should be the first bit from the exponent resulting in decimal 2
         ret.max := LWORD_TO_LREAL(LWORD#4611686018427387904);
     END_PROGRAM
         ";
@@ -86,7 +85,7 @@ fn lword_to_lreal_conversion() {
     let mut maintype = F64Type::default();
     let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
-    assert_eq!(maintype.max, 2f64);
+    assert_eq!(maintype.max, 4611686018427387904f64);
 }
 
 #[test]
@@ -285,7 +284,6 @@ fn dword_to_real_conversion() {
         ret : myType;
     END_VAR
         ret.zero := DWORD_TO_REAL(DWORD#0);
-        // bit transfer for conversion 1073741824 should be the first bit from the exponent resulting in decimal 2
         ret.max := DWORD_TO_REAL(DWORD#1073741824);
     END_PROGRAM
         ";
@@ -294,7 +292,7 @@ fn dword_to_real_conversion() {
     let mut maintype = F32Type::default();
     let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
-    assert_eq!(maintype.max, 2f32);
+    assert_eq!(maintype.max, 1073741824f32);
 }
 
 #[test]
@@ -1049,8 +1047,6 @@ fn lreal_to_lword_conversion() {
         ret : myType;
     END_VAR
         ret.zero := LREAL_TO_LWORD(LREAL#0);
-        // counter test LWORD_TO_LREAL
-        // 2 in LREAL is the first bit from exponent 2^62 = 4611686018427387904
         ret.max := LREAL_TO_LWORD(LREAL#2);
     END_PROGRAM
         ";
@@ -1059,7 +1055,7 @@ fn lreal_to_lword_conversion() {
     let mut maintype = U64Type::default();
     let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
-    assert_eq!(maintype.max, 4611686018427387904u64);
+    assert_eq!(maintype.max, 2u64);
 }
 
 #[test]
@@ -1074,8 +1070,6 @@ fn real_to_dword_conversion() {
         ret : myType;
     END_VAR
         ret.zero := REAL_TO_DWORD(REAL#0);
-        // counter test DWORD_TO_REAL
-        // 2 in REAL is the first bit from exponent 30 = 1073741824
         ret.max := REAL_TO_DWORD(REAL#2);
     END_PROGRAM
         ";
@@ -1084,7 +1078,7 @@ fn real_to_dword_conversion() {
     let mut maintype = U32Type::default();
     let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
-    assert_eq!(maintype.max, 1073741824u32);
+    assert_eq!(maintype.max, 2u32);
 }
 
 #[test]
@@ -1821,4 +1815,412 @@ fn usint_to_byte_conversion() {
     let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
+}
+
+#[derive(Default)]
+struct WrappingType<T> {
+    tie: T,
+    negative: T,
+    large: T,
+    overflow: T,
+}
+
+#[test]
+fn bool_to_real_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        zero : REAL; max : REAL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_REAL(FALSE);
+        ret.max := BOOL_TO_REAL(TRUE);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = F32Type::default();
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.zero, 0.0f32);
+    assert_eq!(maintype.max, 1.0f32);
+}
+
+#[test]
+fn bool_to_lreal_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        zero : LREAL; max : LREAL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BOOL_TO_LREAL(FALSE);
+        ret.max := BOOL_TO_LREAL(TRUE);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = F64Type::default();
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.zero, 0.0f64);
+    assert_eq!(maintype.max, 1.0f64);
+}
+
+#[test]
+fn byte_to_real_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        zero : REAL; max : REAL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_REAL(BYTE#0);
+        ret.max := BYTE_TO_REAL(BYTE#255);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = F32Type::default();
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.zero, 0.0f32);
+    assert_eq!(maintype.max, 255.0f32);
+}
+
+#[test]
+fn byte_to_lreal_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        zero : LREAL; max : LREAL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := BYTE_TO_LREAL(BYTE#0);
+        ret.max := BYTE_TO_LREAL(BYTE#255);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = F64Type::default();
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.zero, 0.0f64);
+    assert_eq!(maintype.max, 255.0f64);
+}
+
+#[test]
+fn word_to_real_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        zero : REAL; max : REAL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_REAL(WORD#0);
+        ret.max := WORD_TO_REAL(WORD#65535);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = F32Type::default();
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.zero, 0.0f32);
+    assert_eq!(maintype.max, 65535.0f32);
+}
+
+#[test]
+fn word_to_lreal_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        zero : LREAL; max : LREAL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := WORD_TO_LREAL(WORD#0);
+        ret.max := WORD_TO_LREAL(WORD#65535);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = F64Type::default();
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.zero, 0.0f64);
+    assert_eq!(maintype.max, 65535.0f64);
+}
+
+#[test]
+fn dword_to_lreal_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        zero : LREAL; max : LREAL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := DWORD_TO_LREAL(DWORD#16777217);
+        ret.max := DWORD_TO_LREAL(DWORD#4294967295);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = F64Type::default();
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.zero, 16777217.0f64);
+    assert_eq!(maintype.max, 4294967295.0f64);
+}
+
+#[test]
+fn lword_to_real_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        zero : REAL; max : REAL;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.zero := LWORD_TO_REAL(LWORD#16777216);
+        ret.max := LWORD_TO_REAL(LWORD#16777217);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = F32Type::default();
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.zero, 16777216.0f32);
+    assert_eq!(maintype.max, 16777216.0f32);
+}
+
+#[test]
+fn real_to_byte_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        tie : BYTE; negative : BYTE; large : BYTE; overflow : BYTE;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.tie := REAL_TO_BYTE(REAL#2.5);
+        ret.negative := REAL_TO_BYTE(REAL#-1.0);
+        ret.large := REAL_TO_BYTE(REAL#300.0);
+        ret.overflow := REAL_TO_BYTE(REAL#1.0E20);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = WrappingType::<u8>::default();
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.tie, 3u8);
+    assert_eq!(maintype.negative, 255u8);
+    assert_eq!(maintype.large, 44u8);
+    assert_eq!(maintype.overflow, 0u8);
+}
+
+#[test]
+fn real_to_word_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        tie : WORD; negative : WORD; large : WORD; overflow : WORD;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.tie := REAL_TO_WORD(REAL#2.5);
+        ret.negative := REAL_TO_WORD(REAL#-1.0);
+        ret.large := REAL_TO_WORD(REAL#65536.0);
+        ret.overflow := REAL_TO_WORD(REAL#1.0E20);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = WrappingType::<u16>::default();
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.tie, 3u16);
+    assert_eq!(maintype.negative, 65535u16);
+    assert_eq!(maintype.large, 0u16);
+    assert_eq!(maintype.overflow, 0u16);
+}
+
+#[test]
+fn real_to_lword_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        tie : LWORD; negative : LWORD; large : LWORD; overflow : LWORD;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.tie := REAL_TO_LWORD(REAL#2.5);
+        ret.negative := REAL_TO_LWORD(REAL#-1.0);
+        ret.large := REAL_TO_LWORD(REAL#1.0E19);
+        ret.overflow := REAL_TO_LWORD(REAL#1.0E20);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = WrappingType::<u64>::default();
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.tie, 3u64);
+    assert_eq!(maintype.negative, 18446744073709551615u64);
+    assert_eq!(maintype.large, 9999999980506447872u64);
+    assert_eq!(maintype.overflow, 9223372036854775808u64);
+}
+
+#[test]
+fn lreal_to_byte_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        tie : BYTE; negative : BYTE; large : BYTE; overflow : BYTE;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.tie := LREAL_TO_BYTE(LREAL#2.5);
+        ret.negative := LREAL_TO_BYTE(LREAL#-1.0);
+        ret.large := LREAL_TO_BYTE(LREAL#300.0);
+        ret.overflow := LREAL_TO_BYTE(LREAL#1.0E20);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = WrappingType::<u8>::default();
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.tie, 3u8);
+    assert_eq!(maintype.negative, 255u8);
+    assert_eq!(maintype.large, 44u8);
+    assert_eq!(maintype.overflow, 0u8);
+}
+
+#[test]
+fn lreal_to_word_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        tie : WORD; negative : WORD; large : WORD; overflow : WORD;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.tie := LREAL_TO_WORD(LREAL#2.5);
+        ret.negative := LREAL_TO_WORD(LREAL#-1.0);
+        ret.large := LREAL_TO_WORD(LREAL#65536.0);
+        ret.overflow := LREAL_TO_WORD(LREAL#1.0E20);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = WrappingType::<u16>::default();
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.tie, 3u16);
+    assert_eq!(maintype.negative, 65535u16);
+    assert_eq!(maintype.large, 0u16);
+    assert_eq!(maintype.overflow, 0u16);
+}
+
+#[test]
+fn lreal_to_dword_conversion() {
+    let src = r"
+    TYPE myType : STRUCT
+        tie : DWORD; negative : DWORD; large : DWORD; overflow : DWORD;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.tie := LREAL_TO_DWORD(LREAL#2.5);
+        ret.negative := LREAL_TO_DWORD(LREAL#-1.0);
+        ret.large := LREAL_TO_DWORD(LREAL#1.0E10);
+        ret.overflow := LREAL_TO_DWORD(LREAL#1.0E20);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = WrappingType::<u32>::default();
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.tie, 3u32);
+    assert_eq!(maintype.negative, 4294967295u32);
+    assert_eq!(maintype.large, 1410065408u32);
+    assert_eq!(maintype.overflow, 0u32);
+}
+
+#[test]
+fn real_to_dword_wrapping() {
+    let src = r"
+    TYPE myType : STRUCT
+        tie : DWORD; negative : DWORD; large : DWORD; overflow : DWORD;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.tie := REAL_TO_DWORD(REAL#2.5);
+        ret.negative := REAL_TO_DWORD(REAL#-1.0);
+        ret.large := REAL_TO_DWORD(REAL#1.0E10);
+        ret.overflow := REAL_TO_DWORD(REAL#1.0E20);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = WrappingType::<u32>::default();
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.tie, 3u32);
+    assert_eq!(maintype.negative, 4294967295u32);
+    assert_eq!(maintype.large, 1410065408u32);
+    assert_eq!(maintype.overflow, 0u32);
+}
+
+#[test]
+fn lreal_to_lword_wrapping() {
+    let src = r"
+    TYPE myType : STRUCT
+        tie : LWORD; negative : LWORD; large : LWORD; overflow : LWORD;
+    END_STRUCT END_TYPE
+
+    PROGRAM main
+    VAR
+        ret : myType;
+    END_VAR
+        ret.tie := LREAL_TO_LWORD(LREAL#2.5);
+        ret.negative := LREAL_TO_LWORD(LREAL#-1.0);
+        ret.large := LREAL_TO_LWORD(LREAL#1.0E19);
+        ret.overflow := LREAL_TO_LWORD(LREAL#1.0E20);
+    END_PROGRAM
+        ";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
+    let mut maintype = WrappingType::<u64>::default();
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(maintype.tie, 3u64);
+    assert_eq!(maintype.negative, 18446744073709551615u64);
+    assert_eq!(maintype.large, 10000000000000000000u64);
+    assert_eq!(maintype.overflow, 9223372036854775808u64);
 }

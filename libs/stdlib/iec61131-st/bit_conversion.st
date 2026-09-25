@@ -43,7 +43,7 @@ FUNCTION LWORD_TO_BOOL : BOOL
 VAR_INPUT
     in : LWORD;
 END_VAR
-    LWORD_TO_BOOL := in.0;
+    LWORD_TO_BOOL := in <> 0;
 END_FUNCTION
 
 (********************
@@ -91,7 +91,7 @@ FUNCTION DWORD_TO_BOOL : BOOL
 VAR_INPUT
     in : DWORD;
 END_VAR
-    DWORD_TO_BOOL := in.0;
+    DWORD_TO_BOOL := in <> 0;
 END_FUNCTION
 
 (********************
@@ -139,7 +139,7 @@ FUNCTION WORD_TO_BOOL : BOOL
 VAR_INPUT
     in : WORD;
 END_VAR
-    WORD_TO_BOOL := in.0;
+    WORD_TO_BOOL := in <> 0;
 END_FUNCTION
 
 (********************
@@ -187,7 +187,7 @@ FUNCTION BYTE_TO_BOOL : BOOL
 VAR_INPUT
     in : BYTE;
 END_VAR
-    BYTE_TO_BOOL := in.0;
+    BYTE_TO_BOOL := in <> 0;
 END_FUNCTION
 
 (********************
