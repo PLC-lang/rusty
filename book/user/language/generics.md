@@ -41,7 +41,7 @@ END_FUNCTION
 
 When nothing in the project defines the name, the compiler writes an `{external}` declaration for it and leaves the symbol to the linker. If the linker finds nothing either, the build fails with an undefined symbol.
 
-The generic functions that the compiler knows itself work differently. A call to `ABS`, `ADD`, or `SEL` gets no version of its own, because the compiler writes the code at the place of the call.
+The generic functions that the compiler knows itself work differently. A call to `ABS`, `ADD`, or `SEL` gets no version of its own, because the compiler writes the code at the place of the call. [Built-in Functions](../reference/built-in-functions.md) lists them all.
 
 
 ## Constraints

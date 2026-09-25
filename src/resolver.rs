@@ -11,10 +11,10 @@ use std::{fmt::Debug, hash::Hash};
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
-        Interface, JumpStatement, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable,
+        self, flatten_expression_list, resolve_argument_slots, Allocation, Assignment, AstFactory, AstId,
+        AstNode, AstStatement, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration,
+        DirectAccessType, Identifier, Interface, JumpStatement, Operator, Pou, PouType, ReferenceAccess,
+        ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -342,9 +342,9 @@ impl TypeAnnotator<'_> {
     /// Annotate call arguments when the caller mixes positional and named args,
     /// e.g. `foo(1, b := 20)` or `foo(a := 10, 2, c := 30)`.
     ///
-    /// The resolution rule matches `generate_function_arguments` in the codegen: named args
-    /// claim their slots first, then positional args fill the remaining slots left-to-right.
-    /// **Both sides must stay in sync** — if this rule changes, update the codegen too.
+    /// Named args claim their slots first, then positional args fill the remaining slots
+    /// left-to-right, surplus positional args bind to the variadic parameter; see
+    /// `resolve_argument_slots`, which the codegen and the validator apply as well.
     ///
     /// Invariant: this is only called when the argument list contains AT LEAST one named and
     /// one positional arg; otherwise `annotate_arguments_named` / `annotate_arguments_positional`
@@ -356,22 +356,9 @@ impl TypeAnnotator<'_> {
     ) -> FxHashMap<String, Vec<String>> {
         let mut generics_candidates = FxHashMap::<String, Vec<String>>::default();
         let parameters = self.index.get_available_parameters(pou_name);
+        let slots = resolve_argument_slots(&arguments, parameters.iter().map(|it| it.get_name()));
 
-        // Slots that named args have already claimed — positional fill skips these.
-        let named_positions: FxHashSet<usize> = arguments
-            .iter()
-            .filter_map(|arg| {
-                let var_name = arg.get_assignment_identifier()?;
-                parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(var_name))
-            })
-            .collect();
-
-        // Remaining slots in declaration order — consumed by positional args one by one.
-        let positional_positions: Vec<usize> =
-            (0..parameters.len()).filter(|i| !named_positions.contains(i)).collect();
-        let mut positional_cursor = 0;
-
-        for argument in arguments {
+        for (argument, slot) in arguments.into_iter().zip(slots) {
             if let Some(var_name) = argument.get_assignment_identifier() {
                 // Named arg (`x := value` or `x => value`): resolve by name, honouring
                 // inheritance (`find_pou_member_and_depth` walks the supertype chain).
@@ -394,15 +381,8 @@ impl TypeAnnotator<'_> {
                         parameter.get_location_in_parent() as usize,
                     );
                 }
-            } else {
-                // Positional arg: consume the next free slot. Advance the cursor unconditionally
-                // so surplus positionals (beyond the declared params) are simply dropped — the
-                // arity check in the validator (E032) surfaces this as a user-facing error.
-                let pos = positional_positions.get(positional_cursor).copied();
-                positional_cursor += 1;
-                let Some(pos) = pos else { continue };
-
-                let Some(parameter) = parameters.get(pos) else { continue };
+            } else if let Some(parameter) = slot.and_then(|slot| parameters.get(slot)) {
+                // Positional arg: bound to the first slot no name claims.
                 let type_name = parameter.get_type_name();
 
                 if let Some((key, candidate)) = self.get_generic_candidate(type_name, argument) {
@@ -416,7 +396,24 @@ impl TypeAnnotator<'_> {
                         parameter.get_location_in_parent() as usize,
                     );
                 }
+            } else if let Some(vararg) = self.index.get_variadic_member(pou_name) {
+                // Surplus positional arg: bound to the variadic parameter, as in
+                // `annotate_arguments_positional`.
+                if let Some((key, candidate)) = self.get_generic_candidate(vararg.get_type_name(), argument) {
+                    generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string());
+                } else {
+                    let type_name = self.get_vararg_type_name(&argument, vararg);
+                    self.annotate_argument(
+                        pou_name,
+                        argument,
+                        &type_name,
+                        0,
+                        vararg.get_location_in_parent() as usize,
+                    );
+                }
             }
+            // A surplus positional arg of a non-variadic callee binds to nothing; the arity check
+            // in the validator (E032) surfaces this as a user-facing error.
         }
 
         generics_candidates

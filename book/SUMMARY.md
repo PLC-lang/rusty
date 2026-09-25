@@ -38,6 +38,7 @@
         - [Command Line](user/reference/command-line.md)
         - [Project File](user/reference/project-file.md)
         - [Standard Library](user/reference/standard-library.md)
+        - [Built-in Functions](user/reference/built-in-functions.md)
         - [Error Codes](user/reference/error-codes.md)
 - [Technical Documentation](technical/overview.md)
     - [Pipeline](technical/pipeline/README.md)

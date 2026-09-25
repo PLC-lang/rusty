@@ -2,6 +2,8 @@
 
 `iec61131std` provides the functions and function blocks of IEC 61131-3. This page says what is in it and which file declares each family. For the signature of a single function, read that file.
 
+A few names appear here and in [Built-in Functions](built-in-functions.md): `ABS`, `ADD`, and `MUL` are built into the compiler, and the library declares them again to widen what a call accepts.
+
 
 ## Using it
 

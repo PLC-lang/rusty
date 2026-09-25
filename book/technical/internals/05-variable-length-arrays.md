@@ -105,7 +105,7 @@ At the call site the argument is an ordinary fixed array, and it receives the ar
                  ^^^^^            { kind: Variable, qualified_name: "main.small",       resulting_type: "__main_small",  hint: Argument { resulting_type: "__auto_pointer_to___sum_values", position: 0 } }
 ```
 
-`LOWER_BOUND` and `UPPER_BOUND` are built-in generic functions, declared as `FUNCTION LOWER_BOUND<U: __ANY_VLA, T: ANY_INT>: DINT`. Their annotation hints the first argument with its own VLA type when it is one, and with the reserved placeholder type `__VLA` when it is not, so that the argument fails the type check with a readable name. The second argument keeps its integer type, and the call is a `DINT` value.
+`LOWER_BOUND` and `UPPER_BOUND` are built-in generic functions, declared as `FUNCTION LOWER_BOUND<U: __ANY_VLA, T: ANY_INT>: DINT`. Their annotation, validation, and codegen each order the arguments by the parameter names `arr` and `dim` first, so a named call such as `LOWER_BOUND(dim := 1, arr := values)` reaches them in declaration order. The argument for `arr` is hinted with its own VLA type when it is one, and with the reserved placeholder type `__VLA` when it is not, so that the argument fails the type check with a readable name. The argument for `dim` keeps its integer type, and the call is a `DINT` value.
 
 
 ## Lowering
