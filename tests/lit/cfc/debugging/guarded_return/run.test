@@ -13,16 +13,22 @@ CHECK-DAG: ![[#FILE_DECLARATION:]] = !DIFile(filename: "guarded_return.cfc", dir
 CHECK-DAG: ![[#FILE_DIAGRAM:]] = !DIFile(filename: "guarded_return.cfc.guarded_return", directory:
 
 The function lives in the declaration; a lexical block inside it is bound to the diagram file.
-CHECK-DAG: ![[#SCOPE_FUNCTION:]] = distinct !DISubprogram(name: "guarded_return", {{.*}}, file: ![[#FILE_DECLARATION]], line: 1,
+The function places its stops by Key Instructions.
+CHECK-DAG: ![[#SCOPE_FUNCTION:]] = distinct !DISubprogram(name: "guarded_return", {{.*}}, file: ![[#FILE_DECLARATION]], line: 1, {{.*}}keyInstructions: true)
 CHECK-DAG: ![[#SCOPE_DIAGRAM:]] = distinct !DILexicalBlock(scope: ![[#SCOPE_FUNCTION]], file: ![[#FILE_DIAGRAM]])
 
 Diagram statements are scoped to that block, line = execution order + 1 (0 is reserved).
 CHECK-DAG: ![[#LOCATION_RETURN:]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]])
-CHECK-DAG: ![[#LOCATION_RESULT:]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]])
 
 Guard load, branch and return are one element (order 0); the store is the sink (order 1).
 CHECK-DAG: define void @guarded_return(ptr %0) !dbg ![[#SCOPE_FUNCTION]]
 CHECK-DAG: %load_guard = load i8, ptr %guard, {{.*}}!dbg ![[#LOCATION_RETURN]]
-CHECK-DAG: br i1 {{.*}}, !dbg ![[#LOCATION_RETURN]]
-CHECK-DAG: ret void, !dbg ![[#LOCATION_RETURN]]
-CHECK-DAG: store i32 42, ptr %result, {{.*}}!dbg ![[#LOCATION_RESULT]]
+CHECK-DAG: br i1 {{.*}}, !dbg ![[#KEY_GUARD:]]
+CHECK-DAG: ret void, !dbg ![[#KEY_RETURN:]]
+CHECK-DAG: store i32 42, ptr %result, {{.*}}!dbg ![[#KEY_RESULT:]]
+
+The last side effect of an element in each block is a key instruction, the only place a debugger
+stops: the return element has two, its guard branch and the return behind it.
+CHECK-DAG: ![[#KEY_GUARD]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
+CHECK-DAG: ![[#KEY_RETURN]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
+CHECK-DAG: ![[#KEY_RESULT]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
