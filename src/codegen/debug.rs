@@ -1443,7 +1443,6 @@ fn statement_keys(block: BasicBlock) -> Vec<InstructionValue> {
     let mut key: Option<InstructionValue> = None;
 
     for instruction in block.get_instructions().filter(|it| !is_lifetime_marker(*it)) {
-        dbg!(&instruction);
         let Some(location) = instruction.get_debug_location() else { continue };
 
         // A new line starts a new statement.
