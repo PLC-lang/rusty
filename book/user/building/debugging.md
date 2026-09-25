@@ -19,6 +19,11 @@ plc -g main.st -o app --linker=cc
 The four exclude each other, so give one of them. `-g` already covers the global variables, and the version it writes is DWARF 5. Use a fixed version when the debugger or the runtime on the target accepts one version only.
 
 
+## Stepping
+
+A debugger stops once per statement, in source order, also when the compiler reorders the machine code of neighbouring statements. For this, the compiler marks the one place per statement where the debugger may stop (`is_stmt` in the line table). A debugger that ignores these marks, such as `gdb` before version 10, can still jump between lines.
+
+
 ## Why paths matter
 
 The debug information stores the path of every source file. For local work this is fine. For a shipped binary and for remote debugging you usually want two properties:

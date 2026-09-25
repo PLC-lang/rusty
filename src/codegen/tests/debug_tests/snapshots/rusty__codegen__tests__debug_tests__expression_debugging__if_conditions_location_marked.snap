@@ -24,18 +24,18 @@ else:                                             ; preds = %entry
 continue:                                         ; preds = %continue2, %condition_body
   store i32 1, ptr %myFunc, align [filtered], !dbg !15
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !16
-  ret i32 %myFunc_ret, !dbg !16
+  ret i32 %myFunc_ret, !dbg !17
 
 condition_body3:                                  ; preds = %else
-  store i32 1, ptr %myFunc, align [filtered], !dbg !17
-  br label %continue2, !dbg !13
+  store i32 1, ptr %myFunc, align [filtered], !dbg !18
+  br label %continue2, !dbg !19
 
 else1:                                            ; preds = %else
-  store i32 1, ptr %myFunc, align [filtered], !dbg !18
-  br label %continue2, !dbg !13
+  store i32 1, ptr %myFunc, align [filtered], !dbg !20
+  br label %continue2, !dbg !21
 
 continue2:                                        ; preds = %else1, %condition_body3
-  br label %continue, !dbg !13
+  br label %continue, !dbg !22
 }
 
 !llvm.module.flags = !{!0, !1}
@@ -45,18 +45,22 @@ continue2:                                        ; preds = %else1, %condition_b
 !1 = !{i32 2, !"Debug Info Version", i32 3}
 !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
 !3 = !DIFile(filename: "<internal>", directory: "")
-!4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+!4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
 !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
 !6 = !{null}
 !7 = !{}
 !8 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !9, align [filtered])
 !9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !10 = !DILocation(line: 2, column: 17, scope: !4)
-!11 = !DILocation(line: 3, column: 15, scope: !4)
-!12 = !DILocation(line: 4, column: 16, scope: !4)
-!13 = !DILocation(line: 9, column: 12, scope: !4)
-!14 = !DILocation(line: 5, column: 18, scope: !4)
-!15 = !DILocation(line: 10, column: 12, scope: !4)
+!11 = !DILocation(line: 3, column: 15, scope: !4, atomGroup: 1, atomRank: 1)
+!12 = !DILocation(line: 4, column: 16, scope: !4, atomGroup: 2, atomRank: 1)
+!13 = !DILocation(line: 9, column: 12, scope: !4, atomGroup: 3, atomRank: 1)
+!14 = !DILocation(line: 5, column: 18, scope: !4, atomGroup: 4, atomRank: 1)
+!15 = !DILocation(line: 10, column: 12, scope: !4, atomGroup: 5, atomRank: 1)
 !16 = !DILocation(line: 11, column: 8, scope: !4)
-!17 = !DILocation(line: 6, column: 16, scope: !4)
-!18 = !DILocation(line: 8, column: 16, scope: !4)
+!17 = !DILocation(line: 11, column: 8, scope: !4, atomGroup: 6, atomRank: 1)
+!18 = !DILocation(line: 6, column: 16, scope: !4, atomGroup: 7, atomRank: 1)
+!19 = !DILocation(line: 9, column: 12, scope: !4, atomGroup: 8, atomRank: 1)
+!20 = !DILocation(line: 8, column: 16, scope: !4, atomGroup: 9, atomRank: 1)
+!21 = !DILocation(line: 9, column: 12, scope: !4, atomGroup: 10, atomRank: 1)
+!22 = !DILocation(line: 9, column: 12, scope: !4, atomGroup: 11, atomRank: 1)
