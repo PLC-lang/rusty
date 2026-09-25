@@ -1266,3 +1266,43 @@ fn div_time_by_f64(in1: i64, in2: f64) -> i64 {
         res
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::counting_allocator::allocations_during;
+
+    #[test]
+    fn arithmetic_does_not_allocate() {
+        let allocations = allocations_during(|| {
+            std::hint::black_box((
+                ADD_TIME(1_000, 500),
+                ADD_TOD_TIME(86_399_990, 20),
+                ADD_DT_TIME(1_705_321_800, 1_500),
+                SUB_TIME(10_000, 3_000),
+                SUB_DATE_DATE(1_705_276_800, 1_704_844_800),
+                SUB_TOD_TIME(10, 20),
+                SUB_TOD_TOD(37_800_000, 37_200_000),
+                SUB_DT_TIME(1_705_321_805, 3_000),
+                SUB_DT_DT(1_705_321_810, 1_705_321_800),
+                ADD_LTIME(i64::MAX, 1),
+                ADD_LTOD_LTIME(86_399_999_999_999, 20_000_000_000),
+                SUB_LTOD_LTIME(0, 1),
+                SUB_LDT_LDT(i64::MAX, i64::MIN),
+                MUL_TIME__LINT(u32::MAX, 2),
+                MUL_TIME__ULINT(1, u64::MAX),
+                DIV_TIME__DINT(10_000, 4),
+                DIV_TIME__ULINT(u32::MAX, u64::MAX),
+                MUL_TIME__REAL(10_000, 1.5),
+                MUL_TIME__REAL(u32::MAX, f32::MAX),
+                MUL_TIME__LREAL(1_000, f64::NAN),
+                DIV_TIME__REAL(1, 0.0),
+                DIV_TIME__LREAL(u32::MAX, f64::MIN_POSITIVE),
+                MUL_LTIME__LREAL(i64::MIN, 2.0),
+                DIV_LTIME__REAL(-1, 0.0),
+            ));
+        });
+
+        assert_eq!(allocations, 0);
+    }
+}
