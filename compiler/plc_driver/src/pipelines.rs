@@ -1018,7 +1018,7 @@ impl AnnotatedProject {
             let obj: Object = module?
                 .unwrap()
                 .persist(
-                    Some(&compile_directory),
+                    Some(&target.append_to(&compile_directory)),
                     &compile_options.output,
                     compile_options.output_format,
                     compile_options.relocation_preference,
@@ -1089,10 +1089,7 @@ impl AnnotatedProject {
 /// Ensures the directores for the various targets have been created
 fn ensure_compile_dirs(targets: &[Target], compile_directory: &Path) -> Result<(), Diagnostic> {
     for target in targets {
-        if let Some(name) = target.try_get_name() {
-            let dir = compile_directory.join(name);
-            fs::create_dir_all(dir)?;
-        }
+        fs::create_dir_all(target.append_to(compile_directory))?;
     }
     Ok(())
 }

@@ -33,7 +33,7 @@ The result of one stage is the input of the next:
 
 Before the pipeline runs, the driver loads the source files into memory and selects the diagnostic renderer (`--error-format`) and the linker (`--linker`). Later stages use the loaded copies. Parsing is sequential. Indexing, annotation, and codegen process units in parallel, with the thread count set by `--threads`.
 
-By default, codegen creates one LLVM module and object file per unit. The output path mirrors the source path under the build location. With `--single-module` or `-c`, the units are merged into one module, one after the other. The output format then decides the final step: merge IR or bitcode, copy a single object, or run the linker.
+By default, codegen creates one LLVM module and object file per unit. The object files land flat in the build location, in a subdirectory per `--target`, each named after the file name of its unit plus a digest of the unit's path relative to the project: two units with the same file name keep separate objects, and the paths stay short enough for the limits of the Windows file system. With `--single-module` or `-c`, the units are merged into one module, one after the other. The output format then decides the final step: merge IR or bitcode, copy a single object, or run the linker.
 
 
 ## Participants

@@ -32,6 +32,7 @@ use plc_index::GlobalContext;
 use project::project::Project;
 use source_code::SourceContainer;
 
+pub mod artifacts;
 pub mod cli;
 pub mod pipelines;
 
@@ -217,6 +218,7 @@ pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
         })),
         got_layout: Default::default(),
         compile_dirs: Default::default(),
+        root: Default::default(),
         libraries: pipeline.project.get_libraries().to_vec(),
     };
     pipeline.register_participant(Box::new(codegen_participant));

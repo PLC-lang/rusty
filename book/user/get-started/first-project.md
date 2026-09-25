@@ -104,7 +104,7 @@ cycle 2: left=8 right=10 full=1
 
 The output shows what a function block is for. Each instance kept its own level between the two cycles, and the right tank reached its capacity in the second one.
 
-The build wrote everything into `build/`: the artifact `tank.out`, and one object file per source file under the path of the source, so `src/tank.st` became `build/src/tank.st.o`. The artifact carries the name of the project, because the file sets no `output`.
+The build wrote everything into `build/`: the artifact `tank.out`, and one object file per source file, named after the file and a digest of its path within the project, so `src/tank.st` became `build/tank.st-56b9fb2f5ee2adb6.o`. The digest keeps two files with the same name apart, and the flat layout keeps the paths short. The artifact carries the name of the project, because the file sets no `output`.
 
 
 ## What's next
