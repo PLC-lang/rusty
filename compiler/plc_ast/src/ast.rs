@@ -1743,6 +1743,12 @@ pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
     pre_processor::pre_process(unit, id_provider)
 }
 impl Operator {
+    /// returns true, if this operator is one of the four arithmetic operators
+    /// (+, -, *, /)
+    pub fn is_arithmetic_operator(&self) -> bool {
+        matches!(self, Operator::Plus | Operator::Minus | Operator::Multiplication | Operator::Division)
+    }
+
     /// returns true, if this operator is a comparison operator,
     /// resulting in a bool value
     /// (=, <>, >, <, >=, <=)

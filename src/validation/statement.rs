@@ -26,8 +26,8 @@ use crate::{
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, AutoDerefType, StatementAnnotation},
     typesystem::{
-        self, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
-        DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
+        self, get_date_time_arithmetic, get_equals_function_name_for, get_literal_actual_signed_type_name,
+        DataType, DataTypeInformation, DateTimeArithmetic, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
     },
 };
 
@@ -979,8 +979,30 @@ fn validate_binary_expression<T: AnnotationMap>(
     right: &AstNode,
     context: &ValidationContext<T>,
 ) {
-    let left_type = context.annotations.get_type_or_void(left, context.index).get_type_information();
-    let right_type = context.annotations.get_type_or_void(right, context.index).get_type_information();
+    let left_data_type = context.annotations.get_type_or_void(left, context.index);
+    let right_data_type = context.annotations.get_type_or_void(right, context.index);
+    let left_type = left_data_type.get_type_information();
+    let right_type = right_data_type.get_type_information();
+
+    // arithmetic with a date or time operand follows its own table
+    let involves_date_or_time =
+        context.index.get_intrinsic_type_information(left_type).is_date_or_time_type()
+            || context.index.get_intrinsic_type_information(right_type).is_date_or_time_type();
+    if operator.is_arithmetic_operator()
+        && involves_date_or_time
+        && !left_type.is_void()
+        && !right_type.is_void()
+    {
+        validate_date_time_arithmetic(
+            validator,
+            context.index,
+            left_data_type,
+            operator,
+            right_data_type,
+            &statement.get_location(),
+        );
+        return;
+    }
 
     // if the type is a subrange, check if the intrinsic type is numerical
     let is_numerical = context.index.get_intrinsic_type_information(left_type).is_numerical();
@@ -1001,6 +1023,67 @@ fn validate_binary_expression<T: AnnotationMap>(
             );
         }
     }
+}
+
+/// Validates `left <operator> right` for a date or time operand and returns the type of the
+/// result. A combination the standard does not define, or a short type combined with a long one,
+/// warns with E156 because the next version rejects it; a defined combination that the standard
+/// library carries out needs its function (E073); a duration combined with a bare integer is
+/// accepted with E157.
+pub fn validate_date_time_arithmetic<'i>(
+    validator: &mut Validator,
+    index: &'i Index,
+    left: &DataType,
+    operator: &Operator,
+    right: &DataType,
+    location: &SourceLocation,
+) -> Option<&'i DataType> {
+    let left_name = validator.get_type_name_or_slice(left);
+    let right_name = validator.get_type_name_or_slice(right);
+    let Some(arithmetic) = get_date_time_arithmetic(index, left, operator, right) else {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Operator `{operator}` is not defined for `{left_name}` and `{right_name}`, the next version rejects it"
+            ))
+            .with_error_code("E156")
+            .with_location(location),
+        );
+        return None;
+    };
+
+    if arithmetic.mixed_families() {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Operator `{operator}` mixes `{left_name}` and `{right_name}`, the next version, where the short types are 32-bit, rejects it"
+            ))
+            .with_error_code("E156")
+            .with_location(location),
+        );
+    }
+
+    match &arithmetic {
+        DateTimeArithmetic::Call { function, .. } if index.find_pou_implementation(function).is_none() => {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Missing function `{function}` for `{left_name} {operator} {right_name}`"
+                ))
+                .with_error_code("E073")
+                .with_location(location),
+            );
+        }
+        DateTimeArithmetic::Plain { result_type, bare_number: true, .. } => {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "The integer operand of `{operator}` has no unit and is read as nanoseconds of `{result_type}`"
+                ))
+                .with_error_code("E157")
+                .with_location(location),
+            );
+        }
+        _ => {}
+    }
+
+    index.find_effective_type_by_name(arithmetic.result_type())
 }
 
 fn validate_unary_expression<T: AnnotationMap>(
