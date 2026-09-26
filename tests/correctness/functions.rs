@@ -1303,6 +1303,60 @@ fn mixed_implicit_explicit_with_default_values() {
 }
 
 #[test]
+fn formal_call_omitting_inputs_uses_their_initial_values() {
+    // A formal call may omit any input: `b` takes its initial value, `a` and
+    // `c` (no initial value) take the default value of their type.
+    #[repr(C)]
+    struct MainType {
+        r1: i32,
+        r2: i32,
+    }
+    let src = r#"
+        FUNCTION myfunc : DINT
+        VAR_INPUT
+            a : DINT;
+            b : DINT := 2;
+            c : DINT;
+        END_VAR
+            myfunc := a * 100 + b * 10 + c;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR r1, r2 : DINT; END_VAR
+            r1 := myfunc(c := 3);           // a=0, b=2(initial), c=3
+            r2 := myfunc(c := 3, a := 1);   // a=1, b=2(initial), c=3
+        END_PROGRAM
+    "#;
+    let mut maintype = MainType { r1: 0, r2: 0 };
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(maintype.r1, 2 * 10 + 3);
+    assert_eq!(maintype.r2, 100 + 2 * 10 + 3);
+}
+
+#[test]
+fn formal_method_call_omitting_inputs_uses_their_initial_values() {
+    let src = r#"
+        FUNCTION_BLOCK fb
+            METHOD calc : DINT
+            VAR_INPUT
+                a : DINT;
+                b : DINT := 2;
+                c : DINT;
+            END_VAR
+                calc := a * 100 + b * 10 + c;
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR inst : fb; END_VAR
+            main := inst.calc(c := 3);
+        END_FUNCTION
+    "#;
+    let res: i32 = compile_and_run(src.to_string(), &mut MainType::default());
+    assert_eq!(res, 2 * 10 + 3);
+}
+
+#[test]
 fn mixed_implicit_explicit_function_block_instance() {
     // %MyFB = { ptr (vtable, 8 bytes), i32 (a), i32 (b), i32 (out) } — 20 bytes, padded to 24
     // %main = { %MyFB (24 bytes), i32 (result) }

@@ -70,20 +70,22 @@ END_FUNCTION
 
 ## Calling
 
-A call supplies **every** parameter, including the outputs. Either by position, in the order of the declaration, or by name:
+A call gives the parameters their values by position, in the order of the declaration, or by name:
 
 ```iecst
 r := Measure(raw, 'sensor', total, valid);
 r := Measure(raw := raw, label := 'sensor', total := total, valid => valid);
 ```
 
-`:=` gives a value to an input or to an in-out, `=>` takes a value out of an output. A missing argument is an error, in both forms:
+`:=` gives a value to an input or to an in-out, `=>` takes a value out of an output. A call by position supplies **every** parameter, including the outputs. A missing argument is an error:
 
 ```
 error[E032]: this POU takes 4 arguments but 2 arguments were supplied
 ```
 
-An input with a default value (`factor: DINT := 2;`) is the exception: you can leave it out and get the default. This applies to the inputs at the end of the list only. When a parameter without a default comes after it, you must supply both. A call of a [function block](function-blocks.md) instance may leave out any parameter, because the instance keeps what the previous call gave it.
+An input with a default value (`factor: DINT := 2;`) is the exception: you can leave it out at the end of the list and get the default.
+
+A call by name can leave out any input or output. An input that the call leaves out gets its default value, or the default value of its type (`0`, `FALSE`) when its declaration has none. An in-out is always necessary, because the function works on the variable of the caller. A call of a [function block](function-blocks.md) instance may leave out any parameter, because the instance keeps what the previous call gave it.
 
 
 ## Arrays of any size
