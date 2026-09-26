@@ -35,7 +35,7 @@ END_VAR
 value := inlet.Fill(amount := 3);
 ```
 
-`value` is now `3`, the new level. A method is called like a [function](functions.md#calling): the arguments come by position, in the order of the declaration, or by name. Give every parameter a value, because a parameter that the call leaves out takes the default value of its declaration, and a parameter without a default holds no defined value. The body of the block and its methods share the data of the instance, but a local variable of a method does not survive the call.
+`value` is now `3`, the new level. A method is called like a [function](functions.md#calling): the arguments come by position, in the order of the declaration, or by name. A parameter that the call leaves out takes the default value of its declaration, or the default value of its type when its declaration has none. The body of the block and its methods share the data of the instance, but a local variable of a method does not survive the call.
 
 Inside a method, `THIS^` names the instance itself. You need it when a parameter and a member have the same name, because the parameter hides the member:
 

@@ -30,8 +30,6 @@ entry:
   %var1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %var2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %var3 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
-  %1 = alloca i32, align [filtered]
-  %2 = load i32, ptr %1, align [filtered]
-  %call = call i32 @foo(i32 %2, ptr %var2, ptr %var3)
+  %call = call i32 @foo(i32 0, ptr %var2, ptr %var3)
   ret void
 }

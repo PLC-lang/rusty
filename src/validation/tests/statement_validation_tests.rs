@@ -983,8 +983,9 @@ fn mixed_implicit_explicit_non_trailing_default_is_rejected() {
     // so only TRAILING defaults count as optional. A default sandwiched between
     // non-default params (here: b) doesn't make the call arity-flexible.
     //
-    // Both forms below are rejected — mixed and all-named — so the mixing
-    // feature in this branch is not the cause.
+    // The mixed form below is still rejected; the all-named form is accepted,
+    // since a formal call may omit inputs (see
+    // `formal_call_may_omit_inputs_but_not_in_outs`).
     let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION myfunc : INT
@@ -998,7 +999,7 @@ fn mixed_implicit_explicit_non_trailing_default_is_rejected() {
         PROGRAM main
         VAR x : INT; END_VAR
             x := myfunc(a := 0, 2);        // mixed
-            x := myfunc(a := 0, c := 2);   // all named, still rejected
+            x := myfunc(a := 0, c := 2);   // all named, accepted: omitted inputs keep their initial value
         END_PROGRAM
         ",
     );
@@ -1008,12 +1009,39 @@ fn mixed_implicit_explicit_non_trailing_default_is_rejected() {
        │
     12 │             x := myfunc(a := 0, 2);        // mixed
        │                  ^^^^^^ this POU takes 3 arguments but 2 arguments were supplied
+    ");
+}
 
-    error[E032]: this POU takes 3 arguments but 2 arguments were supplied
-       ┌─ <internal>:13:18
+#[test]
+fn formal_call_may_omit_inputs_but_not_in_outs() {
+    // IEC 61131-3 lets a formal call omit inputs and
+    // outputs; in-out parameters must still be supplied.
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT := 1;
+            c : INT;
+        END_VAR
+        VAR_IN_OUT
+            d : INT;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR x, y : INT; END_VAR
+            x := myfunc(b := 2, d := y);
+            x := myfunc(b := 2);
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @"
+    error[E032]: this POU takes 4 arguments but 1 argument was supplied
+       ┌─ <internal>:16:18
        │
-    13 │             x := myfunc(a := 0, c := 2);   // all named, still rejected
-       │                  ^^^^^^ this POU takes 3 arguments but 2 arguments were supplied
+    16 │             x := myfunc(b := 2);
+       │                  ^^^^^^ this POU takes 4 arguments but 1 argument was supplied
     ");
 }
 

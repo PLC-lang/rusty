@@ -1646,9 +1646,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 {
                     self.generate_expression(initial_value)
                 } else {
-                    let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
-                    let pointee = parameter_type;
-                    Ok(self.llvm.load_pointer(pointee, &ptr_value, "")?)
+                    // an omitted input without initial value takes the default value
+                    // of its type (zero), not the content of an uninitialized slot
+                    Ok(parameter_type.const_zero())
                 }
             }
             _ => {

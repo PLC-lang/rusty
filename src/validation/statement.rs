@@ -2714,8 +2714,28 @@ fn validate_argument_count<T: AnnotationMap>(
                 .take_while(|p| p.initial_value.is_some())
                 .count();
             let min_required_parameters = parameters.len() - optional_parameters;
-            arguments.len() < min_required_parameters
-                || (!has_variadic_parameter && arguments.len() > parameters.len())
+            // a formal call (every argument named) may omit inputs and outputs,
+            // which keep their initial values (IEC 61131-3, formal calls); in-out
+            // parameters must still be supplied
+            let formal = !arguments.is_empty()
+                && arguments.iter().all(|a| {
+                    matches!(
+                        a.get_stmt(),
+                        AstStatement::Assignment(_)
+                            | AstStatement::OutputAssignment(_)
+                            | AstStatement::RefAssignment(_)
+                    )
+                });
+            let too_few = if formal {
+                parameters.iter().filter(|p| p.is_inout()).any(|p| {
+                    !arguments
+                        .iter()
+                        .any(|a| formal_name(a).is_some_and(|n| n.eq_ignore_ascii_case(p.get_name())))
+                })
+            } else {
+                arguments.len() < min_required_parameters
+            };
+            too_few || (!has_variadic_parameter && arguments.len() > parameters.len())
         }
 
         PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } => {
@@ -2731,6 +2751,16 @@ fn validate_argument_count<T: AnnotationMap>(
             arguments.len(),
             operator_location,
         ));
+    }
+}
+
+/// Name of the parameter of a formal argument (`name := value`, `name => target`).
+fn formal_name(argument: &AstNode) -> Option<&str> {
+    match argument.get_stmt() {
+        AstStatement::Assignment(a) | AstStatement::OutputAssignment(a) | AstStatement::RefAssignment(a) => {
+            a.left.get_flat_reference_name()
+        }
+        _ => None,
     }
 }
 
