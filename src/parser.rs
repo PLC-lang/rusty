@@ -315,8 +315,18 @@ fn parse_pou(
             PouType::Method { .. } => "a method name",
             PouType::Init | PouType::ProjectInit => "a POU name",
         };
-        let (name, name_location) = expect_name_slot(lexer, pou_slot_label)
-            .unwrap_or_else(|| ("".to_string(), SourceLocation::undefined()));
+        let (name, name_location) = if linkage == LinkageType::BuiltIn
+            && matches!(&kind, PouType::Function)
+            && matches!(lexer.token, OperatorModulo | OperatorAnd | OperatorOr | OperatorXor)
+        {
+            let name = lexer.slice().to_string();
+            let location = lexer.location();
+            lexer.advance();
+            (name, location)
+        } else {
+            expect_name_slot(lexer, pou_slot_label)
+                .unwrap_or_else(|| ("".to_string(), SourceLocation::undefined()))
+        };
 
         let generics = parse_generics(lexer);
 

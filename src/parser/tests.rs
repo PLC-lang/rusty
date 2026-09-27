@@ -14,6 +14,7 @@ mod function_parser_tests;
 mod initializer_parser_tests;
 mod interface_parser_tests;
 mod misc_parser_tests;
+mod operator_function_form_tests;
 mod parse_errors;
 mod parse_generics;
 mod program_parser_tests;

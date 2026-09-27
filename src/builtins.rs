@@ -551,7 +551,140 @@ lazy_static! {
                 }
             }
         ),
-        // TODO: MOD and AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean ) - FIXME: these are all keywords and therefore conflicting
+        (
+            "MOD",
+            BuiltIn {
+                decl: "FUNCTION MOD<T1: ANY_NUM, T2: ANY_NUM> : T1
+                VAR_INPUT
+                    IN1 : T1;
+                    IN2 : T2;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(
+                        annotator,
+                        statement,
+                        operator,
+                        params,
+                        ctx,
+                        Operator::Modulo,
+                        Some(&["IN1", "IN2"]),
+                    )
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Modulo)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("MOD is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "AND",
+            BuiltIn {
+                decl: "FUNCTION AND<T: ANY_BIT> : T
+                VAR_INPUT
+                    args : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(
+                        annotator,
+                        statement,
+                        operator,
+                        params,
+                        ctx,
+                        Operator::And,
+                        None,
+                    )
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::And)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("AND is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "OR",
+            BuiltIn {
+                decl: "FUNCTION OR<T: ANY_BIT> : T
+                VAR_INPUT
+                    args : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(
+                        annotator,
+                        statement,
+                        operator,
+                        params,
+                        ctx,
+                        Operator::Or,
+                        None,
+                    )
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Or)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("OR is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "XOR",
+            BuiltIn {
+                decl: "FUNCTION XOR<T: ANY_BIT> : T
+                VAR_INPUT
+                    args : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(
+                        annotator,
+                        statement,
+                        operator,
+                        params,
+                        ctx,
+                        Operator::Xor,
+                        None,
+                    )
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Xor)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("XOR is not generated as a function call");
+                }
+            }
+        ),
+        // TODO: NOT ANY_BIT (also supports boolean). NOT is a keyword and therefore conflicting.
         (
             "GT",
             BuiltIn {
@@ -814,7 +947,7 @@ fn validate_builtin_symbol_parameter_count(
     let count = flatten_expression_list(params).len();
     match operation {
         // non-extensible operators
-        Operator::Minus | Operator::Division | Operator::NotEqual => {
+        Operator::Minus | Operator::Division | Operator::Modulo | Operator::NotEqual => {
             if count != 2 {
                 validator.push_diagnostic(Diagnostic::invalid_argument_count(2, count, operator));
             }
@@ -943,13 +1076,19 @@ fn annotate_arithmetic_function(
             annotator.annotation_map.annotate_type_hint(extracted, StatementAnnotation::value(param_type));
         });
 
+    let required_nature = if matches!(operation, Operator::And | Operator::Or | Operator::Xor) {
+        TypeNature::Bit
+    } else {
+        TypeNature::Num
+    };
+
     if params_extracted.iter().any(|param| {
         !annotator
             .annotation_map
             .get_type_or_void(param, annotator.index)
-            .has_nature(TypeNature::Num, annotator.index)
+            .has_nature(required_nature, annotator.index)
     }) {
-        // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
+        // We are trying to call this function with an unsupported type, so redirect back to the resolver.
         annotator.annotate_arguments(operator, parameters, &ctx);
         return;
     }
@@ -970,7 +1109,15 @@ fn annotate_arithmetic_function(
         bigger.get_name().to_owned()
     };
 
-    let bigger_type = find_biggest_param_type_name(annotator);
+    let result_type = if operation == Operator::Modulo {
+        annotator
+            .annotation_map
+            .get_type_or_void(params_extracted.first().expect("must have this parameter"), annotator.index)
+            .get_name()
+            .to_owned()
+    } else {
+        find_biggest_param_type_name(annotator)
+    };
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
@@ -980,9 +1127,9 @@ fn annotate_arithmetic_function(
     });
 
     annotator.visit_statement(&ctx, &new_statement);
-    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &new_statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), &new_statement);
     annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
-    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), statement);
 }
 
 fn annotate_variable_length_array_bound_function(

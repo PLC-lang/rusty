@@ -413,7 +413,14 @@ fn parse_null_literal(lexer: &mut ParseSession) -> Option<AstNode> {
 }
 
 pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
-    let reference = parse_qualified_reference(lexer)?;
+    let reference = if matches!(lexer.token, OperatorModulo | OperatorAnd | OperatorOr | OperatorXor)
+        && lexer.peek() == KeywordParensOpen
+    {
+        let identifier = parse_identifier(lexer);
+        AstFactory::create_member_reference(identifier, None, lexer.next_id())
+    } else {
+        parse_qualified_reference(lexer)?
+    };
     let reference_loc = reference.get_location();
 
     // We're not dealing with a call statement here
