@@ -64,7 +64,7 @@ END_FUNCTION
 
 A keyword cannot be a name, and because names are not case-sensitive, `type` is the keyword `TYPE`. The names of the builtin functions are taken as well: a function of your own called `Add` collides with the builtin `ADD` and is rejected.
 
-Names that start with two underscores belong to the compiler. It generates names such as `__vtable_Pump` and `__PI_0_0`. It does not reject a name of yours with the same prefix, so a program that declares `__level` is accepted and only collides later, with a message that points somewhere else. Do not start a name with two underscores.
+Names that start with two underscores belong to the compiler. It generates names such as `__vtable_Pump` and `__PI_0_0`. Defining a type with this prefix in a `TYPE` block produces warning `E158` at the declaration, because the name may collide with a generated type. Referring to an existing internal type, such as `__VOID`, does not produce this warning. Other declarations, such as variables and functions, do not receive this warning either, but can still collide with compiler-generated names. Avoid the prefix when declaring names of your own.
 
 
 ## Where a name is visible

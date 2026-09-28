@@ -10,6 +10,8 @@ TYPE Point:
 END_TYPE
 ```
 
+Type names declared in a `TYPE` block that begin with `__` produce a warning. The compiler uses that prefix for generated types, so a new type with the same prefix may collide with one. Referring to an existing internal type does not produce this warning.
+
 
 ## Arrays
 

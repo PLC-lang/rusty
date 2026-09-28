@@ -241,6 +241,8 @@ Graphical sources in XML (CFC, Continuous Function Chart) are not handled here. 
 
 The parser does not stop at the first error. It collects the diagnostics in the session and continues, so that one run reports as many problems as possible.
 
+It also checks the type names declared in `TYPE` blocks: a name starting with `__` produces warning `E158` at that name. Built-in declarations are exempt. This check runs before pre-processing adds generated types to the same list of user types, so those generated names do not warn. Type references do not receive this warning.
+
 Recovery works on regions. When a function starts a construct with a known end, such as a variable block that ends with `END_VAR` or a parenthesized expression that ends with `)`, it pushes the closing tokens on the session's stack. If parsing inside the region fails, the parser skips tokens until it finds one that closes the current region or an outer one, reports what it skipped, and continues after the region. A missing operand becomes an empty statement node, so the shape of the tree stays valid. For
 
 ```iecst

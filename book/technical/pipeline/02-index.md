@@ -72,7 +72,7 @@ Pre-processing also gives enum variants explicit values. `TYPE Speed: (Slow, Nor
 
 For a hardware binding such as `sensor AT %IX0.0: BOOL`, it creates the global `__PI_0_0`. The variable `sensor` becomes an alias pointer to that global, with the generated type `__global_sensor`. The [Hardware Map](../outputs/01-hardware-map.md) chapter follows this connection.
 
-Generated helper names often use a double underscore prefix. This is a naming convention, not an enforced restriction. The `pre_index` participants run before pre-processing, so some generated declarations already exist at this point.
+Generated helper names often use a double underscore prefix. The parser warns when a user defines a type name with this prefix in a `TYPE` block, but generated declarations do not receive that warning. The `pre_index` participants run before pre-processing, so some generated declarations already exist at this point.
 
 
 ## The index

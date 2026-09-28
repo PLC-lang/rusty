@@ -1032,9 +1032,18 @@ fn parse_type(lexer: &mut ParseSession, linkage: LinkageType) -> Vec<UserTypeDec
             };
             lexer.try_consume_or_report(KeywordColon);
 
-            let result = parse_full_data_type_definition(lexer, Some(name));
+            let result = parse_full_data_type_definition(lexer, Some(name.clone()));
 
             if let Some((DataTypeDeclaration::Definition { data_type, .. }, initializer)) = result {
+                if name.starts_with("__") && linkage != LinkageType::BuiltIn {
+                    lexer.accept_diagnostic(
+                        Diagnostic::new(format!(
+                            "Type name '{name}' starts with '__', a prefix for compiler-generated types"
+                        ))
+                        .with_error_code("E158")
+                        .with_location(&name_location),
+                    );
+                }
                 declarations.push(UserTypeDeclaration {
                     data_type: *data_type,
                     initializer,

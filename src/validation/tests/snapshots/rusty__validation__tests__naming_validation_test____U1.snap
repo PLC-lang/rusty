@@ -2,6 +2,12 @@
 source: src/validation/tests/naming_validation_test.rs
 expression: "& result"
 ---
+warning[E158]: Type name '__U1' starts with '__', a prefix for compiler-generated types
+  ┌─ <internal>:1:6
+  │
+1 │ TYPE __U1 : STRUCT x : DINT; END_STRUCT END_TYPE
+  │      ^^^^ Type name '__U1' starts with '__', a prefix for compiler-generated types
+
 error[E004]: __U1 can not be used as a name because it is a built-in datatype
   ┌─ <internal>:1:6
   │
