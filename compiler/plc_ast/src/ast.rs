@@ -1725,6 +1725,36 @@ pub fn get_enum_element_name(enum_element: &AstNode) -> String {
     }
 }
 
+/// Resolves, for every argument of a call, the slot of the declared parameter it binds to.
+///
+/// A named argument (`name := value` or `name => value`) claims the slot its name declares. A positional
+/// argument fills the first slot no name claims, in the order the arguments are written; thus
+/// `foo(c := 1, 2, 3)` binds `2` to `a` and `3` to `b`. `None` marks an argument bound to no declared
+/// parameter: a positional argument left over once every slot is filled (it belongs to the variadic
+/// parameter, if the callee declares one) or a named argument whose name declares no parameter.
+///
+/// This is the single rule for binding call arguments; the resolver, the generic lowering, the validator
+/// and the codegen all derive the parameter of an argument from it.
+pub fn resolve_argument_slots<'a>(
+    arguments: &[&AstNode],
+    parameter_names: impl IntoIterator<Item = &'a str>,
+) -> Vec<Option<usize>> {
+    let parameter_names: Vec<&str> = parameter_names.into_iter().collect();
+    let slot_of = |name: &str| parameter_names.iter().position(|it| it.eq_ignore_ascii_case(name));
+
+    let claimed_slots: Vec<usize> =
+        arguments.iter().filter_map(|it| it.get_assignment_identifier()).filter_map(slot_of).collect();
+    let mut free_slots = (0..parameter_names.len()).filter(|slot| !claimed_slots.contains(slot));
+
+    arguments
+        .iter()
+        .map(|argument| match argument.get_assignment_identifier() {
+            Some(name) => slot_of(name),
+            None => free_slots.next(),
+        })
+        .collect()
+}
+
 /// flattens expression-lists and MultipliedStatements into a vec of statements.
 /// It can also handle nested structures like 2(3(4,5))
 pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {

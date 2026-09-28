@@ -5,8 +5,9 @@ use plc_ast::ast::Assignment;
 use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstNode, AstStatement, BinaryExpression, CallStatement, DirectAccess,
-        DirectAccessType, JumpStatement, Operator, ReferenceAccess, TypeNature, UnaryExpression,
+        flatten_expression_list, resolve_argument_slots, AstNode, AstStatement, BinaryExpression,
+        CallStatement, DirectAccess, DirectAccessType, JumpStatement, Operator, ReferenceAccess, TypeNature,
+        UnaryExpression,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -2238,15 +2239,17 @@ fn validate_call<T: AnnotationMap>(
     let mut arguments_are_implicit = true;
     let mut variable_location_in_parent = vec![];
 
-    // validate parameters
-    for (i, argument) in arguments.iter().enumerate() {
-        match get_implicit_call_parameter(argument, &parameters, i) {
-            Ok((parameter_idx, right, is_implicit)) => {
+    // validate parameters; each argument is checked against the parameter it binds to, see
+    // `resolve_argument_slots`
+    let slots = resolve_argument_slots(&arguments, parameters.iter().map(|it| it.get_name()));
+    for (i, (argument, slot)) in arguments.iter().zip(slots).enumerate() {
+        match get_implicit_call_parameter(argument, slot) {
+            Ok((slot, right, is_implicit)) => {
                 if i == 0 {
                     arguments_are_implicit = is_implicit;
                 }
 
-                if let Some(left) = parameters.get(parameter_idx) {
+                if let Some(left) = slot.and_then(|slot| parameters.get(slot)) {
                     validate_call_by_ref(validator, context, left, argument);
                     // Builtins declare their parameters with generic placeholder types and
                     // bring their own validation.

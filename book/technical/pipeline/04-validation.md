@@ -99,7 +99,9 @@ POU checks depend on the kind. A program cannot return a value, and a class cann
 
 Variable checks cover declared types, initializer compatibility, constant array bounds, and names that shadow base members. They also check restrictions on constant function block instances. The statement visitor checks initializers because they are expressions.
 
-An implementation is walked statement by statement. The visitor is recursive and mirrors the tree: it visits the children of a node first, then applies the checks for the node itself. A reference is checked for resolution, visibility, and pointer access. An assignment compares the type of the value with the hint the resolver attached to it. A call is matched against the parameters of the callee from the index: argument count, direction of `:=` and `=>`, by-reference arguments, and required `VAR_IN_OUT` arguments. Control statements check their conditions and walk their bodies. For
+An implementation is walked statement by statement. The visitor is recursive and mirrors the tree: it visits the children of a node first, then applies the checks for the node itself. A reference is checked for resolution, visibility, and pointer access. An assignment compares the type of the value with the hint the resolver attached to it. A call is matched against the parameters of the callee from the index: argument count, direction of `:=` and `=>`, by-reference arguments, and required `VAR_IN_OUT` arguments.
+
+That match takes the parameter at the place of the argument in the call. The [resolver](03-resolver.md#calls) and codegen take the first parameter that no name claims, which is a different parameter as soon as a call mixes named and positional arguments. The by-reference checks therefore read a mixed call of a POU with a by-reference parameter against the wrong parameter: they report an argument that the resolver binds to an input, and they pass a value that the resolver binds to a `VAR_IN_OUT`. Control statements check their conditions and walk their bodies. For
 
 ```iecst
 FUNCTION_BLOCK Buffer

@@ -18,7 +18,7 @@ p := REF(value);
 q := ADR(value);
 ```
 
-`REF` and `ADR` both give the address of a variable. `REF` keeps the type of that variable, which is what the check above reads. `ADR` gives the address alone, so an assignment of it is never reported.
+`REF` and `ADR` both give the address of a variable, and both are [built in](../reference/built-in-functions.md). `REF` keeps the type of that variable, which is what the check above reads. `ADR` gives the address alone, so an assignment of it is never reported.
 
 `^` reads and writes through the pointer:
 
