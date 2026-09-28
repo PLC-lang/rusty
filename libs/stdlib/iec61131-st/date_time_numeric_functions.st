@@ -374,3 +374,147 @@ VAR_INPUT
     IN2: T;
 END_VAR
 END_FUNCTION
+
+(* The multiplication of TIME and LINT the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION MUL_TIME__LINT: TIME
+VAR_INPUT
+    IN1: TIME;
+    IN2: LINT;
+END_VAR
+END_FUNCTION
+
+(* The multiplication of TIME and ULINT the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION MUL_TIME__ULINT: TIME
+VAR_INPUT
+    IN1: TIME;
+    IN2: ULINT;
+END_VAR
+END_FUNCTION
+
+(* The multiplication of TIME and REAL the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION MUL_TIME__REAL: TIME
+VAR_INPUT
+    IN1: TIME;
+    IN2: REAL;
+END_VAR
+END_FUNCTION
+
+(* The multiplication of TIME and LREAL the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION MUL_TIME__LREAL: TIME
+VAR_INPUT
+    IN1: TIME;
+    IN2: LREAL;
+END_VAR
+END_FUNCTION
+
+(* The division of TIME and LINT the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION DIV_TIME__LINT: TIME
+VAR_INPUT
+    IN1: TIME;
+    IN2: LINT;
+END_VAR
+END_FUNCTION
+
+(* The division of TIME and ULINT the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION DIV_TIME__ULINT: TIME
+VAR_INPUT
+    IN1: TIME;
+    IN2: ULINT;
+END_VAR
+END_FUNCTION
+
+(* The division of TIME and REAL the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION DIV_TIME__REAL: TIME
+VAR_INPUT
+    IN1: TIME;
+    IN2: REAL;
+END_VAR
+END_FUNCTION
+
+(* The division of TIME and LREAL the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION DIV_TIME__LREAL: TIME
+VAR_INPUT
+    IN1: TIME;
+    IN2: LREAL;
+END_VAR
+END_FUNCTION
+
+(* The multiplication of LTIME and LINT the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION MUL_LTIME__LINT: LTIME
+VAR_INPUT
+    IN1: LTIME;
+    IN2: LINT;
+END_VAR
+END_FUNCTION
+
+(* The multiplication of LTIME and ULINT the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION MUL_LTIME__ULINT: LTIME
+VAR_INPUT
+    IN1: LTIME;
+    IN2: ULINT;
+END_VAR
+END_FUNCTION
+
+(* The multiplication of LTIME and REAL the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION MUL_LTIME__REAL: LTIME
+VAR_INPUT
+    IN1: LTIME;
+    IN2: REAL;
+END_VAR
+END_FUNCTION
+
+(* The multiplication of LTIME and LREAL the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION MUL_LTIME__LREAL: LTIME
+VAR_INPUT
+    IN1: LTIME;
+    IN2: LREAL;
+END_VAR
+END_FUNCTION
+
+(* The division of LTIME and LINT the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION DIV_LTIME__LINT: LTIME
+VAR_INPUT
+    IN1: LTIME;
+    IN2: LINT;
+END_VAR
+END_FUNCTION
+
+(* The division of LTIME and ULINT the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION DIV_LTIME__ULINT: LTIME
+VAR_INPUT
+    IN1: LTIME;
+    IN2: ULINT;
+END_VAR
+END_FUNCTION
+
+(* The division of LTIME and REAL the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION DIV_LTIME__REAL: LTIME
+VAR_INPUT
+    IN1: LTIME;
+    IN2: REAL;
+END_VAR
+END_FUNCTION
+
+(* The division of LTIME and LREAL the compiler calls for the operator; a narrower number is widened *)
+{external}
+FUNCTION DIV_LTIME__LREAL: LTIME
+VAR_INPUT
+    IN1: LTIME;
+    IN2: LREAL;
+END_VAR
+END_FUNCTION

@@ -1124,7 +1124,7 @@ pub fn validate_date_time_arithmetic<'i>(
         return None;
     };
 
-    match arithmetic {
+    match &arithmetic {
         DateTimeArithmetic::Call { function, .. } if index.find_pou_implementation(function).is_none() => {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
@@ -1135,7 +1135,7 @@ pub fn validate_date_time_arithmetic<'i>(
             );
         }
         DateTimeArithmetic::Plain { result_type, bare_number: true } => {
-            let unit = if result_type == LONG_TIME_TYPE { "nanoseconds" } else { "milliseconds" };
+            let unit = if *result_type == LONG_TIME_TYPE { "nanoseconds" } else { "milliseconds" };
             validator.push_diagnostic(
                 Diagnostic::new(format!(
                     "The integer operand of `{operator}` has no unit and is read as {unit} of `{result_type}`"
@@ -2670,10 +2670,21 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
         lhs_is_signed_int: bool,
         is_builtin_call: bool,
     ) -> FxHashMap<&'b DataType, Vec<SourceLocation>> {
+        // arithmetic on date and time operands is carried out by a function, its result is the value
+        let carried_out_by_function = |left: &AstNode, operator: &Operator, right: &AstNode| {
+            let left_type = context.annotations.get_type_or_void(left, context.index);
+            let right_type = context.annotations.get_type_or_void(right, context.index);
+            operator.is_arithmetic_operator()
+                && matches!(
+                    get_date_time_arithmetic(context.index, left_type, operator, right_type),
+                    Some(DateTimeArithmetic::Call { .. })
+                )
+        };
+
         let mut map: FxHashMap<&DataType, Vec<SourceLocation>> = FxHashMap::default();
         match expression.get_stmt_peeled() {
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
-                if !operator.is_comparison_operator() =>
+                if !operator.is_comparison_operator() && !carried_out_by_function(left, operator, right) =>
             {
                 get_expression_types_and_locations(left, context, lhs_is_signed_int, false)
                     .into_iter()

@@ -1630,11 +1630,11 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
 }
 
 /// How a binary arithmetic expression with a date or time operand is carried out
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DateTimeArithmetic {
     /// A call to the named standard library function; `swap_operands` moves a leading number
     /// behind the duration for the commutative `ANY_NUM * TIME`
-    Call { function: &'static str, result_type: &'static str, swap_operands: bool },
+    Call { function: String, result_type: &'static str, swap_operands: bool },
     /// The plain integer operation on the stored values; `bare_number` marks a duration combined
     /// with an integer that carries no unit
     Plain { result_type: &'static str, bare_number: bool },
@@ -1688,34 +1688,46 @@ pub fn get_date_time_arithmetic(
         .iter()
         .find(|(l, op, r, ..)| *l == left_name && op == operator && *r == right_name);
     if let Some((.., function, result_type)) = defined {
-        return Some(DateTimeArithmetic::Call { function, result_type, swap_operands: false });
+        return Some(DateTimeArithmetic::Call {
+            function: function.to_string(),
+            result_type,
+            swap_operands: false,
+        });
     }
 
-    // a duration scaled by a number
+    // a duration scaled by a number calls the implementation for the number's kind, the number is
+    // widened to that parameter
     let scaling = |duration: &str| match duration {
         TIME_TYPE => Some(("MUL_TIME", "DIV_TIME", TIME_TYPE)),
         LONG_TIME_TYPE => Some(("MUL_LTIME", "DIV_LTIME", LONG_TIME_TYPE)),
         _ => None,
     };
+    let factor_kind =
+        |number: &DataType| match index.get_intrinsic_type_information(number.get_type_information()) {
+            DataTypeInformation::Float { size: 32, .. } => "REAL",
+            DataTypeInformation::Float { .. } => "LREAL",
+            DataTypeInformation::Integer { signed: false, .. } => "ULINT",
+            _ => "LINT",
+        };
     let left_is_number = left.has_nature(TypeNature::Num, index);
     let right_is_number = right.has_nature(TypeNature::Num, index);
-    let call = |function, result_type, swap_operands| {
-        Some(DateTimeArithmetic::Call { function, result_type, swap_operands })
+    let call = |function: &str, kind: &str, result_type, swap_operands| {
+        Some(DateTimeArithmetic::Call { function: format!("{function}__{kind}"), result_type, swap_operands })
     };
     match operator {
         Operator::Multiplication if right_is_number => {
             if let Some((mul, _, result_type)) = scaling(left_name) {
-                return call(mul, result_type, false);
+                return call(mul, factor_kind(right), result_type, false);
             }
         }
         Operator::Multiplication if left_is_number => {
             if let Some((mul, _, result_type)) = scaling(right_name) {
-                return call(mul, result_type, true);
+                return call(mul, factor_kind(left), result_type, true);
             }
         }
         Operator::Division if right_is_number => {
             if let Some((_, div, result_type)) = scaling(left_name) {
-                return call(div, result_type, false);
+                return call(div, factor_kind(right), result_type, false);
             }
         }
         _ => {}
