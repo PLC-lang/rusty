@@ -50,6 +50,7 @@ Some parts of the language call the library by themselves, so link it also when 
 | Truncation | `real_trunc_int.st` | `REAL_TRUNC_<TYPE>` and `LREAL_TRUNC_<TYPE>`, the same for one source type each |
 | Generic conversion | `to_num.st`, `to_bit.st`, `to_string.st`, `to_date_time.st` | `TO_<TYPE>`, one generic function per target type |
 | Text output and input | `extra_functions.st` | `<TYPE>_TO_STRING` and `<TYPE>_TO_WSTRING`, the `STRING_TO_<TYPE>` family that reads a value back, `<TYPE>_TO_BOOL` for the integer and real types, `TRUNC`, and `TIME()`, which gives the time since midnight |
+| Duration conversion | `extra_functions.st` | `<TYPE>_TO_TIME` and `<TYPE>_TO_LTIME` from `BOOL`, the bit string types, the integer types, and the real types. The number is the count of milliseconds for `TIME` and of nanoseconds for `LTIME`. A real is rounded half away from zero first. The result is then reduced to the width of the target as in a two's complement cast, so an overflow wraps around. `TIME` is unsigned, so a negative number counts back from the largest duration; `LTIME` is signed and keeps a negative number as it is. A real without an integer value, that is NaN or an infinity, gives zero |
 
 The text conversion family covers eight of the twelve directions: each of the four text types converts to two of the other three. `STRING` to `WCHAR`, `WSTRING` to `CHAR`, `CHAR` to `WSTRING`, and `WCHAR` to `STRING` do not exist.
 
