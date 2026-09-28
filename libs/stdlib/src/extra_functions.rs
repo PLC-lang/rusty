@@ -75,7 +75,8 @@ pub extern "C" fn LTIME() -> i64 {
 }
 
 /// Rounds half away from zero, then reduces the result modulo 2^64 like a two's complement cast
-/// of an arbitrarily wide integer, so a negative value counts back from the largest duration.
+/// of an arbitrarily wide integer, so a negative value wraps to the top of the unsigned range and
+/// reads as negative again once the caller narrows it to a signed target.
 /// Values at or beyond 2^127 are multiples of 2^64, and NaN and the infinities have no integer
 /// value, so all of them give 0.
 fn round_wrapping(input: f64) -> u64 {
