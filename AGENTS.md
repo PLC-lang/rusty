@@ -34,6 +34,7 @@ cargo fmt --all && cargo clippy --workspace
 - Use inline snapshots: `insta::assert_snapshot!(result, @r"");`, not `insta::assert_snapshot!(result);`.
 - Avoid fully qualified paths such as `plc_source::source_location::SourceLocation` unless name clashes require them.
 - Do not reference external plans, phases, tickets, or roadmap items in source code, doc comments, or tests. Describe the current behavior directly instead.
+- New integration tests must be written in lit
 
 
 ## Documentation
