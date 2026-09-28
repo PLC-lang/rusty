@@ -22,6 +22,7 @@ Some parts of the language call the library by themselves, so link it also when 
 
 - `**` calls `EXPT`
 - a comparison of `STRING` or `WSTRING` calls the string functions
+- arithmetic on the date and time types calls the functions of `date_time_numeric_functions.st`, `ADD_DT_TIME` for `DATE_AND_TIME + TIME` and `MUL_TIME__LINT` for `TIME * n`
 
 
 ## Families
