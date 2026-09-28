@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-d2af6354.js";
+            window.path_to_searchindex_js = "../../searchindex-f5050437.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-ec926692.js"></script>
+        <script src="../../toc-61717f7e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -194,7 +194,7 @@ END_VAR
 p := REF(value);
 q := ADR(value);
 </code></pre>
-<p><code>REF</code> and <code>ADR</code> both give the address of a variable. <code>REF</code> keeps the type of that variable, which is what the check above reads. <code>ADR</code> gives the address alone, so an assignment of it is never reported.</p>
+<p><code>REF</code> and <code>ADR</code> both give the address of a variable, and both are <a href="../reference/built-in-functions.html">built in</a>. <code>REF</code> keeps the type of that variable, which is what the check above reads. <code>ADR</code> gives the address alone, so an assignment of it is never reported.</p>
 <p><code>^</code> reads and writes through the pointer:</p>
 <pre><code class="language-iecst">p^ := p^ + 1;   (* value is now 11 *)
 </code></pre>

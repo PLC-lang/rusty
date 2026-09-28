@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-d2af6354.js";
+            window.path_to_searchindex_js = "../../searchindex-f5050437.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-ec926692.js"></script>
+        <script src="../../toc-61717f7e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -223,7 +223,7 @@ END_PROGRAM
 FUNCTION main: DINT    (* error[E004]: main: Duplicate symbol. *)
 END_FUNCTION
 </code></pre>
-<p>A keyword cannot be a name, and because names are not case-sensitive, <code>type</code> is the keyword <code>TYPE</code>. The names of the builtin functions are taken as well: a function of your own called <code>Add</code> collides with the builtin <code>ADD</code> and is rejected.</p>
+<p>A keyword cannot be a name, and because names are not case-sensitive, <code>type</code> is the keyword <code>TYPE</code>. The names of the <a href="../reference/built-in-functions.html">built-in functions</a> are taken as well: a function of your own called <code>Add</code> collides with the built-in <code>ADD</code> and is rejected.</p>
 <p>Names that start with two underscores belong to the compiler. It generates names such as <code>__vtable_Pump</code> and <code>__PI_0_0</code>. It does not reject a name of yours with the same prefix, so a program that declares <code>__level</code> is accepted and only collides later, with a message that points somewhere else. Do not start a name with two underscores.</p>
 <h2 id="where-a-name-is-visible"><a class="header" href="#where-a-name-is-visible">Where a name is visible</a></h2>
 <p>A variable declared in a POU is visible in that POU and in its methods and actions. A variable declared in <code>VAR_GLOBAL</code> is visible in the whole project, without a declaration in the POU that uses it.</p>

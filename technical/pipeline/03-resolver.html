@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-d2af6354.js";
+            window.path_to_searchindex_js = "../../searchindex-f5050437.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-ec926692.js"></script>
+        <script src="../../toc-61717f7e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -303,7 +303,7 @@ PROGRAM main
 END_PROGRAM
 </code></pre>
 <p>the resolver visits the call before the assignment target. It identifies <code>scale</code> as a function returning <code>DINT</code>, then resolves the arguments. <code>i</code> refers to <code>main.i</code>. In <code>factor := sintVar</code>, the value refers to <code>main.sintVar</code>, but <code>factor</code> names the callee’s parameter <code>scale.factor</code>. That parameter has type <code>INT</code>, so <code>sintVar</code> gets the hint <code>INT</code>.</p>
-<p>Then the arguments are matched to the parameters of <code>scale</code>. A positional argument takes the parameter at its place, a named argument the parameter with its name. <code>i</code> is matched to parameter 0 and hinted <code>DINT</code>, <code>factor := sintVar</code> to parameter 1 and hinted <code>INT</code>. These hints also record the parameter position, which codegen uses to place the values. The call as a whole takes the return type of the function, a <code>DINT</code> value, and the rest is the ordinary assignment: the target <code>i</code> is <code>main.i</code>, and the call gets the hint <code>DINT</code>.</p>
+<p>Then the arguments are matched to the parameters of <code>scale</code>. A named argument takes the parameter with its name. A positional argument takes the first parameter that no name claims, counted in declaration order, which for a call without names is the parameter at its place. <code>i</code> is matched to parameter 0 and hinted <code>DINT</code>, <code>factor := sintVar</code> to parameter 1 and hinted <code>INT</code>. These hints also record the parameter position, which codegen uses to place the values. The call as a whole takes the return type of the function, a <code>DINT</code> value, and the rest is the ordinary assignment: the target <code>i</code> is <code>main.i</code>, and the call gets the hint <code>DINT</code>.</p>
 <p>Visualized:</p>
 <pre><code>    i := scale(i, factor := sintVar);
     ^                                 { kind: Variable, qualified_name: "main.i",       resulting_type: "DINT", hint: None }
@@ -315,7 +315,7 @@ END_PROGRAM
                             ^^^^^^^   { kind: Variable, qualified_name: "main.sintVar", resulting_type: "SINT", hint: "INT" }
 </code></pre>
 <p>The named argument <code>factor := sintVar</code> has no annotation of its own, only the hint that ties it to parameter 1; its two sides are annotated like any assignment.</p>
-<p>For a function block call, the operator is a variable of the block’s type. Arguments match that block’s parameters, and the call has no result type. Built-ins such as <code>REF</code>, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments.</p>
+<p>For a function block call, the operator is a variable of the block’s type. Arguments match that block’s parameters, and the call has no result type. Built-ins such as <code>REF</code>, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that a binary expression replaces then drop the argument hints again; see <a href="../internals/08-annotated-ast.html#argument">Annotated AST</a>.</p>
 <h2 id="literals-and-generated-types"><a class="header" href="#literals-and-generated-types">Literals and generated types</a></h2>
 <p>Integer literals use <code>DINT</code> if they fit 32 bits and <code>LINT</code> otherwise. Real literals use <code>REAL</code> or <code>LREAL</code> by the same size rule. Typed literals use their prefix, as in <code>INT#5</code>. String literals get types sized to their contents: <code>'hello'</code> has type <code>__STRING_5</code>, a <code>STRING[5]</code>, even when it is assigned to a <code>STRING</code> that was declared without a size.</p>
 <p>That sized type does not exist in the index, so the resolver registers it in a small index of its own. After all units are annotated, these generated types, together with the on-demand pointer types, are imported into the global index, where codegen finds them like any declared type. String literals found in bodies are also collected per unit, because codegen emits them as global constants. For</p>

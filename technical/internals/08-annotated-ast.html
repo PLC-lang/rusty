@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-d2af6354.js";
+            window.path_to_searchindex_js = "../../searchindex-f5050437.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-ec926692.js"></script>
+        <script src="../../toc-61717f7e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -411,6 +411,7 @@ END_PROGRAM
     pou: String,
 }</code></pre>
 <p><code>Argument</code> is used only as a hint. It connects each argument to a parameter. A positional argument carries the hint on its expression; a named argument carries it on the assignment node.</p>
+<p>The built-ins that a binary expression replaces are the exception. <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, <code>DIV</code>, and the comparisons build that expression from the argument values, so the declared parameter is gone by the time codegen runs. Their annotation function therefore orders the arguments, unwraps every named one to its value, and drops the hint the resolver put on it. A positional argument of such a call carries no hint at that point either, so both forms then take their hint from the binary expression, the same way an operand of a written-out <code>a - b</code> does. <code>src/builtins.rs</code> holds the rule.</p>
 <pre><code>    counter(limit := 3, step := 2, count =&gt; i);
             ^^^^^^^^^^                 hint Argument "INT",  position 1, depth 1, pou Base
                         ^^^^^^^^^      hint Argument "DINT", position 1, depth 0, pou Counter
@@ -436,7 +437,7 @@ END_PROGRAM
     /// The statement to generate instead of the annotated one
     statement: AstNode,
 }</code></pre>
-<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. The replacement has its own annotations.</p>
+<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: <code>ADD(a, b, c)</code> becomes <code>(a + b) + c</code>, and <code>GT(a, b, c)</code> becomes <code>(a &gt; b) AND (b &gt; c)</code>. The replacement has its own annotations.</p>
 <pre><code>    same := text = 'hello';
             ^^^^^^^^^^^^^^    ReplacementAst STRING_EQUAL(text, 'hello'),  hint "BOOL"
             ^^^^              Variable "STRING", main.text,  hint Argument "STRING", position 0, pou STRING_EQUAL

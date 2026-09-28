@@ -37,10 +37,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-d2af6354.js";
+            window.path_to_searchindex_js = "searchindex-f5050437.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-ec926692.js"></script>
+        <script src="toc-61717f7e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -444,7 +444,7 @@ END_PROGRAM
 FUNCTION main: DINT    (* error[E004]: main: Duplicate symbol. *)
 END_FUNCTION
 </code></pre>
-<p>A keyword cannot be a name, and because names are not case-sensitive, <code>type</code> is the keyword <code>TYPE</code>. The names of the builtin functions are taken as well: a function of your own called <code>Add</code> collides with the builtin <code>ADD</code> and is rejected.</p>
+<p>A keyword cannot be a name, and because names are not case-sensitive, <code>type</code> is the keyword <code>TYPE</code>. The names of the <a href="#built-in-functions">built-in functions</a> are taken as well: a function of your own called <code>Add</code> collides with the built-in <code>ADD</code> and is rejected.</p>
 <p>Names that start with two underscores belong to the compiler. It generates names such as <code>__vtable_Pump</code> and <code>__PI_0_0</code>. It does not reject a name of yours with the same prefix, so a program that declares <code>__level</code> is accepted and only collides later, with a message that points somewhere else. Do not start a name with two underscores.</p>
 <h2 id="where-a-name-is-visible"><a class="header" href="#where-a-name-is-visible">Where a name is visible</a></h2>
 <p>A variable declared in a POU is visible in that POU and in its methods and actions. A variable declared in <code>VAR_GLOBAL</code> is visible in the whole project, without a declaration in the POU that uses it.</p>
@@ -1112,10 +1112,17 @@ END_FUNCTION
 <pre><code class="language-iecst">r := Measure(raw, 'sensor', total, valid);
 r := Measure(raw := raw, label := 'sensor', total := total, valid =&gt; valid);
 </code></pre>
-<p><code>:=</code> gives a value to an input or to an in-out, <code>=&gt;</code> takes a value out of an output. A missing argument is an error, in both forms:</p>
+<p><code>:=</code> gives a value to an input or to an in-out, <code>=&gt;</code> takes a value out of an output.</p>
+<p>A call may also mix the two forms. Each named argument claims the parameter its name says, and the positional arguments fill the parameters left over, in the order you write them. <code>plc explain E132</code> describes this, and <code>plc explain E131</code> describes the one mix the compiler rejects: a positional argument whose parameter a <em>later</em> named argument also names.</p>
+<p>Give every argument a name, or give none, when the POU has a parameter that takes a variable and not a value: a <code>VAR_IN_OUT</code>, a <code>VAR_OUTPUT</code> of a function, a <code>VAR_INPUT {ref}</code>, or a <code>REFERENCE TO</code>. The compiler tests such a parameter by the place of the argument in the call, not by the rule above. In a mixed call it can therefore report an argument that is correct:</p>
+<pre><code>error[E031]: Expected a reference for parameter total because their type is InOut
+</code></pre>
+<p>and it can accept a value where the parameter needs a variable, which then binds a temporary that the caller never sees.</p>
+<p>A missing argument is an error, in both forms:</p>
 <pre><code>error[E032]: this POU takes 4 arguments but 2 arguments were supplied
 </code></pre>
 <p>An input with a default value (<code>factor: DINT := 2;</code>) is the exception: you can leave it out and get the default. This applies to the inputs at the end of the list only. When a parameter without a default comes after it, you must supply both. A call of a <a href="#function-blocks-and-programs">function block</a> instance may leave out any parameter, because the instance keeps what the previous call gave it.</p>
+<p>The functions that the compiler brings itself, such as <code>SEL</code>, <code>SUB</code>, and <code>SHL</code>, take their arguments the same way. <a href="#built-in-functions">Built-in Functions</a> lists their parameter names, and says which of them take a variadic parameter that has no name to call it by.</p>
 <h2 id="arrays-of-any-size"><a class="header" href="#arrays-of-any-size">Arrays of any size</a></h2>
 <p>A function that works on an array of any length declares the parameter with <code>*</code> instead of a range, one <code>*</code> per dimension. <code>LOWER_BOUND</code> and <code>UPPER_BOUND</code> then give the bounds of the array that the caller passed:</p>
 <pre><code class="language-iecst">FUNCTION Sum: DINT
@@ -1131,7 +1138,7 @@ r := Measure(raw := raw, label := 'sensor', total := total, valid =&gt; valid);
     END_FOR
 END_FUNCTION
 </code></pre>
-<p>The second argument of the two functions is the number of the dimension. They accept a parameter of this kind only, not an array of a fixed size. Such a parameter is always passed by reference, also in a <code>VAR_INPUT</code> block, and the compiler says so:</p>
+<p>The second argument of the two functions is the number of the dimension. They accept a parameter of this kind only, not an array of a fixed size, and they are <a href="#built-in-functions">built in</a>. Such a parameter is always passed by reference, also in a <code>VAR_INPUT</code> block, and the compiler says so:</p>
 <pre><code>warning[E047]: Variable Length Arrays are always by-ref, even when declared in a by-value block
 </code></pre>
 <h2 id="results-that-are-not-a-number"><a class="header" href="#results-that-are-not-a-number">Results that are not a number</a></h2>
@@ -1466,7 +1473,7 @@ END_FUNCTION
 END_FUNCTION
 </code></pre>
 <p>When nothing in the project defines the name, the compiler writes an <code>{external}</code> declaration for it and leaves the symbol to the linker. If the linker finds nothing either, the build fails with an undefined symbol.</p>
-<p>The generic functions that the compiler knows itself work differently. A call to <code>ABS</code>, <code>ADD</code>, or <code>SEL</code> gets no version of its own, because the compiler writes the code at the place of the call.</p>
+<p>The generic functions that the compiler knows itself work differently. A call to <code>ABS</code>, <code>ADD</code>, or <code>SEL</code> gets no version of its own, because the compiler writes the code at the place of the call. <a href="#built-in-functions">Built-in Functions</a> lists them all.</p>
 <h2 id="constraints"><a class="header" href="#constraints">Constraints</a></h2>
 <p>The constraint is a type nature, for example <code>ANY_INT</code>, <code>ANY_REAL</code>, <code>ANY_ELEMENTARY</code>, or <code>ANY</code>. An argument whose type does not have that nature is rejected:</p>
 <pre><code class="language-iecst">FUNCTION Inc &lt;T: ANY_INT&gt;: T
@@ -1519,7 +1526,7 @@ END_VAR
 p := REF(value);
 q := ADR(value);
 </code></pre>
-<p><code>REF</code> and <code>ADR</code> both give the address of a variable. <code>REF</code> keeps the type of that variable, which is what the check above reads. <code>ADR</code> gives the address alone, so an assignment of it is never reported.</p>
+<p><code>REF</code> and <code>ADR</code> both give the address of a variable, and both are <a href="#built-in-functions">built in</a>. <code>REF</code> keeps the type of that variable, which is what the check above reads. <code>ADR</code> gives the address alone, so an assignment of it is never reported.</p>
 <p><code>^</code> reads and writes through the pointer:</p>
 <pre><code class="language-iecst">p^ := p^ + 1;   (* value is now 11 *)
 </code></pre>
@@ -2476,7 +2483,7 @@ END_FUNCTION_BLOCK
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="reference"><a class="header" href="#reference">Reference</a></h1>
 <p>This chapter is for looking things up, not for reading from the top.</p>
-<p>It lists every option and subcommand of <code>plc</code>, every key of the project file, the function families of the standard library with the file that declares each of them, and every diagnostic code with the text that <code>plc explain</code> prints.</p>
+<p>It lists every option and subcommand of <code>plc</code>, every key of the project file, the function families of the standard library with the file that declares each of them, the functions the compiler brings itself, and every diagnostic code with the text that <code>plc explain</code> prints.</p>
 <p>The guide chapters explain the concepts behind all of it.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="command-line"><a class="header" href="#command-line">Command Line</a></h1>
@@ -2768,6 +2775,7 @@ plc build src/plc.json    # reads the given file
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="standard-library"><a class="header" href="#standard-library">Standard Library</a></h1>
 <p><code>iec61131std</code> provides the functions and function blocks of IEC 61131-3. This page says what is in it and which file declares each family. For the signature of a single function, read that file.</p>
+<p>A few names appear here and in <a href="#built-in-functions">Built-in Functions</a>: <code>ABS</code>, <code>ADD</code>, and <code>MUL</code> are built into the compiler, and the library declares them again to widen what a call accepts.</p>
 <h2 id="using-it"><a class="header" href="#using-it">Using it</a></h2>
 <p>A release installs the library and its declarations:</p>
 <div class="table-wrapper">
@@ -2825,6 +2833,123 @@ plc build src/plc.json    # reads the given file
 <h2 id="two-forms-of-conversion"><a class="header" href="#two-forms-of-conversion">Two forms of conversion</a></h2>
 <p>The library provides the same conversion twice. <code>INT_TO_DINT(x)</code> names both types, and <code>TO_DINT(x)</code> is generic and takes the source type from the argument. The generic form calls the named one, so both give the same result, and the named one saves a call.</p>
 <p>Where a conversion can lose information, the name says so: <code>TRUNC_DINT</code> cuts the fraction of a real, and <code>REAL_TO_DINT</code> rounds it.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="built-in-functions"><a class="header" href="#built-in-functions">Built-in Functions</a></h1>
+<p>The compiler knows these functions itself. You declare nothing, you include no file, and you link no library: the compiler writes the code at the place of the call. This is what separates them from the <a href="#standard-library">standard library</a>, which is a set of ordinary declarations and an object file that the linker needs.</p>
+<p>Their names are reserved. A function of your own that takes one of them is rejected; see <a href="#source-files">Source Files</a>.</p>
+<h2 id="the-functions"><a class="header" href="#the-functions">The functions</a></h2>
+<p>The parameter names in the second column are the names a call can use.</p>
+<h3 id="addresses-and-memory"><a class="header" href="#addresses-and-memory">Addresses and memory</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
+</thead>
+<tbody>
+<tr><td><code>ADR(in)</code></td><td><code>in: ANY</code></td><td><code>LWORD</code></td><td>The address of a variable, as a number</td></tr>
+<tr><td><code>REF(in)</code></td><td><code>in: ANY</code></td><td><code>REF_TO</code> the type of <code>in</code></td><td>A reference to a variable</td></tr>
+<tr><td><code>SIZEOF(in)</code></td><td><code>in: ANY</code></td><td><code>ULINT</code></td><td>The size of the argument’s type, in bytes</td></tr>
+<tr><td><code>MOVE(in)</code></td><td><code>in: ANY</code></td><td>The type of <code>in</code></td><td>The value of <code>in</code></td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="selection"><a class="header" href="#selection">Selection</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
+</thead>
+<tbody>
+<tr><td><code>SEL(G, IN0, IN1)</code></td><td><code>G: BOOL</code>, <code>IN0</code> and <code>IN1: ANY</code></td><td>The type of the two values</td><td><code>IN0</code> when <code>G</code> is <code>FALSE</code>, <code>IN1</code> when it is <code>TRUE</code></td></tr>
+<tr><td><code>MUX(K, ...)</code></td><td><code>K: DINT</code>, then two or more values</td><td>The type of the values</td><td>The value at index <code>K</code>, counted from zero</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="array-bounds"><a class="header" href="#array-bounds">Array bounds</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
+</thead>
+<tbody>
+<tr><td><code>LOWER_BOUND(arr, dim)</code></td><td><code>arr: ARRAY[*]</code>, <code>dim: ANY_INT</code></td><td><code>DINT</code></td><td>The first index of dimension <code>dim</code></td></tr>
+<tr><td><code>UPPER_BOUND(arr, dim)</code></td><td><code>arr: ARRAY[*]</code>, <code>dim: ANY_INT</code></td><td><code>DINT</code></td><td>The last index of dimension <code>dim</code></td></tr>
+</tbody>
+</table>
+</div>
+<p><code>arr</code> takes an array of any size only, not an array of a fixed size. <a href="#arrays-of-any-size">Functions</a> shows both in a loop.</p>
+<h3 id="arithmetic-1"><a class="header" href="#arithmetic-1">Arithmetic</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
+</thead>
+<tbody>
+<tr><td><code>ABS(IN)</code></td><td><code>IN: ANY_NUM</code></td><td>The type of <code>IN</code></td><td>The value without its sign</td></tr>
+<tr><td><code>ADD(...)</code></td><td>Two or more <code>ANY_NUM</code></td><td>The biggest argument type</td><td>The sum</td></tr>
+<tr><td><code>MUL(...)</code></td><td>Two or more <code>ANY_NUM</code></td><td>The biggest argument type</td><td>The product</td></tr>
+<tr><td><code>SUB(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type</td><td><code>IN1 - IN2</code></td></tr>
+<tr><td><code>DIV(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type</td><td><code>IN1 / IN2</code></td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="comparison-2"><a class="header" href="#comparison-2">Comparison</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
+</thead>
+<tbody>
+<tr><td><code>GT(...)</code></td><td>Two or more <code>ANY_ELEMENTARY</code></td><td><code>BOOL</code></td><td>Whether every argument is greater than the next</td></tr>
+<tr><td><code>GE(...)</code></td><td>Two or more <code>ANY_ELEMENTARY</code></td><td><code>BOOL</code></td><td>Whether every argument is greater than or equal to the next</td></tr>
+<tr><td><code>EQ(...)</code></td><td>Two or more <code>ANY_ELEMENTARY</code></td><td><code>BOOL</code></td><td>Whether every argument is equal to the next</td></tr>
+<tr><td><code>LE(...)</code></td><td>Two or more <code>ANY_ELEMENTARY</code></td><td><code>BOOL</code></td><td>Whether every argument is less than or equal to the next</td></tr>
+<tr><td><code>LT(...)</code></td><td>Two or more <code>ANY_ELEMENTARY</code></td><td><code>BOOL</code></td><td>Whether every argument is less than the next</td></tr>
+<tr><td><code>NE(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY_ELEMENTARY</code></td><td><code>BOOL</code></td><td>Whether the two arguments differ</td></tr>
+</tbody>
+</table>
+</div>
+<p>A call with more than two arguments compares each neighbouring pair and combines the results with <code>AND</code>, so <code>GT(a, b, c)</code> is <code>(a &gt; b) AND (b &gt; c)</code>.</p>
+<h3 id="bit-shifts"><a class="header" href="#bit-shifts">Bit shifts</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
+</thead>
+<tbody>
+<tr><td><code>SHL(IN, n)</code></td><td><code>IN: ANY</code>, <code>n: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted left by <code>n</code> bits</td></tr>
+<tr><td><code>SHR(IN, n)</code></td><td><code>IN: ANY</code>, <code>n: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted right by <code>n</code> bits</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="calling-by-name"><a class="header" href="#calling-by-name">Calling by name</a></h2>
+<p>A parameter with a name in the table above accepts <code>name := value</code>, like the parameter of any other function:</p>
+<pre><code class="language-iecst">result := SEL(TRUE, first, second);
+result := SEL(G := TRUE, IN0 := first, IN1 := second);
+result := SEL(IN1 := second, IN0 := first, G := TRUE);
+</code></pre>
+<p>The three calls are the same call. The order of named arguments does not matter, because each name says which parameter it fills.</p>
+<p>The two forms may also be mixed. A named argument claims the parameter its name says, and the positional arguments fill the parameters left over, in the order you write them:</p>
+<pre><code class="language-iecst">result := SUB(IN2 := offset, raw);   (* the same as SUB(raw, offset) *)
+</code></pre>
+<p>This is the rule for every call, not only for a built-in. <code>plc explain E132</code> describes it, and <code>plc explain E131</code> describes the one mix the compiler rejects: a positional argument whose parameter a <em>later</em> named argument also names.</p>
+<h2 id="a-variadic-parameter-has-no-name"><a class="header" href="#a-variadic-parameter-has-no-name">A variadic parameter has no name</a></h2>
+<p><code>ADD</code>, <code>MUL</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> take all of their arguments through one variadic parameter, and <code>MUX</code> takes everything after <code>K</code> through one. A variadic parameter has no name to call it by, so these arguments are positional:</p>
+<pre><code class="language-iecst">sum := ADD(a, b, c);          (* correct *)
+value := MUX(K := 1, a, b);   (* correct, K is not variadic *)
+</code></pre>
+<p>A name for such an argument is rejected:</p>
+<pre><code>error[E048]: Could not resolve reference to args
+error[E089]: Invalid call parameters
+</code></pre>
+<p><code>SEL</code> looks like <code>MUX</code> but is not variadic, so all three of its parameters have a name.</p>
+<p>The <a href="#standard-library">standard library</a> overloads <code>ADD</code> and <code>MUL</code> with a named first parameter <code>IN1</code> and a variadic rest. With the library linked, <code>ADD(IN1 := a, b)</code> is a valid call as well, and every argument after the first stays positional.</p>
+<h2 id="how-many-arguments"><a class="header" href="#how-many-arguments">How many arguments</a></h2>
+<p><code>ADD</code>, <code>MUL</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> are extensible: they take two arguments or more.</p>
+<p><code>SUB</code>, <code>DIV</code>, and <code>NE</code> take exactly two, which is the one place where <code>NE</code> behaves unlike the other five comparisons:</p>
+<pre><code>error[E032]: this POU takes 2 arguments but 3 arguments were supplied
+</code></pre>
+<p>The rest take the number of parameters their row lists.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="error-codes"><a class="header" href="#error-codes">Error Codes</a></h1>
 <p>Every diagnostic of the compiler has a code. The pages below hold one code each. Most of them say what the code reports, why it is reported, and what a correct program looks like; the rest carry a title and nothing more.</p>
@@ -5404,7 +5529,7 @@ PROGRAM main
 END_PROGRAM
 </code></pre>
 <p>the resolver visits the call before the assignment target. It identifies <code>scale</code> as a function returning <code>DINT</code>, then resolves the arguments. <code>i</code> refers to <code>main.i</code>. In <code>factor := sintVar</code>, the value refers to <code>main.sintVar</code>, but <code>factor</code> names the callee’s parameter <code>scale.factor</code>. That parameter has type <code>INT</code>, so <code>sintVar</code> gets the hint <code>INT</code>.</p>
-<p>Then the arguments are matched to the parameters of <code>scale</code>. A positional argument takes the parameter at its place, a named argument the parameter with its name. <code>i</code> is matched to parameter 0 and hinted <code>DINT</code>, <code>factor := sintVar</code> to parameter 1 and hinted <code>INT</code>. These hints also record the parameter position, which codegen uses to place the values. The call as a whole takes the return type of the function, a <code>DINT</code> value, and the rest is the ordinary assignment: the target <code>i</code> is <code>main.i</code>, and the call gets the hint <code>DINT</code>.</p>
+<p>Then the arguments are matched to the parameters of <code>scale</code>. A named argument takes the parameter with its name. A positional argument takes the first parameter that no name claims, counted in declaration order, which for a call without names is the parameter at its place. <code>i</code> is matched to parameter 0 and hinted <code>DINT</code>, <code>factor := sintVar</code> to parameter 1 and hinted <code>INT</code>. These hints also record the parameter position, which codegen uses to place the values. The call as a whole takes the return type of the function, a <code>DINT</code> value, and the rest is the ordinary assignment: the target <code>i</code> is <code>main.i</code>, and the call gets the hint <code>DINT</code>.</p>
 <p>Visualized:</p>
 <pre><code>    i := scale(i, factor := sintVar);
     ^                                 { kind: Variable, qualified_name: "main.i",       resulting_type: "DINT", hint: None }
@@ -5416,7 +5541,7 @@ END_PROGRAM
                             ^^^^^^^   { kind: Variable, qualified_name: "main.sintVar", resulting_type: "SINT", hint: "INT" }
 </code></pre>
 <p>The named argument <code>factor := sintVar</code> has no annotation of its own, only the hint that ties it to parameter 1; its two sides are annotated like any assignment.</p>
-<p>For a function block call, the operator is a variable of the block’s type. Arguments match that block’s parameters, and the call has no result type. Built-ins such as <code>REF</code>, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments.</p>
+<p>For a function block call, the operator is a variable of the block’s type. Arguments match that block’s parameters, and the call has no result type. Built-ins such as <code>REF</code>, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that a binary expression replaces then drop the argument hints again; see <a href="#argument">Annotated AST</a>.</p>
 <h2 id="literals-and-generated-types"><a class="header" href="#literals-and-generated-types">Literals and generated types</a></h2>
 <p>Integer literals use <code>DINT</code> if they fit 32 bits and <code>LINT</code> otherwise. Real literals use <code>REAL</code> or <code>LREAL</code> by the same size rule. Typed literals use their prefix, as in <code>INT#5</code>. String literals get types sized to their contents: <code>'hello'</code> has type <code>__STRING_5</code>, a <code>STRING[5]</code>, even when it is assigned to a <code>STRING</code> that was declared without a size.</p>
 <p>That sized type does not exist in the index, so the resolver registers it in a small index of its own. After all units are annotated, these generated types, together with the on-demand pointer types, are imported into the global index, where codegen finds them like any declared type. String literals found in bodies are also collected per unit, because codegen emits them as global constants. For</p>
@@ -5525,7 +5650,8 @@ END_FUNCTION
 <p>Everything else is checked unit by unit, in the order in which the units were parsed. Inside a unit the walk follows the shape of the compilation unit: the POU declarations first, then the user types, the <code>VAR_CONFIG</code> blocks, the global variable blocks, the implementations, and last the interfaces. Declarations and bodies are validated separately, as they are stored.</p>
 <p>POU checks depend on the kind. A program cannot return a value, and a class cannot have input or output parameters. Inheritance checks require existing base types and interfaces, matching method signatures, and implementations for abstract methods.</p>
 <p>Variable checks cover declared types, initializer compatibility, constant array bounds, and names that shadow base members. They also check restrictions on constant function block instances. The statement visitor checks initializers because they are expressions.</p>
-<p>An implementation is walked statement by statement. The visitor is recursive and mirrors the tree: it visits the children of a node first, then applies the checks for the node itself. A reference is checked for resolution, visibility, and pointer access. An assignment compares the type of the value with the hint the resolver attached to it. A call is matched against the parameters of the callee from the index: argument count, direction of <code>:=</code> and <code>=&gt;</code>, by-reference arguments, and required <code>VAR_IN_OUT</code> arguments. Control statements check their conditions and walk their bodies. For</p>
+<p>An implementation is walked statement by statement. The visitor is recursive and mirrors the tree: it visits the children of a node first, then applies the checks for the node itself. A reference is checked for resolution, visibility, and pointer access. An assignment compares the type of the value with the hint the resolver attached to it. A call is matched against the parameters of the callee from the index: argument count, direction of <code>:=</code> and <code>=&gt;</code>, by-reference arguments, and required <code>VAR_IN_OUT</code> arguments.</p>
+<p>That match takes the parameter at the place of the argument in the call. The <a href="#calls-1">resolver</a> and codegen take the first parameter that no name claims, which is a different parameter as soon as a call mixes named and positional arguments. The by-reference checks therefore read a mixed call of a POU with a by-reference parameter against the wrong parameter: they report an argument that the resolver binds to an input, and they pass a value that the resolver binds to a <code>VAR_IN_OUT</code>. Control statements check their conditions and walk their bodies. For</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK Buffer
     VAR_INPUT
         limit: INT;
@@ -8744,7 +8870,7 @@ define void @main(ptr %0) {
 }
 </code></pre>
 <p>This is also the C calling convention for the standard library: a C function that takes or returns a <code>STRING</code> takes <code>char*</code> parameters, with the result buffer first.</p>
-<h3 id="comparison-2"><a class="header" href="#comparison-2">Comparison</a></h3>
+<h3 id="comparison-3"><a class="header" href="#comparison-3">Comparison</a></h3>
 <p>The hidden call the resolver attached is what codegen emits. Both operands are pointers, the literal directly from its constant, and the result is the <code>BOOL</code> the library function returns:</p>
 <pre><code class="language-llvm">  %call = call i8 @STRING_EQUAL(ptr %text, ptr @utf08_literal_1)
   store i8 %call, ptr %same, align 1
@@ -9014,7 +9140,7 @@ __fill_grid                        Struct, nature __VLA, source VariableLengthAr
 <pre><code>    total := sum(small);
                  ^^^^^            { kind: Variable, qualified_name: "main.small",       resulting_type: "__main_small",  hint: Argument { resulting_type: "__auto_pointer_to___sum_values", position: 0 } }
 </code></pre>
-<p><code>LOWER_BOUND</code> and <code>UPPER_BOUND</code> are built-in generic functions, declared as <code>FUNCTION LOWER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt;: DINT</code>. Their annotation hints the first argument with its own VLA type when it is one, and with the reserved placeholder type <code>__VLA</code> when it is not, so that the argument fails the type check with a readable name. The second argument keeps its integer type, and the call is a <code>DINT</code> value.</p>
+<p><code>LOWER_BOUND</code> and <code>UPPER_BOUND</code> are built-in generic functions, declared as <code>FUNCTION LOWER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt;: DINT</code>. Their annotation, validation, and codegen each order the arguments by the parameter names <code>arr</code> and <code>dim</code> first, so a named call such as <code>LOWER_BOUND(dim := 1, arr := values)</code> reaches them in declaration order. The argument for <code>arr</code> is hinted with its own VLA type when it is one, and with the reserved placeholder type <code>__VLA</code> when it is not, so that the argument fails the type check with a readable name. The argument for <code>dim</code> keeps its integer type, and the call is a <code>DINT</code> value.</p>
 <h2 id="lowering-5"><a class="header" href="#lowering-5">Lowering</a></h2>
 <p>No participant rewrites VLAs. The <a href="#loop-desugar">loop desugarer</a> turns the <code>FOR</code> of the example into a <code>WHILE TRUE</code> loop, which is why the IR below reads the lower bound once in front of the loop and the upper bound again on every iteration.</p>
 <h2 id="codegen-6"><a class="header" href="#codegen-6">Codegen</a></h2>
@@ -9755,6 +9881,7 @@ END_PROGRAM
     pou: String,
 }</code></pre>
 <p><code>Argument</code> is used only as a hint. It connects each argument to a parameter. A positional argument carries the hint on its expression; a named argument carries it on the assignment node.</p>
+<p>The built-ins that a binary expression replaces are the exception. <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, <code>DIV</code>, and the comparisons build that expression from the argument values, so the declared parameter is gone by the time codegen runs. Their annotation function therefore orders the arguments, unwraps every named one to its value, and drops the hint the resolver put on it. A positional argument of such a call carries no hint at that point either, so both forms then take their hint from the binary expression, the same way an operand of a written-out <code>a - b</code> does. <code>src/builtins.rs</code> holds the rule.</p>
 <pre><code>    counter(limit := 3, step := 2, count =&gt; i);
             ^^^^^^^^^^                 hint Argument "INT",  position 1, depth 1, pou Base
                         ^^^^^^^^^      hint Argument "DINT", position 1, depth 0, pou Counter
@@ -9780,7 +9907,7 @@ END_PROGRAM
     /// The statement to generate instead of the annotated one
     statement: AstNode,
 }</code></pre>
-<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. The replacement has its own annotations.</p>
+<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: <code>ADD(a, b, c)</code> becomes <code>(a + b) + c</code>, and <code>GT(a, b, c)</code> becomes <code>(a &gt; b) AND (b &gt; c)</code>. The replacement has its own annotations.</p>
 <pre><code>    same := text = 'hello';
             ^^^^^^^^^^^^^^    ReplacementAst STRING_EQUAL(text, 'hello'),  hint "BOOL"
             ^^^^              Variable "STRING", main.text,  hint Argument "STRING", position 0, pou STRING_EQUAL
