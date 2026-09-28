@@ -29,7 +29,7 @@ Some parts of the language call the library by themselves, so link it also when 
 
 | Family | Declared in | Contains |
 |---|---|---|
-| Arithmetic | `arithmetic_functions.st` | `SQRT`, `LN`, `LOG`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `EXPT`, the variadic `ADD` and `MUL`, and the constants `PI_REAL`, `FRAC_PI_2_REAL`, `FRAC_PI_4_REAL`, `E_REAL`, `INF_REAL`, and `NAN_REAL`, each also in an `LREAL` form such as `PI_LREAL` |
+| Arithmetic | `arithmetic_functions.st` | `SQRT`, `LN`, `LOG`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `EXPT`, and the constants `PI_REAL`, `FRAC_PI_2_REAL`, `FRAC_PI_4_REAL`, `E_REAL`, `INF_REAL`, and `NAN_REAL`, each also in an `LREAL` form such as `PI_LREAL` |
 | Numerical | `numerical_functions.st` | `ABS` |
 | Selectors | `selectors.st` | `MAX`, `MIN`, `LIMIT` |
 | Bit shifts | `bit_shift_functions.st` | `ROL`, `ROR` |
