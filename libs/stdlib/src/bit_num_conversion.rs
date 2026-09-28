@@ -1,8 +1,8 @@
 /// One past the largest value a signed 64-bit integer can hold, as a float: 2^63.
-const I64_RANGE_END: f64 = 9223372036854775808.0;
+const I64_RANGE_END: f64 = (i64::MAX as u128 + 1) as f64;
 
 /// One past the largest value an unsigned 64-bit integer can hold, as a float: 2^64.
-const U64_RANGE_END: f64 = 18446744073709551616.0;
+const U64_RANGE_END: f64 = (u64::MAX as u128 + 1) as f64;
 
 /// Rounds half away from zero, then converts as the x86 `cvttsd2si` instruction does: a value
 /// outside the signed 64-bit range, NaN and the infinities included, becomes `i64::MIN`. The
