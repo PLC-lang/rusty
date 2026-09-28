@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-43ebb548.js";
+            window.path_to_searchindex_js = "../../searchindex-cf13a60a.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-61717f7e.js"></script>
@@ -233,6 +233,7 @@
 <tr><td>Truncation</td><td><code>real_trunc_int.st</code></td><td><code>REAL_TRUNC_&lt;TYPE&gt;</code> and <code>LREAL_TRUNC_&lt;TYPE&gt;</code>, the same for one source type each</td></tr>
 <tr><td>Generic conversion</td><td><code>to_num.st</code>, <code>to_bit.st</code>, <code>to_string.st</code>, <code>to_date_time.st</code></td><td><code>TO_&lt;TYPE&gt;</code>, one generic function per target type</td></tr>
 <tr><td>Text output and input</td><td><code>extra_functions.st</code></td><td><code>&lt;TYPE&gt;_TO_STRING</code> and <code>&lt;TYPE&gt;_TO_WSTRING</code>, the <code>STRING_TO_&lt;TYPE&gt;</code> family that reads a value back, <code>&lt;TYPE&gt;_TO_BOOL</code> for the integer and real types, <code>TRUNC</code>, and <code>TIME()</code>, which gives the time since midnight</td></tr>
+<tr><td>Duration conversion</td><td><code>extra_functions.st</code></td><td><code>&lt;TYPE&gt;_TO_TIME</code> and <code>&lt;TYPE&gt;_TO_LTIME</code> from <code>BOOL</code>, the bit string types, the integer types, and the real types. The number is the count of milliseconds for <code>TIME</code> and of nanoseconds for <code>LTIME</code>. A real is rounded half away from zero first. The result is then reduced to the width of the target as in a two’s complement cast, so an overflow wraps around. <code>TIME</code> is unsigned, so a negative number counts back from the largest duration; <code>LTIME</code> is signed and keeps a negative number as it is. A real without an integer value, that is NaN or an infinity, gives zero</td></tr>
 </tbody>
 </table>
 </div>
