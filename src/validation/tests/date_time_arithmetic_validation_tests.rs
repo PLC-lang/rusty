@@ -263,3 +263,126 @@ fn other_operators_on_date_and_time_are_not_checked() {
 
     assert_snapshot!(diagnostics, @"");
 }
+
+#[test]
+fn builtin_calls_with_date_and_time_arguments_pass() {
+    let diagnostics = validate_with_standard_functions(
+        r#"
+        FUNCTION main : DINT
+        VAR
+            t, t2 : TIME;
+            tod : TOD;
+            dt : DT;
+            d1, d2 : DATE;
+            n : DINT;
+            r : REAL;
+        END_VAR
+            dt := ADD(dt, t, t2);
+            tod := ADD(tod, t);
+            dt := SUB(IN2 := t, IN1 := dt);
+            t := SUB(d1, d2);
+            t := MUL(2, t, 3);
+            t := MUL(t, r);
+            t := DIV(t, n);
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn builtin_calls_fold_their_arguments_from_the_left() {
+    let diagnostics = validate_with_standard_functions(
+        r#"
+        FUNCTION main : DINT
+        VAR
+            t : TIME;
+            dt : DT;
+            n : DINT;
+            s : STRING;
+        END_VAR
+            dt := ADD(dt, dt);
+            dt := ADD(dt, t, dt);
+            t := SUB(IN2 := dt, IN1 := t);
+            t := DIV(n, t);
+            t := ADD(t, 5);
+            t := ADD(t, s);
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E156]: Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`
+       ┌─ <internal>:46:23
+       │
+    46 │             dt := ADD(dt, dt);
+       │                       ^^^^^^ Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`
+
+    error[E156]: Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`
+       ┌─ <internal>:47:23
+       │
+    47 │             dt := ADD(dt, t, dt);
+       │                       ^^^^^^^^^ Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`
+
+    error[E156]: Operator `-` is not defined for `TIME` and `DATE_AND_TIME`
+       ┌─ <internal>:48:40
+       │
+    48 │             t := SUB(IN2 := dt, IN1 := t);
+       │                                        ^ Operator `-` is not defined for `TIME` and `DATE_AND_TIME`
+
+    error[E156]: Operator `/` is not defined for `DINT` and `TIME`
+       ┌─ <internal>:49:22
+       │
+    49 │             t := DIV(n, t);
+       │                      ^^^^ Operator `/` is not defined for `DINT` and `TIME`
+
+    warning[E067]: Implicit downcast from 'TIME' to 'DINT'.
+       ┌─ <internal>:49:25
+       │
+    49 │             t := DIV(n, t);
+       │                         ^ Implicit downcast from 'TIME' to 'DINT'.
+
+    warning[E157]: The integer operand of `+` has no unit and is read as milliseconds of `TIME`
+       ┌─ <internal>:50:22
+       │
+    50 │             t := ADD(t, 5);
+       │                      ^^^^ The integer operand of `+` has no unit and is read as milliseconds of `TIME`
+
+    error[E156]: Operator `+` is not defined for `TIME` and `STRING`
+       ┌─ <internal>:51:22
+       │
+    51 │             t := ADD(t, s);
+       │                      ^^^^ Operator `+` is not defined for `TIME` and `STRING`
+    ");
+}
+
+#[test]
+fn builtin_calls_without_the_standard_functions_report_e073() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION main : DINT
+        VAR
+            t : TIME;
+            dt : DT;
+        END_VAR
+            dt := ADD(dt, t);
+            t := MUL(t, 2);
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E073]: Missing function `ADD_DT_TIME` for `DATE_AND_TIME + TIME`
+      ┌─ <internal>:7:23
+      │
+    7 │             dt := ADD(dt, t);
+      │                       ^^^^^ Missing function `ADD_DT_TIME` for `DATE_AND_TIME + TIME`
+
+    error[E073]: Missing function `MUL_TIME__LINT` for `TIME * DINT`
+      ┌─ <internal>:8:22
+      │
+    8 │             t := MUL(t, 2);
+      │                      ^^^^ Missing function `MUL_TIME__LINT` for `TIME * DINT`
+    ");
+}

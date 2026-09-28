@@ -3102,66 +3102,30 @@ fn builtin_math_functions_with_incompatible_types() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"
-    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+    assert_snapshot!(diagnostics, @"
+    error[E156]: Operator `+` is not defined for `INT` and `STRING`
        ┌─ <internal>:12:17
        │
     12 │             ADD(var_int, var_string, var_array_tod);
-       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+       │                 ^^^^^^^^^^^^^^^^^^^ Operator `+` is not defined for `INT` and `STRING`
 
-    error[E031]: Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
-       ┌─ <internal>:12:26
-       │
-    12 │             ADD(var_int, var_string, var_array_tod);
-       │                          ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
-
-    error[E037]: Invalid assignment: cannot assign 'STRING' to 'LREAL'
-       ┌─ <internal>:12:26
-       │
-    12 │             ADD(var_int, var_string, var_array_tod);
-       │                          ^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'LREAL'
-
-    error[E062]: Invalid type nature for generic argument. STRING is no ANY_NUMBER
-       ┌─ <internal>:12:26
-       │
-    12 │             ADD(var_int, var_string, var_array_tod);
-       │                          ^^^^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_NUMBER
-
-    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..5] OF TOD' to 'LREAL'
-       ┌─ <internal>:12:38
-       │
-    12 │             ADD(var_int, var_string, var_array_tod);
-       │                                      ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..5] OF TOD' to 'LREAL'
-
-    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+    error[E156]: Operator `-` is not defined for `INT` and `STRING`
        ┌─ <internal>:13:17
        │
     13 │             SUB(var_int, var_string);
-       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+       │                 ^^^^^^^^^^^^^^^^^^^ Operator `-` is not defined for `INT` and `STRING`
 
-    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+    error[E156]: Operator `*` is not defined for `INT` and `STRING`
        ┌─ <internal>:14:17
        │
     14 │             MUL(var_int, var_string);
-       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+       │                 ^^^^^^^^^^^^^^^^^^^ Operator `*` is not defined for `INT` and `STRING`
 
-    error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
-       ┌─ <internal>:14:26
-       │
-    14 │             MUL(var_int, var_string);
-       │                          ^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'INT'
-
-    error[E062]: Invalid type nature for generic argument. STRING is no ANY_NUMBER
-       ┌─ <internal>:14:26
-       │
-    14 │             MUL(var_int, var_string);
-       │                          ^^^^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_NUMBER
-
-    error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
+    error[E156]: Operator `/` is not defined for `INT` and `STRING`
        ┌─ <internal>:15:17
        │
     15 │             DIV(var_int, var_string);
-       │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
+       │                 ^^^^^^^^^^^^^^^^^^^ Operator `/` is not defined for `INT` and `STRING`
     ");
 }
 
@@ -3178,30 +3142,30 @@ fn builtin_math_functions_with_incompatible_literal_types() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"
-    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+    assert_snapshot!(diagnostics, @"
+    error[E156]: Operator `+` is not defined for `DINT` and `STRING`
       ┌─ <internal>:3:17
       │
     3 │             ADD(1, 'string');
-      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+      │                 ^^^^^^^^^^^ Operator `+` is not defined for `DINT` and `STRING`
 
-    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+    error[E156]: Operator `-` is not defined for `DINT` and `STRING`
       ┌─ <internal>:4:17
       │
     4 │             SUB(1, 'string');
-      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+      │                 ^^^^^^^^^^^ Operator `-` is not defined for `DINT` and `STRING`
 
-    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+    error[E156]: Operator `*` is not defined for `DINT` and `STRING`
       ┌─ <internal>:5:17
       │
     5 │             MUL(1, 'string');
-      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+      │                 ^^^^^^^^^^^ Operator `*` is not defined for `DINT` and `STRING`
 
-    error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
+    error[E156]: Operator `/` is not defined for `DINT` and `STRING`
       ┌─ <internal>:6:17
       │
     6 │             DIV(1, 'string');
-      │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
+      │                 ^^^^^^^^^^^ Operator `/` is not defined for `DINT` and `STRING`
     ");
 }
 
