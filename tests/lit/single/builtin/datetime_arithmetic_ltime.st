@@ -32,4 +32,10 @@ FUNCTION main
     lresult := lt1 / 4;
     printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#2s500ms
 
+    // The builtins carry out the same functions as the operators
+    lresult := ADD(lt1, lt2, LTIME#1s);
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#14s
+    lresult := MUL(lt1, 1.5);
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#15s
+
 END_FUNCTION

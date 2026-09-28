@@ -38,4 +38,10 @@ FUNCTION main
     ltod_result := LTOD#23:59:50 + LTIME#20s;
     printf('%s$N', REF(LTOD_TO_STRING(ltod_result)));                               // CHECK: LTOD#00:00:10
 
+    // The builtins carry out the same functions as the operators
+    ltod_result := ADD(ltod1, lt1, lt1);
+    printf('%s$N', REF(LTOD_TO_STRING(ltod_result)));                               // CHECK: LTOD#10:31:00
+    lresult := SUB(ltod1, ltod2);
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#10m
+
 END_FUNCTION

@@ -18,4 +18,8 @@ FUNCTION main
     result := date1 - date2;
     printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#5d
 
+    // The builtins carry out the same functions as the operators
+    result := SUB(date1, date2);
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#5d
+
 END_FUNCTION
