@@ -1,5 +1,6 @@
 const MILLIS_PER_SECOND: u32 = 1_000;
 const MILLIS_PER_DAY: u32 = 60 * 60 * 24 * MILLIS_PER_SECOND;
+const NANOS_PER_DAY: i128 = 60 * 60 * 24 * 1_000_000_000;
 
 fn millis_to_seconds(input: u32) -> u32 {
     input / MILLIS_PER_SECOND
@@ -113,12 +114,12 @@ pub extern "C-unwind" fn ADD_LTIME(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator returns the value of adding up LTOD and LTIME.
-/// Wraps on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn ADD_LTOD_LTIME(in1: i64, in2: i64) -> i64 {
-    ADD__LTOD__LTIME(in1, in2)
+    (i128::from(in1) + i128::from(in2)).rem_euclid(NANOS_PER_DAY) as i64
 }
 
 /// .
@@ -153,12 +154,12 @@ pub extern "C-unwind" fn SUB_LDATE_LDATE(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator produces the subtraction of LTOD and LTIME.
-/// Wraps on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB_LTOD_LTIME(in1: i64, in2: i64) -> i64 {
-    SUB__LTOD__LTIME(in1, in2)
+    (i128::from(in1) - i128::from(in2)).rem_euclid(NANOS_PER_DAY) as i64
 }
 
 /// .
@@ -1092,7 +1093,7 @@ pub extern "C-unwind" fn ADD__LTIME__LTIME(in1: i64, in2: i64) -> i64 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn ADD__LTOD__LTIME(in1: i64, in2: i64) -> i64 {
-    in1.wrapping_add(in2)
+    ADD_LTOD_LTIME(in1, in2)
 }
 
 /// .
@@ -1132,7 +1133,7 @@ pub extern "C-unwind" fn SUB__LDATE__LDATE(in1: i64, in2: i64) -> i64 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB__LTOD__LTIME(in1: i64, in2: i64) -> i64 {
-    in1.wrapping_sub(in2)
+    SUB_LTOD_LTIME(in1, in2)
 }
 
 /// .

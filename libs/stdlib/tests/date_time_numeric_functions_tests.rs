@@ -26,6 +26,8 @@ struct ShortMainType {
     d: u32,
 }
 
+const NANOS_PER_DAY: i64 = 60 * 60 * 24 * 1_000_000_000;
+
 fn get_time_from_hms(hour: u32, min: u32, sec: u32) -> chrono::NaiveDateTime {
     chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap().and_hms_opt(hour, min, sec).unwrap()
 }
@@ -1190,7 +1192,7 @@ wrapping_tests!(
     (add_time_wraps_on_overflow, dtf::ADD_TIME, u32::MAX, 1, 0),
     (add_dt_time_wraps_on_overflow, dtf::ADD_DT_TIME, u32::MAX, 1_000, 0),
     (add_ltime_wraps_on_overflow, dtf::ADD_LTIME, i64::MAX, 1, i64::MIN),
-    (add_ltod_ltime_wraps_on_overflow, dtf::ADD_LTOD_LTIME, i64::MAX, 1, i64::MIN),
+    (add_ltod_ltime_wraps_at_midnight, dtf::ADD_LTOD_LTIME, NANOS_PER_DAY - 1, 2, 1),
     (add_ldt_ltime_wraps_on_overflow, dtf::ADD_LDT_LTIME, i64::MAX, 1, i64::MIN),
 );
 
@@ -1201,7 +1203,7 @@ wrapping_tests!(
     (sub_tod_tod_wraps_on_underflow, dtf::SUB_TOD_TOD, 1_000, 2_000, u32::MAX - 999),
     (sub_dt_time_wraps_on_underflow, dtf::SUB_DT_TIME, 0, 1_000, u32::MAX),
     (sub_ltime_wraps_on_underflow, dtf::SUB_LTIME, i64::MIN, 1, i64::MAX),
-    (sub_ltod_ltime_wraps_on_underflow, dtf::SUB_LTOD_LTIME, i64::MIN, 1, i64::MAX),
+    (sub_ltod_ltime_wraps_at_midnight, dtf::SUB_LTOD_LTIME, 0, 1, NANOS_PER_DAY - 1),
     (sub_ldt_ltime_wraps_on_underflow, dtf::SUB_LDT_LTIME, i64::MIN, 1, i64::MAX),
     (sub_ldate_ldate_wraps_on_large_delta, dtf::SUB_LDATE_LDATE, i64::MAX, i64::MIN, -1),
     (sub_ltod_ltod_wraps_on_large_delta, dtf::SUB_LTOD_LTOD, i64::MAX, i64::MIN, -1),
@@ -1232,11 +1234,11 @@ wrapping_tests!(
 // is checked with the same boundary values as the named functions above.
 wrapping_tests!(
     (add_alias_ltime_ltime_wraps_on_overflow, dtf::ADD__LTIME__LTIME, i64::MAX, 1, i64::MIN),
-    (add_alias_ltod_ltime_wraps_on_overflow, dtf::ADD__LTOD__LTIME, i64::MAX, 1, i64::MIN),
+    (add_alias_ltod_ltime_wraps_at_midnight, dtf::ADD__LTOD__LTIME, NANOS_PER_DAY - 1, 2, 1),
     (add_alias_ldt_ltime_wraps_on_overflow, dtf::ADD__LDT__LTIME, i64::MAX, 1, i64::MIN),
     (sub_alias_ltime_ltime_wraps_on_underflow, dtf::SUB__LTIME__LTIME, i64::MIN, 1, i64::MAX),
     (sub_alias_ldate_ldate_wraps_on_large_delta, dtf::SUB__LDATE__LDATE, i64::MAX, i64::MIN, -1),
-    (sub_alias_ltod_ltime_wraps_on_underflow, dtf::SUB__LTOD__LTIME, i64::MIN, 1, i64::MAX),
+    (sub_alias_ltod_ltime_wraps_at_midnight, dtf::SUB__LTOD__LTIME, 0, 1, NANOS_PER_DAY - 1),
     (sub_alias_ltod_ltod_wraps_on_large_delta, dtf::SUB__LTOD__LTOD, i64::MAX, i64::MIN, -1),
     (sub_alias_ldt_ltime_wraps_on_underflow, dtf::SUB__LDT__LTIME, i64::MIN, 1, i64::MAX),
     (sub_alias_ldt_ldt_wraps_on_large_delta, dtf::SUB__LDT__LDT, i64::MAX, i64::MIN, -1),
@@ -1247,7 +1249,7 @@ wrapping_tests!(
         1,
         i64::MIN
     ),
-    (add_alias_ltime_of_day_ltime_wraps_on_overflow, dtf::ADD__LTIME_OF_DAY__LTIME, i64::MAX, 1, i64::MIN),
+    (add_alias_ltime_of_day_ltime_wraps_at_midnight, dtf::ADD__LTIME_OF_DAY__LTIME, NANOS_PER_DAY - 1, 2, 1),
     (
         sub_alias_ldate_and_time_ltime_wraps_on_underflow,
         dtf::SUB__LDATE_AND_TIME__LTIME,
@@ -1262,7 +1264,7 @@ wrapping_tests!(
         i64::MIN,
         -1
     ),
-    (sub_alias_ltime_of_day_ltime_wraps_on_underflow, dtf::SUB__LTIME_OF_DAY__LTIME, i64::MIN, 1, i64::MAX),
+    (sub_alias_ltime_of_day_ltime_wraps_at_midnight, dtf::SUB__LTIME_OF_DAY__LTIME, 0, 1, NANOS_PER_DAY - 1),
     (
         sub_alias_ltime_of_day_ltime_of_day_wraps_on_large_delta,
         dtf::SUB__LTIME_OF_DAY__LTIME_OF_DAY,
