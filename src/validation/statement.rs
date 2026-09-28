@@ -806,6 +806,29 @@ fn validate_reference<T: AnnotationMap>(
     }
 }
 
+/// A call whose operator resolved to a `FUNCTION_BLOCK` type (`MyFb(...)`) has no instance.
+/// The resolver annotates that name as the type, so validation would otherwise accept it
+/// and codegen would later report a generic unresolved reference.
+fn function_block_called_without_instance<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    operator: &AstNode,
+) -> Option<Diagnostic> {
+    let StatementAnnotation::Type { type_name } = context.annotations.get(operator)? else {
+        return None;
+    };
+    if !context.index.find_pou(type_name).is_some_and(|pou| pou.is_function_block()) {
+        return None;
+    }
+
+    Some(
+        Diagnostic::new(format!(
+            "`{type_name}` is a FUNCTION_BLOCK. Declare an instance and call that instance"
+        ))
+        .with_error_code("E156")
+        .with_location(operator),
+    )
+}
+
 /// Produces a focused diagnostic when a METHOD references a `VAR_TEMP` declared on its
 /// enclosing POU. Methods have their own stack frame, so the temp is not visible — the
 /// resolver therefore leaves the reference unannotated. Returning a dedicated diagnostic
@@ -2222,6 +2245,10 @@ fn validate_call<T: AnnotationMap>(
     }
 
     let Some(pou) = context.find_pou(fn_ident) else {
+        // The name resolved to a FUNCTION_BLOCK type, not to a callable instance.
+        if let Some(diagnostic) = function_block_called_without_instance(context, fn_ident) {
+            validator.push_diagnostic(diagnostic);
+        }
         // POU could not be found, we can still partially validate the passed parameters
         if let Some(s) = fn_args.as_ref() {
             visit_statement(validator, s, context);
