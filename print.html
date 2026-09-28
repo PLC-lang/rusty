@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-f5050437.js";
+            window.path_to_searchindex_js = "searchindex-43ebb548.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-61717f7e.js"></script>
@@ -2820,11 +2820,11 @@ plc build src/plc.json    # reads the given file
 <tr><td>Date and time</td><td><code>date_time_extra_functions.st</code></td><td><code>CONCAT_DATE</code>, <code>CONCAT_TOD</code>, the <code>SPLIT_</code> family that takes such a value apart again, and <code>DAY_OF_WEEK</code></td></tr>
 <tr><td>Numeric conversion</td><td><code>num_conversion.st</code></td><td><code>&lt;TYPE&gt;_TO_&lt;TYPE&gt;</code> for every pair of numeric types</td></tr>
 <tr><td>Bit conversion</td><td><code>bit_conversion.st</code></td><td>Between the bit string types and <code>BOOL</code>, and between them and <code>CHAR</code> and <code>WCHAR</code></td></tr>
-<tr><td>Bit and number</td><td><code>bit_num_conversion.st</code></td><td>Between the bit string types and the numeric types</td></tr>
+<tr><td>Bit and number</td><td><code>bit_num_conversion.st</code></td><td>Between <code>BOOL</code> and the bit string types on one side and the integer and real types on the other</td></tr>
 <tr><td>Truncation</td><td><code>trunc_int.st</code></td><td><code>TRUNC_&lt;TYPE&gt;</code>, which cuts the fraction of a real</td></tr>
 <tr><td>Truncation</td><td><code>real_trunc_int.st</code></td><td><code>REAL_TRUNC_&lt;TYPE&gt;</code> and <code>LREAL_TRUNC_&lt;TYPE&gt;</code>, the same for one source type each</td></tr>
 <tr><td>Generic conversion</td><td><code>to_num.st</code>, <code>to_bit.st</code>, <code>to_string.st</code>, <code>to_date_time.st</code></td><td><code>TO_&lt;TYPE&gt;</code>, one generic function per target type</td></tr>
-<tr><td>Text output and input</td><td><code>extra_functions.st</code></td><td><code>&lt;TYPE&gt;_TO_STRING</code> and <code>&lt;TYPE&gt;_TO_WSTRING</code>, the <code>STRING_TO_&lt;TYPE&gt;</code> family that reads a value back, <code>TRUNC</code>, and <code>TIME()</code>, which gives the time since midnight</td></tr>
+<tr><td>Text output and input</td><td><code>extra_functions.st</code></td><td><code>&lt;TYPE&gt;_TO_STRING</code> and <code>&lt;TYPE&gt;_TO_WSTRING</code>, the <code>STRING_TO_&lt;TYPE&gt;</code> family that reads a value back, <code>&lt;TYPE&gt;_TO_BOOL</code> for the integer and real types, <code>TRUNC</code>, and <code>TIME()</code>, which gives the time since midnight</td></tr>
 </tbody>
 </table>
 </div>
@@ -2833,6 +2833,15 @@ plc build src/plc.json    # reads the given file
 <h2 id="two-forms-of-conversion"><a class="header" href="#two-forms-of-conversion">Two forms of conversion</a></h2>
 <p>The library provides the same conversion twice. <code>INT_TO_DINT(x)</code> names both types, and <code>TO_DINT(x)</code> is generic and takes the source type from the argument. The generic form calls the named one, so both give the same result, and the named one saves a call.</p>
 <p>Where a conversion can lose information, the name says so: <code>TRUNC_DINT</code> cuts the fraction of a real, and <code>REAL_TO_DINT</code> rounds it.</p>
+<h2 id="numeric-casts"><a class="header" href="#numeric-casts">Numeric casts</a></h2>
+<p>The conversions between <code>BOOL</code>, the bit string types, the integers, and the reals follow five rules. None of them reports a diagnostic, and none of them faults at run time.</p>
+<ul>
+<li><strong>A real rounds to the nearest integer, and a tie goes away from zero.</strong> <code>REAL_TO_BYTE(2.5)</code> is 3 and <code>REAL_TO_BYTE(-2.5)</code> is 253, not the 2 and 254 that rounding to even would give.</li>
+<li><strong>A real to a bit string type wraps.</strong> The rounded value becomes a signed 64-bit integer and keeps the low bits of the target width, so <code>REAL_TO_BYTE(300.0)</code> is 44 and <code>REAL_TO_BYTE(-1.0)</code> is 255. A value that does not fit a signed 64-bit integer, <code>NaN</code> and the infinities included, becomes 2^63 first: <code>REAL_TO_BYTE(NAN_REAL)</code> is 0 and <code>REAL_TO_LWORD(1.0E20)</code> is 9223372036854775808. <code>LWORD</code> alone keeps a value between 2^63 and 2^64 exact, so <code>LREAL_TO_LWORD(LREAL#1.0E19)</code> is 10000000000000000000 while <code>LREAL_TO_DWORD(LREAL#1.0E19)</code> is 0. A real to a signed or unsigned integer type saturates instead: <code>REAL_TO_USINT(300.0)</code> is 255.</li>
+<li><strong>Anything to <code>BOOL</code> is <code>FALSE</code> for exactly zero and <code>TRUE</code> for every other value.</strong> <code>INT_TO_BOOL(256)</code>, <code>BYTE_TO_BOOL(2)</code>, <code>REAL_TO_BOOL(0.5)</code>, and <code>REAL_TO_BOOL(NAN_REAL)</code> are all <code>TRUE</code>. It is not a test of the lowest bit, and a fraction is not cut first.</li>
+<li><strong><code>BOOL</code> and the bit string types widen to a real by value.</strong> <code>BOOL</code>, <code>BYTE</code>, and <code>WORD</code> fit a <code>REAL</code> exactly, and <code>DWORD</code> fits an <code>LREAL</code> exactly. A <code>REAL</code> keeps 24 bits of mantissa, so <code>LWORD_TO_REAL(16777217)</code> and <code>DWORD_TO_REAL(16777217)</code> are both 16777216. An <code>LREAL</code> keeps 53 bits, so <code>LWORD_TO_LREAL(9007199254740992)</code> is exact and <code>LWORD_TO_LREAL(9007199254740993)</code> is 9007199254740992 again. These conversions have the named form only: the generic <code>TO_REAL</code> and <code>TO_LREAL</code> take the numeric types, so a <code>STRING</code> or a <code>TIME</code> argument is still rejected at compile time.</li>
+<li><strong>No conversion reinterprets bits.</strong> <code>DWORD_TO_REAL(1073741824)</code> is 1073741824.0, and <code>REAL_TO_DWORD(2.0)</code> is 2.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="built-in-functions"><a class="header" href="#built-in-functions">Built-in Functions</a></h1>
 <p>The compiler knows these functions itself. You declare nothing, you include no file, and you link no library: the compiler writes the code at the place of the call. This is what separates them from the <a href="#standard-library">standard library</a>, which is a set of ordinary declarations and an object file that the linker needs.</p>
