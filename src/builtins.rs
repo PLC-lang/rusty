@@ -6,8 +6,8 @@ use inkwell::{
 use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, AstFactory, AstNode, AstStatement, CompilationUnit,
-        GenericBinding, LinkageType, Operator, TypeNature,
+        self, flatten_expression_list, pre_process, resolve_argument_slots, AstFactory, AstNode,
+        AstStatement, CompilationUnit, GenericBinding, LinkageType, Operator, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -178,7 +178,7 @@ lazy_static! {
                         //Create a temp var
                         let result_type = generator.llvm_index.get_associated_type(type_hint.get_name())?;
                         let result_var = generator.llvm.create_local_variable("", &result_type)?;
-                        let k = generator.generate_expression(k)?;
+                        let k = generator.generate_expression(extract_actual_parameter(k))?;
 
                         let mut blocks = vec![];
                         for it in params.iter() {
@@ -224,9 +224,8 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let actual_g = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"G"), 0));
-                    let actual_in0 = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN0"), 1));
-                    let actual_in1 = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN1"), 2));
+                    let ordered = order_arguments(params, &["G", "IN0", "IN1"]);
+                    let [actual_g, actual_in0, actual_in1] = [0, 1, 2].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     // evaluate the parameters
                     let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder)?;
@@ -716,8 +715,8 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let actual_in = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN"), 0));
-                    let actual_n = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"n"), 1));
+                    let ordered = order_arguments(params, &["IN", "n"]);
+                    let [actual_in, actual_n] = [0, 1].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     let left = generator.generate_expression(actual_in)?.into_int_value();
                     let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(actual_n, actual_in)?.into_int_value();
@@ -747,8 +746,8 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let actual_in = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN"), 0));
-                    let actual_n = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"n"), 1));
+                    let ordered = order_arguments(params, &["IN", "n"]);
+                    let [actual_in, actual_n] = [0, 1].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     let left = generator.generate_expression(actual_in)?.into_int_value();
                     let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(actual_n, actual_in)?.into_int_value();
@@ -827,6 +826,58 @@ fn validate_builtin_symbol_parameter_count(
     }
 }
 
+/// Orders the arguments of a builtin call into declaration order, such that `NE(IN2 := b, IN1 := a)`
+/// yields `[IN1 := a, IN2 := b]`. A named argument stays wrapped in its assignment, see
+/// `extract_actual_parameter` for its value.
+fn order_call_arguments<'a>(
+    parameters: &'a AstNode,
+    option_named_parameters: Option<&[&str]>,
+) -> Vec<&'a AstNode> {
+    let params = flatten_expression_list(parameters);
+    match option_named_parameters {
+        Some(named_parameters) => order_arguments(&params, named_parameters),
+        None => params,
+    }
+}
+
+/// Returns the name of the biggest type among the given argument values. This is the type the generic
+/// parameter of the builtin resolves to, and the type the operands of its replacement expression share.
+fn find_biggest_type_name(annotator: &TypeAnnotator, arguments: &[&AstNode]) -> String {
+    let mut bigger = annotator
+        .annotation_map
+        .get_type_or_void(arguments.first().expect("must have this parameter"), annotator.index);
+
+    for argument in arguments.iter().skip(1) {
+        let right_type = annotator.annotation_map.get_type_or_void(argument, annotator.index);
+        bigger = get_bigger_type(bigger, right_type, annotator.index);
+    }
+
+    bigger.get_name().to_owned()
+}
+
+/// Hints the value of every named argument with the type the generic parameter of the builtin resolves to.
+///
+/// The resolver hints the value of a named argument with the declared parameter type, which for a builtin
+/// is its unresolved generic `T`. A regular generic call replaces that hint with the derived type once its
+/// candidates are known (see `TypeAnnotator::update_generic_function_parameters`); the builtins annotated
+/// here bypass that step, thus do the same before the replacement expression is visited, which reads the
+/// hints of its operands. A positional argument carries no hint at this point and is left alone.
+fn hint_named_arguments(annotator: &mut TypeAnnotator, arguments: &[&AstNode], type_name: &str) {
+    for argument in arguments.iter().filter(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
+        hint_argument_value(annotator, extract_actual_parameter(argument), type_name);
+    }
+}
+
+/// Hints an argument value and every expression nested in its parentheses. A parenthesis inherits the hint
+/// of the expression it wraps, thus hinting only the outermost node would leave the inherited hint stale.
+fn hint_argument_value(annotator: &mut TypeAnnotator, value: &AstNode, type_name: &str) {
+    annotator.annotation_map.annotate_type_hint(value, StatementAnnotation::value(type_name));
+
+    if let AstStatement::ParenExpression(inner) = value.get_stmt() {
+        hint_argument_value(annotator, inner, type_name);
+    }
+}
+
 // creates nested BinaryExpressions for each parameter, such that
 // GT(a, b, c, d) ends up as (a > b) & (b > c) & (c > d)
 fn annotate_comparison_function(
@@ -839,20 +890,8 @@ fn annotate_comparison_function(
     option_named_parameters: Option<&[&str]>,
 ) {
     let mut ctx = ctx;
-    let params_flattened = if let Some(named_parameters) = option_named_parameters {
-        let params = flatten_expression_list(parameters);
-        let mut ordered_params: Vec<&AstNode> = Vec::new();
-
-        for (index, _) in params.iter().enumerate() {
-            let named_parameter = named_parameters.get(index);
-            let actual_parameter = extract_parameter_by_name_or_position(&params, named_parameter, index);
-            ordered_params.push(actual_parameter);
-        }
-
-        ordered_params
-    } else {
-        flatten_expression_list(parameters)
-    };
+    let params = order_call_arguments(parameters, option_named_parameters);
+    let params_flattened: Vec<&AstNode> = params.iter().map(|it| extract_actual_parameter(it)).collect();
 
     if params_flattened.iter().any(|it| {
         !annotator
@@ -864,6 +903,9 @@ fn annotate_comparison_function(
         annotator.annotate_arguments(operator, parameters, &ctx);
         return;
     }
+
+    let bigger_type = find_biggest_type_name(annotator, &params_flattened);
+    hint_named_arguments(annotator, &params, &bigger_type);
 
     let comparisons = params_flattened
         .windows(2)
@@ -905,43 +947,8 @@ fn annotate_arithmetic_function(
     operation: Operator,
     option_named_parameters: Option<&[&str]>,
 ) {
-    let (params, params_extracted) = if let Some(named_parameters) = option_named_parameters {
-        let params = flatten_expression_list(parameters);
-        let mut ordered_params: Vec<&AstNode> = Vec::new();
-
-        for (index, _) in params.iter().enumerate() {
-            let named_parameter = named_parameters.get(index);
-            let actual_parameter = extract_parameter_by_name_or_position(&params, named_parameter, index);
-            ordered_params.push(actual_parameter);
-        }
-
-        let params_extracted: Vec<_> =
-            ordered_params.iter().map(|param| extract_actual_parameter(param).clone()).collect();
-        (ordered_params, params_extracted)
-    } else {
-        (
-            flatten_expression_list(parameters),
-            flatten_expression_list(parameters)
-                .iter()
-                .map(|param| extract_actual_parameter(param).clone())
-                .collect(),
-        )
-    };
-
-    // Add type hints (only named arguments)
-    params
-        .iter()
-        .zip(&params_extracted)
-        .filter(|(it, _)| matches!(it.get_stmt(), AstStatement::Assignment(_)))
-        .for_each(|(_, extracted)| {
-            let param_type = annotator
-                .annotation_map
-                .get_type_or_void(extracted, annotator.index)
-                .get_type_information()
-                .get_name()
-                .to_owned();
-            annotator.annotation_map.annotate_type_hint(extracted, StatementAnnotation::value(param_type));
-        });
+    let params = order_call_arguments(parameters, option_named_parameters);
+    let params_extracted: Vec<&AstNode> = params.iter().map(|it| extract_actual_parameter(it)).collect();
 
     if params_extracted.iter().any(|param| {
         !annotator
@@ -955,26 +962,12 @@ fn annotate_arithmetic_function(
     }
 
     let mut ctx = ctx;
-    // find biggest type to later annotate it as type hint. this is done in a closure to avoid a borrow-checker tantrum later on due to
-    // mutable and immutable borrow of TypeAnnotator
-    let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
-        let mut bigger = annotator
-            .annotation_map
-            .get_type_or_void(params_extracted.first().expect("must have this parameter"), annotator.index);
-
-        for param in params_extracted.iter().skip(1) {
-            let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
-            bigger = get_bigger_type(bigger, right_type, annotator.index);
-        }
-
-        bigger.get_name().to_owned()
-    };
-
-    let bigger_type = find_biggest_param_type_name(annotator);
+    let bigger_type = find_biggest_type_name(annotator, &params_extracted);
+    hint_named_arguments(annotator, &params, &bigger_type);
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    let left = (*params_extracted.first().expect("Must exist")).clone();
+    let left = (**params_extracted.first().expect("Must exist")).clone();
     let new_statement = params_extracted.into_iter().skip(1).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
@@ -992,7 +985,7 @@ fn annotate_variable_length_array_bound_function(
     let Some(parameters) = parameters else {
         return;
     };
-    let params = ast::flatten_expression_list(parameters);
+    let params = order_arguments(&ast::flatten_expression_list(parameters), &["arr", "dim"]);
     let vla = params.first().expect("must exist; covered by validation");
     let vla_param = extract_actual_parameter(vla);
     // if the VLA parameter is a VLA struct, annotate it as such
@@ -1033,10 +1026,10 @@ fn validate_variable_length_array_bound_function(
         return;
     };
 
-    let params = ast::flatten_expression_list(parameters);
+    let params = order_arguments(&ast::flatten_expression_list(parameters), &["arr", "dim"]);
 
-    if let &[vla, dim] = params.as_slice() {
-        let [actual_vla, actual_idx] = [vla, dim].map(extract_actual_parameter);
+    if let [vla, dim] = params.as_slice() {
+        let [actual_vla, actual_idx] = [*vla, *dim].map(extract_actual_parameter);
 
         let idx_type = annotations.get_type_or_void(actual_idx, index);
 
@@ -1115,31 +1108,19 @@ fn validate_constant_parameters(
     }
 }
 
-/// Extracts a parameter from the list of parameters by either the name or expected position
-///
-/// Returns the extracted parameter
-fn extract_parameter_by_name_or_position<'a>(
-    params: &Vec<&'a AstNode>,
-    option_name: Option<&&'a str>,
-    expected_position: usize,
-) -> &'a AstNode {
-    if let Some(name) = option_name {
-        let param = params.iter().find(|param| {
-            let opt_identifier = param.get_assignment_identifier();
+/// Orders the arguments of a call into the order `declared_names` declares the parameters in, such that
+/// `SEL(IN1 := c, a, b)` yields `[a, b, IN1 := c]`; see `resolve_argument_slots` for the binding rule.
+/// A slot no argument binds to (a call with too few arguments, reported during validation) keeps the
+/// argument written at its position.
+fn order_arguments<'a>(params: &[&'a AstNode], declared_names: &[&str]) -> Vec<&'a AstNode> {
+    let slots = resolve_argument_slots(params, declared_names.iter().copied());
 
-            if let Some(identifier) = opt_identifier {
-                return identifier.to_lowercase() == name.to_lowercase();
-            }
-
-            false
-        });
-
-        if let Some(actual_param) = param {
-            return actual_param;
-        }
-    }
-
-    params[expected_position]
+    (0..params.len())
+        .map(|slot| match slots.iter().position(|it| *it == Some(slot)) {
+            Some(index) => params[index],
+            None => params[slot],
+        })
+        .collect()
 }
 
 /// Helper function to extract the actual parameter from Assignment nodes when dealing with named arguments
@@ -1166,8 +1147,8 @@ fn generate_variable_length_array_bound_function<'ink>(
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
 
-    if let &[vla, dim] = params {
-        let [actual_vla, actual_dim] = [vla, dim].map(extract_actual_parameter);
+    if let [vla, dim] = order_arguments(params, &["arr", "dim"]).as_slice() {
+        let [actual_vla, actual_dim] = [*vla, *dim].map(extract_actual_parameter);
 
         let data_type_information =
             generator.annotations.get_type_or_void(actual_vla, generator.index).get_type_information();
