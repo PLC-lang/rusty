@@ -1483,6 +1483,338 @@ fn lreal_to_ltime_conversion() {
     assert_eq!(93784005, res);
 }
 
+// integer, bit string, BOOL and REAL to time
+
+#[test]
+fn unsigned_to_time_conversion() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        b: u32,
+        byt: u32,
+        w: u32,
+        dw: u32,
+        us: u32,
+        ui: u32,
+        ud: u32,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        b, byt, w, dw, us, ui, ud : TIME;
+    END_VAR
+    VAR_TEMP
+        bIn  : BOOL  := TRUE;
+        byIn : BYTE  := 255;
+        wIn  : WORD  := 65535;
+        dwIn : DWORD := 4294967295;
+        usIn : USINT := 255;
+        uiIn : UINT  := 65535;
+        udIn : UDINT := 2147483648;
+    END_VAR
+        b  := BOOL_TO_TIME(bIn);
+        byt := BYTE_TO_TIME(byIn);
+        w  := WORD_TO_TIME(wIn);
+        dw := DWORD_TO_TIME(dwIn);
+        us := USINT_TO_TIME(usIn);
+        ui := UINT_TO_TIME(uiIn);
+        ud := UDINT_TO_TIME(udIn);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(1, maintype.b);
+    assert_eq!(255, maintype.byt);
+    assert_eq!(65535, maintype.w);
+    assert_eq!(4294967295, maintype.dw);
+    assert_eq!(255, maintype.us);
+    assert_eq!(65535, maintype.ui);
+    assert_eq!(2147483648, maintype.ud);
+}
+
+#[test]
+fn signed_to_time_conversion_wraps_negative_values() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        si_max: u32,
+        si_neg: u32,
+        si_min: u32,
+        i_neg: u32,
+        i_min: u32,
+        di_max: u32,
+        di_neg: u32,
+        di_min: u32,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        si_max, si_neg, si_min, i_neg, i_min, di_max, di_neg, di_min : TIME;
+    END_VAR
+    VAR_TEMP
+        siMax : SINT := 127;
+        siNeg : SINT := -1;
+        siMin : SINT := -128;
+        iNeg  : INT  := -1;
+        iMin  : INT  := -32768;
+        diMax : DINT := 2147483647;
+        diNeg : DINT := -1;
+        diMin : DINT := -2147483648;
+    END_VAR
+        si_max := SINT_TO_TIME(siMax);
+        si_neg := SINT_TO_TIME(siNeg);
+        si_min := SINT_TO_TIME(siMin);
+        i_neg  := INT_TO_TIME(iNeg);
+        i_min  := INT_TO_TIME(iMin);
+        di_max := DINT_TO_TIME(diMax);
+        di_neg := DINT_TO_TIME(diNeg);
+        di_min := DINT_TO_TIME(diMin);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(127, maintype.si_max);
+    assert_eq!(4294967295, maintype.si_neg);
+    assert_eq!(4294967168, maintype.si_min);
+    assert_eq!(4294967295, maintype.i_neg);
+    assert_eq!(4294934528, maintype.i_min);
+    assert_eq!(2147483647, maintype.di_max);
+    assert_eq!(4294967295, maintype.di_neg);
+    assert_eq!(2147483648, maintype.di_min);
+}
+
+#[test]
+fn real_to_time_conversion_rounds_and_wraps() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        half: u32,
+        two_and_half: u32,
+        neg_half: u32,
+        neg_thousand: u32,
+        below_max: u32,
+        overflow: u32,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        half, two_and_half, neg_half, neg_thousand, below_max, overflow : TIME;
+    END_VAR
+    VAR_TEMP
+        rHalf        : REAL := 0.5;
+        rTwoAndHalf  : REAL := 2.5;
+        rNegHalf     : REAL := -0.5;
+        rNegThousand : REAL := -1000.0;
+        rBelowMax    : REAL := 4294967040.0;
+        rOverflow    : REAL := 4294967296.0;
+    END_VAR
+        half         := REAL_TO_TIME(rHalf);
+        two_and_half := REAL_TO_TIME(rTwoAndHalf);
+        neg_half     := REAL_TO_TIME(rNegHalf);
+        neg_thousand := REAL_TO_TIME(rNegThousand);
+        below_max    := REAL_TO_TIME(rBelowMax);
+        overflow     := REAL_TO_TIME(rOverflow);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(1, maintype.half);
+    assert_eq!(3, maintype.two_and_half);
+    assert_eq!(4294967295, maintype.neg_half);
+    assert_eq!(4294966296, maintype.neg_thousand);
+    assert_eq!(4294967040, maintype.below_max);
+    assert_eq!(0, maintype.overflow);
+}
+
+#[test]
+fn unsigned_to_ltime_conversion() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        b: i64,
+        byt: i64,
+        w: i64,
+        dw: i64,
+        us: i64,
+        ui: i64,
+        ud: i64,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        b, byt, w, dw, us, ui, ud : LTIME;
+    END_VAR
+    VAR_TEMP
+        bIn  : BOOL  := TRUE;
+        byIn : BYTE  := 255;
+        wIn  : WORD  := 65535;
+        dwIn : DWORD := 4294967295;
+        usIn : USINT := 255;
+        uiIn : UINT  := 65535;
+        udIn : UDINT := 2147483648;
+    END_VAR
+        b  := BOOL_TO_LTIME(bIn);
+        byt := BYTE_TO_LTIME(byIn);
+        w  := WORD_TO_LTIME(wIn);
+        dw := DWORD_TO_LTIME(dwIn);
+        us := USINT_TO_LTIME(usIn);
+        ui := UINT_TO_LTIME(uiIn);
+        ud := UDINT_TO_LTIME(udIn);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(1, maintype.b);
+    assert_eq!(255, maintype.byt);
+    assert_eq!(65535, maintype.w);
+    assert_eq!(4294967295, maintype.dw);
+    assert_eq!(255, maintype.us);
+    assert_eq!(65535, maintype.ui);
+    assert_eq!(2147483648, maintype.ud);
+}
+
+#[test]
+fn signed_to_ltime_conversion_sign_extends() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        si_max: i64,
+        si_neg: i64,
+        si_min: i64,
+        i_neg: i64,
+        i_min: i64,
+        di_max: i64,
+        di_neg: i64,
+        di_min: i64,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        si_max, si_neg, si_min, i_neg, i_min, di_max, di_neg, di_min : LTIME;
+    END_VAR
+    VAR_TEMP
+        siMax : SINT := 127;
+        siNeg : SINT := -1;
+        siMin : SINT := -128;
+        iNeg  : INT  := -1;
+        iMin  : INT  := -32768;
+        diMax : DINT := 2147483647;
+        diNeg : DINT := -1;
+        diMin : DINT := -2147483648;
+    END_VAR
+        si_max := SINT_TO_LTIME(siMax);
+        si_neg := SINT_TO_LTIME(siNeg);
+        si_min := SINT_TO_LTIME(siMin);
+        i_neg  := INT_TO_LTIME(iNeg);
+        i_min  := INT_TO_LTIME(iMin);
+        di_max := DINT_TO_LTIME(diMax);
+        di_neg := DINT_TO_LTIME(diNeg);
+        di_min := DINT_TO_LTIME(diMin);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(127, maintype.si_max);
+    assert_eq!(-1, maintype.si_neg);
+    assert_eq!(-128, maintype.si_min);
+    assert_eq!(-1, maintype.i_neg);
+    assert_eq!(-32768, maintype.i_min);
+    assert_eq!(2147483647, maintype.di_max);
+    assert_eq!(-1, maintype.di_neg);
+    assert_eq!(-2147483648, maintype.di_min);
+}
+
+#[test]
+fn real_to_ltime_conversion_rounds_and_keeps_unsigned_range() {
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        half: i64,
+        two_and_half: i64,
+        neg_half: i64,
+        neg_thousand: i64,
+        ten_seconds: i64,
+        above_signed_max: i64,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        half, two_and_half, neg_half, neg_thousand, ten_seconds, above_signed_max : LTIME;
+    END_VAR
+    VAR_TEMP
+        rHalf           : REAL := 0.5;
+        rTwoAndHalf     : REAL := 2.5;
+        rNegHalf        : REAL := -0.5;
+        rNegThousand    : REAL := -1000.0;
+        rTenSeconds     : REAL := 1.0E10;
+        rAboveSignedMax : REAL := 1.8446743E19;
+    END_VAR
+        half             := REAL_TO_LTIME(rHalf);
+        two_and_half     := REAL_TO_LTIME(rTwoAndHalf);
+        neg_half         := REAL_TO_LTIME(rNegHalf);
+        neg_thousand     := REAL_TO_LTIME(rNegThousand);
+        ten_seconds      := REAL_TO_LTIME(rTenSeconds);
+        above_signed_max := REAL_TO_LTIME(rAboveSignedMax);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(1, maintype.half);
+    assert_eq!(3, maintype.two_and_half);
+    assert_eq!(-1, maintype.neg_half);
+    assert_eq!(-1000, maintype.neg_thousand);
+    assert_eq!(10000000000, maintype.ten_seconds);
+    assert_eq!(18446742974197923840_u64 as i64, maintype.above_signed_max);
+}
+
 #[test]
 fn lword_to_ldate_conversion() {
     let src = r#"
