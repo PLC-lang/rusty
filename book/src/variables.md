@@ -30,6 +30,8 @@ Initializers of variables are evaluated at compile time.
 Therefore they can only consist of literals, other constants or expressions consisting of a combination of them.
 Note that initializers must not contain recursive definitions.
 
+An initializer must have a type that can be assigned to the type of the variable. A mismatch such as `x : STRING := 3` or `a : DINT := TRUE` is reported as an invalid assignment at the declaration, exactly like the same assignment in a POU body. This also applies to every element of an array initializer.
+
 If a variable has no initializer, the variable may be initialized with it's datatype's default value or else with `0`.
 
 ### Array Initialization
