@@ -88,6 +88,17 @@ An integer and a real mix the same way, and the expression is then computed in t
 
 ## Calls in expressions
 
+`MOD`, `AND`, `OR`, and `XOR` also have function forms. `MOD(IN1, IN2)` takes exactly two numeric arguments and returns the type of `IN1`; named arguments such as `MOD(IN2 := 5, IN1 := 17)` are accepted. The remainder is computed with the usual numeric promotions, converted to the first argument's type, then converted again if its surrounding expression needs another type.
+
+`AND`, `OR`, and `XOR` take two or more positional arguments of type `BOOL` or a bit string type. Like their infix forms, they evaluate every argument. `NOT(value)` is the existing unary operator applied to a parenthesized expression.
+
+```iecst
+remainder := MOD(17, 5);                   (* 2 *)
+wide := MOD(SINT#17, LINT#5) + LINT#300;   (* 302 *)
+ready := AND(motorOn, doorClosed, enabled);
+masked := AND(BYTE#16#FF, WORD#16#0F);     (* WORD#16#0F *)
+```
+
 A function call is an expression, so it can appear anywhere a value can:
 
 ```iecst

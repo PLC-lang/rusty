@@ -12,8 +12,8 @@ use crate::{
         index_with_ids,
     },
     typesystem::{
-        DataTypeInformation, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,
-        WSTRING_TYPE,
+        DataTypeInformation, BOOL_TYPE, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE,
+        STRING_TYPE, WSTRING_TYPE,
     },
 };
 
@@ -710,6 +710,68 @@ fn generic_call_with_mixed_positional_and_named_args_resolves_to_biggest_type() 
         panic!("Expected call statement")
     };
     assert_eq!(Some("myFunc__LREAL"), annotations.get_call_name(operator));
+}
+
+#[test]
+fn mux_mixed_call_resolves_generic_from_variadic_arguments() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+    FUNCTION main
+    VAR
+        x : DINT;
+        y : DINT;
+    END_VAR
+        MUX(K := 0, x, y);
+    END_FUNCTION",
+        id_provider.clone(),
+    );
+
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
+    let call = &unit.implementations[0].statements[0];
+    assert_type_and_hint!(&annotations, &index, call, DINT_TYPE, None);
+
+    // the variadic arguments are hinted with the resolved generic type
+    let AstNode {
+        stmt: AstStatement::CallStatement(CallStatement { parameters: Some(parameters), .. }), ..
+    } = call
+    else {
+        panic!("Expected call statement")
+    };
+    let arguments = flatten_expression_list(parameters);
+    assert_type_and_hint!(&annotations, &index, arguments[1], DINT_TYPE, Some(DINT_TYPE));
+    assert_type_and_hint!(&annotations, &index, arguments[2], DINT_TYPE, Some(DINT_TYPE));
+}
+
+#[test]
+fn sel_mixed_call_binds_positional_arguments_to_the_slots_named_arguments_leave_free() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+    FUNCTION main
+    VAR
+        r0 : REAL;
+        r1 : REAL;
+    END_VAR
+        SEL(IN1 := r1, FALSE, r0);
+    END_FUNCTION",
+        id_provider.clone(),
+    );
+
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
+    let call = &unit.implementations[0].statements[0];
+    assert_type_and_hint!(&annotations, &index, call, REAL_TYPE, None);
+
+    // FALSE binds to the selector G and keeps its BOOL hint, r0 binds to IN0
+    let AstNode {
+        stmt: AstStatement::CallStatement(CallStatement { parameters: Some(parameters), .. }), ..
+    } = call
+    else {
+        panic!("Expected call statement")
+    };
+    let arguments = flatten_expression_list(parameters);
+    assert_type_and_hint!(&annotations, &index, arguments[1], BOOL_TYPE, Some(BOOL_TYPE));
+    assert_type_and_hint!(&annotations, &index, arguments[2], REAL_TYPE, Some(REAL_TYPE));
 }
 
 #[test]
