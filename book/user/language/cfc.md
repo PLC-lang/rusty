@@ -71,6 +71,8 @@ When `EN` is false, the call does not run, and the outputs of the block keep the
 
 An output element can carry a storage mode, which you set in the tool. Without one, the output writes the value on its wire every time it runs. With `Set`, the wire is a condition instead: when it is true, the variable becomes `TRUE`, and when it is false, nothing is written and the variable keeps its value. `Reset` writes `FALSE` under the same condition. Two outputs on one variable, one with each mode, build a latch.
 
+Both modes store a `BOOL`, so the variable of such an output must be a `BOOL`. A numeric variable behind a `Set` or `Reset` output is rejected with the same error that `count := TRUE` gets in text, reported at the output element. The [basic types](basic-types.md#bool) chapter explains why a `BOOL` is not a number.
+
 `Reference` writes no value at all. The output becomes a [reference](pointers.md#references) that is bound to the variable on its wire, so a later read of the output sees the value that variable holds at that time. A negation bubble on such an output is rejected.
 
 
