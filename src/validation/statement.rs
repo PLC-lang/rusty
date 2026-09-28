@@ -816,7 +816,8 @@ fn function_block_called_without_instance<T: AnnotationMap>(
     let StatementAnnotation::Type { type_name } = context.annotations.get(operator)? else {
         return None;
     };
-    if !context.index.find_pou(type_name).is_some_and(|pou| pou.is_function_block()) {
+    let effective_type = context.index.find_effective_type_by_name(type_name)?;
+    if !context.index.find_pou(effective_type.get_name()).is_some_and(|pou| pou.is_function_block()) {
         return None;
     }
 
@@ -2248,9 +2249,18 @@ fn validate_call<T: AnnotationMap>(
         // The name resolved to a FUNCTION_BLOCK type, not to a callable instance.
         if let Some(diagnostic) = function_block_called_without_instance(context, fn_ident) {
             validator.push_diagnostic(diagnostic);
-        }
-        // POU could not be found, we can still partially validate the passed parameters
-        if let Some(s) = fn_args.as_ref() {
+            // Without a callable instance the formal names have no binding. Still check
+            // the caller's expressions, including output targets and nested calls.
+            for argument in fn_args.map(flatten_expression_list).unwrap_or_default() {
+                let expression = match argument.get_stmt() {
+                    AstStatement::Assignment(Assignment { right, .. })
+                    | AstStatement::OutputAssignment(Assignment { right, .. }) => right.as_ref(),
+                    _ => argument,
+                };
+                visit_statement(validator, expression, context);
+            }
+        } else if let Some(s) = fn_args.as_ref() {
+            // POU could not be found, we can still partially validate the passed parameters
             visit_statement(validator, s, context);
         }
         return;

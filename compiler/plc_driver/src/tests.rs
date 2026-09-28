@@ -17,6 +17,7 @@ use crate::{
 
 mod debug_paths;
 mod external_files;
+mod function_block_calls;
 mod header_generator;
 mod multi_files;
 
