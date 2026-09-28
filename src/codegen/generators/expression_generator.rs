@@ -15,8 +15,8 @@ use rustc_hash::FxHashSet;
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
-        ReferenceAccess, ReferenceExpr,
+        flatten_expression_list, resolve_argument_slots, Assignment, AstFactory, AstNode, AstStatement,
+        DirectAccessType, Operator, ReferenceAccess, ReferenceExpr,
     },
     literals::AstLiteral,
     try_from,
@@ -1188,57 +1188,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut variadic_parameters = Vec::new();
         let mut passed_param_indices = Vec::new();
 
-        // Mixed-call resolution: named args claim their slots first, then positional args
-        // fill the remaining slots in declaration order. **This rule must match
-        // `TypeAnnotator::annotate_arguments_mixed` in the resolver** — the resolver uses it
-        // for type hinting, we use it here to compute the LLVM argument index.
-        //
-        // Why duplicated? The function-call codegen path threads args through
-        // `get_implicit_call_parameter`, which was designed for pure-positional / pure-named
-        // calls and expects the caller to pre-compute the slot. FB/PROGRAM calls use the
-        // resolver's `Argument` hint directly and don't need this.
-        let is_mixed = arguments.iter().any(|a| a.is_assignment() || a.is_output_assignment())
-            && arguments.iter().any(|a| !a.is_assignment() && !a.is_output_assignment());
-        let named_positions: Vec<usize> = if is_mixed {
-            arguments
-                .iter()
-                .filter_map(|arg| match arg.get_stmt() {
-                    AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
-                        let name = data.left.get_flat_reference_name()?;
-                        declared_parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))
-                    }
-                    _ => None,
-                })
-                .collect()
-        } else {
-            vec![]
-        };
-        let positional_positions: Vec<usize> =
-            (0..declared_parameters.len()).filter(|i| !named_positions.contains(i)).collect();
-        let mut positional_cursor = 0usize;
+        // Named args claim their slots first, then positional args fill the remaining slots in
+        // declaration order, see `resolve_argument_slots`. The slot is the LLVM argument index; a
+        // surplus positional arg binds to no slot and is collected as a variadic below. FB/PROGRAM
+        // calls use the resolver's `Argument` hint directly and don't need this.
+        let slots = resolve_argument_slots(arguments, declared_parameters.iter().map(|it| it.get_name()));
 
-        for (arg_idx, orig_argument) in arguments.iter().enumerate() {
-            // For mixed calls, positional args are remapped to the next free slot; named args
-            // and all args in pure calls keep their natural call index.
-            //
-            // The `unwrap_or(arg_idx)` fallback fires for variadic overflow: surplus args past
-            // the declared params carry their call index through to be collected as variadics
-            // below (where `declared_parameters.get(i) == None` → push to `variadic_parameters`).
-            let effective_idx =
-                if is_mixed && !orig_argument.is_assignment() && !orig_argument.is_output_assignment() {
-                    let idx = positional_positions.get(positional_cursor).copied().unwrap_or(arg_idx);
-                    positional_cursor += 1;
-                    idx
-                } else {
-                    arg_idx
-                };
-            let (i, argument, _) =
-                get_implicit_call_parameter(orig_argument, &declared_parameters, effective_idx)?;
+        for (orig_argument, slot) in arguments.iter().zip(slots) {
+            let (slot, argument, _) = get_implicit_call_parameter(orig_argument, slot)?;
             let argument_is_reference_to = self.is_member_reference_to_reference_to(argument);
 
             // parameter_info includes the declaration type and type name
-            let parameter_info = declared_parameters
-                .get(i)
+            let parameter_info = slot
+                .and_then(|slot| declared_parameters.get(slot))
                 .map(|it| {
                     let name = it.get_type_name();
                     let parameter_is_reference_to = self
@@ -1277,7 +1239,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 })?;
 
-            if let Some((declaration_type, type_name, parameter_is_reference_to)) = parameter_info {
+            if let (Some(i), Some((declaration_type, type_name, parameter_is_reference_to))) =
+                (slot, parameter_info)
+            {
                 // REFERENCE TO parameters always receive an address: the address of a plain
                 // variable argument, or the target address of a reference argument.
                 let argument: BasicValueEnum = if declaration_type.is_by_ref()
@@ -1298,9 +1262,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 };
                 result.push((i, argument));
+                passed_param_indices.push(i);
             }
-
-            passed_param_indices.push(i);
         }
 
         // handle missing parameters, generate empty expression
@@ -3554,18 +3517,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 }
 
-/// Returns the information required to call a parameter implicitly in a function
-/// If the parameter is already implicit, it does nothing.
-/// if the parameter is explicit ´param := value´,
-/// it returns the location of the parameter in the function declaration
-/// as well as the parameter value (right side) ´param := value´ => ´value´
-/// and `true` for implicit / `false` for explicit parameters
-pub fn get_implicit_call_parameter<'a>(
-    argument: &'a AstNode,
-    parameters: &[&VariableIndexEntry],
-    idx: usize,
-) -> Result<(usize, &'a AstNode, bool), CodegenError> {
-    let (location, rhs_assignment_value, is_implicit) = match argument.get_stmt() {
+/// Splits a call argument into the slot of the declared parameter it binds to, its value and whether it
+/// is positional (implicit). `slot` is the one `resolve_argument_slots` derived for the argument; a
+/// named argument that names no declared parameter is an error.
+pub fn get_implicit_call_parameter(
+    argument: &AstNode,
+    slot: Option<usize>,
+) -> Result<(Option<usize>, &AstNode, bool), CodegenError> {
+    match argument.get_stmt() {
         // Explicit
         AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
             let Some(left_name) = data.left.as_ref().get_flat_reference_name() else {
@@ -3578,19 +3537,13 @@ pub fn get_implicit_call_parameter<'a>(
                 );
             };
 
-            let loc = parameters
-                .iter()
-                .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
-                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.as_ref()))?;
-
-            (loc, data.right.as_ref(), false)
+            let slot = slot.ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.as_ref()))?;
+            Ok((Some(slot), data.right.as_ref(), false))
         }
 
         // Implicit
-        _ => (idx, argument, true),
-    };
-
-    Ok((location, rhs_assignment_value, is_implicit))
+        _ => Ok((slot, argument, true)),
+    }
 }
 
 /// turns the given IntValue into an i1 by comparing it to 0 (of the same size)

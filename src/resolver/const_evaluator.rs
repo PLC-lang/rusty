@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     index::{
         const_expressions::{ConstExpression, ConstId, InitData, UnresolvableKind},
-        Index,
+        Index, VariableIndexEntry,
     },
     typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
@@ -484,11 +484,7 @@ fn evaluate_with_target_hint(
         }
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
             if let Some(name) = reference.get_flat_reference_name() {
-                index
-                    .find_variable(
-                        base.as_ref().and_then(|it| it.get_flat_reference_name()).or(scope),
-                        std::slice::from_ref(&name),
-                    )
+                find_member_variable(base.as_deref(), name, scope, index)
                     .map(|variable| resolve_const_reference(variable, name, index, target_type, scope, lhs))
                     .transpose()?
                     .flatten()
@@ -696,11 +692,45 @@ fn restore_element_parens(raw: &AstNode, folded: AstNode) -> AstNode {
     folded
 }
 
+/// Finds the variable `name`, accessed through the optional `base`. The base is either a POU or type
+/// name (`fb.x`) or a chain of instance members (`__parent.x`, which is how `SUPER^.x` is lowered).
+/// Only constants are resolved through an instance chain.
+fn find_member_variable<'idx>(
+    base: Option<&AstNode>,
+    name: &str,
+    scope: Option<&str>,
+    index: &'idx Index,
+) -> Option<&'idx VariableIndexEntry> {
+    let qualifier = base.and_then(|it| it.get_flat_reference_name()).or(scope);
+    index.find_variable(qualifier, &[name]).or_else(|| {
+        let mut segments = get_member_segments(base?)?;
+        segments.push(name);
+        index.find_variable(scope, &segments).filter(|it| it.is_constant())
+    })
+}
+
+/// Returns the names of a member chain such as `__grandparent.__parent`, or `None` if the chain
+/// contains anything other than plain member accesses.
+fn get_member_segments(node: &AstNode) -> Option<Vec<&str>> {
+    let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) =
+        node.get_stmt()
+    else {
+        return None;
+    };
+
+    let mut segments = match base {
+        Some(base) => get_member_segments(base)?,
+        None => vec![],
+    };
+    segments.push(member.get_flat_reference_name()?);
+    Some(segments)
+}
+
 /// attempts to resolve the inital value of this reference's target
 /// may return Ok(None) if the variable's initial value can not be
 /// resolved yet
 fn resolve_const_reference(
-    variable: &crate::index::VariableIndexEntry,
+    variable: &VariableIndexEntry,
     name: &str,
     index: &Index,
     target_type: Option<&str>,
