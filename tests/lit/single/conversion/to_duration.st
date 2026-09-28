@@ -15,8 +15,10 @@ FUNCTION main : DINT
     printf('%s$N', REF(TIME_TO_STRING(SINT_TO_TIME(127))));                 // CHECK-NEXT: T#127ms
     printf('%s$N', REF(TIME_TO_STRING(SINT_TO_TIME(-1))));                  // CHECK-NEXT: T#49d17h2m47s295ms
     printf('%s$N', REF(TIME_TO_STRING(SINT_TO_TIME(-128))));                // CHECK-NEXT: T#49d17h2m47s168ms
+    printf('%s$N', REF(TIME_TO_STRING(INT_TO_TIME(-1))));                   // CHECK-NEXT: T#49d17h2m47s295ms
     printf('%s$N', REF(TIME_TO_STRING(INT_TO_TIME(-32768))));               // CHECK-NEXT: T#49d17h2m14s528ms
     printf('%s$N', REF(TIME_TO_STRING(DINT_TO_TIME(2147483647))));          // CHECK-NEXT: T#24d20h31m23s647ms
+    printf('%s$N', REF(TIME_TO_STRING(DINT_TO_TIME(-1))));                  // CHECK-NEXT: T#49d17h2m47s295ms
     printf('%s$N', REF(TIME_TO_STRING(DINT_TO_TIME(-2147483648))));         // CHECK-NEXT: T#24d20h31m23s648ms
 
     // reals round half away from zero, then wrap
@@ -49,8 +51,10 @@ FUNCTION main : DINT
     printf('%s$N', REF(LTIME_TO_STRING(SINT_TO_LTIME(127))));               // CHECK-NEXT: LTIME#127ns
     printf('%s$N', REF(LTIME_TO_STRING(SINT_TO_LTIME(-1))));                // CHECK-NEXT: LTIME#213503d23h34m33s709ms551us615ns
     printf('%s$N', REF(LTIME_TO_STRING(SINT_TO_LTIME(-128))));              // CHECK-NEXT: LTIME#213503d23h34m33s709ms551us488ns
+    printf('%s$N', REF(LTIME_TO_STRING(INT_TO_LTIME(-1))));                 // CHECK-NEXT: LTIME#213503d23h34m33s709ms551us615ns
     printf('%s$N', REF(LTIME_TO_STRING(INT_TO_LTIME(-32768))));             // CHECK-NEXT: LTIME#213503d23h34m33s709ms518us848ns
     printf('%s$N', REF(LTIME_TO_STRING(DINT_TO_LTIME(2147483647))));        // CHECK-NEXT: LTIME#2s147ms483us647ns
+    printf('%s$N', REF(LTIME_TO_STRING(DINT_TO_LTIME(-1))));                // CHECK-NEXT: LTIME#213503d23h34m33s709ms551us615ns
     printf('%s$N', REF(LTIME_TO_STRING(DINT_TO_LTIME(-2147483648))));       // CHECK-NEXT: LTIME#213503d23h34m31s562ms67us968ns
 
     // reals round half away from zero, then wrap, keeping the range above LINT max
