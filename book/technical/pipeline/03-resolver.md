@@ -182,7 +182,7 @@ Visualized:
 
 The named argument `factor := sintVar` has no annotation of its own, only the hint that ties it to parameter 1; its two sides are annotated like any assignment.
 
-For a function block call, the operator is a variable of the block's type. Arguments match that block's parameters, and the call has no result type. Built-ins such as `REF`, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that a binary expression replaces then drop the argument hints again; see [Annotated AST](../internals/08-annotated-ast.md#argument).
+For a function block call, the operator is a variable of the block's type. Arguments match that block's parameters, and the call has no result type. Built-ins such as `REF`, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that an operator expression replaces then drop the argument hints again; see [Annotated AST](../internals/08-annotated-ast.md#argument).
 
 
 ## Literals and generated types

@@ -656,3 +656,10 @@ fn get_and_set_can_be_used_as_method_parameters_and_named_arguments() {
     let (_, diagnostics) = parse(source);
     assert_eq!(diagnostics, vec![]);
 }
+
+#[test]
+fn function_named_by_an_operator_keyword_is_rejected() {
+    let (_, diagnostics) = parse_buffered("FUNCTION AND : BOOL END_FUNCTION");
+
+    assert!(diagnostics.contains("Unexpected token: expected Identifier but found AND"), "{diagnostics}");
+}

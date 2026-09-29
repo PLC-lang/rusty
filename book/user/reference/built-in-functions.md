@@ -43,6 +43,7 @@ The parameter names in the second column are the names a call can use.
 | `MUL(...)` | Two or more `ANY_NUM` | The biggest argument type | The product |
 | `SUB(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type | `IN1 - IN2` |
 | `DIV(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type | `IN1 / IN2` |
+| `MOD(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type | `IN1 MOD IN2` |
 
 ### Comparison
 
@@ -57,12 +58,38 @@ The parameter names in the second column are the names a call can use.
 
 A call with more than two arguments compares each neighbouring pair and combines the results with `AND`, so `GT(a, b, c)` is `(a > b) AND (b > c)`.
 
+### Bitwise
+
+| Call | Parameters | Result | Gives |
+|---|---|---|---|
+| `AND(...)` | Two or more `ANY_BIT` or `ANY_INT` | The biggest argument type | The arguments combined with `AND` |
+| `OR(...)` | Two or more `ANY_BIT` or `ANY_INT` | The biggest argument type | The arguments combined with `OR` |
+| `XOR(...)` | Two or more `ANY_BIT` or `ANY_INT` | The biggest argument type | The arguments combined with `XOR` |
+| `NOT(IN)` | `IN: ANY_BIT` or `ANY_INT` | The type of `IN` | `NOT IN` |
+
+For a `BOOL` the result is the logical one, for any other type it is bit by bit, the same as the operator of the same name.
+
 ### Bit shifts
 
 | Call | Parameters | Result | Gives |
 |---|---|---|---|
 | `SHL(IN, n)` | `IN: ANY`, `n: UDINT` | The type of `IN` | `IN` shifted left by `n` bits |
 | `SHR(IN, n)` | `IN: ANY`, `n: UDINT` | The type of `IN` | `IN` shifted right by `n` bits |
+
+
+## Names that are also operators
+
+`AND`, `OR`, `XOR`, `MOD`, and `NOT` are operator keywords as well as function names. A keyword directly followed by `(`, where no operand stands before it, is the function:
+
+```iecst
+flag := AND(a, b, c);   (* the function, the same as a AND b AND c *)
+flag := a AND (b);      (* the operator, `a` stands before it *)
+rest := MOD(IN1 := total, IN2 := size);
+```
+
+`NOT(x)` with one positional argument stays the operator applied to `(x)`, with the same result. With a named argument, as in `NOT(IN := x)`, or with more than one argument, it is the function.
+
+Because they are keywords, these names are not available for a function of your own. `FUNCTION AND` is rejected with E007.
 
 
 ## Calling by name
@@ -88,7 +115,7 @@ This is the rule for every call, not only for a built-in. `plc explain E132` des
 
 ## A variadic parameter has no name
 
-`ADD`, `MUL`, `GT`, `GE`, `EQ`, `LE`, and `LT` take all of their arguments through one variadic parameter, and `MUX` takes everything after `K` through one. A variadic parameter has no name to call it by, so these arguments are positional:
+`ADD`, `MUL`, `AND`, `OR`, `XOR`, `GT`, `GE`, `EQ`, `LE`, and `LT` take all of their arguments through one variadic parameter, and `MUX` takes everything after `K` through one. A variadic parameter has no name to call it by, so these arguments are positional:
 
 ```iecst
 sum := ADD(a, b, c);          (* correct *)
@@ -109,9 +136,9 @@ The [standard library](standard-library.md) overloads `ADD` and `MUL` with a nam
 
 ## How many arguments
 
-`ADD`, `MUL`, `GT`, `GE`, `EQ`, `LE`, and `LT` are extensible: they take two arguments or more.
+`ADD`, `MUL`, `AND`, `OR`, `XOR`, `GT`, `GE`, `EQ`, `LE`, and `LT` are extensible: they take two arguments or more.
 
-`SUB`, `DIV`, and `NE` take exactly two, which is the one place where `NE` behaves unlike the other five comparisons:
+`SUB`, `DIV`, `MOD`, and `NE` take exactly two, which is the one place where `NE` behaves unlike the other five comparisons:
 
 ```
 error[E032]: this POU takes 2 arguments but 3 arguments were supplied

@@ -306,7 +306,7 @@ Argument {
 
 `Argument` is used only as a hint. It connects each argument to a parameter. A positional argument carries the hint on its expression; a named argument carries it on the assignment node.
 
-The built-ins that a binary expression replaces are the exception. `ADD`, `MUL`, `SUB`, `DIV`, and the comparisons build that expression from the argument values, so the declared parameter is gone by the time codegen runs. Their annotation function therefore orders the arguments, unwraps every named one to its value, and drops the hint the resolver put on it. A positional argument of such a call carries no hint at that point either, so both forms then take their hint from the binary expression, the same way an operand of a written-out `a - b` does. `src/builtins.rs` holds the rule.
+The built-ins that an operator expression replaces are the exception. `ADD`, `MUL`, `SUB`, `DIV`, `MOD`, `AND`, `OR`, `XOR`, `NOT`, and the comparisons build that expression from the argument values, so the declared parameter is gone by the time codegen runs. Their annotation function therefore orders the arguments, unwraps every named one to its value, and drops the hint the resolver put on it. A positional argument of such a call carries no hint at that point either, so both forms then take their hint from the binary expression, the same way an operand of a written-out `a - b` does. `src/builtins.rs` holds the rule.
 
 ```
     counter(limit := 3, step := 2, count => i);
@@ -349,7 +349,7 @@ ReplacementAst {
 }
 ```
 
-`ReplacementAst` attaches a replacement expression without changing the original node. String equality becomes a `STRING_EQUAL` call. Other string comparisons combine `_EQUAL`, `_LESS`, and `_GREATER` calls with `NOT` and `OR`. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: `ADD(a, b, c)` becomes `(a + b) + c`, and `GT(a, b, c)` becomes `(a > b) AND (b > c)`. The replacement has its own annotations.
+`ReplacementAst` attaches a replacement expression without changing the original node. String equality becomes a `STRING_EQUAL` call. Other string comparisons combine `_EQUAL`, `_LESS`, and `_GREATER` calls with `NOT` and `OR`. A call to an arithmetic, bitwise, or comparison built-in becomes an operator expression over its arguments: `ADD(a, b, c)` becomes `(a + b) + c`, `GT(a, b, c)` becomes `(a > b) AND (b > c)`, and `NOT(IN := a)` becomes `NOT a`. The replacement has its own annotations.
 
 ```
     same := text = 'hello';

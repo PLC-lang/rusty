@@ -365,7 +365,7 @@ Each element renders on its own. A whole network is a set of them, and the wires
 
 ## Rendering
 
-With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. Every statement carries a location of a kind that only this participant creates: the `globalId` of the element instead of a line and column. A diagnostic on such a node is printed as `file.cfc: Block 6` without a source snippet. The temporaries go into one additional `VAR` block, and the statement list replaces the empty body the parse step left.
+With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. The name of a callee goes through the expression parser like every other name, except for a built-in named by an operator keyword, such as `AND` or `MOD`: the keyword alone is no expression, so the transpiler builds the reference to the callee itself. Every statement carries a location of a kind that only this participant creates: the `globalId` of the element instead of a line and column. A diagnostic on such a node is printed as `file.cfc: Block 6` without a source snippet. The temporaries go into one additional `VAR` block, and the statement list replaces the empty body the parse step left.
 
 
 ## Generic temporaries
