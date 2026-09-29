@@ -6,7 +6,6 @@
 
 <a href="https://github.com/PLC-lang/ruSTy/actions/workflows/linux.yml"><img src="https://github.com/PLC-lang/rusty/actions/workflows/linux.yml/badge.svg"/></a>
 <a href="https://github.com/PLC-lang/ruSTy/actions/workflows/windows.yml"><img src="https://github.com/PLC-lang/rusty/actions/workflows/windows.yml/badge.svg"/></a>
-<a href="https://plc-lang.github.io/metrics"><img src="https://github.com/PLC-lang/rusty/actions/workflows/metrics.yml/badge.svg"/></a>
 <a href="https://codecov.io/gh/PLC-lang/rusty"><img src="https://codecov.io/gh/PLC-lang/rusty/branch/master/graph/badge.svg?token=7ZZ5XZYE9V"/></a>
 <a href="https://github.com/XAMPPRocky/tokei"><img src="https://tokei.rs/b1/github/PLC-lang/rusty"/></a>
 
