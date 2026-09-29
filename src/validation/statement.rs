@@ -996,9 +996,9 @@ fn validate_binary_expression<T: AnnotationMap>(
         validate_date_time_arithmetic(
             validator,
             context.index,
-            left_data_type,
+            context.annotations.get_declared_type(left, context.index).unwrap_or(left_data_type),
             operator,
-            right_data_type,
+            context.annotations.get_declared_type(right, context.index).unwrap_or(right_data_type),
             &statement.get_location(),
         );
         return;
@@ -2609,10 +2609,21 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
         lhs_is_signed_int: bool,
         is_builtin_call: bool,
     ) -> FxHashMap<&'b DataType, Vec<SourceLocation>> {
+        // arithmetic on date and time operands is carried out by a function, its result is the value
+        let carried_out_by_function = |left: &AstNode, operator: &Operator, right: &AstNode| {
+            let left_type = context.annotations.get_type_or_void(left, context.index);
+            let right_type = context.annotations.get_type_or_void(right, context.index);
+            operator.is_arithmetic_operator()
+                && matches!(
+                    get_date_time_arithmetic(context.index, left_type, operator, right_type),
+                    Some(DateTimeArithmetic::Call { .. })
+                )
+        };
+
         let mut map: FxHashMap<&DataType, Vec<SourceLocation>> = FxHashMap::default();
         match expression.get_stmt_peeled() {
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
-                if !operator.is_comparison_operator() =>
+                if !operator.is_comparison_operator() && !carried_out_by_function(left, operator, right) =>
             {
                 get_expression_types_and_locations(left, context, lhs_is_signed_int, false)
                     .into_iter()

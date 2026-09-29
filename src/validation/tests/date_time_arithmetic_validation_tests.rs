@@ -1,35 +1,8 @@
-use crate::test_utils::tests::parse_and_validate_buffered;
+use crate::test_utils::tests::{parse_and_validate_buffered, DATE_TIME_ARITHMETIC_FUNCTIONS};
 use insta::assert_snapshot;
 
-// The standard library functions the operators are carried out by, declared without bodies
-const STANDARD_FUNCTIONS: &str = r#"
-    FUNCTION ADD_TIME : TIME VAR_INPUT IN1 : TIME; IN2 : TIME; END_VAR END_FUNCTION
-    FUNCTION ADD_TOD_TIME : TOD VAR_INPUT IN1 : TOD; IN2 : TIME; END_VAR END_FUNCTION
-    FUNCTION ADD_DT_TIME : DT VAR_INPUT IN1 : DT; IN2 : TIME; END_VAR END_FUNCTION
-    FUNCTION SUB_TIME : TIME VAR_INPUT IN1 : TIME; IN2 : TIME; END_VAR END_FUNCTION
-    FUNCTION SUB_DATE_DATE : TIME VAR_INPUT IN1 : DATE; IN2 : DATE; END_VAR END_FUNCTION
-    FUNCTION SUB_TOD_TIME : TOD VAR_INPUT IN1 : TOD; IN2 : TIME; END_VAR END_FUNCTION
-    FUNCTION SUB_TOD_TOD : TIME VAR_INPUT IN1 : TOD; IN2 : TOD; END_VAR END_FUNCTION
-    FUNCTION SUB_DT_TIME : DT VAR_INPUT IN1 : DT; IN2 : TIME; END_VAR END_FUNCTION
-    FUNCTION SUB_DT_DT : TIME VAR_INPUT IN1 : DT; IN2 : DT; END_VAR END_FUNCTION
-    FUNCTION MUL_TIME<T: ANY_NUM> : TIME VAR_INPUT IN1 : TIME; IN2 : T; END_VAR END_FUNCTION
-    FUNCTION DIV_TIME<T: ANY_NUM> : TIME VAR_INPUT IN1 : TIME; IN2 : T; END_VAR END_FUNCTION
-
-    FUNCTION ADD_LTIME : LTIME VAR_INPUT IN1 : LTIME; IN2 : LTIME; END_VAR END_FUNCTION
-    FUNCTION ADD_LTOD_LTIME : LTOD VAR_INPUT IN1 : LTOD; IN2 : LTIME; END_VAR END_FUNCTION
-    FUNCTION ADD_LDT_LTIME : LDT VAR_INPUT IN1 : LDT; IN2 : LTIME; END_VAR END_FUNCTION
-    FUNCTION SUB_LTIME : LTIME VAR_INPUT IN1 : LTIME; IN2 : LTIME; END_VAR END_FUNCTION
-    FUNCTION SUB_LDATE_LDATE : LTIME VAR_INPUT IN1 : LDATE; IN2 : LDATE; END_VAR END_FUNCTION
-    FUNCTION SUB_LTOD_LTIME : LTOD VAR_INPUT IN1 : LTOD; IN2 : LTIME; END_VAR END_FUNCTION
-    FUNCTION SUB_LTOD_LTOD : LTIME VAR_INPUT IN1 : LTOD; IN2 : LTOD; END_VAR END_FUNCTION
-    FUNCTION SUB_LDT_LTIME : LDT VAR_INPUT IN1 : LDT; IN2 : LTIME; END_VAR END_FUNCTION
-    FUNCTION SUB_LDT_LDT : LTIME VAR_INPUT IN1 : LDT; IN2 : LDT; END_VAR END_FUNCTION
-    FUNCTION MUL_LTIME<T: ANY_NUM> : LTIME VAR_INPUT IN1 : LTIME; IN2 : T; END_VAR END_FUNCTION
-    FUNCTION DIV_LTIME<T: ANY_NUM> : LTIME VAR_INPUT IN1 : LTIME; IN2 : T; END_VAR END_FUNCTION
-"#;
-
 fn validate_with_standard_functions(body: &str) -> String {
-    parse_and_validate_buffered(&format!("{STANDARD_FUNCTIONS}{body}"))
+    parse_and_validate_buffered(&format!("{DATE_TIME_ARITHMETIC_FUNCTIONS}{body}"))
 }
 
 #[test]
@@ -109,25 +82,7 @@ fn duration_scaled_by_a_number_passes() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @"
-    warning[E067]: Implicit downcast from 'LREAL' to 'TIME'.
-       ┌─ <internal>:35:22
-       │
-    35 │             t := t * r;
-       │                      ^ Implicit downcast from 'LREAL' to 'TIME'.
-
-    warning[E067]: Implicit downcast from 'REAL' to 'TIME'.
-       ┌─ <internal>:37:22
-       │
-    37 │             t := t / 2.5;
-       │                      ^^^ Implicit downcast from 'REAL' to 'TIME'.
-
-    warning[E067]: Implicit downcast from 'LREAL' to 'LTIME'.
-       ┌─ <internal>:39:19
-       │
-    39 │             lt := r * lt;
-       │                   ^ Implicit downcast from 'LREAL' to 'LTIME'.
-    ");
+    assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -157,58 +112,58 @@ fn undefined_combinations_report_e156() {
     );
 
     assert_snapshot!(diagnostics, @"
-    error[E156]: Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`
-       ┌─ <internal>:36:19
+    warning[E156]: Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`, the next version rejects it
+       ┌─ <internal>:25:19
        │
-    36 │             dt := dt + dt;
-       │                   ^^^^^^^ Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`
+    25 │             dt := dt + dt;
+       │                   ^^^^^^^ Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`, the next version rejects it
 
-    error[E156]: Operator `+` is not defined for `DATE` and `TIME`
-       ┌─ <internal>:37:18
+    warning[E156]: Operator `+` is not defined for `DATE` and `TIME`, the next version rejects it
+       ┌─ <internal>:26:18
        │
-    37 │             d := d + t;
-       │                  ^^^^^ Operator `+` is not defined for `DATE` and `TIME`
+    26 │             d := d + t;
+       │                  ^^^^^ Operator `+` is not defined for `DATE` and `TIME`, the next version rejects it
 
-    error[E156]: Operator `*` is not defined for `TIME` and `TIME`
-       ┌─ <internal>:38:18
+    warning[E156]: Operator `*` is not defined for `TIME` and `TIME`, the next version rejects it
+       ┌─ <internal>:27:18
        │
-    38 │             t := t * t;
-       │                  ^^^^^ Operator `*` is not defined for `TIME` and `TIME`
+    27 │             t := t * t;
+       │                  ^^^^^ Operator `*` is not defined for `TIME` and `TIME`, the next version rejects it
 
-    error[E156]: Operator `/` is not defined for `DINT` and `TIME`
-       ┌─ <internal>:39:18
+    warning[E156]: Operator `/` is not defined for `DINT` and `TIME`, the next version rejects it
+       ┌─ <internal>:28:18
        │
-    39 │             t := n / t;
-       │                  ^^^^^ Operator `/` is not defined for `DINT` and `TIME`
+    28 │             t := n / t;
+       │                  ^^^^^ Operator `/` is not defined for `DINT` and `TIME`, the next version rejects it
 
-    error[E156]: Operator `-` is not defined for `DINT` and `TIME`
-       ┌─ <internal>:40:18
+    warning[E156]: Operator `-` is not defined for `DINT` and `TIME`, the next version rejects it
+       ┌─ <internal>:29:18
        │
-    40 │             t := n - t;
-       │                  ^^^^^ Operator `-` is not defined for `DINT` and `TIME`
+    29 │             t := n - t;
+       │                  ^^^^^ Operator `-` is not defined for `DINT` and `TIME`, the next version rejects it
 
-    error[E156]: Operator `+` is not defined for `TIME_OF_DAY` and `DINT`
-       ┌─ <internal>:41:20
+    warning[E156]: Operator `+` is not defined for `TIME_OF_DAY` and `DINT`, the next version rejects it
+       ┌─ <internal>:30:20
        │
-    41 │             tod := tod + n;
-       │                    ^^^^^^^ Operator `+` is not defined for `TIME_OF_DAY` and `DINT`
+    30 │             tod := tod + n;
+       │                    ^^^^^^^ Operator `+` is not defined for `TIME_OF_DAY` and `DINT`, the next version rejects it
 
-    error[E156]: Operator `+` is not defined for `TIME` and `LTIME`
-       ┌─ <internal>:42:19
+    warning[E156]: Operator `+` mixes `TIME` and `LTIME`, the next version, where the short types are 32-bit, rejects it
+       ┌─ <internal>:31:19
        │
-    42 │             lt := t + lt;
-       │                   ^^^^^^ Operator `+` is not defined for `TIME` and `LTIME`
+    31 │             lt := t + lt;
+       │                   ^^^^^^ Operator `+` mixes `TIME` and `LTIME`, the next version, where the short types are 32-bit, rejects it
 
-    error[E156]: Operator `+` is not defined for `TIME` and `STRING`
-       ┌─ <internal>:43:18
+    warning[E156]: Operator `+` is not defined for `TIME` and `STRING`, the next version rejects it
+       ┌─ <internal>:32:18
        │
-    43 │             t := t + s;
-       │                  ^^^^^ Operator `+` is not defined for `TIME` and `STRING`
+    32 │             t := t + s;
+       │                  ^^^^^ Operator `+` is not defined for `TIME` and `STRING`, the next version rejects it
 
     error[E031]: Invalid expression, types TIME and STRING are incompatible in the given context
-       ┌─ <internal>:43:18
+       ┌─ <internal>:32:18
        │
-    43 │             t := t + s;
+    32 │             t := t + s;
        │                  ^^^^^ Invalid expression, types TIME and STRING are incompatible in the given context
     ");
 }
@@ -220,26 +175,26 @@ fn missing_standard_functions_report_e073() {
         FUNCTION main : DINT
         VAR
             t : TIME;
-            dt : DT;
+            tod : TOD;
         END_VAR
-            dt := dt + t;
-            t := t * 2;
+            tod := tod + t;
+            t := t * 2.5;
         END_FUNCTION
         "#,
     );
 
     assert_snapshot!(diagnostics, @"
-    error[E073]: Missing function `ADD_DT_TIME` for `DATE_AND_TIME + TIME`
-      ┌─ <internal>:7:19
+    error[E073]: Missing function `ADD_TOD_TIME` for `TIME_OF_DAY + TIME`
+      ┌─ <internal>:7:20
       │
-    7 │             dt := dt + t;
-      │                   ^^^^^^ Missing function `ADD_DT_TIME` for `DATE_AND_TIME + TIME`
+    7 │             tod := tod + t;
+      │                    ^^^^^^^ Missing function `ADD_TOD_TIME` for `TIME_OF_DAY + TIME`
 
-    error[E073]: Missing function `MUL_TIME` for `TIME * DINT`
+    error[E073]: Missing function `MUL_TIME__REAL` for `TIME * REAL`
       ┌─ <internal>:8:18
       │
-    8 │             t := t * 2;
-      │                  ^^^^^ Missing function `MUL_TIME` for `TIME * DINT`
+    8 │             t := t * 2.5;
+      │                  ^^^^^^^ Missing function `MUL_TIME__REAL` for `TIME * REAL`
     ");
 }
 
@@ -262,28 +217,28 @@ fn bare_integer_with_a_duration_reports_e157() {
     );
 
     assert_snapshot!(diagnostics, @"
-    warning[E157]: The integer operand of `+` has no unit and is read as milliseconds of `TIME`
-       ┌─ <internal>:32:18
+    warning[E157]: The integer operand of `+` has no unit and is read as nanoseconds of `TIME`
+       ┌─ <internal>:21:18
        │
-    32 │             t := t + 5;
-       │                  ^^^^^ The integer operand of `+` has no unit and is read as milliseconds of `TIME`
+    21 │             t := t + 5;
+       │                  ^^^^^ The integer operand of `+` has no unit and is read as nanoseconds of `TIME`
 
-    warning[E157]: The integer operand of `-` has no unit and is read as milliseconds of `TIME`
-       ┌─ <internal>:33:18
+    warning[E157]: The integer operand of `-` has no unit and is read as nanoseconds of `TIME`
+       ┌─ <internal>:22:18
        │
-    33 │             t := t - n;
-       │                  ^^^^^ The integer operand of `-` has no unit and is read as milliseconds of `TIME`
+    22 │             t := t - n;
+       │                  ^^^^^ The integer operand of `-` has no unit and is read as nanoseconds of `TIME`
 
-    warning[E157]: The integer operand of `+` has no unit and is read as milliseconds of `TIME`
-       ┌─ <internal>:34:18
+    warning[E157]: The integer operand of `+` has no unit and is read as nanoseconds of `TIME`
+       ┌─ <internal>:23:18
        │
-    34 │             t := 5 + t;
-       │                  ^^^^^ The integer operand of `+` has no unit and is read as milliseconds of `TIME`
+    23 │             t := 5 + t;
+       │                  ^^^^^ The integer operand of `+` has no unit and is read as nanoseconds of `TIME`
 
     warning[E157]: The integer operand of `+` has no unit and is read as nanoseconds of `LTIME`
-       ┌─ <internal>:35:19
+       ┌─ <internal>:24:19
        │
-    35 │             lt := lt + 5;
+    24 │             lt := lt + 5;
        │                   ^^^^^^ The integer operand of `+` has no unit and is read as nanoseconds of `LTIME`
     ");
 }

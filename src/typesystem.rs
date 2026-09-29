@@ -1626,9 +1626,8 @@ impl DateTimeArithmetic {
     /// Whether a short type meets a long one, which the next version rejects
     pub fn mixed_families(&self) -> bool {
         match self {
-            DateTimeArithmetic::Call { mixed_families, .. } | DateTimeArithmetic::Plain { mixed_families, .. } => {
-                *mixed_families
-            }
+            DateTimeArithmetic::Call { mixed_families, .. }
+            | DateTimeArithmetic::Plain { mixed_families, .. } => *mixed_families,
         }
     }
 }
@@ -1671,6 +1670,18 @@ fn is_long_family(name: &str) -> bool {
     matches!(name, LONG_TIME_TYPE | LONG_TIME_OF_DAY_TYPE | LONG_DATE_TYPE | LONG_DATE_AND_TIME_TYPE)
 }
 
+/// The name that decides the family of a date or time operand. The long types are aliases of the
+/// short ones, so the declared name is consulted before the intrinsic type.
+fn family_name<'a>(index: &'a Index, data_type: &'a DataType) -> &'a str {
+    match data_type.get_name() {
+        LONG_TIME_TYPE | LONG_TIME_TYPE_SHORTENED => LONG_TIME_TYPE,
+        LONG_TIME_OF_DAY_TYPE | LONG_TIME_OF_DAY_TYPE_SHORTENED => LONG_TIME_OF_DAY_TYPE,
+        LONG_DATE_TYPE | LONG_DATE_TYPE_SHORTENED => LONG_DATE_TYPE,
+        LONG_DATE_AND_TIME_TYPE | LONG_DATE_AND_TIME_TYPE_SHORTENED => LONG_DATE_AND_TIME_TYPE,
+        _ => index.get_intrinsic_type_by_name(data_type.get_name()).get_name(),
+    }
+}
+
 /// Looks up how `left <operator> right` is carried out when at least one operand is a date or
 /// time type. Returns `None` for a combination the standard does not define. The family of the
 /// result follows the left date or time operand.
@@ -1680,12 +1691,12 @@ pub fn get_date_time_arithmetic(
     operator: &Operator,
     right: &DataType,
 ) -> Option<DateTimeArithmetic> {
-    let left_name = index.get_intrinsic_type_by_name(left.get_name()).get_name();
-    let right_name = index.get_intrinsic_type_by_name(right.get_name()).get_name();
+    let (left_name, right_name) = (family_name(index, left), family_name(index, right));
     let (left_short, right_short) = (short_family(left_name), short_family(right_name));
     let long = if left_short.is_some() { is_long_family(left_name) } else { is_long_family(right_name) };
-    let mixed_families =
-        left_short.is_some() && right_short.is_some() && is_long_family(left_name) != is_long_family(right_name);
+    let mixed_families = left_short.is_some()
+        && right_short.is_some()
+        && is_long_family(left_name) != is_long_family(right_name);
     let typed = |short: &'static str| if long { long_family(short) } else { short };
 
     // the additions and subtractions; a time of day wraps at midnight, which only the function does
@@ -1714,11 +1725,12 @@ pub fn get_date_time_arithmetic(
     // a duration scaled by a number: an integer factor is the plain product or quotient, a real
     // factor calls the implementation for its width
     let is_duration = |short: Option<&str>| short == Some(TIME_TYPE);
-    let real_kind = |number: &DataType| match index.get_intrinsic_type_information(number.get_type_information()) {
-        DataTypeInformation::Float { size: 32, .. } => Some("REAL"),
-        DataTypeInformation::Float { .. } => Some("LREAL"),
-        _ => None,
-    };
+    let real_kind =
+        |number: &DataType| match index.get_intrinsic_type_information(number.get_type_information()) {
+            DataTypeInformation::Float { size: 32, .. } => Some("REAL"),
+            DataTypeInformation::Float { .. } => Some("LREAL"),
+            _ => None,
+        };
     let scaled = |prefix: &str, kind: Option<&str>, swap_operands: bool| {
         Some(match kind {
             Some(kind) => DateTimeArithmetic::Call {
@@ -1727,7 +1739,11 @@ pub fn get_date_time_arithmetic(
                 swap_operands,
                 mixed_families: false,
             },
-            None => DateTimeArithmetic::Plain { result_type: typed(TIME_TYPE), bare_number: false, mixed_families: false },
+            None => DateTimeArithmetic::Plain {
+                result_type: typed(TIME_TYPE),
+                bare_number: false,
+                mixed_families: false,
+            },
         })
     };
     let left_is_number = left.has_nature(TypeNature::Num, index);
@@ -1747,7 +1763,11 @@ pub fn get_date_time_arithmetic(
 
     // a duration and an integer without a unit
     let bare_number = || {
-        Some(DateTimeArithmetic::Plain { result_type: typed(TIME_TYPE), bare_number: true, mixed_families: false })
+        Some(DateTimeArithmetic::Plain {
+            result_type: typed(TIME_TYPE),
+            bare_number: true,
+            mixed_families: false,
+        })
     };
     let left_is_int = left.has_nature(TypeNature::Int, index);
     let right_is_int = right.has_nature(TypeNature::Int, index);
