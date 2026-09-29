@@ -404,7 +404,8 @@ entry:
 
 For an object file, LLVM runs its optimization passes at the chosen `-O` level and emits machine code for the target triple; the output format and the `--fpic` and `--fno-pic` flags decide whether the code is position-independent. IR and bitcode are written as they are, without optimization. With `-g`, a debug builder runs next to the generators and attaches DWARF debug information: one entry per POU, one per member and local variable, and a source location per statement.
 
-Even at `-Onone`, the backend can interleave the instructions of neighbouring statements, so the line table can jump between lines. When all bodies of a module are generated, the debug builder marks one key instruction per statement with LLVM's Key Instructions metadata. A statement is a run of instructions at one line within a basic block, and its key is its last side effect (a store, a call, or a branch). LLVM then sets `is_stmt` only on key instructions, so a debugger stops once per statement, in source order. Every other instruction keeps its line, so disassembly and crash addresses still map to the right statement.
+> [!NOTE]
+> `-Onone` is not free of optimization: the backend still runs at level `Less`, for example for stack coloring, and can interleave the instructions of neighbouring statements. So that a debugger still stops once per statement, in source order, the debug builder marks the last side effect of each statement (a store, a call, or a branch) with LLVM's Key Instructions metadata, and LLVM sets `is_stmt` only there.
 
 
 ## Where it lives
