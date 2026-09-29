@@ -329,7 +329,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             AstStatement::UnaryExpression(data) => {
                 self.generate_unary_expression(&data.operator, &data.value).map(ExpressionValue::RValue)
             }
-            AstStatement::ParenExpression(expr) => self.generate_expression_value(expr),
+            // Parentheses are transparent, but the wrapped call may have been lowered to a
+            // ReplacementAst. Generating the inner node directly would skip that lowering.
+            AstStatement::ParenExpression(expr) => match self.annotations.get(expr) {
+                Some(StatementAnnotation::ReplacementAst { .. }) => {
+                    self.generate_expression(expr).map(ExpressionValue::RValue)
+                }
+                _ => self.generate_expression_value(expr),
+            },
             //fallback
             _ => self.generate_literal(expression),
         }

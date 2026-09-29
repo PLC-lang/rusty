@@ -2,6 +2,18 @@ use crate::correctness::math_operators::addition::approx_equal;
 use driver::runner::compile_and_run_no_params;
 
 #[test]
+fn parenthesized_builtin_add_executes() {
+    let prog = r#"
+    FUNCTION main : DINT
+        main := (ADD(1, 2, 3)) + ((ADD(10, 5)));
+    END_FUNCTION
+    "#;
+
+    let res: i32 = compile_and_run_no_params(prog.to_string());
+    assert_eq!(res, 21);
+}
+
+#[test]
 fn builtin_add_with_ints() {
     let prog = r#"
     FUNCTION main : LINT
