@@ -572,3 +572,233 @@ fn function_input_arguments_are_optional() {
 
     assert_snapshot!(diagnostics, @"");
 }
+
+#[test]
+fn function_block_type_alias_calls_require_instances() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+END_FUNCTION_BLOCK
+TYPE FbAlias : MyFb; END_TYPE
+TYPE SecondAlias : FbAlias; END_TYPE
+FUNCTION main : DINT
+    FbAlias();
+    SecondAlias();
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E156]: `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
+      ┌─ <internal>:6:5
+      │
+    6 │     FbAlias();
+      │     ^^^^^^^ `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
+
+    error[E156]: `SecondAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
+      ┌─ <internal>:7:5
+      │
+    7 │     SecondAlias();
+      │     ^^^^^^^^^^^ `SecondAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    ");
+}
+
+#[test]
+fn function_block_type_named_call_reports_only_missing_instance() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+    VAR_INPUT x : DINT; END_VAR
+    VAR_OUTPUT y : DINT; END_VAR
+    VAR_IN_OUT z : DINT; END_VAR
+END_FUNCTION_BLOCK
+FUNCTION main : DINT
+    VAR value : DINT; END_VAR
+    MyFb(x := 1, y => value, z := value);
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E156]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+      ┌─ <internal>:8:5
+      │
+    8 │     MyFb(x := 1, y => value, z := value);
+      │     ^^^^ `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    ");
+}
+
+#[test]
+fn function_block_type_call_preserves_positional_argument_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+    VAR_INPUT x : DINT; END_VAR
+    VAR_OUTPUT y : DINT; END_VAR
+END_FUNCTION_BLOCK
+FUNCTION main : DINT
+    MyFb(unknown);
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E156]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+      ┌─ <internal>:6:5
+      │
+    6 │     MyFb(unknown);
+      │     ^^^^ `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+
+    error[E048]: Could not resolve reference to unknown
+      ┌─ <internal>:6:10
+      │
+    6 │     MyFb(unknown);
+      │          ^^^^^^^ Could not resolve reference to unknown
+    ");
+}
+
+#[test]
+fn function_block_type_call_preserves_named_input_argument_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+    VAR_INPUT x : DINT; END_VAR
+    VAR_OUTPUT y : DINT; END_VAR
+END_FUNCTION_BLOCK
+FUNCTION main : DINT
+    MyFb(x := unknown);
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E156]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+      ┌─ <internal>:6:5
+      │
+    6 │     MyFb(x := unknown);
+      │     ^^^^ `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+
+    error[E048]: Could not resolve reference to unknown
+      ┌─ <internal>:6:15
+      │
+    6 │     MyFb(x := unknown);
+      │               ^^^^^^^ Could not resolve reference to unknown
+    ");
+}
+
+#[test]
+fn function_block_type_call_preserves_named_output_argument_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+    VAR_INPUT x : DINT; END_VAR
+    VAR_OUTPUT y : DINT; END_VAR
+END_FUNCTION_BLOCK
+FUNCTION main : DINT
+    MyFb(y => unknown);
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E156]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+      ┌─ <internal>:6:5
+      │
+    6 │     MyFb(y => unknown);
+      │     ^^^^ `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+
+    error[E048]: Could not resolve reference to unknown
+      ┌─ <internal>:6:15
+      │
+    6 │     MyFb(y => unknown);
+      │               ^^^^^^^ Could not resolve reference to unknown
+    ");
+}
+
+#[test]
+fn nested_function_block_type_calls_are_each_reported_once() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+    VAR_INPUT x : DINT; END_VAR
+END_FUNCTION_BLOCK
+TYPE FbAlias : MyFb; END_TYPE
+FUNCTION main : DINT
+    FbAlias(x := MyFb(x := 1));
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E156]: `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
+      ┌─ <internal>:6:5
+      │
+    6 │     FbAlias(x := MyFb(x := 1));
+      │     ^^^^^^^ `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
+
+    error[E156]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+      ┌─ <internal>:6:18
+      │
+    6 │     FbAlias(x := MyFb(x := 1));
+      │                  ^^^^ `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    ");
+}
+
+#[test]
+fn aliased_and_qualified_function_block_instances_are_callable() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+    VAR_INPUT x : DINT; END_VAR
+END_FUNCTION_BLOCK
+TYPE FbAlias : MyFb; END_TYPE
+TYPE SecondAlias : FbAlias; END_TYPE
+PROGRAM holder
+    VAR_INPUT inst : SecondAlias; END_VAR
+END_PROGRAM
+FUNCTION main : DINT
+    VAR inst : FbAlias; END_VAR
+    inst(x := 1);
+    holder.inst(x := 2);
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn global_non_function_block_variable_shadows_function_block_type() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+END_FUNCTION_BLOCK
+VAR_GLOBAL MyFb : DINT; END_VAR
+FUNCTION main : DINT
+    MyFb();
+    .MyFb();
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn global_function_block_instance_shadows_function_block_type() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+END_FUNCTION_BLOCK
+VAR_GLOBAL MyFb : MyFb; END_VAR
+FUNCTION main : DINT
+    MyFb();
+    .MyFb();
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn global_operator_does_not_resolve_function_block_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "FUNCTION_BLOCK MyFb
+END_FUNCTION_BLOCK
+FUNCTION main : DINT
+    main := 0;
+    .MyFb();
+END_FUNCTION",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E048]: Could not resolve reference to MyFb
+      ┌─ <internal>:5:6
+      │
+    5 │     .MyFb();
+      │      ^^^^ Could not resolve reference to MyFb
+    ");
+}

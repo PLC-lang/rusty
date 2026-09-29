@@ -6,7 +6,6 @@ mod builtin_validation_tests;
 mod conditional_validation_tests;
 mod duplicates_validation_test;
 mod enum_validation_test;
-mod function_block_call_tests;
 mod generic_validation_tests;
 mod interface_validation_tests;
 mod literals_validation_tests;
