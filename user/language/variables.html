@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-cf13a60a.js";
+            window.path_to_searchindex_js = "../../searchindex-7eb41e14.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-61717f7e.js"></script>
@@ -237,6 +237,15 @@ END_PROGRAM
     SIZE: INT := MAX_LEN - MIN_LEN;
 END_VAR
 </code></pre>
+<p>An initial value follows the same rules as an assignment in the body. Its type must fit the type of the variable, and a value that does not fit is rejected at the declaration, with the error that the same assignment gets in the body. A narrowing warns in the same way. The rule holds for every declaration, also for a member of a struct and for every element of an array list:</p>
+<pre><code class="language-iecst">VAR
+    name: STRING := 3;                          (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING' *)
+    count: DINT := TRUE;                        (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
+    half: INT := 1.5;                           (* warning[E067]: Implicit downcast from 'REAL' to 'INT'. *)
+    levels: ARRAY[0..1] OF REAL := [1, TRUE];   (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'REAL' *)
+END_VAR
+</code></pre>
+<p>The <a href="basic-types.html#conversion-between-types">basic types</a> chapter lists which conversions are silent, which warn, and which are rejected.</p>
 <p>A variable without an initial value is not undefined. It gets the initial value of its type if the type has one, and zero otherwise: <code>0</code> for numbers, <code>FALSE</code> for <code>BOOL</code>, the empty string for text, and the same rule for every element of an array and every member of a struct.</p>
 <p>An array takes a list, a struct takes its members by name:</p>
 <pre><code class="language-iecst">VAR

@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-cf13a60a.js";
+            window.path_to_searchindex_js = "../../searchindex-7eb41e14.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-61717f7e.js"></script>
@@ -217,6 +217,21 @@ i5: DINT := 1_000_000;
 <pre><code class="language-iecst">IF level THEN        (* accepted, with a warning *)
 IF level &lt;&gt; 0 THEN   (* the same test, and it says so *)
 </code></pre>
+<p><code>BOOL</code> is not a number. A <code>TRUE</code> or <code>FALSE</code>, the result of a comparison, or one bit of a bit string cannot be stored in an integer, a real, or a bit string. The compiler rejects the assignment, and the standard library converts when you need a <code>0</code> or a <code>1</code>:</p>
+<pre><code class="language-iecst">VAR
+    ready: BOOL;
+    count: DINT;
+END_VAR
+
+count := ready;                 (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
+count := BOOL_TO_DINT(ready);   (* 1 when ready is TRUE, 0 otherwise *)
+</code></pre>
+<p>The other direction takes the digits <code>0</code> and <code>1</code>, which are the two <code>BOOL</code> values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning. Like every downcast it keeps the low bits of the value, so it does not test “is not zero”. Write the comparison when that is what you mean:</p>
+<pre><code class="language-iecst">ready := 1;             (* TRUE *)
+ready := 5;             (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL' *)
+ready := count;         (* warning[E067]: Implicit downcast from 'DINT' to 'BOOL'. *)
+ready := count &lt;&gt; 0;    (* the test, and it says so *)
+</code></pre>
 <h2 id="bit-strings"><a class="header" href="#bit-strings">Bit strings</a></h2>
 <p>Four types that mean “a sequence of bits”, not “a number”:</p>
 <div class="table-wrapper">
@@ -283,7 +298,9 @@ n := TRUNC_DINT(r);     (* 2, the fraction is cut off *)
 <p>A type name with <code>#</code> in front of a value states the type of that value. On a literal it decides how the literal is read, and on a variable it converts:</p>
 <pre><code class="language-iecst">x := DINT#16#2A;    (* the literal 16#2A, as a DINT *)
 y := DINT#small;    (* small, converted to DINT *)
+z := DINT#TRUE;     (* error[E054]: Literal true is not compatible to DINT *)
 </code></pre>
+<p>The literal must be a value of the type in front of it: <code>DINT#1.5</code> and <code>DINT#TRUE</code> are rejected, because neither a real nor a <code>BOOL</code> is a <code>DINT</code>.</p>
 <h2 id="whats-next"><a class="header" href="#whats-next">What’s next</a></h2>
 <p>The next chapter is about <a href="text.html">text</a>: the two string types, their length, and what you can do with them.</p>
 

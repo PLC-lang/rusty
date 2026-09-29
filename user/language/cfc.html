@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-cf13a60a.js";
+            window.path_to_searchindex_js = "../../searchindex-7eb41e14.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-61717f7e.js"></script>
@@ -229,6 +229,7 @@
 <p>When <code>EN</code> is false, the call does not run, and the outputs of the block keep the values they had.</p>
 <h2 id="storage-modes"><a class="header" href="#storage-modes">Storage modes</a></h2>
 <p>An output element can carry a storage mode, which you set in the tool. Without one, the output writes the value on its wire every time it runs. With <code>Set</code>, the wire is a condition instead: when it is true, the variable becomes <code>TRUE</code>, and when it is false, nothing is written and the variable keeps its value. <code>Reset</code> writes <code>FALSE</code> under the same condition. Two outputs on one variable, one with each mode, build a latch.</p>
+<p>Both modes store a <code>BOOL</code>, so the variable of such an output must be a <code>BOOL</code>. A numeric variable behind a <code>Set</code> or <code>Reset</code> output is rejected with the same error that <code>count := TRUE</code> gets in text, reported at the output element. The <a href="basic-types.html#bool">basic types</a> chapter explains why a <code>BOOL</code> is not a number.</p>
 <p><code>Reference</code> writes no value at all. The output becomes a <a href="pointers.html#references">reference</a> that is bound to the variable on its wire, so a later read of the output sees the value that variable holds at that time. A negation bubble on such an output is rejected.</p>
 <h2 id="what-the-compiler-reports"><a class="header" href="#what-the-compiler-reports">What the compiler reports</a></h2>
 <p>The compiler checks the drawing before it turns the network into statements. A chart has no lines and columns, so a diagnostic names the element instead:</p>

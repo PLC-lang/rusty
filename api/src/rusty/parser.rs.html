@@ -1169,17 +1169,17 @@
 <a href=#1169 id=1169 data-nosnippet>1169</a>    is_function: bool,
 <a href=#1170 id=1170 data-nosnippet>1170</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
 <a href=#1171 id=1171 data-nosnippet>1171</a>    parse_data_type_definition(lexer, <span class="prelude-val">None</span>).map(|(decl, initializer)| {
-<a href=#1172 id=1172 data-nosnippet>1172</a>        (
-<a href=#1173 id=1173 data-nosnippet>1173</a>            DataTypeDeclaration::Definition {
-<a href=#1174 id=1174 data-nosnippet>1174</a>                data_type: Box::new(DataType::PointerType {
-<a href=#1175 id=1175 data-nosnippet>1175</a>                    name,
-<a href=#1176 id=1176 data-nosnippet>1176</a>                    referenced_type: Box::new(decl),
-<a href=#1177 id=1177 data-nosnippet>1177</a>                    auto_deref,
-<a href=#1178 id=1178 data-nosnippet>1178</a>                    type_safe,
-<a href=#1179 id=1179 data-nosnippet>1179</a>                    is_function,
-<a href=#1180 id=1180 data-nosnippet>1180</a>                }),
-<a href=#1181 id=1181 data-nosnippet>1181</a>                <span class="comment">// FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
-<a href=#1182 id=1182 data-nosnippet>1182</a>                </span>location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
+<a href=#1172 id=1172 data-nosnippet>1172</a>        <span class="kw">let </span>end = decl.get_location().to_range().map_or(lexer.last_range.end, |range| range.end);
+<a href=#1173 id=1173 data-nosnippet>1173</a>        (
+<a href=#1174 id=1174 data-nosnippet>1174</a>            DataTypeDeclaration::Definition {
+<a href=#1175 id=1175 data-nosnippet>1175</a>                data_type: Box::new(DataType::PointerType {
+<a href=#1176 id=1176 data-nosnippet>1176</a>                    name,
+<a href=#1177 id=1177 data-nosnippet>1177</a>                    referenced_type: Box::new(decl),
+<a href=#1178 id=1178 data-nosnippet>1178</a>                    auto_deref,
+<a href=#1179 id=1179 data-nosnippet>1179</a>                    type_safe,
+<a href=#1180 id=1180 data-nosnippet>1180</a>                    is_function,
+<a href=#1181 id=1181 data-nosnippet>1181</a>                }),
+<a href=#1182 id=1182 data-nosnippet>1182</a>                location: lexer.source_range_factory.create_range(start_pos..end),
 <a href=#1183 id=1183 data-nosnippet>1183</a>                scope: lexer.scope.clone(),
 <a href=#1184 id=1184 data-nosnippet>1184</a>            },
 <a href=#1185 id=1185 data-nosnippet>1185</a>            initializer,

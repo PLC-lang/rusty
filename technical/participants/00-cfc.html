@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-cf13a60a.js";
+            window.path_to_searchindex_js = "../../searchindex-7eb41e14.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-61717f7e.js"></script>
@@ -309,7 +309,7 @@ baz := foo;
 </code></pre>
 <pre><code class="language-iecst">IF a THEN b := TRUE; END_IF
 </code></pre>
-<p><code>Reset</code> mode is the counterpart and stores <code>FALSE</code> under the same guard. <code>Reference</code> mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:</p>
+<p><code>Reset</code> mode is the counterpart and stores <code>FALSE</code> under the same guard. The rendered assignment is validated like any other, so a sink with either mode on a variable that is not a <code>BOOL</code> is an invalid assignment (E037), reported at the sink. <code>Reference</code> mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:</p>
 <pre><code>a --&gt; [b |REF] (0)
 </code></pre>
 <pre><code class="language-iecst">b REF= a;

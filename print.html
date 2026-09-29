@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-cf13a60a.js";
+            window.path_to_searchindex_js = "searchindex-7eb41e14.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-61717f7e.js"></script>
@@ -524,6 +524,15 @@ END_PROGRAM
     SIZE: INT := MAX_LEN - MIN_LEN;
 END_VAR
 </code></pre>
+<p>An initial value follows the same rules as an assignment in the body. Its type must fit the type of the variable, and a value that does not fit is rejected at the declaration, with the error that the same assignment gets in the body. A narrowing warns in the same way. The rule holds for every declaration, also for a member of a struct and for every element of an array list:</p>
+<pre><code class="language-iecst">VAR
+    name: STRING := 3;                          (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING' *)
+    count: DINT := TRUE;                        (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
+    half: INT := 1.5;                           (* warning[E067]: Implicit downcast from 'REAL' to 'INT'. *)
+    levels: ARRAY[0..1] OF REAL := [1, TRUE];   (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'REAL' *)
+END_VAR
+</code></pre>
+<p>The <a href="#conversion-between-types">basic types</a> chapter lists which conversions are silent, which warn, and which are rejected.</p>
 <p>A variable without an initial value is not undefined. It gets the initial value of its type if the type has one, and zero otherwise: <code>0</code> for numbers, <code>FALSE</code> for <code>BOOL</code>, the empty string for text, and the same rule for every element of an array and every member of a struct.</p>
 <p>An array takes a list, a struct takes its members by name:</p>
 <pre><code class="language-iecst">VAR
@@ -571,6 +580,21 @@ i5: DINT := 1_000_000;
 <p>An integer in a condition is accepted and counts as true when it is not zero. The compiler warns and asks you to add an <code>=</code> or a <code>&lt;&gt;</code> operator, so that the test says what it means:</p>
 <pre><code class="language-iecst">IF level THEN        (* accepted, with a warning *)
 IF level &lt;&gt; 0 THEN   (* the same test, and it says so *)
+</code></pre>
+<p><code>BOOL</code> is not a number. A <code>TRUE</code> or <code>FALSE</code>, the result of a comparison, or one bit of a bit string cannot be stored in an integer, a real, or a bit string. The compiler rejects the assignment, and the standard library converts when you need a <code>0</code> or a <code>1</code>:</p>
+<pre><code class="language-iecst">VAR
+    ready: BOOL;
+    count: DINT;
+END_VAR
+
+count := ready;                 (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
+count := BOOL_TO_DINT(ready);   (* 1 when ready is TRUE, 0 otherwise *)
+</code></pre>
+<p>The other direction takes the digits <code>0</code> and <code>1</code>, which are the two <code>BOOL</code> values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning. Like every downcast it keeps the low bits of the value, so it does not test “is not zero”. Write the comparison when that is what you mean:</p>
+<pre><code class="language-iecst">ready := 1;             (* TRUE *)
+ready := 5;             (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL' *)
+ready := count;         (* warning[E067]: Implicit downcast from 'DINT' to 'BOOL'. *)
+ready := count &lt;&gt; 0;    (* the test, and it says so *)
 </code></pre>
 <h2 id="bit-strings"><a class="header" href="#bit-strings">Bit strings</a></h2>
 <p>Four types that mean “a sequence of bits”, not “a number”:</p>
@@ -638,7 +662,9 @@ n := TRUNC_DINT(r);     (* 2, the fraction is cut off *)
 <p>A type name with <code>#</code> in front of a value states the type of that value. On a literal it decides how the literal is read, and on a variable it converts:</p>
 <pre><code class="language-iecst">x := DINT#16#2A;    (* the literal 16#2A, as a DINT *)
 y := DINT#small;    (* small, converted to DINT *)
+z := DINT#TRUE;     (* error[E054]: Literal true is not compatible to DINT *)
 </code></pre>
+<p>The literal must be a value of the type in front of it: <code>DINT#1.5</code> and <code>DINT#TRUE</code> are rejected, because neither a real nor a <code>BOOL</code> is a <code>DINT</code>.</p>
 <h2 id="whats-next-5"><a class="header" href="#whats-next-5">What’s next</a></h2>
 <p>The next chapter is about <a href="#text">text</a>: the two string types, their length, and what you can do with them.</p>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -1718,6 +1744,7 @@ END_VAR
 <p>When <code>EN</code> is false, the call does not run, and the outputs of the block keep the values they had.</p>
 <h2 id="storage-modes"><a class="header" href="#storage-modes">Storage modes</a></h2>
 <p>An output element can carry a storage mode, which you set in the tool. Without one, the output writes the value on its wire every time it runs. With <code>Set</code>, the wire is a condition instead: when it is true, the variable becomes <code>TRUE</code>, and when it is false, nothing is written and the variable keeps its value. <code>Reset</code> writes <code>FALSE</code> under the same condition. Two outputs on one variable, one with each mode, build a latch.</p>
+<p>Both modes store a <code>BOOL</code>, so the variable of such an output must be a <code>BOOL</code>. A numeric variable behind a <code>Set</code> or <code>Reset</code> output is rejected with the same error that <code>count := TRUE</code> gets in text, reported at the output element. The <a href="#bool">basic types</a> chapter explains why a <code>BOOL</code> is not a number.</p>
 <p><code>Reference</code> writes no value at all. The output becomes a <a href="#references">reference</a> that is bound to the variable on its wire, so a later read of the output sees the value that variable holds at that time. A negation bubble on such an output is rejected.</p>
 <h2 id="what-the-compiler-reports"><a class="header" href="#what-the-compiler-reports">What the compiler reports</a></h2>
 <p>The compiler checks the drawing before it turns the network into statements. A chart has no lines and columns, so a diagnostic names the element instead:</p>
@@ -6271,7 +6298,7 @@ baz := foo;
 </code></pre>
 <pre><code class="language-iecst">IF a THEN b := TRUE; END_IF
 </code></pre>
-<p><code>Reset</code> mode is the counterpart and stores <code>FALSE</code> under the same guard. <code>Reference</code> mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:</p>
+<p><code>Reset</code> mode is the counterpart and stores <code>FALSE</code> under the same guard. The rendered assignment is validated like any other, so a sink with either mode on a variable that is not a <code>BOOL</code> is an invalid assignment (E037), reported at the sink. <code>Reference</code> mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:</p>
 <pre><code>a --&gt; [b |REF] (0)
 </code></pre>
 <pre><code class="language-iecst">b REF= a;
