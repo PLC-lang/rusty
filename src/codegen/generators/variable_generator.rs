@@ -5,18 +5,15 @@ use crate::{
     codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
     index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
-    OnlineChange,
 };
 use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
-use section_mangler::SectionMangler;
 
 use super::{
     data_type_generator::get_default_for,
     expression_generator::ExpressionCodeGenerator,
     llvm::{GlobalValueExt, Llvm},
-    section_names,
 };
 use crate::codegen::debug::DebugBuilderEnum;
 use crate::index::FxIndexSet;
@@ -28,7 +25,6 @@ pub struct VariableGenerator<'ctx, 'b> {
     annotations: &'b AstAnnotations,
     types_index: &'b LlvmTypedIndex<'ctx>,
     debug: &'b mut DebugBuilderEnum<'ctx>,
-    online_change: &'b OnlineChange,
 }
 
 impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
@@ -39,9 +35,8 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         annotations: &'b AstAnnotations,
         types_index: &'b LlvmTypedIndex<'ctx>,
         debug: &'b mut DebugBuilderEnum<'ctx>,
-        online_change: &'b OnlineChange,
     ) -> Self {
-        VariableGenerator { module, llvm, global_index, annotations, types_index, debug, online_change }
+        VariableGenerator { module, llvm, global_index, annotations, types_index, debug }
     }
 
     pub fn generate_global_variables(
@@ -179,25 +174,6 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         if global_variable.should_retain(self.global_index) {
             global_ir_variable = global_ir_variable.make_retain();
         };
-
-        let global_name = if global_variable.get_name().ends_with("instance") {
-            global_variable.get_name()
-        } else {
-            global_variable.get_qualified_name()
-        };
-        let global_name = global_name.to_lowercase();
-
-        if self.online_change.is_enabled() {
-            let section = SectionMangler::variable(
-                global_name,
-                section_names::mangle_type(
-                    self.global_index,
-                    self.global_index.get_effective_type_by_name(global_variable.get_type_name())?,
-                )?,
-            )
-            .mangle();
-            global_ir_variable.set_section(Some(&section));
-        }
 
         Ok(global_ir_variable)
     }
