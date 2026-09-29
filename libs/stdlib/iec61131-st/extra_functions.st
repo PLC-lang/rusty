@@ -266,6 +266,25 @@ END_FUNCTION
 
 (******************************************************************************
 *
+* Converts REAL to TIME.
+*
+******************************************************************************)
+FUNCTION REAL_TO_TIME : TIME
+VAR_INPUT
+    IN : REAL;
+END_VAR
+    REAL_TO_TIME := LREAL_TO_TIME(IN);
+END_FUNCTION
+
+FUNCTION REAL_TO_LTIME : LTIME
+VAR_INPUT
+    IN : REAL;
+END_VAR
+    REAL_TO_LTIME := LREAL_TO_LTIME(IN);
+END_FUNCTION
+
+(******************************************************************************
+*
 * Converts LWORD to DATE.
 *
 ******************************************************************************)
@@ -437,6 +456,196 @@ END_FUNCTION
 
 (******************************************************************************
 *
+* Converts BOOL to TIME.
+*
+******************************************************************************)
+FUNCTION BOOL_TO_TIME : TIME
+VAR_INPUT
+    IN : BOOL;
+END_VAR
+    BOOL_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION BOOL_TO_LTIME : LTIME
+VAR_INPUT
+    IN : BOOL;
+END_VAR
+    BOOL_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts BYTE to TIME.
+*
+******************************************************************************)
+FUNCTION BYTE_TO_TIME : TIME
+VAR_INPUT
+    IN : BYTE;
+END_VAR
+    BYTE_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION BYTE_TO_LTIME : LTIME
+VAR_INPUT
+    IN : BYTE;
+END_VAR
+    BYTE_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts WORD to TIME.
+*
+******************************************************************************)
+FUNCTION WORD_TO_TIME : TIME
+VAR_INPUT
+    IN : WORD;
+END_VAR
+    WORD_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION WORD_TO_LTIME : LTIME
+VAR_INPUT
+    IN : WORD;
+END_VAR
+    WORD_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts DWORD to TIME.
+*
+******************************************************************************)
+FUNCTION DWORD_TO_TIME : TIME
+VAR_INPUT
+    IN : DWORD;
+END_VAR
+    DWORD_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION DWORD_TO_LTIME : LTIME
+VAR_INPUT
+    IN : DWORD;
+END_VAR
+    DWORD_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts SINT to TIME.
+*
+******************************************************************************)
+FUNCTION SINT_TO_TIME : TIME
+VAR_INPUT
+    IN : SINT;
+END_VAR
+    SINT_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION SINT_TO_LTIME : LTIME
+VAR_INPUT
+    IN : SINT;
+END_VAR
+    SINT_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts USINT to TIME.
+*
+******************************************************************************)
+FUNCTION USINT_TO_TIME : TIME
+VAR_INPUT
+    IN : USINT;
+END_VAR
+    USINT_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION USINT_TO_LTIME : LTIME
+VAR_INPUT
+    IN : USINT;
+END_VAR
+    USINT_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts INT to TIME.
+*
+******************************************************************************)
+FUNCTION INT_TO_TIME : TIME
+VAR_INPUT
+    IN : INT;
+END_VAR
+    INT_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION INT_TO_LTIME : LTIME
+VAR_INPUT
+    IN : INT;
+END_VAR
+    INT_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts UINT to TIME.
+*
+******************************************************************************)
+FUNCTION UINT_TO_TIME : TIME
+VAR_INPUT
+    IN : UINT;
+END_VAR
+    UINT_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION UINT_TO_LTIME : LTIME
+VAR_INPUT
+    IN : UINT;
+END_VAR
+    UINT_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts DINT to TIME.
+*
+******************************************************************************)
+FUNCTION DINT_TO_TIME : TIME
+VAR_INPUT
+    IN : DINT;
+END_VAR
+    DINT_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION DINT_TO_LTIME : LTIME
+VAR_INPUT
+    IN : DINT;
+END_VAR
+    DINT_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts UDINT to TIME.
+*
+******************************************************************************)
+FUNCTION UDINT_TO_TIME : TIME
+VAR_INPUT
+    IN : UDINT;
+END_VAR
+    UDINT_TO_TIME := IN;
+END_FUNCTION
+
+FUNCTION UDINT_TO_LTIME : LTIME
+VAR_INPUT
+    IN : UDINT;
+END_VAR
+    UDINT_TO_LTIME := IN;
+END_FUNCTION
+
+(******************************************************************************
+*
 * Converts LINT to TOD.
 *
 ******************************************************************************)
@@ -499,6 +708,102 @@ VAR_INPUT
     IN : DINT;
 END_VAR
    DINT_TO_BOOL := LINT_TO_BOOL(IN);
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts SINT to BOOL.
+*
+******************************************************************************)
+FUNCTION SINT_TO_BOOL : BOOL
+VAR_INPUT
+    IN : SINT;
+END_VAR
+   SINT_TO_BOOL := IN <> 0;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts USINT to BOOL.
+*
+******************************************************************************)
+FUNCTION USINT_TO_BOOL : BOOL
+VAR_INPUT
+    IN : USINT;
+END_VAR
+   USINT_TO_BOOL := IN <> 0;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts INT to BOOL.
+*
+******************************************************************************)
+FUNCTION INT_TO_BOOL : BOOL
+VAR_INPUT
+    IN : INT;
+END_VAR
+   INT_TO_BOOL := IN <> 0;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts UINT to BOOL.
+*
+******************************************************************************)
+FUNCTION UINT_TO_BOOL : BOOL
+VAR_INPUT
+    IN : UINT;
+END_VAR
+   UINT_TO_BOOL := IN <> 0;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts UDINT to BOOL.
+*
+******************************************************************************)
+FUNCTION UDINT_TO_BOOL : BOOL
+VAR_INPUT
+    IN : UDINT;
+END_VAR
+   UDINT_TO_BOOL := IN <> 0;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts ULINT to BOOL.
+*
+******************************************************************************)
+FUNCTION ULINT_TO_BOOL : BOOL
+VAR_INPUT
+    IN : ULINT;
+END_VAR
+   ULINT_TO_BOOL := IN <> 0;
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts REAL to BOOL.
+*
+******************************************************************************)
+FUNCTION REAL_TO_BOOL : BOOL
+VAR_INPUT
+    IN : REAL;
+END_VAR
+   REAL_TO_BOOL := NOT (IN = 0.0);
+END_FUNCTION
+
+(******************************************************************************
+*
+* Converts LREAL to BOOL.
+*
+******************************************************************************)
+FUNCTION LREAL_TO_BOOL : BOOL
+VAR_INPUT
+    IN : LREAL;
+END_VAR
+   LREAL_TO_BOOL := NOT (IN = 0.0);
 END_FUNCTION
 
 (******************************************************************************
