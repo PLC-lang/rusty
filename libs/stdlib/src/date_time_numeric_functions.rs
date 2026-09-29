@@ -1,3 +1,5 @@
+const NANOS_PER_DAY: i128 = 60 * 60 * 24 * 1_000_000_000;
+
 /// .
 /// This operator returns the value of adding up two TIME operands.
 /// Wraps on overflow
@@ -10,12 +12,12 @@ pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator returns the value of adding up TOD and TIME.
-/// Wraps on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> i64 {
-    in1.wrapping_add(in2)
+    (i128::from(in1) + i128::from(in2)).rem_euclid(NANOS_PER_DAY) as i64
 }
 
 /// .
@@ -50,12 +52,12 @@ pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator produces the subtraction of TOD and TIME
-/// Wraps on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> i64 {
-    in1.wrapping_sub(in2)
+    (i128::from(in1) - i128::from(in2)).rem_euclid(NANOS_PER_DAY) as i64
 }
 
 /// .

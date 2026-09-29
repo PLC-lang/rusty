@@ -16,6 +16,8 @@ struct MainType {
     d: i64,
 }
 
+const NANOS_PER_DAY: i64 = 60 * 60 * 24 * 1_000_000_000;
+
 fn get_time_from_hms(hour: u32, min: u32, sec: u32) -> chrono::NaiveDateTime {
     chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap().and_hms_opt(hour, min, sec).unwrap()
 }
@@ -926,7 +928,7 @@ macro_rules! wrapping_tests {
 // Overflow at the top of the range: MAX + 1 rolls over to i64::MIN.
 wrapping_tests!(
     (add_time_wraps_on_overflow, dtf::ADD_TIME, i64::MAX, 1, i64::MIN),
-    (add_tod_time_wraps_on_overflow, dtf::ADD_TOD_TIME, i64::MAX, 1, i64::MIN),
+    (add_tod_time_wraps_at_midnight, dtf::ADD_TOD_TIME, NANOS_PER_DAY - 1, 2, 1),
     (add_dt_time_wraps_on_overflow, dtf::ADD_DT_TIME, i64::MAX, 1, i64::MIN),
 );
 
@@ -935,7 +937,7 @@ wrapping_tests!(
 wrapping_tests!(
     (sub_time_wraps_on_underflow, dtf::SUB_TIME, i64::MIN, 1, i64::MAX),
     (sub_date_date_wraps_on_large_delta, dtf::SUB_DATE_DATE, i64::MAX, i64::MIN, -1),
-    (sub_tod_time_wraps_on_underflow, dtf::SUB_TOD_TIME, i64::MIN, 1, i64::MAX),
+    (sub_tod_time_wraps_at_midnight, dtf::SUB_TOD_TIME, 0, 1, NANOS_PER_DAY - 1),
     (sub_tod_tod_wraps_on_large_delta, dtf::SUB_TOD_TOD, i64::MAX, i64::MIN, -1),
     (sub_dt_time_wraps_on_underflow, dtf::SUB_DT_TIME, i64::MIN, 1, i64::MAX),
     (sub_dt_dt_wraps_on_large_delta, dtf::SUB_DT_DT, i64::MAX, i64::MIN, -1),
