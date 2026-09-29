@@ -4,6 +4,7 @@ use inkwell::llvm_sys::prelude::LLVMBool;
 use inkwell::llvm_sys::support::LLVMParseCommandLineOptions;
 use inkwell::targets::TargetMachine;
 use std::ffi::{CString, c_int};
+use std::sync::Mutex;
 
 mod ffi {
     use inkwell::llvm_sys::prelude::LLVMBool;
@@ -40,11 +41,15 @@ impl TargetMachineExt for TargetMachine {
 /// built in.
 ///
 /// The option registry is process-global and is read while a pass pipeline is built,
-/// so an option must be set before any code generation starts.
+/// so an option must be set before any code generation starts. The parser itself is not
+/// thread-safe, so concurrent calls are serialized.
 pub fn set_llvm_option(name: &str, value: &str) {
+    static PARSER: Mutex<()> = Mutex::new(());
+
     let Ok(option) = CString::new(format!("-{name}={value}")) else {
         return;
     };
     let argv = [c"plc".as_ptr(), option.as_ptr()];
+    let _guard = PARSER.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     unsafe { LLVMParseCommandLineOptions(argv.len() as c_int, argv.as_ptr(), c"".as_ptr()) };
 }
