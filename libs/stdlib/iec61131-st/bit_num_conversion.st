@@ -487,7 +487,11 @@ FUNCTION BOOL_TO_LINT : LINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_LINT := in;
+    IF in THEN
+        BOOL_TO_LINT := 1;
+    ELSE
+        BOOL_TO_LINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -499,7 +503,11 @@ FUNCTION BOOL_TO_REAL : REAL
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_REAL := in;
+    IF in THEN
+        BOOL_TO_REAL := 1.0;
+    ELSE
+        BOOL_TO_REAL := 0.0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -511,7 +519,11 @@ FUNCTION BOOL_TO_LREAL : LREAL
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_LREAL := in;
+    IF in THEN
+        BOOL_TO_LREAL := 1.0;
+    ELSE
+        BOOL_TO_LREAL := 0.0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -523,7 +535,11 @@ FUNCTION BOOL_TO_DINT : DINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_DINT := in;
+    IF in THEN
+        BOOL_TO_DINT := 1;
+    ELSE
+        BOOL_TO_DINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -535,7 +551,11 @@ FUNCTION BOOL_TO_INT : INT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_INT := in;
+    IF in THEN
+        BOOL_TO_INT := 1;
+    ELSE
+        BOOL_TO_INT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -547,7 +567,11 @@ FUNCTION BOOL_TO_SINT : SINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_SINT := in;
+    IF in THEN
+        BOOL_TO_SINT := 1;
+    ELSE
+        BOOL_TO_SINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -559,7 +583,11 @@ FUNCTION BOOL_TO_ULINT : ULINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_ULINT := in;
+    IF in THEN
+        BOOL_TO_ULINT := 1;
+    ELSE
+        BOOL_TO_ULINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -571,7 +599,11 @@ FUNCTION BOOL_TO_UDINT : UDINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_UDINT := in;
+    IF in THEN
+        BOOL_TO_UDINT := 1;
+    ELSE
+        BOOL_TO_UDINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -583,7 +615,11 @@ FUNCTION BOOL_TO_UINT : UINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_UINT := in;
+    IF in THEN
+        BOOL_TO_UINT := 1;
+    ELSE
+        BOOL_TO_UINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -595,7 +631,11 @@ FUNCTION BOOL_TO_USINT : USINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_USINT := in;
+    IF in THEN
+        BOOL_TO_USINT := 1;
+    ELSE
+        BOOL_TO_USINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************

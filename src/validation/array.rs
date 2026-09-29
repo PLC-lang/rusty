@@ -18,7 +18,7 @@ use plc_index::GlobalContext;
 
 use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 
-use super::{ValidationContext, Validator, Validators};
+use super::{statement::validate_assignment, ValidationContext, Validator, Validators};
 
 /// Indicates whether an array was assigned in a VAR block, a POU body, or a TYPE declaration
 #[derive(Debug, Clone, Copy)]
@@ -92,6 +92,8 @@ fn validate_array<T: AnnotationMap>(
         return; // Return here, because array size validation is error-prone with incorrect assignments
     }
 
+    validate_array_elements(validator, context, lhs_type, stmt_rhs);
+
     let len_lhs = lhs_type.get_array_length(context.index).unwrap_or(0);
     let Some(len_rhs) = statement_to_array_length(context, stmt_rhs) else { return };
 
@@ -119,6 +121,52 @@ fn validate_array<T: AnnotationMap>(
             .with_error_code("E127")
             .with_location(location),
         );
+    }
+}
+
+/// Validates every element of an array literal against the element type, e.g. `[TRUE]` is not an
+/// `ARRAY OF DINT`. Struct elements are validated through their member assignments.
+fn validate_array_elements<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    array_type: &DataTypeInformation,
+    literal: &AstNode,
+) {
+    let AstStatement::Literal(AstLiteral::Array(array)) = literal.get_stmt() else { return };
+    let Some(elements) = array.elements() else { return };
+    let Some(inner_type) =
+        array_type.get_inner_array_type_name().and_then(|name| context.index.find_effective_type_info(name))
+    else {
+        return;
+    };
+    if inner_type.is_struct() {
+        return;
+    }
+
+    for element in array_literal_elements(elements) {
+        if inner_type.is_array() && element.is_literal_array() {
+            validate_array_elements(validator, context, inner_type, element);
+            continue;
+        }
+        // spliced array references and flat initializers of nested arrays carry array types
+        let element_is_array = context.annotations.get_type_or_void(element, context.index).is_array();
+        let hint_is_array =
+            context.annotations.get_type_hint(element, context.index).is_some_and(|hint| hint.is_array());
+        if !element_is_array && !hint_is_array {
+            validate_assignment(validator, element, None, &element.location, context);
+        }
+    }
+}
+
+/// Returns the element expressions of an array literal, each multiplied element once
+fn array_literal_elements(node: &AstNode) -> Vec<&AstNode> {
+    match node.get_stmt() {
+        AstStatement::ExpressionList(expressions) => {
+            expressions.iter().flat_map(array_literal_elements).collect()
+        }
+        AstStatement::MultipliedStatement(data) => array_literal_elements(&data.element),
+        AstStatement::ParenExpression(expression) => array_literal_elements(expression),
+        _ => vec![node],
     }
 }
 
