@@ -463,14 +463,22 @@ FUNCTION BOOL_TO_TIME : TIME
 VAR_INPUT
     IN : BOOL;
 END_VAR
-    BOOL_TO_TIME := IN;
+    IF IN THEN
+        BOOL_TO_TIME := 1;
+    ELSE
+        BOOL_TO_TIME := 0;
+    END_IF;
 END_FUNCTION
 
 FUNCTION BOOL_TO_LTIME : LTIME
 VAR_INPUT
     IN : BOOL;
 END_VAR
-    BOOL_TO_LTIME := IN;
+    IF IN THEN
+        BOOL_TO_LTIME := 1;
+    ELSE
+        BOOL_TO_LTIME := 0;
+    END_IF;
 END_FUNCTION
 
 (******************************************************************************

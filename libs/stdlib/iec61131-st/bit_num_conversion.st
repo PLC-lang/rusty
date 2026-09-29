@@ -503,7 +503,11 @@ FUNCTION BOOL_TO_REAL : REAL
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_REAL := in;
+    IF in THEN
+        BOOL_TO_REAL := 1.0;
+    ELSE
+        BOOL_TO_REAL := 0.0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -515,7 +519,11 @@ FUNCTION BOOL_TO_LREAL : LREAL
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_LREAL := in;
+    IF in THEN
+        BOOL_TO_LREAL := 1.0;
+    ELSE
+        BOOL_TO_LREAL := 0.0;
+    END_IF;
 END_FUNCTION
 
 (********************
