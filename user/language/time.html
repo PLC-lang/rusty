@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-7eb41e14.js";
+            window.path_to_searchindex_js = "../../searchindex-3d563cad.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-61717f7e.js"></script>
+        <script src="../../toc-e693153e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -228,7 +228,27 @@ END_VAR
 total := a + b;        (* 1500 ms *)
 IF a &gt; b THEN          (* TRUE *)
 </code></pre>
-<p>A duration also multiplies and divides by a number, which is how you scale a cycle time.</p>
+<p>A duration also multiplies and divides by a number, which is how you scale a cycle time: <code>cycle * 2</code>, <code>2 * cycle</code>, <code>cycle / 4</code>, and <code>cycle * 1.5</code> are all a <code>TIME</code>.</p>
+<p>A duration shifts a moment of a day or a point in time, and two of those subtract to a duration. These are the combinations, within one family:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Left</th><th>Operator</th><th>Right</th><th>Result</th></tr>
+</thead>
+<tbody>
+<tr><td><code>TIME</code></td><td><code>+</code>, <code>-</code></td><td><code>TIME</code></td><td><code>TIME</code></td></tr>
+<tr><td><code>TIME_OF_DAY</code></td><td><code>+</code>, <code>-</code></td><td><code>TIME</code></td><td><code>TIME_OF_DAY</code></td></tr>
+<tr><td><code>DATE_AND_TIME</code></td><td><code>+</code>, <code>-</code></td><td><code>TIME</code></td><td><code>DATE_AND_TIME</code></td></tr>
+<tr><td><code>TIME_OF_DAY</code></td><td><code>-</code></td><td><code>TIME_OF_DAY</code></td><td><code>TIME</code></td></tr>
+<tr><td><code>DATE</code></td><td><code>-</code></td><td><code>DATE</code></td><td><code>TIME</code></td></tr>
+<tr><td><code>DATE_AND_TIME</code></td><td><code>-</code></td><td><code>DATE_AND_TIME</code></td><td><code>TIME</code></td></tr>
+<tr><td><code>TIME</code></td><td><code>*</code>, <code>/</code></td><td>a number</td><td><code>TIME</code></td></tr>
+</tbody>
+</table>
+</div>
+<p>The long family has the same table with <code>LTIME</code>, <code>LTIME_OF_DAY</code>, <code>LDATE</code>, and <code>LDATE_AND_TIME</code>. A moment of a day wraps around midnight, so <code>TOD#23:59:50 + T#20s</code> is <code>TOD#00:00:10</code>. Any other combination, such as two points in time added together or a short type mixed with a long one, is rejected (E156); convert first, for example with <code>TIME_TO_LTIME</code>.</p>
+<p>The compiler carries these operations out with the standard library, <code>ADD_DT_TIME</code> for <code>DATE_AND_TIME + TIME</code>, <code>MUL_TIME__LINT</code> for <code>TIME * n</code>, and so on, so a project that calculates with time values must link <code>iec61131std</code> (see <a href="../building/linking.html">Linking and Libraries</a>). Each of these functions can also be called directly.</p>
+<p>A duration plus or minus a bare integer compiles too, and reads the integer as what the type counts: <code>cycle + 5</code> adds five milliseconds to a <code>TIME</code> and five nanoseconds to an <code>LTIME</code>. The compiler warns about it (E157), because the unit is only implied; <code>cycle + T#5ms</code> says the same without the warning.</p>
 <p>A negative duration does not fit into the unsigned <code>TIME</code>. A literal such as <code>T#-10s</code> still compiles, but the compiler warns about an underflow and the value wraps around to a large positive duration. Use <code>LTIME</code> when a duration must be able to go below zero: <code>LT#-10s</code> is a negative <code>LTIME</code> and gets no warning.</p>
 <p>To read a time value as a number, convert it with a cast. <code>DINT#cycle</code> gives the milliseconds of a <code>TIME</code>, because that is what the type holds.</p>
 <p>The standard library converts between the families and to text, for example <code>TIME_TO_LTIME</code> and <code>TIME_TO_STRING</code>, and it brings the timers <code>TON</code>, <code>TOF</code>, and <code>TP</code>, which are function blocks. The <a href="../reference/standard-library.html">standard library reference</a> lists them.</p>

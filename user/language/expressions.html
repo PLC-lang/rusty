@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-7eb41e14.js";
+            window.path_to_searchindex_js = "../../searchindex-3d563cad.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-61717f7e.js"></script>
+        <script src="../../toc-e693153e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -195,6 +195,7 @@ r := 2 ** 10;                 (* 1024.0 *)
 n := REAL_TO_DINT(2 ** 10);   (* 1024 *)
 n := REAL_TO_DINT(7 ** 11);   (* 1977326720, not 1977326743 *)
 </code></pre>
+<p>On the date and time types the operators follow rules of their own, which the <a href="time.html">time and date</a> chapter lists; those operations call the standard library as well.</p>
 <h2 id="comparison"><a class="header" href="#comparison">Comparison</a></h2>
 <p><code>=</code>, <code>&lt;&gt;</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, and <code>&gt;=</code> compare two values of the same kind and produce a <code>BOOL</code>. They work on numbers, on enumerations, and on text, where they compare character by character. A comparison of two values that do not belong together, such as a text and a number, is rejected.</p>
 <p>Note that the test for equality is a single <code>=</code>, because <code>:=</code> is the assignment.</p>

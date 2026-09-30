@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-7eb41e14.js";
+            window.path_to_searchindex_js = "../../searchindex-3d563cad.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-61717f7e.js"></script>
+        <script src="../../toc-e693153e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -203,7 +203,7 @@ plc main.st -o app --linker=clang     # macOS, Windows
 <p>The functions of IEC 61131-3, the timers, the counters, and the string operations live in <code>iec61131std</code>. <a href="../get-started/install.html">Install</a> shows how to build it. The build writes the libraries into <code>output/lib</code> and the declarations into <code>output/include</code>, and a project that uses any of the functions needs both:</p>
 <pre><code class="language-bash">plc main.st -i "output/include/*.st" -L output/lib -l iec61131std -o app --linker=cc
 </code></pre>
-<p>Some language features call it as well, for example <code>**</code> and the comparison of text, so link it whenever you are not sure.</p>
+<p>Some language features call it as well, for example <code>**</code>, the comparison of text, and arithmetic on the date and time types, so link it whenever you are not sure.</p>
 <h2 id="missing-symbols"><a class="header" href="#missing-symbols">Missing symbols</a></h2>
 <p>A shared object is linked with <code>--no-undefined</code>, so a symbol that nothing defines fails the build instead of failing later, when someone loads the library. The linker names the symbol:</p>
 <pre><code>ld.lld: error: undefined symbol: host_log
