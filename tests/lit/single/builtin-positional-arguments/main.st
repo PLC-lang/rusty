@@ -22,6 +22,7 @@
 FUNCTION main : DINT
 VAR
     result      : ULINT;
+    flag        : BOOL;
     x           : DINT := 9;
     y           : DINT := 7331;
 
@@ -66,16 +67,16 @@ END_VAR
     printf('%d$N', result);                 // CHECK: 0
     piAddress1 := ADR(iVar1);
     piAddress2 := ADR(IN := iVar1);
-    result := (piAddress1 = piAddress2);
-    printf('%d$N', result);                 // CHECK: 1
+    flag := (piAddress1 = piAddress2);
+    printf('%d$N', flag);                 // CHECK: 1
 
     // REF - test both positional and named to verify equivalence
     result := 0;
     printf('%d$N', result);                 // CHECK: 0
     piAddress1 := REF(iVar1);               // positional
     piAddress2 := REF(in := iVar1);         // named argument
-    result := (piAddress1 = piAddress2);
-    printf('%d$N', result);                 // CHECK: 1
+    flag := (piAddress1 = piAddress2);
+    printf('%d$N', flag);                 // CHECK: 1
 
     // DIV
     result := DIV(dividend, divisor);
@@ -96,28 +97,28 @@ END_VAR
     x := 5;
     y := 10;
     // GT - positional only >
-    result := GT(y, x);
-    printf('%d$N', result);                 // CHECK: 1
+    flag := GT(y, x);
+    printf('%d$N', flag);                 // CHECK: 1
 
     // LT - positional only <
-    result := LT(x, y);
-    printf('%d$N', result);                 // CHECK: 1
+    flag := LT(x, y);
+    printf('%d$N', flag);                 // CHECK: 1
 
     // EQ - positional only ==
-    result := EQ(b, b);
-    printf('%d$N', result);                 // CHECK: 1
+    flag := EQ(b, b);
+    printf('%d$N', flag);                 // CHECK: 1
 
     // NE - positional only <>
-    result := NE(b, c);
-    printf('%d$N', result);                 // CHECK: 1
+    flag := NE(b, c);
+    printf('%d$N', flag);                 // CHECK: 1
 
     // GE - positional only >=
-    result := GE(y, x);
-    printf('%d$N', result);                 // CHECK: 1
+    flag := GE(y, x);
+    printf('%d$N', flag);                 // CHECK: 1
 
     // LE - positional only <=
-    result := LE(x, y);
-    printf('%d$N', result);                 // CHECK: 1
+    flag := LE(x, y);
+    printf('%d$N', flag);                 // CHECK: 1
 
     test_bounds(myarray);
 
