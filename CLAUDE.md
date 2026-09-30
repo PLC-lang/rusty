@@ -43,7 +43,7 @@ cargo fmt --all && cargo clippy --workspace
 - Before opening a PR, check the diff against the book with the `doc-sync` skill.
 
 
-## Git
+## Git(Hub)
 
 - Use conventional commits: `<type>(<scope>): <description>`. Keep titles under 72 characters.
 - PR descriptions are for humans. They orient the reviewer: after reading, the reviewer must know the problem and the solution before they open the diff. Keep each part to 1-3 sentences and use:
@@ -57,4 +57,5 @@ cargo fmt --all && cargo clippy --workspace
 - Do not enumerate affected functions or files in the description; the diff shows them.
 - Use the same `Problem:`/`Solution:` format for commit bodies, and only when the change needs explanation beyond its title.
 - Before committing or opening a PR, run `cargo test --workspace`, `./scripts/build.sh --lit`, `cargo fmt --all`, and `cargo clippy --workspace`. Fix all failures first.
+- Always open GitHub PRs as a draft
 
