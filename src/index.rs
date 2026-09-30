@@ -2181,11 +2181,13 @@ impl Index {
         variant: &str,
         initial_value: Option<ConstId>,
         source_location: SourceLocation,
+        linkage: LinkageType,
     ) -> VariableIndexEntry {
         let qualified_name = qualified_name(name, variant);
         let entry = VariableIndexEntry::create_global(variant, &qualified_name, name, source_location)
             .set_constant(true)
-            .set_initial_value(initial_value);
+            .set_initial_value(initial_value)
+            .set_linkage(linkage);
 
         self.enum_global_variables.insert(variant.to_lowercase(), entry.clone());
         entry
