@@ -7,7 +7,7 @@ plc [OPTIONS] <input-files>...
 plc [OPTIONS] <input-files>... <SUBCOMMAND>
 ```
 
-Most options are global, so they work with a subcommand as well. `plc -h` prints the same list.
+Most options are global, so they work with a subcommand as well. `plc -h` prints the same list. `plc -V` prints the version, and `plc --version` also prints the git branch, the commit hash, the build time, and the Rust toolchain of the binary.
 
 
 ## Subcommands
