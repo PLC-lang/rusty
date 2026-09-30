@@ -205,12 +205,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// entry point into the expression generator.
     /// generates the given expression and returns the resulting BasicValueEnum
     pub fn generate_expression(&self, expression: &AstNode) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        // If the expression was replaced by the resolver, generate the replacement
-        if let Some(StatementAnnotation::ReplacementAst { statement }) = self.annotations.get(expression) {
-            // we trust that the validator only passed us valid parameters (so left & right should be same type)
-            return self.generate_expression(statement);
-        }
-
         let v = self
             .generate_expression_value(expression)?
             .as_r_value(self.llvm, self.get_load_name(expression))?
@@ -252,6 +246,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, CodegenError> {
+        // If the expression was replaced by the resolver, generate the replacement. The replaced
+        // expression has the type of its replacement, so the caller casts it like any other value.
+        if let Some(StatementAnnotation::ReplacementAst { statement }) = self.annotations.get(expression) {
+            return self.generate_expression(statement).map(ExpressionValue::RValue);
+        }
+
         //see if this is a constant - maybe we can short curcuit this codegen
         if let Some(StatementAnnotation::Variable {
             qualified_name, constant: true, resulting_type, ..
@@ -408,7 +408,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         {
             self.create_llvm_binary_expression_for_pointer(operator, left, ltype, right, rtype, expression)
         } else {
-            self.create_llvm_generic_binary_expression(left, right, expression)
+            self.create_llvm_generic_binary_expression(left, right)
         }
     }
 
@@ -3088,34 +3088,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.create_const_int_for_type(target_type_name, converted)
     }
 
-    /// creates a binary expression (left op right) with generic
-    /// left & right expressions (non-numerics)
-    /// this function attempts to call optional
-    /// EQUAL_XXX, LESS_XXX or GREATER_XXX functions for comparison
-    /// expressions
+    /// reports a binary expression on operands no instruction exists for. A comparison or
+    /// arithmetic on such operands that the resolver rewrote into a call never gets here, see
+    /// `generate_expression_value`.
     fn create_llvm_generic_binary_expression(
         &self,
         left: &AstNode,
         right: &AstNode,
-        binary_statement: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        if let Some(StatementAnnotation::ReplacementAst { statement }) =
-            self.annotations.get(binary_statement)
-        {
-            // we trust that the validator only passed us valid parameters (so left & right should be same type)
-            self.generate_expression(statement)
-        } else {
-            Err(Diagnostic::codegen_error(
-                format!(
-                    "Invalid types, cannot generate binary expression for {:?} and {:?}",
-                    self.get_type_hint_for(left)?.get_name(),
-                    self.get_type_hint_for(right)?.get_name(),
-                )
-                .as_str(),
-                left,
+        Err(Diagnostic::codegen_error(
+            format!(
+                "Invalid types, cannot generate binary expression for {:?} and {:?}",
+                self.get_type_hint_for(left)?.get_name(),
+                self.get_type_hint_for(right)?.get_name(),
             )
-            .into())
-        }
+            .as_str(),
+            left,
+        )
+        .into())
     }
 
     pub fn generate_store(
