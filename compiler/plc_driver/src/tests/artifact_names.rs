@@ -18,11 +18,11 @@ use insta::assert_snapshot;
 
 use crate::artifacts;
 
-/// Longest name the scheme can produce: 32 characters of stem, the dot and the
-/// extension of the source, the separator, 16 characters of digest, the dot and the
-/// extension of the artifact.
-fn name_limit(source_extension: &str, extension: &str) -> usize {
-    32 + 1 + source_extension.len() + 1 + 16 + 1 + extension.len()
+/// Longest name the scheme can produce: 32 characters of stem, the dot and at most 16
+/// characters of the extension of the source, the separator, 16 characters of digest,
+/// the dot and the extension of the artifact.
+fn name_limit(extension: &str) -> usize {
+    32 + 1 + 16 + 1 + 16 + 1 + extension.len()
 }
 
 /// Returns the digest of an artifact name, which is the part between the last `-` and
@@ -119,7 +119,17 @@ fn long_file_names_are_cut_to_the_limit() {
 
     let name = artifacts::file_name(Path::new(&key), "o");
 
-    assert!(name.len() <= name_limit("st", "o"), "{} characters: {name}", name.len());
+    assert!(name.len() <= name_limit("o"), "{} characters: {name}", name.len());
+}
+
+#[test]
+fn long_source_extensions_are_cut_to_the_limit() {
+    let key = format!("main.{}", "a".repeat(235));
+
+    let name = artifacts::file_name(Path::new(&key), "o");
+
+    assert!(name.starts_with(&format!("main.{}-", "a".repeat(16))), "{name}");
+    assert!(name.len() <= name_limit("o"), "{} characters: {name}", name.len());
 }
 
 /// Two long file names can end up with the same readable part. The digest is what
