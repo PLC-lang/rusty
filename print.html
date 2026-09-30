@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-3d563cad.js";
+            window.path_to_searchindex_js = "searchindex-18dcdbe5.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e693153e.js"></script>
@@ -9098,7 +9098,7 @@ END_PROGRAM
     /// One variable entry per variant, in declaration order
     variants: Vec&lt;VariableIndexEntry&gt;,
 }</code></pre>
-<p>Each variant is a constant global variable entry, such as <code>Color.Red</code>. Its value expression is stored with the enum’s underlying type as the evaluation target. The index registers the variant under its enum and under its bare name, so <code>Red</code> can resolve without a qualifier.</p>
+<p>Each variant is a constant global variable entry, such as <code>Color.Red</code>. Its value expression is stored with the enum’s underlying type as the evaluation target, and the entry carries the linkage of the unit that declares the type, like a global variable. The index registers the variant under its enum and under its bare name, so <code>Red</code> can resolve without a qualifier.</p>
 <p>After indexing and constant evaluation the project holds four enum types and eleven variants:</p>
 <pre><code>Color        DINT   Red := 0   Green := 1   Blue := 5                    default: Red (0)
 State        BYTE   Open := 1  Closed := 4  Idle := 5   Running := 6     default: Closed (4), explicit
@@ -9165,7 +9165,7 @@ __main_mode  DINT   Manual := 0   Auto := 1                              default
 @Door.Closed = unnamed_addr constant i32 16
 @__main_mode.Manual = unnamed_addr constant i32 0
 </code></pre>
-<p><code>paint</code> starts at <code>0</code>, the <code>Red</code> default; <code>state</code> at <code>4</code>, the explicit <code>Closed</code>; <code>mode</code> at <code>1</code> from its own initializer. The variant globals carry no debug information, so a debugger does not list them as variables.</p>
+<p><code>paint</code> starts at <code>0</code>, the <code>Red</code> default; <code>state</code> at <code>4</code>, the explicit <code>Closed</code>; <code>mode</code> at <code>1</code> from its own initializer. The variant globals carry no debug information, so a debugger does not list them as variables. A variant of an enum from an include file or an <code>{external}</code> type block is declared <code>external</code> without a value, like a global of another unit; only the object built from the declaring file defines it.</p>
 <h3 id="assignment-and-comparison"><a class="header" href="#assignment-and-comparison">Assignment and comparison</a></h3>
 <p>A variant is a constant, so codegen never loads its global; it folds the value into the instruction. The five assignments of <code>main</code> are five stores of immediates, and <code>Door#Closed</code> into a <code>State</code> becomes <code>store i8 16</code> with the value cut to the underlying type. A comparison with a variant compares against the immediate; when the underlying type is smaller than <code>DINT</code>, the variable is widened first, as the hints said:</p>
 <pre><code class="language-llvm">  store i32 5, ptr %paint, align 4
