@@ -1169,6 +1169,7 @@ fn parse_pointer_definition(
     is_function: bool,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
+        let end = decl.get_location().to_range().map_or(lexer.last_range.end, |range| range.end);
         (
             DataTypeDeclaration::Definition {
                 data_type: Box::new(DataType::PointerType {
@@ -1178,8 +1179,7 @@ fn parse_pointer_definition(
                     type_safe,
                     is_function,
                 }),
-                // FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
-                location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
+                location: lexer.source_range_factory.create_range(start_pos..end),
                 scope: lexer.scope.clone(),
             },
             initializer,
