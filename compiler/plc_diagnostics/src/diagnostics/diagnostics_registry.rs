@@ -257,6 +257,8 @@ lazy_static! {
         E153,   Error,      include_str!("./error_codes/E153.md"),  // CFC ENO cycle
         E154,   Error,      include_str!("./error_codes/E154.md"),  // Negated CFC reference assignment
         E155,   Error,      include_str!("./error_codes/E155.md"),  // Duplicate CFC return pin
+        E156,   Error,      include_str!("./error_codes/E156.md"),  // Operator not defined for these date or time operands
+        E157,   Warning,    include_str!("./error_codes/E157.md"),  // Bare integer combined with a duration
         E158,   Error,      include_str!("./error_codes/E158.md"),  // FUNCTION_BLOCK called without an instance
     );
 }

@@ -11,10 +11,10 @@ use std::{fmt::Debug, hash::Hash};
 
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
-        BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
-        Interface, JumpStatement, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable,
+        self, flatten_expression_list, resolve_argument_slots, Allocation, Assignment, AstFactory, AstId,
+        AstNode, AstStatement, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration,
+        DirectAccessType, Identifier, Interface, JumpStatement, Operator, Pou, PouType, ReferenceAccess,
+        ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -29,10 +29,10 @@ use crate::{
     builtins::{self, BuiltIn},
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
-        self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
-        BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LONG_DATE_AND_TIME_TYPE,
-        LONG_DATE_TYPE, LONG_TIME_OF_DAY_TYPE, LONG_TIME_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE,
-        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        self, get_bigger_type, get_date_time_arithmetic, DataTypeInformation, DateTimeArithmetic,
+        InternalType, StringEncoding, StructSource, BOOL_TYPE, BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE,
+        DINT_TYPE, DWORD_TYPE, LINT_TYPE, LONG_DATE_AND_TIME_TYPE, LONG_DATE_TYPE, LONG_TIME_OF_DAY_TYPE,
+        LONG_TIME_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 use crate::{
@@ -264,6 +264,33 @@ impl TypeAnnotator<'_> {
         self.update_expected_types(self.index.get_type_or_panic(typesystem::BOOL_TYPE), statement);
     }
 
+    /// rewrites `left <operator> right` on a date or time operand into the call of the standard
+    /// library function that carries it out, e.g. `dt + t` into `ADD_DT_TIME(dt, t)`
+    fn visit_date_time_arithmetic(
+        &mut self,
+        ctx: &VisitorContext,
+        statement: &AstNode,
+        function: &str,
+        result_type: &str,
+        swap_operands: bool,
+    ) {
+        let AstStatement::BinaryExpression(BinaryExpression { left, right, .. }) = statement.get_stmt()
+        else {
+            return;
+        };
+        let (first, second) = if swap_operands { (right, left) } else { (left, right) };
+        let call = AstFactory::create_call_to_with_ids(
+            function,
+            vec![first.as_ref().clone(), second.as_ref().clone()],
+            &statement.get_location(),
+            ctx.id_provider.clone(),
+        );
+        self.visit_statement(ctx, &call);
+        self.update_expected_types(self.index.get_type_or_panic(result_type), &call);
+        self.annotate(statement, StatementAnnotation::ReplacementAst { statement: call });
+        self.update_expected_types(self.index.get_type_or_panic(result_type), statement);
+    }
+
     /// tries to call one of the EQUAL_XXX, LESS_XXX, GREATER_XXX functions for the
     /// given type (of left). The given operator has to be a comparison-operator
     fn create_typed_compare_call_statement(
@@ -342,9 +369,9 @@ impl TypeAnnotator<'_> {
     /// Annotate call arguments when the caller mixes positional and named args,
     /// e.g. `foo(1, b := 20)` or `foo(a := 10, 2, c := 30)`.
     ///
-    /// The resolution rule matches `generate_function_arguments` in the codegen: named args
-    /// claim their slots first, then positional args fill the remaining slots left-to-right.
-    /// **Both sides must stay in sync** — if this rule changes, update the codegen too.
+    /// Named args claim their slots first, then positional args fill the remaining slots
+    /// left-to-right, surplus positional args bind to the variadic parameter; see
+    /// `resolve_argument_slots`, which the codegen and the validator apply as well.
     ///
     /// Invariant: this is only called when the argument list contains AT LEAST one named and
     /// one positional arg; otherwise `annotate_arguments_named` / `annotate_arguments_positional`
@@ -356,22 +383,9 @@ impl TypeAnnotator<'_> {
     ) -> FxHashMap<String, Vec<String>> {
         let mut generics_candidates = FxHashMap::<String, Vec<String>>::default();
         let parameters = self.index.get_available_parameters(pou_name);
+        let slots = resolve_argument_slots(&arguments, parameters.iter().map(|it| it.get_name()));
 
-        // Slots that named args have already claimed — positional fill skips these.
-        let named_positions: FxHashSet<usize> = arguments
-            .iter()
-            .filter_map(|arg| {
-                let var_name = arg.get_assignment_identifier()?;
-                parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(var_name))
-            })
-            .collect();
-
-        // Remaining slots in declaration order — consumed by positional args one by one.
-        let positional_positions: Vec<usize> =
-            (0..parameters.len()).filter(|i| !named_positions.contains(i)).collect();
-        let mut positional_cursor = 0;
-
-        for argument in arguments {
+        for (argument, slot) in arguments.into_iter().zip(slots) {
             if let Some(var_name) = argument.get_assignment_identifier() {
                 // Named arg (`x := value` or `x => value`): resolve by name, honouring
                 // inheritance (`find_pou_member_and_depth` walks the supertype chain).
@@ -394,15 +408,8 @@ impl TypeAnnotator<'_> {
                         parameter.get_location_in_parent() as usize,
                     );
                 }
-            } else {
-                // Positional arg: consume the next free slot. Advance the cursor unconditionally
-                // so surplus positionals (beyond the declared params) are simply dropped — the
-                // arity check in the validator (E032) surfaces this as a user-facing error.
-                let pos = positional_positions.get(positional_cursor).copied();
-                positional_cursor += 1;
-                let Some(pos) = pos else { continue };
-
-                let Some(parameter) = parameters.get(pos) else { continue };
+            } else if let Some(parameter) = slot.and_then(|slot| parameters.get(slot)) {
+                // Positional arg: bound to the first slot no name claims.
                 let type_name = parameter.get_type_name();
 
                 if let Some((key, candidate)) = self.get_generic_candidate(type_name, argument) {
@@ -416,7 +423,24 @@ impl TypeAnnotator<'_> {
                         parameter.get_location_in_parent() as usize,
                     );
                 }
+            } else if let Some(vararg) = self.index.get_variadic_member(pou_name) {
+                // Surplus positional arg: bound to the variadic parameter, as in
+                // `annotate_arguments_positional`.
+                if let Some((key, candidate)) = self.get_generic_candidate(vararg.get_type_name(), argument) {
+                    generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string());
+                } else {
+                    let type_name = self.get_vararg_type_name(&argument, vararg);
+                    self.annotate_argument(
+                        pou_name,
+                        argument,
+                        &type_name,
+                        0,
+                        vararg.get_location_in_parent() as usize,
+                    );
+                }
             }
+            // A surplus positional arg of a non-variadic callee binds to nothing; the arity check
+            // in the validator (E032) surfaces this as a user-facing error.
         }
 
         generics_candidates
@@ -2201,7 +2225,38 @@ impl<'i> TypeAnnotator<'i> {
                     let r_intrinsic_type =
                         self.index.get_intrinsic_type_by_name(right_type.get_name()).get_type_information();
 
-                    if l_intrinsic_type.is_numerical() && r_intrinsic_type.is_numerical() {
+                    // arithmetic with a date or time operand follows its own table
+                    let date_time_arithmetic = if data.operator.is_arithmetic_operator()
+                        && (l_intrinsic_type.is_date_or_time_type()
+                            || r_intrinsic_type.is_date_or_time_type())
+                    {
+                        get_date_time_arithmetic(self.index, left_type, &data.operator, right_type)
+                    } else {
+                        None
+                    };
+
+                    if let Some(DateTimeArithmetic::Call { function, result_type, swap_operands }) =
+                        date_time_arithmetic
+                    {
+                        if self.index.find_pou_implementation(&function).is_some() {
+                            self.visit_date_time_arithmetic(
+                                ctx,
+                                statement,
+                                &function,
+                                result_type,
+                                swap_operands,
+                            );
+                            None
+                        } else {
+                            // the validator reports the missing function, the type is known regardless
+                            Some(result_type.to_string())
+                        }
+                    } else if let Some(DateTimeArithmetic::Plain { result_type, .. }) = date_time_arithmetic {
+                        let result = self.index.get_type_or_panic(result_type);
+                        self.update_expected_types(result, &data.left);
+                        self.update_expected_types(result, &data.right);
+                        Some(result_type.to_string())
+                    } else if l_intrinsic_type.is_numerical() && r_intrinsic_type.is_numerical() {
                         let bigger_type = if l_intrinsic_type.is_bool() && r_intrinsic_type.is_bool() {
                             left_type
                         } else {

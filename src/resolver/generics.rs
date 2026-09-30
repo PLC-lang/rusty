@@ -1,5 +1,8 @@
 use itertools::Itertools;
-use plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
+use plc_ast::ast::{
+    flatten_expression_list, resolve_argument_slots, AstNode, AstStatement, GenericBinding, LinkageType,
+    TypeNature,
+};
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
 
@@ -255,14 +258,14 @@ impl TypeAnnotator<'_> {
         generic_map: &FxHashMap<String, GenericType>,
     ) {
         let declared_parameters = self.index.get_available_parameters(function_name);
+        let arguments = flatten_expression_list(s);
+        let slots = resolve_argument_slots(&arguments, declared_parameters.iter().map(|it| it.get_name()));
         // separate variadic and non variadic parameters
         let mut passed_parameters = Vec::new();
         let mut variadic_parameters = Vec::new();
-        for (i, p) in flatten_expression_list(s).iter().enumerate() {
-            if let Ok((location_in_parent, passed_parameter, ..)) =
-                get_implicit_call_parameter(p, &declared_parameters, i)
-            {
-                if let Some(declared_parameter) = declared_parameters.get(location_in_parent) {
+        for (p, slot) in arguments.iter().zip(slots) {
+            if let Ok((slot, passed_parameter, ..)) = get_implicit_call_parameter(p, slot) {
+                if let Some(declared_parameter) = slot.and_then(|slot| declared_parameters.get(slot)) {
                     passed_parameters.push((*p, passed_parameter, *declared_parameter));
                 } else {
                     // variadic parameters are not included in declared_parameters
