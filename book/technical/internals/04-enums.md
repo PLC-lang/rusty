@@ -74,7 +74,7 @@ Enum {
 }
 ```
 
-Each variant is a constant global variable entry, such as `Color.Red`. Its value expression is stored with the enum's underlying type as the evaluation target. The index registers the variant under its enum and under its bare name, so `Red` can resolve without a qualifier.
+Each variant is a constant global variable entry, such as `Color.Red`. Its value expression is stored with the enum's underlying type as the evaluation target, and the entry carries the linkage of the unit that declares the type, like a global variable. The index registers the variant under its enum and under its bare name, so `Red` can resolve without a qualifier.
 
 After indexing and constant evaluation the project holds four enum types and eleven variants:
 
@@ -164,7 +164,7 @@ An enum type becomes the LLVM integer of its underlying type, `i32` for `Color` 
 @__main_mode.Manual = unnamed_addr constant i32 0
 ```
 
-`paint` starts at `0`, the `Red` default; `state` at `4`, the explicit `Closed`; `mode` at `1` from its own initializer. The variant globals carry no debug information, so a debugger does not list them as variables.
+`paint` starts at `0`, the `Red` default; `state` at `4`, the explicit `Closed`; `mode` at `1` from its own initializer. The variant globals carry no debug information, so a debugger does not list them as variables. A variant of an enum from an include file or an `{external}` type block is declared `external` without a value, like a global of another unit; only the object built from the declaring file defines it.
 
 ### Assignment and comparison
 

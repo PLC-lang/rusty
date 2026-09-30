@@ -28,4 +28,14 @@ FUNCTION main
     lresult := SUB_LTOD_LTOD(ltod1, ltod2);
     printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#10m
 
+    // The operators carry out the same functions
+    ltod_result := ltod1 + lt1;
+    printf('%s$N', REF(LTOD_TO_STRING(ltod_result)));                               // CHECK: LTOD#10:30:30
+    ltod_result := ltod1 - lt1;
+    printf('%s$N', REF(LTOD_TO_STRING(ltod_result)));                               // CHECK: LTOD#10:29:30
+    lresult := ltod1 - ltod2;
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#10m
+    ltod_result := LTOD#23:59:50 + LTIME#20s;
+    printf('%s$N', REF(LTOD_TO_STRING(ltod_result)));                               // CHECK: LTOD#00:00:10
+
 END_FUNCTION
