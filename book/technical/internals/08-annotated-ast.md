@@ -349,7 +349,7 @@ ReplacementAst {
 }
 ```
 
-`ReplacementAst` attaches a replacement expression without changing the original node. String equality becomes a `STRING_EQUAL` call. Other string comparisons combine `_EQUAL`, `_LESS`, and `_GREATER` calls with `NOT` and `OR`. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: `ADD(a, b, c)` becomes `(a + b) + c`, and `GT(a, b, c)` becomes `(a > b) AND (b > c)`. An arithmetic operator on date and time operands becomes the call of the standard library function that carries it out, `ADD_DT_TIME(stamp, cycle)` for `stamp + cycle`. The replacement has its own annotations.
+`ReplacementAst` attaches a replacement expression without changing the original node. String equality becomes a `STRING_EQUAL` call. Other string comparisons combine `_EQUAL`, `_LESS`, and `_GREATER` calls with `NOT` and `OR`. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: `ADD(a, b, c)` becomes `(a + b) + c`, and `GT(a, b, c)` becomes `(a > b) AND (b > c)`. An arithmetic operator on a combination of date and time operands that the standard defines becomes the call of the standard library function that carries it out, `ADD_DT_TIME(stamp, cycle)` for `stamp + cycle`, when that function is declared. The replacement has its own annotations.
 
 ```
     same := text = 'hello';
@@ -420,7 +420,7 @@ Codegen compares the annotated type with the expected type from the hint. The an
 | `Program` | references to programs, classes, actions | qualified name | codegen (instance address), validator (E095) |
 | `Argument` (hint only) | every call argument | type, position, depth, declaring POU | codegen (parameter slot), aggregate-return lowerer, conversion like any hint |
 | `Property` | property references before lowering | accessor name | property lowerer |
-| `ReplacementAst` | string and other library-compared comparisons, arithmetic on date and time operands | the replacement statement | codegen |
+| `ReplacementAst` | string and other library-compared comparisons, calls of the arithmetic and comparison built-ins, arithmetic on date and time operands | the replacement statement | codegen |
 | `Label` | jump statements from CFC | label name | codegen |
 | `MethodDeclarations` | block, class, and interface declarations (by declaration ID) | method name to declarations | validator (E111, E112) |
 | `Override` | method declarations that override (by declaration ID) | overridden methods | validator (E112, E118) |

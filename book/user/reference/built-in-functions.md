@@ -1,6 +1,6 @@
 # Built-in Functions
 
-The compiler knows these functions itself. You declare nothing, you include no file, and you link no library: the compiler writes the code at the place of the call. This is what separates them from the [standard library](standard-library.md), which is a set of ordinary declarations and an object file that the linker needs.
+The compiler knows these functions itself. You declare nothing, you include no file, and you link no library: the compiler writes the code at the place of the call. This is what separates them from the [standard library](standard-library.md), which is a set of ordinary declarations and an object file that the linker needs. The one exception is arithmetic on date and time values, see [Arithmetic](#arithmetic).
 
 Their names are reserved. A function of your own that takes one of them is rejected; see [Source Files](../language/source-files.md).
 
@@ -39,10 +39,12 @@ The parameter names in the second column are the names a call can use.
 | Call | Parameters | Result | Gives |
 |---|---|---|---|
 | `ABS(IN)` | `IN: ANY_NUM` | The type of `IN` | The value without its sign |
-| `ADD(...)` | Two or more `ANY_NUM` | The biggest argument type | The sum |
-| `MUL(...)` | Two or more `ANY_NUM` | The biggest argument type | The product |
-| `SUB(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type | `IN1 - IN2` |
-| `DIV(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type | `IN1 / IN2` |
+| `ADD(...)` | Two or more numbers or date and time values | The biggest argument type, or the date and time result | The sum |
+| `MUL(...)` | Two or more numbers or durations | The biggest argument type, or the date and time result | The product |
+| `SUB(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type, or the date and time result | `IN1 - IN2` |
+| `DIV(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type, or the date and time result | `IN1 / IN2` |
+
+With a date or time argument, these four take the combinations of [Time and Date](../language/time.md#calculating), folded from the left, and the result has the type that table gives: `ADD(stamp, T#1s, T#2s)` is `stamp + T#1s + T#2s`, a `DATE_AND_TIME`, and `SUB(day1, day2)` is a `TIME`. The compiler carries these operations out with the standard library, such as `ADD_DT_TIME`, so such a call needs `iec61131std` linked. An argument that is neither a number nor part of a defined combination is rejected (E156).
 
 ### Comparison
 

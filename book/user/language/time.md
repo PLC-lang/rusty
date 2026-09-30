@@ -73,6 +73,7 @@ A duration shifts a moment of a day or a point in time, and two of those subtrac
 | `DATE` | `-` | `DATE` | `TIME` |
 | `DATE_AND_TIME` | `-` | `DATE_AND_TIME` | `TIME` |
 | `TIME` | `*`, `/` | a number | `TIME` |
+| a number | `*` | `TIME` | `TIME` |
 
 The long family has the same table with `LTIME`, `LTIME_OF_DAY`, `LDATE`, and `LDATE_AND_TIME`. A moment of a day wraps around midnight, so `TOD#23:59:50 + T#20s` is `TOD#00:00:10`. Any other combination, such as two points in time added together or a short type mixed with a long one, is rejected (E156); convert first, for example with `TIME_TO_LTIME`.
 
