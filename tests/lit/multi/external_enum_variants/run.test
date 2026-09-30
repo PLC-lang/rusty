@@ -1,0 +1,11 @@
+RUN: %COMPILE %S/main.st && %RUN | %CHECK %s
+
+base.st defines an enum and a global; lib.st is compiled to an object with
+base.st included; main.st includes both and links both objects. Every enum
+variant symbol must be defined exactly once, in the object built from base.st.
+
+CHECK: 1
+CHECK: 0
+CHECK: 1
+CHECK: green
+CHECK: 2
