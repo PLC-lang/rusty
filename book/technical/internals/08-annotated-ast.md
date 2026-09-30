@@ -358,7 +358,7 @@ ReplacementAst {
                    ^^^^^^^    Value "__STRING_5",            hint Argument "STRING", position 1, pou STRING_EQUAL
 ```
 
-Codegen checks every expression for this kind first and generates the replacement instead of the node. The type of the node is the type of its replacement; see [Deriving a type](#deriving-a-type).
+Codegen checks every expression for this kind first and generates the replacement instead of the node, also inside parentheses. The type of the node is the type of its replacement; see [Deriving a type](#deriving-a-type). The value of the replacement is then converted to the hint of the node like any other value, so `x := cycle * 1.5` with an `LREAL` target converts the `TIME` result of `MUL_TIME__REAL` to `LREAL`.
 
 ### Label
 
