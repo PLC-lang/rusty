@@ -14,4 +14,8 @@ FUNCTION main
     result := SUB_DATE_DATE(date1, date2);
     printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#5d
 
+    // The operators carry out the same functions
+    result := date1 - date2;
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#5d
+
 END_FUNCTION

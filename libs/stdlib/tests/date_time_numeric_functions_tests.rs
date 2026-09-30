@@ -26,6 +26,8 @@ struct ShortMainType {
     d: u32,
 }
 
+const NANOS_PER_DAY: i64 = 60 * 60 * 24 * 1_000_000_000;
+
 fn get_time_from_hms(hour: u32, min: u32, sec: u32) -> chrono::NaiveDateTime {
     chrono::NaiveDate::from_ymd_opt(1970, 1, 1).unwrap().and_hms_opt(hour, min, sec).unwrap()
 }
@@ -1190,7 +1192,7 @@ wrapping_tests!(
     (add_time_wraps_on_overflow, dtf::ADD_TIME, u32::MAX, 1, 0),
     (add_dt_time_wraps_on_overflow, dtf::ADD_DT_TIME, u32::MAX, 1_000, 0),
     (add_ltime_wraps_on_overflow, dtf::ADD_LTIME, i64::MAX, 1, i64::MIN),
-    (add_ltod_ltime_wraps_on_overflow, dtf::ADD_LTOD_LTIME, i64::MAX, 1, i64::MIN),
+    (add_ltod_ltime_wraps_at_midnight, dtf::ADD_LTOD_LTIME, NANOS_PER_DAY - 1, 2, 1),
     (add_ldt_ltime_wraps_on_overflow, dtf::ADD_LDT_LTIME, i64::MAX, 1, i64::MIN),
 );
 
@@ -1201,7 +1203,7 @@ wrapping_tests!(
     (sub_tod_tod_wraps_on_underflow, dtf::SUB_TOD_TOD, 1_000, 2_000, u32::MAX - 999),
     (sub_dt_time_wraps_on_underflow, dtf::SUB_DT_TIME, 0, 1_000, u32::MAX),
     (sub_ltime_wraps_on_underflow, dtf::SUB_LTIME, i64::MIN, 1, i64::MAX),
-    (sub_ltod_ltime_wraps_on_underflow, dtf::SUB_LTOD_LTIME, i64::MIN, 1, i64::MAX),
+    (sub_ltod_ltime_wraps_at_midnight, dtf::SUB_LTOD_LTIME, 0, 1, NANOS_PER_DAY - 1),
     (sub_ldt_ltime_wraps_on_underflow, dtf::SUB_LDT_LTIME, i64::MIN, 1, i64::MAX),
     (sub_ldate_ldate_wraps_on_large_delta, dtf::SUB_LDATE_LDATE, i64::MAX, i64::MIN, -1),
     (sub_ltod_ltod_wraps_on_large_delta, dtf::SUB_LTOD_LTOD, i64::MAX, i64::MIN, -1),
@@ -1232,11 +1234,11 @@ wrapping_tests!(
 // is checked with the same boundary values as the named functions above.
 wrapping_tests!(
     (add_alias_ltime_ltime_wraps_on_overflow, dtf::ADD__LTIME__LTIME, i64::MAX, 1, i64::MIN),
-    (add_alias_ltod_ltime_wraps_on_overflow, dtf::ADD__LTOD__LTIME, i64::MAX, 1, i64::MIN),
+    (add_alias_ltod_ltime_wraps_at_midnight, dtf::ADD__LTOD__LTIME, NANOS_PER_DAY - 1, 2, 1),
     (add_alias_ldt_ltime_wraps_on_overflow, dtf::ADD__LDT__LTIME, i64::MAX, 1, i64::MIN),
     (sub_alias_ltime_ltime_wraps_on_underflow, dtf::SUB__LTIME__LTIME, i64::MIN, 1, i64::MAX),
     (sub_alias_ldate_ldate_wraps_on_large_delta, dtf::SUB__LDATE__LDATE, i64::MAX, i64::MIN, -1),
-    (sub_alias_ltod_ltime_wraps_on_underflow, dtf::SUB__LTOD__LTIME, i64::MIN, 1, i64::MAX),
+    (sub_alias_ltod_ltime_wraps_at_midnight, dtf::SUB__LTOD__LTIME, 0, 1, NANOS_PER_DAY - 1),
     (sub_alias_ltod_ltod_wraps_on_large_delta, dtf::SUB__LTOD__LTOD, i64::MAX, i64::MIN, -1),
     (sub_alias_ldt_ltime_wraps_on_underflow, dtf::SUB__LDT__LTIME, i64::MIN, 1, i64::MAX),
     (sub_alias_ldt_ldt_wraps_on_large_delta, dtf::SUB__LDT__LDT, i64::MAX, i64::MIN, -1),
@@ -1247,7 +1249,7 @@ wrapping_tests!(
         1,
         i64::MIN
     ),
-    (add_alias_ltime_of_day_ltime_wraps_on_overflow, dtf::ADD__LTIME_OF_DAY__LTIME, i64::MAX, 1, i64::MIN),
+    (add_alias_ltime_of_day_ltime_wraps_at_midnight, dtf::ADD__LTIME_OF_DAY__LTIME, NANOS_PER_DAY - 1, 2, 1),
     (
         sub_alias_ldate_and_time_ltime_wraps_on_underflow,
         dtf::SUB__LDATE_AND_TIME__LTIME,
@@ -1262,7 +1264,7 @@ wrapping_tests!(
         i64::MIN,
         -1
     ),
-    (sub_alias_ltime_of_day_ltime_wraps_on_underflow, dtf::SUB__LTIME_OF_DAY__LTIME, i64::MIN, 1, i64::MAX),
+    (sub_alias_ltime_of_day_ltime_wraps_at_midnight, dtf::SUB__LTIME_OF_DAY__LTIME, 0, 1, NANOS_PER_DAY - 1),
     (
         sub_alias_ltime_of_day_ltime_of_day_wraps_on_large_delta,
         dtf::SUB__LTIME_OF_DAY__LTIME_OF_DAY,
@@ -1276,35 +1278,35 @@ wrapping_tests!(
 // above i64::MAX to check that the u64 to i64 cast keeps the result correct mod 2^64.
 wrapping_tests!(
     (mul_time_lint_wraps_on_overflow, dtf::MUL__TIME__LINT, i64::MAX, 2, -2),
-    (mul_time_lint_alias_wraps_on_overflow, dtf::MUL_TIME__LINT, i64::MAX, 2, -2),
+    (mul_time_lint_alias_wraps_on_overflow, dtf::MUL_TIME__LINT, u32::MAX, 2, u32::MAX - 1),
     (mul_ltime_lint_wraps_on_overflow, dtf::MUL_LTIME__LINT, i64::MAX, 2, -2),
     (mul_alias_ltime_lint_wraps_on_overflow, dtf::MUL__LTIME__LINT, i64::MAX, 2, -2),
     (mul_time_sint_wraps_on_overflow, dtf::MUL__TIME__SINT, i64::MAX, 2_i8, -2),
-    (mul_time_sint_alias_wraps_on_overflow, dtf::MUL_TIME__SINT, i64::MAX, 2_i8, -2),
+    (mul_time_sint_alias_wraps_on_overflow, dtf::MUL_TIME__SINT, u32::MAX, 2_i8, u32::MAX - 1),
     (mul_ltime_sint_wraps_on_overflow, dtf::MUL_LTIME__SINT, i64::MAX, 2_i8, -2),
     (mul_alias_ltime_sint_wraps_on_overflow, dtf::MUL__LTIME__SINT, i64::MAX, 2_i8, -2),
     (mul_time_int_wraps_on_overflow, dtf::MUL__TIME__INT, i64::MAX, 2_i16, -2),
-    (mul_time_int_alias_wraps_on_overflow, dtf::MUL_TIME__INT, i64::MAX, 2_i16, -2),
+    (mul_time_int_alias_wraps_on_overflow, dtf::MUL_TIME__INT, u32::MAX, 2_i16, u32::MAX - 1),
     (mul_ltime_int_wraps_on_overflow, dtf::MUL_LTIME__INT, i64::MAX, 2_i16, -2),
     (mul_alias_ltime_int_wraps_on_overflow, dtf::MUL__LTIME__INT, i64::MAX, 2_i16, -2),
     (mul_time_dint_wraps_on_overflow, dtf::MUL__TIME__DINT, i64::MAX, 2_i32, -2),
-    (mul_time_dint_alias_wraps_on_overflow, dtf::MUL_TIME__DINT, i64::MAX, 2_i32, -2),
+    (mul_time_dint_alias_wraps_on_overflow, dtf::MUL_TIME__DINT, u32::MAX, 2_i32, u32::MAX - 1),
     (mul_ltime_dint_wraps_on_overflow, dtf::MUL_LTIME__DINT, i64::MAX, 2_i32, -2),
     (mul_alias_ltime_dint_wraps_on_overflow, dtf::MUL__LTIME__DINT, i64::MAX, 2_i32, -2),
     (mul_time_usint_wraps_on_overflow, dtf::MUL__TIME__USINT, i64::MAX, 2_u8, -2),
-    (mul_time_usint_alias_wraps_on_overflow, dtf::MUL_TIME__USINT, i64::MAX, 2_u8, -2),
+    (mul_time_usint_alias_wraps_on_overflow, dtf::MUL_TIME__USINT, u32::MAX, 2_u8, u32::MAX - 1),
     (mul_ltime_usint_wraps_on_overflow, dtf::MUL_LTIME__USINT, i64::MAX, 2_u8, -2),
     (mul_alias_ltime_usint_wraps_on_overflow, dtf::MUL__LTIME__USINT, i64::MAX, 2_u8, -2),
     (mul_time_uint_wraps_on_overflow, dtf::MUL__TIME__UINT, i64::MAX, 2_u16, -2),
-    (mul_time_uint_alias_wraps_on_overflow, dtf::MUL_TIME__UINT, i64::MAX, 2_u16, -2),
+    (mul_time_uint_alias_wraps_on_overflow, dtf::MUL_TIME__UINT, u32::MAX, 2_u16, u32::MAX - 1),
     (mul_ltime_uint_wraps_on_overflow, dtf::MUL_LTIME__UINT, i64::MAX, 2_u16, -2),
     (mul_alias_ltime_uint_wraps_on_overflow, dtf::MUL__LTIME__UINT, i64::MAX, 2_u16, -2),
     (mul_time_udint_wraps_on_overflow, dtf::MUL__TIME__UDINT, i64::MAX, 2_u32, -2),
-    (mul_time_udint_alias_wraps_on_overflow, dtf::MUL_TIME__UDINT, i64::MAX, 2_u32, -2),
+    (mul_time_udint_alias_wraps_on_overflow, dtf::MUL_TIME__UDINT, u32::MAX, 2_u32, u32::MAX - 1),
     (mul_ltime_udint_wraps_on_overflow, dtf::MUL_LTIME__UDINT, i64::MAX, 2_u32, -2),
     (mul_alias_ltime_udint_wraps_on_overflow, dtf::MUL__LTIME__UDINT, i64::MAX, 2_u32, -2),
     (mul_time_ulint_wraps_on_overflow, dtf::MUL__TIME__ULINT, i64::MAX, 2_u64, -2),
-    (mul_time_ulint_alias_wraps_on_overflow, dtf::MUL_TIME__ULINT, i64::MAX, 2_u64, -2),
+    (mul_time_ulint_alias_wraps_on_overflow, dtf::MUL_TIME__ULINT, u32::MAX, 2_u64, u32::MAX - 1),
     (mul_ltime_ulint_wraps_on_overflow, dtf::MUL_LTIME__ULINT, i64::MAX, 2_u64, -2),
     (mul_alias_ltime_ulint_wraps_on_overflow, dtf::MUL__LTIME__ULINT, i64::MAX, 2_u64, -2),
     (mul_time_ulint_wraps_when_factor_exceeds_lint, dtf::MUL__TIME__ULINT, 1, u64::MAX, -1),
@@ -1342,11 +1344,11 @@ fn mul_time_with_nan_factor_yields_zero() {
 #[test]
 fn mul_time_with_oversized_float_factor_saturates() {
     assert_eq!(dtf::MUL__TIME__REAL(i64::MAX, 2.0), i64::MAX);
-    assert_eq!(dtf::MUL_TIME__REAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_TIME__REAL(u32::MAX, f32::MAX), u32::MAX);
     assert_eq!(dtf::MUL_LTIME__REAL(i64::MAX, 2.0), i64::MAX);
     assert_eq!(dtf::MUL__LTIME__REAL(i64::MAX, 2.0), i64::MAX);
     assert_eq!(dtf::MUL__TIME__LREAL(i64::MAX, 2.0), i64::MAX);
-    assert_eq!(dtf::MUL_TIME__LREAL(i64::MAX, 2.0), i64::MAX);
+    assert_eq!(dtf::MUL_TIME__LREAL(u32::MAX, f64::MAX), u32::MAX);
     assert_eq!(dtf::MUL_LTIME__LREAL(i64::MAX, 2.0), i64::MAX);
     assert_eq!(dtf::MUL__LTIME__LREAL(i64::MAX, 2.0), i64::MAX);
 }
@@ -1379,11 +1381,11 @@ fn div_time_by_tiny_float_saturates() {
 #[test]
 fn div_time_by_zero_float_saturates() {
     assert_eq!(dtf::DIV__TIME__REAL(1, 0.0), i64::MAX);
-    assert_eq!(dtf::DIV_TIME__REAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_TIME__REAL(1, 0.0), u32::MAX);
     assert_eq!(dtf::DIV_LTIME__REAL(1, 0.0), i64::MAX);
     assert_eq!(dtf::DIV__LTIME__REAL(1, 0.0), i64::MAX);
     assert_eq!(dtf::DIV__TIME__LREAL(1, 0.0), i64::MAX);
-    assert_eq!(dtf::DIV_TIME__LREAL(1, 0.0), i64::MAX);
+    assert_eq!(dtf::DIV_TIME__LREAL(1, 0.0), u32::MAX);
     assert_eq!(dtf::DIV_LTIME__LREAL(1, 0.0), i64::MAX);
     assert_eq!(dtf::DIV__LTIME__LREAL(1, 0.0), i64::MAX);
     assert_eq!(dtf::DIV__TIME__REAL(-1, 0.0), -i64::MAX);

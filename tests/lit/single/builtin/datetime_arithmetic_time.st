@@ -20,4 +20,18 @@ FUNCTION main
     result := SUB_TIME(t1, t2);
     printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#7s
 
+    // The operators carry out the same functions
+    result := t1 + t2;
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#13s
+    result := t1 - t2;
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#7s
+    result := t1 * 3;
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#30s
+    result := 2 * t1;
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#20s
+    result := t1 / 4;
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#2s500ms
+    result := t1 + 5;
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#10s5ms
+
 END_FUNCTION

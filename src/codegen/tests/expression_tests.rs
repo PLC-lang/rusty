@@ -1786,3 +1786,75 @@ fn modulo_of_mix_signed_types_should_use_srem() {
     }
     "#)
 }
+
+#[test]
+fn date_time_operators_call_the_standard_functions() {
+    let src = r#"
+        {external} FUNCTION ADD_DT_TIME : DT VAR_INPUT IN1 : DT; IN2 : TIME; END_VAR END_FUNCTION
+        {external} FUNCTION SUB_TIME : TIME VAR_INPUT IN1 : TIME; IN2 : TIME; END_VAR END_FUNCTION
+        {external} FUNCTION MUL_TIME__LINT : TIME VAR_INPUT IN1 : TIME; IN2 : LINT; END_VAR END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            dt : DT;
+            t1, t2 : TIME;
+            n : LINT;
+        END_VAR
+            dt := dt + t1;
+            t1 := t1 - t2;
+            t1 := t1 * 2;
+            t1 := 2 * t1;
+            t1 := t1 + n;
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    declare i32 @ADD_DT_TIME(i32, i32)
+
+    declare i32 @SUB_TIME(i32, i32)
+
+    declare i32 @MUL_TIME__LINT(i32, i64)
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %dt = alloca i32, align [filtered]
+      %t1 = alloca i32, align [filtered]
+      %t2 = alloca i32, align [filtered]
+      %n = alloca i64, align [filtered]
+      store i32 0, ptr %dt, align [filtered]
+      store i32 0, ptr %t1, align [filtered]
+      store i32 0, ptr %t2, align [filtered]
+      store i64 0, ptr %n, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      %load_dt = load i32, ptr %dt, align [filtered]
+      %load_t1 = load i32, ptr %t1, align [filtered]
+      %call = call i32 @ADD_DT_TIME(i32 %load_dt, i32 %load_t1)
+      store i32 %call, ptr %dt, align [filtered]
+      %load_t11 = load i32, ptr %t1, align [filtered]
+      %load_t2 = load i32, ptr %t2, align [filtered]
+      %call2 = call i32 @SUB_TIME(i32 %load_t11, i32 %load_t2)
+      store i32 %call2, ptr %t1, align [filtered]
+      %load_t13 = load i32, ptr %t1, align [filtered]
+      %call4 = call i32 @MUL_TIME__LINT(i32 %load_t13, i64 2)
+      store i32 %call4, ptr %t1, align [filtered]
+      %load_t15 = load i32, ptr %t1, align [filtered]
+      %call6 = call i32 @MUL_TIME__LINT(i32 %load_t15, i64 2)
+      store i32 %call6, ptr %t1, align [filtered]
+      %load_t17 = load i32, ptr %t1, align [filtered]
+      %load_n = load i64, ptr %n, align [filtered]
+      %0 = trunc i64 %load_n to i32
+      %tmpVar = add i32 %load_t17, %0
+      store i32 %tmpVar, ptr %t1, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+    "#);
+}
