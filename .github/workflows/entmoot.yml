@@ -26,7 +26,7 @@ jobs:
       github.actor != 'dependabot[bot]' &&
       !github.event.pull_request.draft
     runs-on: ubuntu-latest
-    timeout-minutes: 30 # the budget caps spend, this caps a hung provider
+    timeout-minutes: 60 # the budget caps spend, this caps a hung provider
 
     # Reading the repository and posting the comment is all the token is used for
     permissions:

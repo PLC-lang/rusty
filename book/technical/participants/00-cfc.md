@@ -173,7 +173,7 @@ a --> [b |S] (0)
 IF a THEN b := TRUE; END_IF
 ```
 
-`Reset` mode is the counterpart and stores `FALSE` under the same guard. `Reference` mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:
+`Reset` mode is the counterpart and stores `FALSE` under the same guard. The rendered assignment is validated like any other, so a sink with either mode on a variable that is not a `BOOL` is an invalid assignment (E037), reported at the sink. `Reference` mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:
 
 ```
 a --> [b |REF] (0)

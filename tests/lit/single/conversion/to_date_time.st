@@ -1,13 +1,36 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
 FUNCTION main
+VAR
+    b  : BOOL  := TRUE;
+    dw : DWORD := 4294967295;
+    i  : INT   := -1;
+    di : DINT  := -2147483648;
+    ud : UDINT := 1000;
+    r  : REAL  := 2.5;
+    lr : LREAL := -1.0;
+END_VAR
     // TO_TIME
     // Updated checks for short datetime unit behavior after migration.
     printf('%s$N', REF(TIME_TO_STRING(TO_TIME(LTIME#10s))));                        // CHECK: {{^T#10s *$}}
+    printf('%s$N', REF(TIME_TO_STRING(TO_TIME(b))));                                // CHECK: T#1ms
+    printf('%s$N', REF(TIME_TO_STRING(TO_TIME(dw))));                               // CHECK: T#49d17h2m47s295ms
+    printf('%s$N', REF(TIME_TO_STRING(TO_TIME(i))));                                // CHECK: T#49d17h2m47s295ms
+    printf('%s$N', REF(TIME_TO_STRING(TO_TIME(di))));                               // CHECK: T#24d20h31m23s648ms
+    printf('%s$N', REF(TIME_TO_STRING(TO_TIME(ud))));                               // CHECK: T#1s
+    printf('%s$N', REF(TIME_TO_STRING(TO_TIME(r))));                                // CHECK: T#3ms
+    printf('%s$N', REF(TIME_TO_STRING(TO_TIME(lr))));                               // CHECK: T#49d17h2m47s295ms
 
     // TO_LTIME
     // Updated checks for short datetime unit behavior after migration.
     printf('%s$N', REF(TIME_TO_STRING(TO_LTIME(TIME#10s))));                        // CHECK: T#16d7h41m5s408ms
     printf('%s$N', REF(LTIME_TO_STRING(TO_LTIME(LTIME#10s500ns))));                 // CHECK: LTIME#10s500ns
+    printf('%s$N', REF(LTIME_TO_STRING(TO_LTIME(b))));                              // CHECK: LTIME#1ns
+    printf('%s$N', REF(LTIME_TO_STRING(TO_LTIME(dw))));                             // CHECK: LTIME#4s294ms967us295ns
+    printf('%s$N', REF(LTIME_TO_STRING(TO_LTIME(i))));                              // CHECK: LTIME#213503d23h34m33s709ms551us615ns
+    printf('%s$N', REF(LTIME_TO_STRING(TO_LTIME(di))));                             // CHECK: LTIME#213503d23h34m31s562ms67us968ns
+    printf('%s$N', REF(LTIME_TO_STRING(TO_LTIME(ud))));                             // CHECK: LTIME#1us
+    printf('%s$N', REF(LTIME_TO_STRING(TO_LTIME(r))));                              // CHECK: LTIME#3ns
+    printf('%s$N', REF(LTIME_TO_STRING(TO_LTIME(lr))));                             // CHECK: LTIME#213503d23h34m33s709ms551us615ns
 
     // TO_DT
     // Updated checks for short datetime unit behavior after migration.

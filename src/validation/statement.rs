@@ -5,8 +5,9 @@ use plc_ast::ast::Assignment;
 use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstNode, AstStatement, BinaryExpression, CallStatement, DirectAccess,
-        DirectAccessType, JumpStatement, Operator, ReferenceAccess, TypeNature, UnaryExpression,
+        flatten_expression_list, resolve_argument_slots, AstNode, AstStatement, BinaryExpression,
+        CallStatement, DirectAccess, DirectAccessType, JumpStatement, Operator, ReferenceAccess, TypeNature,
+        UnaryExpression,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -137,7 +138,10 @@ pub fn visit_statement<T: AnnotationMap>(
             visit_statement(validator, &data.left, context);
             visit_statement(validator, &data.right, context);
 
-            validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
+            // lowered copies of variable initializers are validated at their declaration
+            if !statement.location.is_internal() {
+                validate_assignment(validator, &data.right, Some(&data.left), &statement.location, context);
+            }
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::OutputAssignment(data) => {
@@ -608,6 +612,13 @@ fn validate_cast_literal<T: AnnotationMap>(
             .with_error_code("E061")
             .with_location(location),
         )
+    } else if matches!(literal, AstLiteral::Bool(_)) && !cast_type.is_bool() {
+        // a BOOL literal is no numeric value, e.g. DINT#TRUE
+        validator.push_diagnostic(incompatible_literal_cast(
+            cast_type.get_name(),
+            literal.get_literal_value().as_str(),
+            location.clone(),
+        ));
     } else if cast_type.is_date_or_time_type() || literal_type.is_date_or_time_type() {
         validator.push_diagnostic(incompatible_literal_cast(
             cast_type.get_name(),
@@ -1557,7 +1568,7 @@ fn validate_alias_assignment<T: AnnotationMap>(
     }
 }
 
-fn validate_assignment<T: AnnotationMap>(
+pub(super) fn validate_assignment<T: AnnotationMap>(
     validator: &mut Validator,
     right: &AstNode,
     left: Option<&AstNode>,
@@ -2067,6 +2078,8 @@ fn is_valid_assignment(
         // because those would fail
         return true;
     } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
+        | is_invalid_bool_assignment(left_type.get_type_information(), right_type.get_type_information())
+        | is_invalid_bool_literal_assignment(left_type.get_type_information(), right)
         | is_invalid_pointer_assignment(
             left_type.get_type_information(),
             right_type.get_type_information(),
@@ -2171,6 +2184,23 @@ fn is_invalid_char_assignment(left_type: &DataTypeInformation, right_type: &Data
     false
 }
 
+/// a BOOL value is not implicitly converted to another numeric type
+fn is_invalid_bool_assignment(left_type: &DataTypeInformation, right_type: &DataTypeInformation) -> bool {
+    right_type.is_bool() && left_type.is_numerical() && !left_type.is_bool()
+}
+
+/// only the literals 0 and 1 are BOOL values
+fn is_invalid_bool_literal_assignment(left_type: &DataTypeInformation, right: &AstNode) -> bool {
+    if !left_type.is_bool() {
+        return false;
+    }
+    match right.get_stmt_peeled() {
+        AstStatement::Literal(AstLiteral::Integer(value)) => *value != 0 && *value != 1,
+        AstStatement::Literal(AstLiteral::Real(_)) => true,
+        _ => false,
+    }
+}
+
 /// aggregate types can only be assigned to aggregate types
 /// special case char := string_with_length_1, handled by `is_valid_string_to_char_assignment()`
 fn is_aggregate_to_none_aggregate_assignment(left_type: &DataType, right_type: &DataType) -> bool {
@@ -2238,15 +2268,17 @@ fn validate_call<T: AnnotationMap>(
     let mut arguments_are_implicit = true;
     let mut variable_location_in_parent = vec![];
 
-    // validate parameters
-    for (i, argument) in arguments.iter().enumerate() {
-        match get_implicit_call_parameter(argument, &parameters, i) {
-            Ok((parameter_idx, right, is_implicit)) => {
+    // validate parameters; each argument is checked against the parameter it binds to, see
+    // `resolve_argument_slots`
+    let slots = resolve_argument_slots(&arguments, parameters.iter().map(|it| it.get_name()));
+    for (i, (argument, slot)) in arguments.iter().zip(slots).enumerate() {
+        match get_implicit_call_parameter(argument, slot) {
+            Ok((slot, right, is_implicit)) => {
                 if i == 0 {
                     arguments_are_implicit = is_implicit;
                 }
 
-                if let Some(left) = parameters.get(parameter_idx) {
+                if let Some(left) = slot.and_then(|slot| parameters.get(slot)) {
                     validate_call_by_ref(validator, context, left, argument);
                     // Builtins declare their parameters with generic placeholder types and
                     // bring their own validation.

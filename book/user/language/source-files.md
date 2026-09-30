@@ -62,7 +62,7 @@ FUNCTION main: DINT    (* error[E004]: main: Duplicate symbol. *)
 END_FUNCTION
 ```
 
-A keyword cannot be a name, and because names are not case-sensitive, `type` is the keyword `TYPE`. The names of the builtin functions are taken as well: a function of your own called `Add` collides with the builtin `ADD` and is rejected.
+A keyword cannot be a name, and because names are not case-sensitive, `type` is the keyword `TYPE`. The names of the [built-in functions](../reference/built-in-functions.md) are taken as well: a function of your own called `Add` collides with the built-in `ADD` and is rejected.
 
 Names that start with two underscores belong to the compiler. It generates names such as `__vtable_Pump` and `__PI_0_0`. It does not reject a name of yours with the same prefix, so a program that declares `__level` is accepted and only collides later, with a message that points somewhere else. Do not start a name with two underscores.
 

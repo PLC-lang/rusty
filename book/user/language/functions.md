@@ -77,13 +77,27 @@ r := Measure(raw, 'sensor', total, valid);
 r := Measure(raw := raw, label := 'sensor', total := total, valid => valid);
 ```
 
-`:=` gives a value to an input or to an in-out, `=>` takes a value out of an output. A missing argument is an error, in both forms:
+`:=` gives a value to an input or to an in-out, `=>` takes a value out of an output.
+
+A call may also mix the two forms. Each named argument claims the parameter its name says, and the positional arguments fill the parameters left over, in the order you write them. `plc explain E132` describes this, and `plc explain E131` describes the one mix the compiler rejects: a positional argument whose parameter a *later* named argument also names.
+
+Give every argument a name, or give none, when the POU has a parameter that takes a variable and not a value: a `VAR_IN_OUT`, a `VAR_OUTPUT` of a function, a `VAR_INPUT {ref}`, or a `REFERENCE TO`. The compiler tests such a parameter by the place of the argument in the call, not by the rule above. In a mixed call it can therefore report an argument that is correct:
+
+```
+error[E031]: Expected a reference for parameter total because their type is InOut
+```
+
+and it can accept a value where the parameter needs a variable, which then binds a temporary that the caller never sees.
+
+A missing argument is an error, in both forms:
 
 ```
 error[E032]: this POU takes 4 arguments but 2 arguments were supplied
 ```
 
 An input with a default value (`factor: DINT := 2;`) is the exception: you can leave it out and get the default. This applies to the inputs at the end of the list only. When a parameter without a default comes after it, you must supply both. A call of a [function block](function-blocks.md) instance may leave out any parameter, because the instance keeps what the previous call gave it.
+
+The functions that the compiler brings itself, such as `SEL`, `SUB`, and `SHL`, take their arguments the same way. [Built-in Functions](../reference/built-in-functions.md) lists their parameter names, and says which of them take a variadic parameter that has no name to call it by.
 
 
 ## Arrays of any size
@@ -105,7 +119,7 @@ FUNCTION Sum: DINT
 END_FUNCTION
 ```
 
-The second argument of the two functions is the number of the dimension. They accept a parameter of this kind only, not an array of a fixed size. Such a parameter is always passed by reference, also in a `VAR_INPUT` block, and the compiler says so:
+The second argument of the two functions is the number of the dimension. They accept a parameter of this kind only, not an array of a fixed size, and they are [built in](../reference/built-in-functions.md). Such a parameter is always passed by reference, also in a `VAR_INPUT` block, and the compiler says so:
 
 ```
 warning[E047]: Variable Length Arrays are always by-ref, even when declared in a by-value block
