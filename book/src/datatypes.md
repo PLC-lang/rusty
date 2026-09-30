@@ -167,7 +167,8 @@ Examples:
 
 ## Other types
 
-The `BOOL` type can either be assigned `TRUE` or `FALSE`.
+The `BOOL` type can either be assigned `TRUE` or `FALSE`, or the literals `0` and `1` in their place.
+A `BOOL` is not a number: assigning a `BOOL` value to an integer, real, or bit type is an invalid assignment, and so is assigning any number other than `0` or `1` to a `BOOL`. Use the `BOOL_TO_*` functions of the standard library to get a `0` or a `1` from a `BOOL`.
 The type `__VOID` is the empty type and has an undefined size.
 
 | Type name | Size      | Properties |

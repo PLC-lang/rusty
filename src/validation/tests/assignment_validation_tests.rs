@@ -346,6 +346,77 @@ fn string_assignment_validation() {
 }
 
 #[test]
+fn bool_assignment_validation() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+    FUNCTION main : DINT
+    VAR
+        v_bool : BOOL;
+        v_dint : DINT;
+        v_real : REAL;
+        v_dword : DWORD;
+    END_VAR
+    v_dint := TRUE; // INVALID
+    v_real := v_bool; // INVALID
+    v_dword := FALSE; // INVALID
+    v_bool := 5; // INVALID
+    v_bool := 2.5; // INVALID
+    v_dword.1 := 5; // INVALID
+    v_bool := 1; // valid
+    v_bool := 0; // valid
+    v_bool := v_dint; // valid, reported as a downcast
+    v_dword.1 := 1; // valid
+    v_bool := v_dint > 1; // valid
+    END_FUNCTION
+    "#,
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT'
+      ┌─ <internal>:9:5
+      │
+    9 │     v_dint := TRUE; // INVALID
+      │     ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'BOOL' to 'DINT'
+
+    error[E037]: Invalid assignment: cannot assign 'BOOL' to 'REAL'
+       ┌─ <internal>:10:5
+       │
+    10 │     v_real := v_bool; // INVALID
+       │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'BOOL' to 'REAL'
+
+    error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DWORD'
+       ┌─ <internal>:11:5
+       │
+    11 │     v_dword := FALSE; // INVALID
+       │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'BOOL' to 'DWORD'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL'
+       ┌─ <internal>:12:5
+       │
+    12 │     v_bool := 5; // INVALID
+       │     ^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign 'REAL' to 'BOOL'
+       ┌─ <internal>:13:5
+       │
+    13 │     v_bool := 2.5; // INVALID
+       │     ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REAL' to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL'
+       ┌─ <internal>:14:5
+       │
+    14 │     v_dword.1 := 5; // INVALID
+       │     ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'BOOL'
+
+    warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
+       ┌─ <internal>:17:15
+       │
+    17 │     v_bool := v_dint; // valid, reported as a downcast
+       │               ^^^^^^ Implicit downcast from 'DINT' to 'BOOL'.
+    ");
+}
+
+#[test]
 fn char_assignment_validation() {
     let diagnostics = parse_and_validate_buffered(
         r#"
