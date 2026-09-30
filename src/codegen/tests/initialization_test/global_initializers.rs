@@ -181,6 +181,32 @@ fn external_pous_get_external_initializers() {
 }
 
 #[test]
+fn external_enum_variants_get_external_declarations() {
+    let result = codegen(
+        "
+        VAR_GLOBAL
+          c : Color := Green;
+        END_VAR
+
+        {external}
+        TYPE Color : (Red, Green, Blue); END_TYPE
+        ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @c = global i32 1
+    @Color.Green = external unnamed_addr constant i32
+    @Color.Red = external unnamed_addr constant i32
+    @Color.Blue = external unnamed_addr constant i32
+    "#);
+}
+
+#[test]
 #[ignore = "external struct initializers are not declared external"]
 fn external_aggregate_types_get_external_initializers() {
     let result = codegen(
