@@ -809,12 +809,11 @@ fn validate_arithmetic_arguments(
         return;
     }
 
-    let Some((first, rest)) = arguments.split_first() else { return };
+    let Some(first) = arguments.first() else { return };
     let mut left_type = annotations.get_type_or_void(first, index);
-    let mut location = first.get_location();
-    for right in rest {
+    for (position, right) in arguments.iter().enumerate().skip(1) {
         let right_type = annotations.get_type_or_void(right, index);
-        location = location.span(&right.get_location());
+        let location = span_in_source_order(&arguments[..=position]);
         if left_type.is_void() || right_type.is_void() {
             return;
         }
@@ -827,6 +826,18 @@ fn validate_arithmetic_arguments(
         let Some(result_type) = result_type else { return };
         left_type = result_type;
     }
+}
+
+/// The location from the first to the last of the given arguments as they are written in the source,
+/// which differs from their parameter order for reordered named arguments such as `SUB(IN2 := b, IN1 := a)`
+fn span_in_source_order(arguments: &[&AstNode]) -> SourceLocation {
+    let start = |it: &&&AstNode| it.get_location().to_range().map(|range| range.start);
+    let end = |it: &&&AstNode| it.get_location().to_range().map(|range| range.end);
+    let (Some(first), Some(last)) = (arguments.iter().min_by_key(start), arguments.iter().max_by_key(end))
+    else {
+        return SourceLocation::undefined();
+    };
+    first.get_location().span(&last.get_location())
 }
 
 /// The arguments of ADD, SUB, MUL, or DIV in parameter order, a named argument resolved to its value

@@ -312,7 +312,7 @@ fn builtin_calls_fold_their_arguments_from_the_left() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @"
+    assert_snapshot!(diagnostics, @r"
     error[E156]: Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`
        ┌─ <internal>:46:23
        │
@@ -326,10 +326,10 @@ fn builtin_calls_fold_their_arguments_from_the_left() {
        │                       ^^^^^^^^^ Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`
 
     error[E156]: Operator `-` is not defined for `TIME` and `DATE_AND_TIME`
-       ┌─ <internal>:48:40
+       ┌─ <internal>:48:29
        │
     48 │             t := SUB(IN2 := dt, IN1 := t);
-       │                                        ^ Operator `-` is not defined for `TIME` and `DATE_AND_TIME`
+       │                             ^^^^^^^^^^^^ Operator `-` is not defined for `TIME` and `DATE_AND_TIME`
 
     error[E156]: Operator `/` is not defined for `DINT` and `TIME`
        ┌─ <internal>:49:22
