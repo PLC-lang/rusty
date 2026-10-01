@@ -58,6 +58,11 @@ An In/Out parameter must always be passed in a POU call and cannot be stored.
 
 Output parameters are used to return the result(s) of the POU call.
 They are passed by reference, but are optional.
+
+A function or method starts every call with its outputs set to their initial value, or to zero when they declare none, exactly like its local variables.
+A variable length array, a `REFERENCE TO`, or an alias output is the exception and keeps what the caller passed.
+Because the reset is written to the caller's variable at the start of the call, do not pass the same variable as an output and as an in/out of one call.
+An argument that a call leaves out, or writes empty (`out =>`), also takes the parameter's initial value or zero.
 If an output parameter is not passed in a call, its value is not persisted.
 
 ### Variables
