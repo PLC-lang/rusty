@@ -17,6 +17,8 @@ entry:
   %o = alloca ptr, align [filtered]
   store ptr %0, ptr %o, align [filtered]
   store i32 0, ptr %func, align [filtered]
+  %1 = load ptr, ptr %o, align [filtered]
+  store i16 0, ptr %1, align [filtered]
   %deref = load ptr, ptr %o, align [filtered]
   store i16 6, ptr %deref, align [filtered]
   store i32 4, ptr %func, align [filtered]
