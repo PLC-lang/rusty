@@ -589,7 +589,7 @@ lazy_static! {
         (
             "AND",
             BuiltIn {
-                decl: "FUNCTION AND<T: ANY_BIT> : T
+                decl: "FUNCTION AND<T: ANY> : T
                 VAR_INPUT
                     args : {sized} T...;
                 END_VAR
@@ -667,7 +667,7 @@ lazy_static! {
         (
             "NOT",
             BuiltIn {
-                decl: "FUNCTION NOT<T: ANY_BIT> : T
+                decl: "FUNCTION NOT<T: ANY> : T
                 VAR_INPUT
                     IN : T;
                 END_VAR

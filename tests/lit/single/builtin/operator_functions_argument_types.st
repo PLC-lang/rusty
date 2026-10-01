@@ -46,6 +46,11 @@ t := XOR(t, t);
 // CHECK-NOT: {{.*}}REAL is no ANY_BIT{{$}}
 r := NOT(IN := r);
 
+// CHECK: {{.*}}error[E062]{{.*}}Invalid type nature for generic argument. STRING is no ANY_BIT or ANY_INT{{.*}}
+// CHECK: {{.*}}error[E062]{{.*}}Invalid type nature for generic argument. STRING is no ANY_BIT or ANY_INT{{.*}}
+// CHECK-NOT: {{.*}}STRING is no ANY_BIT{{$}}
+s := NOT(s, s);
+
 // CHECK-NOT: {{.*}}BOOL is no{{.*}}
 // CHECK-NOT: {{.*}}DINT is no{{.*}}
 // CHECK: {{.*}}error[E062]{{.*}}Invalid type nature for generic argument. REAL is no ANY_BIT or ANY_INT{{.*}}

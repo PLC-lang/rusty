@@ -1122,11 +1122,11 @@ fn builtin_functions_named_arguments_invalid_parameter_names() {
     14 │             arr2 := MOVE(SOURCE := arr);
        │                          ^^^^^^ Could not resolve reference to SOURCE
 
-    error[E037]: Invalid assignment: cannot assign 'arr); // ADR with wrong parameter name ADR(WRONG := arr); // REF with wrong parameter name' to 'ARRAY[0..5] OF INT'
+    error[E037]: Invalid assignment: cannot assign 'D := arr); // ADR with wrong parameter name ADR(WRONG := arr); // REF with wrong parameter nam' to 'ARRAY[0..5] OF INT'
        ┌─ <internal>:14:13
        │
     14 │             arr2 := MOVE(SOURCE := arr);
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'arr); // ADR with wrong parameter name ADR(WRONG := arr); // REF with wrong parameter name' to 'ARRAY[0..5] OF INT'
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'D := arr); // ADR with wrong parameter name ADR(WRONG := arr); // REF with wrong parameter nam' to 'ARRAY[0..5] OF INT'
 
     error[E089]: Invalid call parameters
        ┌─ <internal>:17:25
