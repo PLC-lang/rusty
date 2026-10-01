@@ -1048,7 +1048,7 @@ fn visit_binary_expression<T: AnnotationMap>(
         }
         Operator::Division => {
             validate_binary_expression(validator, statement, operator, left, right, context);
-            validate_zero_diviser(context, validator, right, &statement.location);
+            validate_zero_diviser(validator, context.annotations, context.index, right, &statement.location);
         }
         _ => validate_binary_expression(validator, statement, operator, left, right, context),
     }
@@ -2851,13 +2851,14 @@ fn validate_argument_count<T: AnnotationMap>(
 }
 
 /// Validates an expression to ensure that the given literal or constant is not 0
-fn validate_zero_diviser<T: AnnotationMap>(
-    context: &ValidationContext<T>,
+pub fn validate_zero_diviser(
     validator: &mut Validator,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
     statement: &AstNode,
     location: &SourceLocation,
 ) {
-    if is_literal_or_const_expr_value_zero(statement, context) {
+    if is_literal_or_const_expr_value_zero(statement, annotations, index) {
         validator.push_diagnostic(
             Diagnostic::new("Division by Zero").with_error_code("E123").with_location(location),
         );
@@ -2935,23 +2936,22 @@ pub(crate) mod helper {
         variant_const_values
     }
 
-    pub fn is_literal_or_const_expr_value_zero<T>(right: &AstNode, context: &ValidationContext<T>) -> bool
-    where
-        T: AnnotationMap,
-    {
+    pub fn is_literal_or_const_expr_value_zero(
+        right: &AstNode,
+        annotations: &dyn AnnotationMap,
+        index: &Index,
+    ) -> bool {
         let right = right.get_node_peeled();
         if right.is_zero() {
             return true;
         }
 
-        if let Some(statement_annotation) = context.annotations.get(right) {
+        if let Some(statement_annotation) = annotations.get(right) {
             if let Some(path) = statement_annotation.qualified_name() {
-                if let Some(element) = context.index.find_fully_qualified_variable(path) {
+                if let Some(element) = index.find_fully_qualified_variable(path) {
                     if statement_annotation.is_const() {
-                        if let Some(constant_statement) = context
-                            .index
-                            .get_const_expressions()
-                            .maybe_get_constant_statement(&element.initial_value)
+                        if let Some(constant_statement) =
+                            index.get_const_expressions().maybe_get_constant_statement(&element.initial_value)
                         {
                             return constant_statement.is_zero();
                         }

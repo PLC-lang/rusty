@@ -33,7 +33,7 @@ Once a build needs more than a file list, put it into `plc.json` next to the sou
 plc build
 ```
 
-`plc build` reads `plc.json` from the current directory, or from the path that you give it. Everything lands in `build/`: the artifact, and one object file per source file under the path of the source, so `src/motor.st` becomes `build/src/motor.st.o`. `--build-location` moves that directory.
+`plc build` reads `plc.json` from the current directory, or from the path that you give it. Everything lands in `build/`: the artifact, and one object file per source file, named after the file and a digest of its path within the project, so `src/motor.st` becomes `build/motor.st-0430507ece368196.o`. The digest keeps two files with the same name apart. `--build-location` moves that directory.
 
 The [project file reference](../reference/project-file.md) describes every key, including the libraries.
 
@@ -85,7 +85,7 @@ plc main.st --target aarch64-linux-gnu --sysroot /opt/toolchains/aarch64 -o app
 
 The compiler uses every core of the machine. `-j 4` limits it to four threads.
 
-Each unit becomes its own module, and the linker joins them. `--single-module` builds one module for the whole project instead, which is slower but sometimes necessary for a tool that reads the result. A `plc build` of the project above then writes one object file, `build/src/main.st.o`, in place of three.
+Each unit becomes its own module, and the linker joins them. `--single-module` builds one module for the whole project instead, which is slower but sometimes necessary for a tool that reads the result. A `plc build` of the project above then writes one object file, `build/main.st-c9c8d3daddf4f365.o`, in place of three.
 
 
 ## Which compiler built an artifact
