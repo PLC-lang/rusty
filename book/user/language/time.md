@@ -60,7 +60,28 @@ total := a + b;        (* 1500 ms *)
 IF a > b THEN          (* TRUE *)
 ```
 
-A duration also multiplies and divides by a number, which is how you scale a cycle time.
+A duration also multiplies and divides by a number, which is how you scale a cycle time: `cycle * 2`, `2 * cycle`, `cycle / 4`, and `cycle * 1.5` are all a `TIME`.
+
+A duration shifts a moment of a day or a point in time, and two of those subtract to a duration. These are the combinations, within one family:
+
+| Left | Operator | Right | Result |
+|---|---|---|---|
+| `TIME` | `+`, `-` | `TIME` | `TIME` |
+| `TIME_OF_DAY` | `+`, `-` | `TIME` | `TIME_OF_DAY` |
+| `DATE_AND_TIME` | `+`, `-` | `TIME` | `DATE_AND_TIME` |
+| `TIME_OF_DAY` | `-` | `TIME_OF_DAY` | `TIME` |
+| `DATE` | `-` | `DATE` | `TIME` |
+| `DATE_AND_TIME` | `-` | `DATE_AND_TIME` | `TIME` |
+| `TIME` | `*`, `/` | a number | `TIME` |
+| a number | `*` | `TIME` | `TIME` |
+
+The long family has the same table with `LTIME`, `LTIME_OF_DAY`, `LDATE`, and `LDATE_AND_TIME`. A moment of a day wraps around midnight, so `TOD#23:59:50 + T#20s` is `TOD#00:00:10`. Any other combination, such as two points in time added together or a short type mixed with a long one, is rejected (E156); convert first, for example with `TIME_TO_LTIME`.
+
+The functions `ADD`, `SUB`, `MUL`, and `DIV` take the same combinations, and `ADD` and `MUL` take any number of arguments, folded from the left: `ADD(stamp, T#1s, T#2s)` is `stamp + T#1s + T#2s`.
+
+The compiler carries these operations out with the standard library, `ADD_DT_TIME` for `DATE_AND_TIME + TIME`, `MUL_TIME__LINT` for `TIME * n`, and so on, so a project that calculates with time values must link `iec61131std` (see [Linking and Libraries](../building/linking.md)). Each of these functions can also be called directly.
+
+A duration plus or minus a bare integer compiles too, and reads the integer as what the type counts: `cycle + 5` adds five milliseconds to a `TIME` and five nanoseconds to an `LTIME`. The compiler warns about it (E157), because the unit is only implied; `cycle + T#5ms` says the same without the warning.
 
 A negative duration does not fit into the unsigned `TIME`. A literal such as `T#-10s` still compiles, but the compiler warns about an underflow and the value wraps around to a large positive duration. Use `LTIME` when a duration must be able to go below zero: `LT#-10s` is a negative `LTIME` and gets no warning.
 

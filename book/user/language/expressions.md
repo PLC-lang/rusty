@@ -20,6 +20,8 @@ n := REAL_TO_DINT(2 ** 10);   (* 1024 *)
 n := REAL_TO_DINT(7 ** 11);   (* 1977326720, not 1977326743 *)
 ```
 
+On the date and time types the operators follow rules of their own, which the [time and date](time.md) chapter lists; those operations call the standard library as well.
+
 
 ## Comparison
 

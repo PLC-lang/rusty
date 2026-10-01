@@ -44,7 +44,7 @@ The functions of IEC 61131-3, the timers, the counters, and the string operation
 plc main.st -i "output/include/*.st" -L output/lib -l iec61131std -o app --linker=cc
 ```
 
-Some language features call it as well, for example `**` and the comparison of text, so link it whenever you are not sure.
+Some language features call it as well, for example `**`, the comparison of text, and arithmetic on the date and time types, so link it whenever you are not sure.
 
 
 ## Missing symbols

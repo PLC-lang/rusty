@@ -14,4 +14,12 @@ FUNCTION main
     lresult := SUB_LDATE_LDATE(ldate1, ldate2);
     printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#5d
 
+    // The operators carry out the same functions
+    lresult := ldate1 - ldate2;
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#5d
+
+    // The builtins carry out the same functions as the operators
+    lresult := SUB(ldate1, ldate2);
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#5d
+
 END_FUNCTION

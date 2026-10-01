@@ -184,6 +184,8 @@ The named argument `factor := sintVar` has no annotation of its own, only the hi
 
 For a function block call, the operator is a variable of the block's type. Arguments match that block's parameters, and the call has no result type. Built-ins such as `REF`, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that an operator expression replaces then drop the argument hints again; see [Annotated AST](../internals/08-annotated-ast.md#argument).
 
+Arithmetic with a date or time operand is typed by the table of combinations the standard defines (`get_date_time_arithmetic` in `src/typesystem.rs`) and, like a comparison of strings, replaced by the call of the standard library function that carries it out: `stamp + cycle` becomes `ADD_DT_TIME(stamp, cycle)`, `day1 - day2` becomes `SUB_DATE_DATE(day1, day2)`, and `2 * cycle` becomes `MUL_TIME__LINT(cycle, 2)`, the implementation for the kind of number with the duration first. A chain such as `stamp + cycle + cycle` is replaced from the inside out, each call taking the replaced expression as its argument. A duration combined with a bare integer keeps the duration's type and stays an integer operation, the integer hinted with that type. A combination the table does not define, or one whose function is not declared, is left as written for the validator.
+
 
 ## Literals and generated types
 

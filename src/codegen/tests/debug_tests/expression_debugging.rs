@@ -153,7 +153,7 @@ fn ref_assignment_statement_have_location() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -164,8 +164,8 @@ fn ref_assignment_statement_have_location() {
     !12 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____myFunc_b", scope: !3, file: !3, baseType: !13, align [filtered])
     !13 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
     !14 = !DILocation(line: 5, column: 12, scope: !4)
-    !15 = !DILocation(line: 7, column: 12, scope: !4)
-    !16 = !DILocation(line: 8, column: 8, scope: !4)
+    !15 = !DILocation(line: 7, column: 12, scope: !4, atomGroup: 1, atomRank: 1)
+    !16 = !DILocation(line: 8, column: 8, scope: !4, atomGroup: 2, atomRank: 1)
     "#);
 }
 
@@ -203,7 +203,7 @@ fn function_with_ctor_triggering_local_still_has_debug_info() {
       store i32 0, ptr %myFunc, align [filtered]
       store i32 1, ptr %myFunc, align [filtered], !dbg !15
       %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !16
-      ret i32 %myFunc_ret, !dbg !16
+      ret i32 %myFunc_ret, !dbg !17
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -213,7 +213,7 @@ fn function_with_ctor_triggering_local_still_has_debug_info() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -224,8 +224,9 @@ fn function_with_ctor_triggering_local_still_has_debug_info() {
     !12 = !DILocation(line: 4, column: 12, scope: !4)
     !13 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !11, align [filtered])
     !14 = !DILocation(line: 2, column: 17, scope: !4)
-    !15 = !DILocation(line: 6, column: 12, scope: !4)
+    !15 = !DILocation(line: 6, column: 12, scope: !4, atomGroup: 1, atomRank: 1)
     !16 = !DILocation(line: 7, column: 8, scope: !4)
+    !17 = !DILocation(line: 7, column: 8, scope: !4, atomGroup: 2, atomRank: 1)
     "#);
 }
 
@@ -259,9 +260,9 @@ fn function_with_value_initialized_local_still_has_debug_info() {
         #dbg_declare(ptr %myFunc, !11, !DIExpression(), !12)
       store i32 0, ptr %myFunc, align [filtered]
       %load_a = load i32, ptr %a, align [filtered], !dbg !13
-      store i32 %load_a, ptr %myFunc, align [filtered], !dbg !13
-      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !14
-      ret i32 %myFunc_ret, !dbg !14
+      store i32 %load_a, ptr %myFunc, align [filtered], !dbg !14
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !15
+      ret i32 %myFunc_ret, !dbg !16
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -271,7 +272,7 @@ fn function_with_value_initialized_local_still_has_debug_info() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -281,7 +282,9 @@ fn function_with_value_initialized_local_still_has_debug_info() {
     !11 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !9, align [filtered])
     !12 = !DILocation(line: 2, column: 17, scope: !4)
     !13 = !DILocation(line: 6, column: 12, scope: !4)
-    !14 = !DILocation(line: 7, column: 8, scope: !4)
+    !14 = !DILocation(line: 6, column: 12, scope: !4, atomGroup: 1, atomRank: 1)
+    !15 = !DILocation(line: 7, column: 8, scope: !4)
+    !16 = !DILocation(line: 7, column: 8, scope: !4, atomGroup: 2, atomRank: 1)
     "#);
 }
 
@@ -319,9 +322,9 @@ fn function_with_struct_local_still_has_debug_info() {
       store i32 0, ptr %myFunc, align [filtered]
       %x = getelementptr inbounds nuw %S, ptr %s, i32 0, i32 0, !dbg !16
       %load_x = load i32, ptr %x, align [filtered], !dbg !16
-      store i32 %load_x, ptr %myFunc, align [filtered], !dbg !16
-      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
-      ret i32 %myFunc_ret, !dbg !17
+      store i32 %load_x, ptr %myFunc, align [filtered], !dbg !17
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
+      ret i32 %myFunc_ret, !dbg !19
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
@@ -336,7 +339,7 @@ fn function_with_struct_local_still_has_debug_info() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 4, type: !5, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 4, type: !5, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -349,7 +352,9 @@ fn function_with_struct_local_still_has_debug_info() {
     !14 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 4, type: !12, align [filtered])
     !15 = !DILocation(line: 4, column: 17, scope: !4)
     !16 = !DILocation(line: 8, column: 12, scope: !4)
-    !17 = !DILocation(line: 9, column: 8, scope: !4)
+    !17 = !DILocation(line: 8, column: 12, scope: !4, atomGroup: 1, atomRank: 1)
+    !18 = !DILocation(line: 9, column: 8, scope: !4)
+    !19 = !DILocation(line: 9, column: 8, scope: !4, atomGroup: 2, atomRank: 1)
     "#);
 }
 
@@ -384,9 +389,9 @@ fn function_with_initialized_array_local_still_has_debug_info() {
       store i32 0, ptr %myFunc, align [filtered]
       %tmpVar = getelementptr inbounds [3 x i32], ptr %arr, i32 0, i32 0, !dbg !16
       %load_tmpVar = load i32, ptr %tmpVar, align [filtered], !dbg !16
-      store i32 %load_tmpVar, ptr %myFunc, align [filtered], !dbg !16
-      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
-      ret i32 %myFunc_ret, !dbg !17
+      store i32 %load_tmpVar, ptr %myFunc, align [filtered], !dbg !17
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
+      ret i32 %myFunc_ret, !dbg !19
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
@@ -401,7 +406,7 @@ fn function_with_initialized_array_local_still_has_debug_info() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -414,7 +419,9 @@ fn function_with_initialized_array_local_still_has_debug_info() {
     !14 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !10, align [filtered])
     !15 = !DILocation(line: 2, column: 17, scope: !4)
     !16 = !DILocation(line: 6, column: 12, scope: !4)
-    !17 = !DILocation(line: 7, column: 8, scope: !4)
+    !17 = !DILocation(line: 6, column: 12, scope: !4, atomGroup: 1, atomRank: 1)
+    !18 = !DILocation(line: 7, column: 8, scope: !4)
+    !19 = !DILocation(line: 7, column: 8, scope: !4, atomGroup: 2, atomRank: 1)
     "#);
 }
 
@@ -453,9 +460,9 @@ fn function_with_reference_to_initializer_still_has_debug_info() {
       store i32 0, ptr %myFunc, align [filtered]
       %deref = load ptr, ptr %b, align [filtered], !dbg !17
       %load_b = load i32, ptr %deref, align [filtered], !dbg !17
-      store i32 %load_b, ptr %myFunc, align [filtered], !dbg !17
-      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
-      ret i32 %myFunc_ret, !dbg !18
+      store i32 %load_b, ptr %myFunc, align [filtered], !dbg !18
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !19
+      ret i32 %myFunc_ret, !dbg !20
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -465,7 +472,7 @@ fn function_with_reference_to_initializer_still_has_debug_info() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7, keyInstructions: true)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -479,7 +486,9 @@ fn function_with_reference_to_initializer_still_has_debug_info() {
     !15 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !9, align [filtered])
     !16 = !DILocation(line: 2, column: 17, scope: !4)
     !17 = !DILocation(line: 7, column: 12, scope: !4)
-    !18 = !DILocation(line: 8, column: 8, scope: !4)
+    !18 = !DILocation(line: 7, column: 12, scope: !4, atomGroup: 1, atomRank: 1)
+    !19 = !DILocation(line: 8, column: 8, scope: !4)
+    !20 = !DILocation(line: 8, column: 8, scope: !4, atomGroup: 2, atomRank: 1)
     "#);
 }
 
