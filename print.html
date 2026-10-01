@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-06cd03d8.js";
+            window.path_to_searchindex_js = "searchindex-31b48f01.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e693153e.js"></script>
@@ -821,10 +821,12 @@ IF a &gt; b THEN          (* TRUE *)
 <tr><td><code>DATE</code></td><td><code>-</code></td><td><code>DATE</code></td><td><code>TIME</code></td></tr>
 <tr><td><code>DATE_AND_TIME</code></td><td><code>-</code></td><td><code>DATE_AND_TIME</code></td><td><code>TIME</code></td></tr>
 <tr><td><code>TIME</code></td><td><code>*</code>, <code>/</code></td><td>a number</td><td><code>TIME</code></td></tr>
+<tr><td>a number</td><td><code>*</code></td><td><code>TIME</code></td><td><code>TIME</code></td></tr>
 </tbody>
 </table>
 </div>
 <p>The long family has the same table with <code>LTIME</code>, <code>LTIME_OF_DAY</code>, <code>LDATE</code>, and <code>LDATE_AND_TIME</code>. A moment of a day wraps around midnight, so <code>TOD#23:59:50 + T#20s</code> is <code>TOD#00:00:10</code>. Any other combination, such as two points in time added together or a short type mixed with a long one, is rejected (E156); convert first, for example with <code>TIME_TO_LTIME</code>.</p>
+<p>The functions <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> take the same combinations, and <code>ADD</code> and <code>MUL</code> take any number of arguments, folded from the left: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>.</p>
 <p>The compiler carries these operations out with the standard library, <code>ADD_DT_TIME</code> for <code>DATE_AND_TIME + TIME</code>, <code>MUL_TIME__LINT</code> for <code>TIME * n</code>, and so on, so a project that calculates with time values must link <code>iec61131std</code> (see <a href="#linking-and-libraries">Linking and Libraries</a>). Each of these functions can also be called directly.</p>
 <p>A duration plus or minus a bare integer compiles too, and reads the integer as what the type counts: <code>cycle + 5</code> adds five milliseconds to a <code>TIME</code> and five nanoseconds to an <code>LTIME</code>. The compiler warns about it (E157), because the unit is only implied; <code>cycle + T#5ms</code> says the same without the warning.</p>
 <p>A negative duration does not fit into the unsigned <code>TIME</code>. A literal such as <code>T#-10s</code> still compiles, but the compiler warns about an underflow and the value wraps around to a large positive duration. Use <code>LTIME</code> when a duration must be able to go below zero: <code>LT#-10s</code> is a negative <code>LTIME</code> and gets no warning.</p>
@@ -1520,7 +1522,7 @@ END_FUNCTION
 END_FUNCTION
 </code></pre>
 <p>When nothing in the project defines the name, the compiler writes an <code>{external}</code> declaration for it and leaves the symbol to the linker. If the linker finds nothing either, the build fails with an undefined symbol.</p>
-<p>The generic functions that the compiler knows itself work differently. A call to <code>ABS</code>, <code>ADD</code>, or <code>SEL</code> gets no version of its own, because the compiler writes the code at the place of the call. <a href="#built-in-functions">Built-in Functions</a> lists them all.</p>
+<p>The generic functions that the compiler knows itself work differently. A call to <code>ABS</code>, <code>ADD</code>, or <code>SEL</code> gets no version of its own, because the compiler writes the code at the place of the call. With date and time arguments, <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> expand to the operators, which call the standard library as the <a href="#time-and-date">time and date</a> chapter describes. <a href="#built-in-functions">Built-in Functions</a> lists them all.</p>
 <h2 id="constraints"><a class="header" href="#constraints">Constraints</a></h2>
 <p>The constraint is a type nature, for example <code>ANY_INT</code>, <code>ANY_REAL</code>, <code>ANY_ELEMENTARY</code>, or <code>ANY</code>. An argument whose type does not have that nature is rejected:</p>
 <pre><code class="language-iecst">FUNCTION Inc &lt;T: ANY_INT&gt;: T
@@ -2896,7 +2898,7 @@ plc build src/plc.json    # reads the given file
 </ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="built-in-functions"><a class="header" href="#built-in-functions">Built-in Functions</a></h1>
-<p>The compiler knows these functions itself. You declare nothing, you include no file, and you link no library: the compiler writes the code at the place of the call. This is what separates them from the <a href="#standard-library">standard library</a>, which is a set of ordinary declarations and an object file that the linker needs.</p>
+<p>The compiler knows these functions itself. You declare nothing, you include no file, and you link no library: the compiler writes the code at the place of the call. This is what separates them from the <a href="#standard-library">standard library</a>, which is a set of ordinary declarations and an object file that the linker needs. The one exception is arithmetic on date and time values, see <a href="#arithmetic-1">Arithmetic</a>.</p>
 <p>Their names are reserved. A function of your own that takes one of them is rejected; see <a href="#source-files">Source Files</a>.</p>
 <h2 id="the-functions"><a class="header" href="#the-functions">The functions</a></h2>
 <p>The parameter names in the second column are the names a call can use.</p>
@@ -2947,13 +2949,14 @@ plc build src/plc.json    # reads the given file
 </thead>
 <tbody>
 <tr><td><code>ABS(IN)</code></td><td><code>IN: ANY_NUM</code></td><td>The type of <code>IN</code></td><td>The value without its sign</td></tr>
-<tr><td><code>ADD(...)</code></td><td>Two or more <code>ANY_NUM</code></td><td>The biggest argument type</td><td>The sum</td></tr>
-<tr><td><code>MUL(...)</code></td><td>Two or more <code>ANY_NUM</code></td><td>The biggest argument type</td><td>The product</td></tr>
-<tr><td><code>SUB(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type</td><td><code>IN1 - IN2</code></td></tr>
-<tr><td><code>DIV(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type</td><td><code>IN1 / IN2</code></td></tr>
+<tr><td><code>ADD(...)</code></td><td>Two or more numbers or date and time values</td><td>The biggest argument type, or the date and time result</td><td>The sum</td></tr>
+<tr><td><code>MUL(...)</code></td><td>Two or more numbers or durations</td><td>The biggest argument type, or the date and time result</td><td>The product</td></tr>
+<tr><td><code>SUB(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 - IN2</code></td></tr>
+<tr><td><code>DIV(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 / IN2</code></td></tr>
 </tbody>
 </table>
 </div>
+<p>With a date or time argument, these four take the combinations of <a href="#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. An argument that is neither a number nor part of a defined combination is rejected (E156).</p>
 <h3 id="comparison-2"><a class="header" href="#comparison-2">Comparison</a></h3>
 <div class="table-wrapper">
 <table>
@@ -4092,7 +4095,7 @@ END_TYPE
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="e123-division-by-zero-error"><a class="header" href="#e123-division-by-zero-error">E123: Division by zero error</a></h1>
-<p>This error occurs when a literal or constant on the right side of a division operation is zero.</p>
+<p>This error occurs when a literal or constant on the right side of a division operation is zero. The divisor <code>IN2</code> of the <code>DIV</code> function, as in <code>DIV(x, 0)</code>, is checked the same way.</p>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
 <h3 id="literal-is-zero"><a class="header" href="#literal-is-zero">Literal is zero</a></h3>
 <pre><code class="language-st">FUNCTION main
@@ -4920,8 +4923,8 @@ pin has an empty name:</p>
 &lt;/ppx:OutputVariables&gt;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="e156---operator-not-defined-for-these-date-or-time-operands"><a class="header" href="#e156---operator-not-defined-for-these-date-or-time-operands">E156 - Operator not defined for these date or time operands</a></h1>
-<p>Arithmetic on date and time types is only defined for the combinations of IEC 61131-3:</p>
+<h1 id="e156---operator-not-defined-for-these-operand-types"><a class="header" href="#e156---operator-not-defined-for-these-operand-types">E156 - Operator not defined for these operand types</a></h1>
+<p>The functions <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> report this error for an argument no arithmetic is defined for, such as a string or a bit string in <code>ADD(1, 'x')</code>. The operators and the same functions report it for a combination of date and time operands the standard does not define. Arithmetic on date and time types is only defined for the combinations of IEC 61131-3:</p>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -4940,7 +4943,7 @@ pin has an empty name:</p>
 </table>
 </div>
 <p>The long types <code>LTIME</code>, <code>LTIME_OF_DAY</code>, <code>LDATE</code>, and <code>LDATE_AND_TIME</code> follow the same table
-among themselves. The two families do not mix. A duration combined with a bare integer is
+among themselves. The two families do not mix. A duration plus or minus a bare integer is
 accepted with warning E157.</p>
 <p>Erroneous code example:</p>
 <pre><code class="language-iecst">PROGRAM mainProg
@@ -5796,7 +5799,7 @@ END_FUNCTION
 <p>Everything else is checked unit by unit, in the order in which the units were parsed. Inside a unit the walk follows the shape of the compilation unit: the POU declarations first, then the user types, the <code>VAR_CONFIG</code> blocks, the global variable blocks, the implementations, and last the interfaces. Declarations and bodies are validated separately, as they are stored.</p>
 <p>POU checks depend on the kind. A program cannot return a value, and a class cannot have input or output parameters. Inheritance checks require existing base types and interfaces, matching method signatures, and implementations for abstract methods.</p>
 <p>Variable checks cover declared types, initializer compatibility, constant array bounds, and names that shadow base members. They also check restrictions on constant function block instances. The statement visitor checks initializers because they are expressions.</p>
-<p>An implementation is walked statement by statement. The visitor is recursive and mirrors the tree: it visits the children of a node first, then applies the checks for the node itself. A reference is checked for resolution, visibility, and pointer access. An assignment compares the type of the value with the hint the resolver attached to it. A call is matched against the parameters of the callee from the index: argument count, direction of <code>:=</code> and <code>=&gt;</code>, by-reference arguments, and required <code>VAR_IN_OUT</code> arguments. A binary expression with a date or time operand is checked against the table of combinations the standard defines: an undefined one is E156, a defined one whose standard library function is not declared is E073, and a duration combined with a bare integer warns with E157.</p>
+<p>An implementation is walked statement by statement. The visitor is recursive and mirrors the tree: it visits the children of a node first, then applies the checks for the node itself. A reference is checked for resolution, visibility, and pointer access. An assignment compares the type of the value with the hint the resolver attached to it. A call is matched against the parameters of the callee from the index: argument count, direction of <code>:=</code> and <code>=&gt;</code>, by-reference arguments, and required <code>VAR_IN_OUT</code> arguments. A binary expression with a date or time operand is checked against the table of combinations the standard defines: an undefined one is E156, a defined one whose standard library function is not declared is E073, and a duration combined with a bare integer warns with E157; the builtins <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> apply the same check to their arguments, folded from the left, and report E156 as well for an argument that is neither a number nor a date or time value.</p>
 <p>That match takes the parameter at the place of the argument in the call. The <a href="#calls-1">resolver</a> and codegen take the first parameter that no name claims, which is a different parameter as soon as a call mixes named and positional arguments. The by-reference checks therefore read a mixed call of a POU with a by-reference parameter against the wrong parameter: they report an argument that the resolver binds to an input, and they pass a value that the resolver binds to a <code>VAR_IN_OUT</code>. Control statements check their conditions and walk their bodies. For</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK Buffer
     VAR_INPUT
@@ -7645,7 +7648,7 @@ END_FUNCTION
 +a := times_two__INT(times_two__INT(a));
 </code></pre>
 <p>The third pass changes nothing and ends the loop. A call whose type parameter gets no offer at all, because no argument is bound to a parameter of that type, is skipped in every pass and stays a generic call.</p>
-<p>Two kinds of call are never touched. Built-in generics such as <code>MUX</code>, <code>SEL</code>, <code>ADD</code>, or <code>SHL</code> are resolved by the resolver and generated inline by codegen, so there is no implementation to pick. A call inside the body of a generic template works on <code>T</code> itself, and a template is never generated; such a call stays as written, and the validator reports it as an unresolved generic type (E064).</p>
+<p>Two kinds of call are never touched. Built-in generics such as <code>MUX</code>, <code>SEL</code>, <code>ADD</code>, or <code>SHL</code> are resolved by the resolver and generated inline by codegen, so there is no implementation to pick. With a date or time argument, <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> call standard library functions such as <code>ADD_DT_TIME</code> instead, which are not generic either. A call inside the body of a generic template works on <code>T</code> itself, and a template is never generated; such a call stays as written, and the validator reports it as an unresolved generic type (E064).</p>
 <h2 id="interactions-8"><a class="header" href="#interactions-8">Interactions</a></h2>
 <p>Pre-processing gives each type parameter a scoped name and constraint. The index records the template’s parameters. The resolver identifies the template at each call and records the argument types. This participant uses those three results to select an implementation.</p>
 <p>The resolver and this participant share the same derivation of the concrete types and of the implementation name, so a built-in and a user generic resolve by the same rules. The CFC participant, which runs first, also uses that derivation to infer the types of the temporaries wired to generic blocks.</p>
@@ -10057,13 +10060,13 @@ END_PROGRAM
     /// The statement to generate instead of the annotated one
     statement: AstNode,
 }</code></pre>
-<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: <code>ADD(a, b, c)</code> becomes <code>(a + b) + c</code>, and <code>GT(a, b, c)</code> becomes <code>(a &gt; b) AND (b &gt; c)</code>. An arithmetic operator on date and time operands becomes the call of the standard library function that carries it out, <code>ADD_DT_TIME(stamp, cycle)</code> for <code>stamp + cycle</code>. The replacement has its own annotations.</p>
+<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: <code>ADD(a, b, c)</code> becomes <code>(a + b) + c</code>, and <code>GT(a, b, c)</code> becomes <code>(a &gt; b) AND (b &gt; c)</code>. An arithmetic operator on a combination of date and time operands that the standard defines becomes the call of the standard library function that carries it out, <code>ADD_DT_TIME(stamp, cycle)</code> for <code>stamp + cycle</code>, when that function is declared. The replacement has its own annotations.</p>
 <pre><code>    same := text = 'hello';
             ^^^^^^^^^^^^^^    ReplacementAst STRING_EQUAL(text, 'hello'),  hint "BOOL"
             ^^^^              Variable "STRING", main.text,  hint Argument "STRING", position 0, pou STRING_EQUAL
                    ^^^^^^^    Value "__STRING_5",            hint Argument "STRING", position 1, pou STRING_EQUAL
 </code></pre>
-<p>Codegen checks every expression for this kind first and generates the replacement instead of the node. The type of the node is the type of its replacement; see <a href="#deriving-a-type">Deriving a type</a>.</p>
+<p>Codegen checks every expression for this kind first and generates the replacement instead of the node, also inside parentheses. The type of the node is the type of its replacement; see <a href="#deriving-a-type">Deriving a type</a>. The value of the replacement is then converted to the hint of the node like any other value, so <code>x := cycle * 1.5</code> with an <code>LREAL</code> target converts the <code>TIME</code> result of <code>MUL_TIME__REAL</code> to <code>LREAL</code>.</p>
 <h3 id="label"><a class="header" href="#label">Label</a></h3>
 <pre><code class="language-rust noplayground">Label {
     /// The label the jump targets
@@ -10109,7 +10112,7 @@ FUNCTION_BLOCK Counter        MethodDeclarations { area: [Concrete Counter.area]
 <tr><td><code>Program</code></td><td>references to programs, classes, actions</td><td>qualified name</td><td>codegen (instance address), validator (E095)</td></tr>
 <tr><td><code>Argument</code> (hint only)</td><td>every call argument</td><td>type, position, depth, declaring POU</td><td>codegen (parameter slot), aggregate-return lowerer, conversion like any hint</td></tr>
 <tr><td><code>Property</code></td><td>property references before lowering</td><td>accessor name</td><td>property lowerer</td></tr>
-<tr><td><code>ReplacementAst</code></td><td>string and other library-compared comparisons, arithmetic on date and time operands</td><td>the replacement statement</td><td>codegen</td></tr>
+<tr><td><code>ReplacementAst</code></td><td>string and other library-compared comparisons, calls of the arithmetic and comparison built-ins, arithmetic on date and time operands</td><td>the replacement statement</td><td>codegen</td></tr>
 <tr><td><code>Label</code></td><td>jump statements from CFC</td><td>label name</td><td>codegen</td></tr>
 <tr><td><code>MethodDeclarations</code></td><td>block, class, and interface declarations (by declaration ID)</td><td>method name to declarations</td><td>validator (E111, E112)</td></tr>
 <tr><td><code>Override</code></td><td>method declarations that override (by declaration ID)</td><td>overridden methods</td><td>validator (E112, E118)</td></tr>

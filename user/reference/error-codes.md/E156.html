@@ -36,7 +36,7 @@
             const path_to_root = "../../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../../searchindex-06cd03d8.js";
+            window.path_to_searchindex_js = "../../../searchindex-31b48f01.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../../toc-e693153e.js"></script>
@@ -181,8 +181,8 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="e156---operator-not-defined-for-these-date-or-time-operands"><a class="header" href="#e156---operator-not-defined-for-these-date-or-time-operands">E156 - Operator not defined for these date or time operands</a></h1>
-<p>Arithmetic on date and time types is only defined for the combinations of IEC 61131-3:</p>
+                        <h1 id="e156---operator-not-defined-for-these-operand-types"><a class="header" href="#e156---operator-not-defined-for-these-operand-types">E156 - Operator not defined for these operand types</a></h1>
+<p>The functions <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> report this error for an argument no arithmetic is defined for, such as a string or a bit string in <code>ADD(1, 'x')</code>. The operators and the same functions report it for a combination of date and time operands the standard does not define. Arithmetic on date and time types is only defined for the combinations of IEC 61131-3:</p>
 <div class="table-wrapper">
 <table>
 <thead>
@@ -201,7 +201,7 @@
 </table>
 </div>
 <p>The long types <code>LTIME</code>, <code>LTIME_OF_DAY</code>, <code>LDATE</code>, and <code>LDATE_AND_TIME</code> follow the same table
-among themselves. The two families do not mix. A duration combined with a bare integer is
+among themselves. The two families do not mix. A duration plus or minus a bare integer is
 accepted with warning E157.</p>
 <p>Erroneous code example:</p>
 <pre><code class="language-iecst">PROGRAM mainProg

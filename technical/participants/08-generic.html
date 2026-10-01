@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-06cd03d8.js";
+            window.path_to_searchindex_js = "../../searchindex-31b48f01.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -234,7 +234,7 @@ END_FUNCTION
 +a := times_two__INT(times_two__INT(a));
 </code></pre>
 <p>The third pass changes nothing and ends the loop. A call whose type parameter gets no offer at all, because no argument is bound to a parameter of that type, is skipped in every pass and stays a generic call.</p>
-<p>Two kinds of call are never touched. Built-in generics such as <code>MUX</code>, <code>SEL</code>, <code>ADD</code>, or <code>SHL</code> are resolved by the resolver and generated inline by codegen, so there is no implementation to pick. A call inside the body of a generic template works on <code>T</code> itself, and a template is never generated; such a call stays as written, and the validator reports it as an unresolved generic type (E064).</p>
+<p>Two kinds of call are never touched. Built-in generics such as <code>MUX</code>, <code>SEL</code>, <code>ADD</code>, or <code>SHL</code> are resolved by the resolver and generated inline by codegen, so there is no implementation to pick. With a date or time argument, <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> call standard library functions such as <code>ADD_DT_TIME</code> instead, which are not generic either. A call inside the body of a generic template works on <code>T</code> itself, and a template is never generated; such a call stays as written, and the validator reports it as an unresolved generic type (E064).</p>
 <h2 id="interactions"><a class="header" href="#interactions">Interactions</a></h2>
 <p>Pre-processing gives each type parameter a scoped name and constraint. The index records the template’s parameters. The resolver identifies the template at each call and records the argument types. This participant uses those three results to select an implementation.</p>
 <p>The resolver and this participant share the same derivation of the concrete types and of the implementation name, so a built-in and a user generic resolve by the same rules. The CFC participant, which runs first, also uses that derivation to infer the types of the temporaries wired to generic blocks.</p>

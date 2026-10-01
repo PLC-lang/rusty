@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-06cd03d8.js";
+            window.path_to_searchindex_js = "../../searchindex-31b48f01.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -182,7 +182,7 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="built-in-functions"><a class="header" href="#built-in-functions">Built-in Functions</a></h1>
-<p>The compiler knows these functions itself. You declare nothing, you include no file, and you link no library: the compiler writes the code at the place of the call. This is what separates them from the <a href="standard-library.html">standard library</a>, which is a set of ordinary declarations and an object file that the linker needs.</p>
+<p>The compiler knows these functions itself. You declare nothing, you include no file, and you link no library: the compiler writes the code at the place of the call. This is what separates them from the <a href="standard-library.html">standard library</a>, which is a set of ordinary declarations and an object file that the linker needs. The one exception is arithmetic on date and time values, see <a href="#arithmetic">Arithmetic</a>.</p>
 <p>Their names are reserved. A function of your own that takes one of them is rejected; see <a href="../language/source-files.html">Source Files</a>.</p>
 <h2 id="the-functions"><a class="header" href="#the-functions">The functions</a></h2>
 <p>The parameter names in the second column are the names a call can use.</p>
@@ -233,13 +233,14 @@
 </thead>
 <tbody>
 <tr><td><code>ABS(IN)</code></td><td><code>IN: ANY_NUM</code></td><td>The type of <code>IN</code></td><td>The value without its sign</td></tr>
-<tr><td><code>ADD(...)</code></td><td>Two or more <code>ANY_NUM</code></td><td>The biggest argument type</td><td>The sum</td></tr>
-<tr><td><code>MUL(...)</code></td><td>Two or more <code>ANY_NUM</code></td><td>The biggest argument type</td><td>The product</td></tr>
-<tr><td><code>SUB(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type</td><td><code>IN1 - IN2</code></td></tr>
-<tr><td><code>DIV(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type</td><td><code>IN1 / IN2</code></td></tr>
+<tr><td><code>ADD(...)</code></td><td>Two or more numbers or date and time values</td><td>The biggest argument type, or the date and time result</td><td>The sum</td></tr>
+<tr><td><code>MUL(...)</code></td><td>Two or more numbers or durations</td><td>The biggest argument type, or the date and time result</td><td>The product</td></tr>
+<tr><td><code>SUB(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 - IN2</code></td></tr>
+<tr><td><code>DIV(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 / IN2</code></td></tr>
 </tbody>
 </table>
 </div>
+<p>With a date or time argument, these four take the combinations of <a href="../language/time.html#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. An argument that is neither a number nor part of a defined combination is rejected (E156).</p>
 <h3 id="comparison"><a class="header" href="#comparison">Comparison</a></h3>
 <div class="table-wrapper">
 <table>

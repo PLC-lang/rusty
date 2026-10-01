@@ -1048,7 +1048,7 @@
 <a href=#1048 id=1048 data-nosnippet>1048</a>        }
 <a href=#1049 id=1049 data-nosnippet>1049</a>        Operator::Division =&gt; {
 <a href=#1050 id=1050 data-nosnippet>1050</a>            validate_binary_expression(validator, statement, operator, left, right, context);
-<a href=#1051 id=1051 data-nosnippet>1051</a>            validate_zero_diviser(context, validator, right, <span class="kw-2">&amp;</span>statement.location);
+<a href=#1051 id=1051 data-nosnippet>1051</a>            validate_zero_diviser(validator, context.annotations, context.index, right, <span class="kw-2">&amp;</span>statement.location);
 <a href=#1052 id=1052 data-nosnippet>1052</a>        }
 <a href=#1053 id=1053 data-nosnippet>1053</a>        <span class="kw">_ </span>=&gt; validate_binary_expression(validator, statement, operator, left, right, context),
 <a href=#1054 id=1054 data-nosnippet>1054</a>    }
@@ -2851,107 +2851,107 @@
 <a href=#2851 id=2851 data-nosnippet>2851</a>}
 <a href=#2852 id=2852 data-nosnippet>2852</a>
 <a href=#2853 id=2853 data-nosnippet>2853</a><span class="doccomment">/// Validates an expression to ensure that the given literal or constant is not 0
-<a href=#2854 id=2854 data-nosnippet>2854</a></span><span class="kw">fn </span>validate_zero_diviser&lt;T: AnnotationMap&gt;(
-<a href=#2855 id=2855 data-nosnippet>2855</a>    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
-<a href=#2856 id=2856 data-nosnippet>2856</a>    validator: <span class="kw-2">&amp;mut </span>Validator,
-<a href=#2857 id=2857 data-nosnippet>2857</a>    statement: <span class="kw-2">&amp;</span>AstNode,
-<a href=#2858 id=2858 data-nosnippet>2858</a>    location: <span class="kw-2">&amp;</span>SourceLocation,
-<a href=#2859 id=2859 data-nosnippet>2859</a>) {
-<a href=#2860 id=2860 data-nosnippet>2860</a>    <span class="kw">if </span>is_literal_or_const_expr_value_zero(statement, context) {
-<a href=#2861 id=2861 data-nosnippet>2861</a>        validator.push_diagnostic(
-<a href=#2862 id=2862 data-nosnippet>2862</a>            Diagnostic::new(<span class="string">"Division by Zero"</span>).with_error_code(<span class="string">"E123"</span>).with_location(location),
-<a href=#2863 id=2863 data-nosnippet>2863</a>        );
-<a href=#2864 id=2864 data-nosnippet>2864</a>    }
-<a href=#2865 id=2865 data-nosnippet>2865</a>}
-<a href=#2866 id=2866 data-nosnippet>2866</a>
-<a href=#2867 id=2867 data-nosnippet>2867</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>helper {
-<a href=#2868 id=2868 data-nosnippet>2868</a>    <span class="kw">use </span>std::ops::Range;
-<a href=#2869 id=2869 data-nosnippet>2869</a>
-<a href=#2870 id=2870 data-nosnippet>2870</a>    <span class="kw">use </span>plc_ast::ast::{AstNode, DirectAccessType};
-<a href=#2871 id=2871 data-nosnippet>2871</a>
-<a href=#2872 id=2872 data-nosnippet>2872</a>    <span class="kw">use </span><span class="kw">crate</span>::index::VariableIndexEntry;
-<a href=#2873 id=2873 data-nosnippet>2873</a>    <span class="kw">use </span><span class="kw">crate</span>::resolver::AnnotationMap;
-<a href=#2874 id=2874 data-nosnippet>2874</a>    <span class="kw">use </span><span class="kw">crate</span>::validation::ValidationContext;
-<a href=#2875 id=2875 data-nosnippet>2875</a>    <span class="kw">use crate</span>::{index::Index, typesystem::DataTypeInformation};
-<a href=#2876 id=2876 data-nosnippet>2876</a>
-<a href=#2877 id=2877 data-nosnippet>2877</a>    <span class="doccomment">/// Returns true if the current index is in the range for the given type
-<a href=#2878 id=2878 data-nosnippet>2878</a>    </span><span class="kw">pub fn </span>is_in_range(
-<a href=#2879 id=2879 data-nosnippet>2879</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
-<a href=#2880 id=2880 data-nosnippet>2880</a>        access_index: u64,
-<a href=#2881 id=2881 data-nosnippet>2881</a>        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-<a href=#2882 id=2882 data-nosnippet>2882</a>        index: <span class="kw-2">&amp;</span>Index,
-<a href=#2883 id=2883 data-nosnippet>2883</a>    ) -&gt; bool {
-<a href=#2884 id=2884 data-nosnippet>2884</a>        (access.get_bit_width() * access_index) &lt; data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64
-<a href=#2885 id=2885 data-nosnippet>2885</a>    }
-<a href=#2886 id=2886 data-nosnippet>2886</a>
-<a href=#2887 id=2887 data-nosnippet>2887</a>    <span class="doccomment">/// Returns the range from 0 for the given data type
-<a href=#2888 id=2888 data-nosnippet>2888</a>    </span><span class="kw">pub fn </span>get_range(
-<a href=#2889 id=2889 data-nosnippet>2889</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
-<a href=#2890 id=2890 data-nosnippet>2890</a>        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-<a href=#2891 id=2891 data-nosnippet>2891</a>        index: <span class="kw-2">&amp;</span>Index,
-<a href=#2892 id=2892 data-nosnippet>2892</a>    ) -&gt; Range&lt;u64&gt; {
-<a href=#2893 id=2893 data-nosnippet>2893</a>        <span class="number">0</span>..((data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64 / access.get_bit_width()) - <span class="number">1</span>)
-<a href=#2894 id=2894 data-nosnippet>2894</a>    }
-<a href=#2895 id=2895 data-nosnippet>2895</a>
-<a href=#2896 id=2896 data-nosnippet>2896</a>    <span class="doccomment">/// Returns true if the direct access can be used for the given type
-<a href=#2897 id=2897 data-nosnippet>2897</a>    </span><span class="kw">pub fn </span>is_compatible(access: <span class="kw-2">&amp;</span>DirectAccessType, data_type: <span class="kw-2">&amp;</span>DataTypeInformation, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
-<a href=#2898 id=2898 data-nosnippet>2898</a>        data_type.get_semantic_size(index) <span class="kw">as </span>u64 &gt; access.get_bit_width()
-<a href=#2899 id=2899 data-nosnippet>2899</a>    }
-<a href=#2900 id=2900 data-nosnippet>2900</a>
-<a href=#2901 id=2901 data-nosnippet>2901</a>    <span class="kw">pub fn </span>get_literal_int_or_const_expr_value&lt;T&gt;(
-<a href=#2902 id=2902 data-nosnippet>2902</a>        right: <span class="kw-2">&amp;</span>AstNode,
-<a href=#2903 id=2903 data-nosnippet>2903</a>        context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
-<a href=#2904 id=2904 data-nosnippet>2904</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;i128&gt;
-<a href=#2905 id=2905 data-nosnippet>2905</a>    <span class="kw">where
-<a href=#2906 id=2906 data-nosnippet>2906</a>        </span>T: AnnotationMap,
-<a href=#2907 id=2907 data-nosnippet>2907</a>    {
-<a href=#2908 id=2908 data-nosnippet>2908</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = right.get_literal_integer_value() {
-<a href=#2909 id=2909 data-nosnippet>2909</a>            <span class="kw">return </span><span class="prelude-val">Some</span>(value);
-<a href=#2910 id=2910 data-nosnippet>2910</a>        }
-<a href=#2911 id=2911 data-nosnippet>2911</a>
-<a href=#2912 id=2912 data-nosnippet>2912</a>        <span class="kw">let </span>path = right.get_flat_reference_name().unwrap_or_default();
-<a href=#2913 id=2913 data-nosnippet>2913</a>        <span class="kw">let </span>element = context.index.find_variable(context.qualifier, <span class="kw-2">&amp;</span>[path])<span class="question-mark">?</span>;
-<a href=#2914 id=2914 data-nosnippet>2914</a>
-<a href=#2915 id=2915 data-nosnippet>2915</a>        context
-<a href=#2916 id=2916 data-nosnippet>2916</a>            .index
-<a href=#2917 id=2917 data-nosnippet>2917</a>            .get_const_expressions()
-<a href=#2918 id=2918 data-nosnippet>2918</a>            .maybe_get_constant_statement(<span class="kw-2">&amp;</span>element.initial_value)
-<a href=#2919 id=2919 data-nosnippet>2919</a>            .and_then(AstNode::get_literal_integer_value)
-<a href=#2920 id=2920 data-nosnippet>2920</a>    }
-<a href=#2921 id=2921 data-nosnippet>2921</a>
-<a href=#2922 id=2922 data-nosnippet>2922</a>    <span class="kw">pub fn </span>get_enum_variant_values&lt;<span class="lifetime">'idx</span>&gt;(
-<a href=#2923 id=2923 data-nosnippet>2923</a>        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
-<a href=#2924 id=2924 data-nosnippet>2924</a>        variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
-<a href=#2925 id=2925 data-nosnippet>2925</a>    ) -&gt; Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry, i128)&gt; {
-<a href=#2926 id=2926 data-nosnippet>2926</a>        <span class="kw">let </span><span class="kw-2">mut </span>variant_const_values = Vec::new();
-<a href=#2927 id=2927 data-nosnippet>2927</a>        <span class="kw">for </span>variant <span class="kw">in </span>index.get_enum_variants_by_variable(variable) {
-<a href=#2928 id=2928 data-nosnippet>2928</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>const_id) = variant.initial_value {
-<a href=#2929 id=2929 data-nosnippet>2929</a>                <span class="kw">if let </span><span class="prelude-val">Ok</span>(init) = index.get_const_expressions().get_constant_int_statement_value(const_id) {
-<a href=#2930 id=2930 data-nosnippet>2930</a>                    variant_const_values.push((variant, init));
-<a href=#2931 id=2931 data-nosnippet>2931</a>                }
-<a href=#2932 id=2932 data-nosnippet>2932</a>            }
-<a href=#2933 id=2933 data-nosnippet>2933</a>        }
-<a href=#2934 id=2934 data-nosnippet>2934</a>
-<a href=#2935 id=2935 data-nosnippet>2935</a>        variant_const_values
-<a href=#2936 id=2936 data-nosnippet>2936</a>    }
-<a href=#2937 id=2937 data-nosnippet>2937</a>
-<a href=#2938 id=2938 data-nosnippet>2938</a>    <span class="kw">pub fn </span>is_literal_or_const_expr_value_zero&lt;T&gt;(right: <span class="kw-2">&amp;</span>AstNode, context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;) -&gt; bool
-<a href=#2939 id=2939 data-nosnippet>2939</a>    <span class="kw">where
-<a href=#2940 id=2940 data-nosnippet>2940</a>        </span>T: AnnotationMap,
-<a href=#2941 id=2941 data-nosnippet>2941</a>    {
-<a href=#2942 id=2942 data-nosnippet>2942</a>        <span class="kw">let </span>right = right.get_node_peeled();
-<a href=#2943 id=2943 data-nosnippet>2943</a>        <span class="kw">if </span>right.is_zero() {
-<a href=#2944 id=2944 data-nosnippet>2944</a>            <span class="kw">return </span><span class="bool-val">true</span>;
-<a href=#2945 id=2945 data-nosnippet>2945</a>        }
-<a href=#2946 id=2946 data-nosnippet>2946</a>
-<a href=#2947 id=2947 data-nosnippet>2947</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(statement_annotation) = context.annotations.get(right) {
-<a href=#2948 id=2948 data-nosnippet>2948</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = statement_annotation.qualified_name() {
-<a href=#2949 id=2949 data-nosnippet>2949</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = context.index.find_fully_qualified_variable(path) {
-<a href=#2950 id=2950 data-nosnippet>2950</a>                    <span class="kw">if </span>statement_annotation.is_const() {
-<a href=#2951 id=2951 data-nosnippet>2951</a>                        <span class="kw">if let </span><span class="prelude-val">Some</span>(constant_statement) = context
-<a href=#2952 id=2952 data-nosnippet>2952</a>                            .index
-<a href=#2953 id=2953 data-nosnippet>2953</a>                            .get_const_expressions()
-<a href=#2954 id=2954 data-nosnippet>2954</a>                            .maybe_get_constant_statement(<span class="kw-2">&amp;</span>element.initial_value)
+<a href=#2854 id=2854 data-nosnippet>2854</a></span><span class="kw">pub fn </span>validate_zero_diviser(
+<a href=#2855 id=2855 data-nosnippet>2855</a>    validator: <span class="kw-2">&amp;mut </span>Validator,
+<a href=#2856 id=2856 data-nosnippet>2856</a>    annotations: <span class="kw-2">&amp;</span><span class="kw">dyn </span>AnnotationMap,
+<a href=#2857 id=2857 data-nosnippet>2857</a>    index: <span class="kw-2">&amp;</span>Index,
+<a href=#2858 id=2858 data-nosnippet>2858</a>    statement: <span class="kw-2">&amp;</span>AstNode,
+<a href=#2859 id=2859 data-nosnippet>2859</a>    location: <span class="kw-2">&amp;</span>SourceLocation,
+<a href=#2860 id=2860 data-nosnippet>2860</a>) {
+<a href=#2861 id=2861 data-nosnippet>2861</a>    <span class="kw">if </span>is_literal_or_const_expr_value_zero(statement, annotations, index) {
+<a href=#2862 id=2862 data-nosnippet>2862</a>        validator.push_diagnostic(
+<a href=#2863 id=2863 data-nosnippet>2863</a>            Diagnostic::new(<span class="string">"Division by Zero"</span>).with_error_code(<span class="string">"E123"</span>).with_location(location),
+<a href=#2864 id=2864 data-nosnippet>2864</a>        );
+<a href=#2865 id=2865 data-nosnippet>2865</a>    }
+<a href=#2866 id=2866 data-nosnippet>2866</a>}
+<a href=#2867 id=2867 data-nosnippet>2867</a>
+<a href=#2868 id=2868 data-nosnippet>2868</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>helper {
+<a href=#2869 id=2869 data-nosnippet>2869</a>    <span class="kw">use </span>std::ops::Range;
+<a href=#2870 id=2870 data-nosnippet>2870</a>
+<a href=#2871 id=2871 data-nosnippet>2871</a>    <span class="kw">use </span>plc_ast::ast::{AstNode, DirectAccessType};
+<a href=#2872 id=2872 data-nosnippet>2872</a>
+<a href=#2873 id=2873 data-nosnippet>2873</a>    <span class="kw">use </span><span class="kw">crate</span>::index::VariableIndexEntry;
+<a href=#2874 id=2874 data-nosnippet>2874</a>    <span class="kw">use </span><span class="kw">crate</span>::resolver::AnnotationMap;
+<a href=#2875 id=2875 data-nosnippet>2875</a>    <span class="kw">use </span><span class="kw">crate</span>::validation::ValidationContext;
+<a href=#2876 id=2876 data-nosnippet>2876</a>    <span class="kw">use crate</span>::{index::Index, typesystem::DataTypeInformation};
+<a href=#2877 id=2877 data-nosnippet>2877</a>
+<a href=#2878 id=2878 data-nosnippet>2878</a>    <span class="doccomment">/// Returns true if the current index is in the range for the given type
+<a href=#2879 id=2879 data-nosnippet>2879</a>    </span><span class="kw">pub fn </span>is_in_range(
+<a href=#2880 id=2880 data-nosnippet>2880</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
+<a href=#2881 id=2881 data-nosnippet>2881</a>        access_index: u64,
+<a href=#2882 id=2882 data-nosnippet>2882</a>        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
+<a href=#2883 id=2883 data-nosnippet>2883</a>        index: <span class="kw-2">&amp;</span>Index,
+<a href=#2884 id=2884 data-nosnippet>2884</a>    ) -&gt; bool {
+<a href=#2885 id=2885 data-nosnippet>2885</a>        (access.get_bit_width() * access_index) &lt; data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64
+<a href=#2886 id=2886 data-nosnippet>2886</a>    }
+<a href=#2887 id=2887 data-nosnippet>2887</a>
+<a href=#2888 id=2888 data-nosnippet>2888</a>    <span class="doccomment">/// Returns the range from 0 for the given data type
+<a href=#2889 id=2889 data-nosnippet>2889</a>    </span><span class="kw">pub fn </span>get_range(
+<a href=#2890 id=2890 data-nosnippet>2890</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
+<a href=#2891 id=2891 data-nosnippet>2891</a>        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
+<a href=#2892 id=2892 data-nosnippet>2892</a>        index: <span class="kw-2">&amp;</span>Index,
+<a href=#2893 id=2893 data-nosnippet>2893</a>    ) -&gt; Range&lt;u64&gt; {
+<a href=#2894 id=2894 data-nosnippet>2894</a>        <span class="number">0</span>..((data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64 / access.get_bit_width()) - <span class="number">1</span>)
+<a href=#2895 id=2895 data-nosnippet>2895</a>    }
+<a href=#2896 id=2896 data-nosnippet>2896</a>
+<a href=#2897 id=2897 data-nosnippet>2897</a>    <span class="doccomment">/// Returns true if the direct access can be used for the given type
+<a href=#2898 id=2898 data-nosnippet>2898</a>    </span><span class="kw">pub fn </span>is_compatible(access: <span class="kw-2">&amp;</span>DirectAccessType, data_type: <span class="kw-2">&amp;</span>DataTypeInformation, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
+<a href=#2899 id=2899 data-nosnippet>2899</a>        data_type.get_semantic_size(index) <span class="kw">as </span>u64 &gt; access.get_bit_width()
+<a href=#2900 id=2900 data-nosnippet>2900</a>    }
+<a href=#2901 id=2901 data-nosnippet>2901</a>
+<a href=#2902 id=2902 data-nosnippet>2902</a>    <span class="kw">pub fn </span>get_literal_int_or_const_expr_value&lt;T&gt;(
+<a href=#2903 id=2903 data-nosnippet>2903</a>        right: <span class="kw-2">&amp;</span>AstNode,
+<a href=#2904 id=2904 data-nosnippet>2904</a>        context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+<a href=#2905 id=2905 data-nosnippet>2905</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;i128&gt;
+<a href=#2906 id=2906 data-nosnippet>2906</a>    <span class="kw">where
+<a href=#2907 id=2907 data-nosnippet>2907</a>        </span>T: AnnotationMap,
+<a href=#2908 id=2908 data-nosnippet>2908</a>    {
+<a href=#2909 id=2909 data-nosnippet>2909</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = right.get_literal_integer_value() {
+<a href=#2910 id=2910 data-nosnippet>2910</a>            <span class="kw">return </span><span class="prelude-val">Some</span>(value);
+<a href=#2911 id=2911 data-nosnippet>2911</a>        }
+<a href=#2912 id=2912 data-nosnippet>2912</a>
+<a href=#2913 id=2913 data-nosnippet>2913</a>        <span class="kw">let </span>path = right.get_flat_reference_name().unwrap_or_default();
+<a href=#2914 id=2914 data-nosnippet>2914</a>        <span class="kw">let </span>element = context.index.find_variable(context.qualifier, <span class="kw-2">&amp;</span>[path])<span class="question-mark">?</span>;
+<a href=#2915 id=2915 data-nosnippet>2915</a>
+<a href=#2916 id=2916 data-nosnippet>2916</a>        context
+<a href=#2917 id=2917 data-nosnippet>2917</a>            .index
+<a href=#2918 id=2918 data-nosnippet>2918</a>            .get_const_expressions()
+<a href=#2919 id=2919 data-nosnippet>2919</a>            .maybe_get_constant_statement(<span class="kw-2">&amp;</span>element.initial_value)
+<a href=#2920 id=2920 data-nosnippet>2920</a>            .and_then(AstNode::get_literal_integer_value)
+<a href=#2921 id=2921 data-nosnippet>2921</a>    }
+<a href=#2922 id=2922 data-nosnippet>2922</a>
+<a href=#2923 id=2923 data-nosnippet>2923</a>    <span class="kw">pub fn </span>get_enum_variant_values&lt;<span class="lifetime">'idx</span>&gt;(
+<a href=#2924 id=2924 data-nosnippet>2924</a>        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+<a href=#2925 id=2925 data-nosnippet>2925</a>        variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
+<a href=#2926 id=2926 data-nosnippet>2926</a>    ) -&gt; Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry, i128)&gt; {
+<a href=#2927 id=2927 data-nosnippet>2927</a>        <span class="kw">let </span><span class="kw-2">mut </span>variant_const_values = Vec::new();
+<a href=#2928 id=2928 data-nosnippet>2928</a>        <span class="kw">for </span>variant <span class="kw">in </span>index.get_enum_variants_by_variable(variable) {
+<a href=#2929 id=2929 data-nosnippet>2929</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>const_id) = variant.initial_value {
+<a href=#2930 id=2930 data-nosnippet>2930</a>                <span class="kw">if let </span><span class="prelude-val">Ok</span>(init) = index.get_const_expressions().get_constant_int_statement_value(const_id) {
+<a href=#2931 id=2931 data-nosnippet>2931</a>                    variant_const_values.push((variant, init));
+<a href=#2932 id=2932 data-nosnippet>2932</a>                }
+<a href=#2933 id=2933 data-nosnippet>2933</a>            }
+<a href=#2934 id=2934 data-nosnippet>2934</a>        }
+<a href=#2935 id=2935 data-nosnippet>2935</a>
+<a href=#2936 id=2936 data-nosnippet>2936</a>        variant_const_values
+<a href=#2937 id=2937 data-nosnippet>2937</a>    }
+<a href=#2938 id=2938 data-nosnippet>2938</a>
+<a href=#2939 id=2939 data-nosnippet>2939</a>    <span class="kw">pub fn </span>is_literal_or_const_expr_value_zero(
+<a href=#2940 id=2940 data-nosnippet>2940</a>        right: <span class="kw-2">&amp;</span>AstNode,
+<a href=#2941 id=2941 data-nosnippet>2941</a>        annotations: <span class="kw-2">&amp;</span><span class="kw">dyn </span>AnnotationMap,
+<a href=#2942 id=2942 data-nosnippet>2942</a>        index: <span class="kw-2">&amp;</span>Index,
+<a href=#2943 id=2943 data-nosnippet>2943</a>    ) -&gt; bool {
+<a href=#2944 id=2944 data-nosnippet>2944</a>        <span class="kw">let </span>right = right.get_node_peeled();
+<a href=#2945 id=2945 data-nosnippet>2945</a>        <span class="kw">if </span>right.is_zero() {
+<a href=#2946 id=2946 data-nosnippet>2946</a>            <span class="kw">return </span><span class="bool-val">true</span>;
+<a href=#2947 id=2947 data-nosnippet>2947</a>        }
+<a href=#2948 id=2948 data-nosnippet>2948</a>
+<a href=#2949 id=2949 data-nosnippet>2949</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(statement_annotation) = annotations.get(right) {
+<a href=#2950 id=2950 data-nosnippet>2950</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = statement_annotation.qualified_name() {
+<a href=#2951 id=2951 data-nosnippet>2951</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(element) = index.find_fully_qualified_variable(path) {
+<a href=#2952 id=2952 data-nosnippet>2952</a>                    <span class="kw">if </span>statement_annotation.is_const() {
+<a href=#2953 id=2953 data-nosnippet>2953</a>                        <span class="kw">if let </span><span class="prelude-val">Some</span>(constant_statement) =
+<a href=#2954 id=2954 data-nosnippet>2954</a>                            index.get_const_expressions().maybe_get_constant_statement(<span class="kw-2">&amp;</span>element.initial_value)
 <a href=#2955 id=2955 data-nosnippet>2955</a>                        {
 <a href=#2956 id=2956 data-nosnippet>2956</a>                            <span class="kw">return </span>constant_statement.is_zero();
 <a href=#2957 id=2957 data-nosnippet>2957</a>                        }

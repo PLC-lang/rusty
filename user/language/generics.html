@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-06cd03d8.js";
+            window.path_to_searchindex_js = "../../searchindex-31b48f01.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -210,7 +210,7 @@ END_FUNCTION
 END_FUNCTION
 </code></pre>
 <p>When nothing in the project defines the name, the compiler writes an <code>{external}</code> declaration for it and leaves the symbol to the linker. If the linker finds nothing either, the build fails with an undefined symbol.</p>
-<p>The generic functions that the compiler knows itself work differently. A call to <code>ABS</code>, <code>ADD</code>, or <code>SEL</code> gets no version of its own, because the compiler writes the code at the place of the call. <a href="../reference/built-in-functions.html">Built-in Functions</a> lists them all.</p>
+<p>The generic functions that the compiler knows itself work differently. A call to <code>ABS</code>, <code>ADD</code>, or <code>SEL</code> gets no version of its own, because the compiler writes the code at the place of the call. With date and time arguments, <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> expand to the operators, which call the standard library as the <a href="time.html">time and date</a> chapter describes. <a href="../reference/built-in-functions.html">Built-in Functions</a> lists them all.</p>
 <h2 id="constraints"><a class="header" href="#constraints">Constraints</a></h2>
 <p>The constraint is a type nature, for example <code>ANY_INT</code>, <code>ANY_REAL</code>, <code>ANY_ELEMENTARY</code>, or <code>ANY</code>. An argument whose type does not have that nature is rejected:</p>
 <pre><code class="language-iecst">FUNCTION Inc &lt;T: ANY_INT&gt;: T

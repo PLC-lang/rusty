@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-06cd03d8.js";
+            window.path_to_searchindex_js = "../../searchindex-31b48f01.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -437,13 +437,13 @@ END_PROGRAM
     /// The statement to generate instead of the annotated one
     statement: AstNode,
 }</code></pre>
-<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: <code>ADD(a, b, c)</code> becomes <code>(a + b) + c</code>, and <code>GT(a, b, c)</code> becomes <code>(a &gt; b) AND (b &gt; c)</code>. An arithmetic operator on date and time operands becomes the call of the standard library function that carries it out, <code>ADD_DT_TIME(stamp, cycle)</code> for <code>stamp + cycle</code>. The replacement has its own annotations.</p>
+<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: <code>ADD(a, b, c)</code> becomes <code>(a + b) + c</code>, and <code>GT(a, b, c)</code> becomes <code>(a &gt; b) AND (b &gt; c)</code>. An arithmetic operator on a combination of date and time operands that the standard defines becomes the call of the standard library function that carries it out, <code>ADD_DT_TIME(stamp, cycle)</code> for <code>stamp + cycle</code>, when that function is declared. The replacement has its own annotations.</p>
 <pre><code>    same := text = 'hello';
             ^^^^^^^^^^^^^^    ReplacementAst STRING_EQUAL(text, 'hello'),  hint "BOOL"
             ^^^^              Variable "STRING", main.text,  hint Argument "STRING", position 0, pou STRING_EQUAL
                    ^^^^^^^    Value "__STRING_5",            hint Argument "STRING", position 1, pou STRING_EQUAL
 </code></pre>
-<p>Codegen checks every expression for this kind first and generates the replacement instead of the node. The type of the node is the type of its replacement; see <a href="#deriving-a-type">Deriving a type</a>.</p>
+<p>Codegen checks every expression for this kind first and generates the replacement instead of the node, also inside parentheses. The type of the node is the type of its replacement; see <a href="#deriving-a-type">Deriving a type</a>. The value of the replacement is then converted to the hint of the node like any other value, so <code>x := cycle * 1.5</code> with an <code>LREAL</code> target converts the <code>TIME</code> result of <code>MUL_TIME__REAL</code> to <code>LREAL</code>.</p>
 <h3 id="label"><a class="header" href="#label">Label</a></h3>
 <pre><code class="language-rust noplayground">Label {
     /// The label the jump targets
@@ -489,7 +489,7 @@ FUNCTION_BLOCK Counter        MethodDeclarations { area: [Concrete Counter.area]
 <tr><td><code>Program</code></td><td>references to programs, classes, actions</td><td>qualified name</td><td>codegen (instance address), validator (E095)</td></tr>
 <tr><td><code>Argument</code> (hint only)</td><td>every call argument</td><td>type, position, depth, declaring POU</td><td>codegen (parameter slot), aggregate-return lowerer, conversion like any hint</td></tr>
 <tr><td><code>Property</code></td><td>property references before lowering</td><td>accessor name</td><td>property lowerer</td></tr>
-<tr><td><code>ReplacementAst</code></td><td>string and other library-compared comparisons, arithmetic on date and time operands</td><td>the replacement statement</td><td>codegen</td></tr>
+<tr><td><code>ReplacementAst</code></td><td>string and other library-compared comparisons, calls of the arithmetic and comparison built-ins, arithmetic on date and time operands</td><td>the replacement statement</td><td>codegen</td></tr>
 <tr><td><code>Label</code></td><td>jump statements from CFC</td><td>label name</td><td>codegen</td></tr>
 <tr><td><code>MethodDeclarations</code></td><td>block, class, and interface declarations (by declaration ID)</td><td>method name to declarations</td><td>validator (E111, E112)</td></tr>
 <tr><td><code>Override</code></td><td>method declarations that override (by declaration ID)</td><td>overridden methods</td><td>validator (E112, E118)</td></tr>
