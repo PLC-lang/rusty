@@ -3367,6 +3367,49 @@ fn division_by_local_zero_constant_results_in_error() {
 }
 
 #[test]
+fn modulo_by_zero_literal_or_constant_results_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : DINT;
+                modX : DINT;
+            END_VAR
+            VAR CONSTANT
+                ConstantZero: DINT := 0;
+            END_VAR
+
+            x := 5;
+            modX := x MOD 0;
+            modX := x MOD (0);
+            modX := x MOD ConstantZero;
+            modX := 0 MOD x; // a zero dividend is valid
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E123]: Division by Zero
+       ┌─ <internal>:12:21
+       │
+    12 │             modX := x MOD 0;
+       │                     ^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:13:21
+       │
+    13 │             modX := x MOD (0);
+       │                     ^^^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:14:21
+       │
+    14 │             modX := x MOD ConstantZero;
+       │                     ^^^^^^^^^^^^^^^^^^ Division by Zero
+    ");
+}
+
+#[test]
 fn division_by_zero_in_struct_constant_results_in_error() {
     let diagnostics = parse_and_validate_buffered(
         "

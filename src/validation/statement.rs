@@ -1046,7 +1046,7 @@ fn visit_binary_expression<T: AnnotationMap>(
             // check for the = operator
             validate_binary_expression(validator, statement, &Operator::Equal, left, right, context);
         }
-        Operator::Division => {
+        Operator::Division | Operator::Modulo => {
             validate_binary_expression(validator, statement, operator, left, right, context);
             validate_zero_diviser(validator, context.annotations, context.index, right, &statement.location);
         }
