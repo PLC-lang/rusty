@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["block_on","init","init_with_config","spawn","spawn_blocking","spawn_local","spawn_more_threads","stop_current_thread","stop_thread"],"struct":["GlobalExecutorConfig","Task"]};

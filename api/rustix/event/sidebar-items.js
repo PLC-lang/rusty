@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["eventfd","fd_set_bound","fd_set_insert","fd_set_num_elements","fd_set_remove","pause","poll","select"],"mod":["epoll"],"struct":["EventfdFlags","FdSetElement","FdSetIter","PollFd","PollFlags","Timespec"],"type":["Nsecs","Secs"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"macro":[["easy_wrapper",1]],"struct":["Blocking","FutureWrapper","NonBlocking"],"trait":["EventListenerFuture","Strategy"]};

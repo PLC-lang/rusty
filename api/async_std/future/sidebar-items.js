@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["pending","poll_fn","ready","timeout"],"struct":["TimeoutError"],"trait":["Future"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["SocketAddrOpaque","SocketAddrStorage"],"trait":["SocketAddrArg"],"type":["SocketAddrLen"]};

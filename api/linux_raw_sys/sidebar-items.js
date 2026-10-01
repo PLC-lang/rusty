@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["auxvec","cmsg_macros","ctypes","elf","errno","general","if_ether","ioctl","net","netlink","prctl","select_macros","signal_macros","xdp"]};
+window.SIDEBAR_ITEMS = {"mod":["auxvec","ctypes","elf","errno","general","ioctl","select_macros","signal_macros"]};

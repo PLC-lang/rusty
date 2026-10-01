@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["block_on"],"mod":["os"],"struct":["Async","Readable","ReadableOwned","Timer","Writable","WritableOwned"],"trait":["IoSafe"]};

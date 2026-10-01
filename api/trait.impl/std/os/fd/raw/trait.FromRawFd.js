@@ -1,9 +1,9 @@
 (function() {
-    const implementors = Object.fromEntries([["async_std",[["impl <a class=\"trait\" href=\"async_std/os/unix/io/trait.FromRawFd.html\" title=\"trait async_std::os::unix::io::FromRawFd\">FromRawFd</a> for <a class=\"struct\" href=\"async_std/fs/struct.File.html\" title=\"struct async_std::fs::File\">File</a>",0],["impl <a class=\"trait\" href=\"async_std/os/unix/io/trait.FromRawFd.html\" title=\"trait async_std::os::unix::io::FromRawFd\">FromRawFd</a> for <a class=\"struct\" href=\"async_std/net/struct.TcpListener.html\" title=\"struct async_std::net::TcpListener\">TcpListener</a>",0],["impl <a class=\"trait\" href=\"async_std/os/unix/io/trait.FromRawFd.html\" title=\"trait async_std::os::unix::io::FromRawFd\">FromRawFd</a> for <a class=\"struct\" href=\"async_std/net/struct.TcpStream.html\" title=\"struct async_std::net::TcpStream\">TcpStream</a>",0],["impl <a class=\"trait\" href=\"async_std/os/unix/io/trait.FromRawFd.html\" title=\"trait async_std::os::unix::io::FromRawFd\">FromRawFd</a> for <a class=\"struct\" href=\"async_std/net/struct.UdpSocket.html\" title=\"struct async_std::net::UdpSocket\">UdpSocket</a>",0],["impl <a class=\"trait\" href=\"async_std/os/unix/io/trait.FromRawFd.html\" title=\"trait async_std::os::unix::io::FromRawFd\">FromRawFd</a> for <a class=\"struct\" href=\"async_std/os/unix/net/struct.UnixDatagram.html\" title=\"struct async_std::os::unix::net::UnixDatagram\">UnixDatagram</a>",0],["impl <a class=\"trait\" href=\"async_std/os/unix/io/trait.FromRawFd.html\" title=\"trait async_std::os::unix::io::FromRawFd\">FromRawFd</a> for <a class=\"struct\" href=\"async_std/os/unix/net/struct.UnixListener.html\" title=\"struct async_std::os::unix::net::UnixListener\">UnixListener</a>",0],["impl <a class=\"trait\" href=\"async_std/os/unix/io/trait.FromRawFd.html\" title=\"trait async_std::os::unix::io::FromRawFd\">FromRawFd</a> for <a class=\"struct\" href=\"async_std/os/unix/net/struct.UnixStream.html\" title=\"struct async_std::os::unix::net::UnixStream\">UnixStream</a>",0]]],["rustix",[]]]);
+    const implementors = Object.fromEntries([["rustix",[]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {
         window.pending_implementors = implementors;
     }
 })()
-//{"start":59,"fragment_lengths":[1983,14]}
+//{"start":59,"fragment_lengths":[13]}

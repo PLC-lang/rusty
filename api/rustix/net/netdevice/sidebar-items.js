@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["index_to_name","index_to_name_inlined","name_to_index"],"struct":["InlinedName"]};

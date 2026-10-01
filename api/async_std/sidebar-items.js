@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"macro":[["task_local",1]],"mod":["channel","fs","future","io","net","os","path","prelude","stream","sync","task"]};

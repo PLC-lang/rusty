@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["GetDisjointMutError"],"struct":["Drain","IntoIter","Iter","IterMut","Slab","VacantEntry"]};

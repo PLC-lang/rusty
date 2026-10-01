@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["futures"],"struct":["Barrier","BarrierWaitResult","Mutex","MutexGuard","MutexGuardArc","OnceCell","RwLock","RwLockReadGuard","RwLockReadGuardArc","RwLockUpgradableReadGuard","RwLockUpgradableReadGuardArc","RwLockWriteGuard","RwLockWriteGuardArc","Semaphore","SemaphoreGuard","SemaphoreGuardArc"]};
