@@ -818,6 +818,30 @@ fn validate_reference<T: AnnotationMap>(
     }
 }
 
+/// A call whose operator resolved to a `FUNCTION_BLOCK` type (`MyFb(...)`) has no instance.
+/// The resolver annotates that name as the type, so validation would otherwise accept it
+/// and codegen would later report a generic unresolved reference.
+fn function_block_called_without_instance<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    operator: &AstNode,
+) -> Option<Diagnostic> {
+    let StatementAnnotation::Type { type_name } = context.annotations.get(operator)? else {
+        return None;
+    };
+    let effective_type = context.index.find_effective_type_by_name(type_name)?;
+    if !context.index.find_pou(effective_type.get_name()).is_some_and(|pou| pou.is_function_block()) {
+        return None;
+    }
+
+    Some(
+        Diagnostic::new(format!(
+            "`{type_name}` is a FUNCTION_BLOCK. Declare an instance and call that instance"
+        ))
+        .with_error_code("E158")
+        .with_location(operator),
+    )
+}
+
 /// Produces a focused diagnostic when a METHOD references a `VAR_TEMP` declared on its
 /// enclosing POU. Methods have their own stack frame, so the temp is not visible — the
 /// resolver therefore leaves the reference unannotated. Returning a dedicated diagnostic
@@ -2325,8 +2349,21 @@ fn validate_call<T: AnnotationMap>(
     }
 
     let Some(pou) = context.find_pou(fn_ident) else {
-        // POU could not be found, we can still partially validate the passed parameters
-        if let Some(s) = fn_args.as_ref() {
+        // The name resolved to a FUNCTION_BLOCK type, not to a callable instance.
+        if let Some(diagnostic) = function_block_called_without_instance(context, fn_ident) {
+            validator.push_diagnostic(diagnostic);
+            // Without a callable instance the formal names have no binding. Still check
+            // the caller's expressions, including output targets and nested calls.
+            for argument in fn_args.map(flatten_expression_list).unwrap_or_default() {
+                let expression = match argument.get_stmt() {
+                    AstStatement::Assignment(Assignment { right, .. })
+                    | AstStatement::OutputAssignment(Assignment { right, .. }) => right.as_ref(),
+                    _ => argument,
+                };
+                visit_statement(validator, expression, context);
+            }
+        } else if let Some(s) = fn_args.as_ref() {
+            // POU could not be found, we can still partially validate the passed parameters
             visit_statement(validator, s, context);
         }
         return;
