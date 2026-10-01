@@ -34,7 +34,7 @@ use crate::{
     validation::{
         statement::{
             validate_date_time_arithmetic, validate_type_compatibility,
-            validate_type_compatibility_with_data_types,
+            validate_type_compatibility_with_data_types, validate_zero_diviser,
         },
         Validator, Validators,
     },
@@ -465,7 +465,8 @@ lazy_static! {
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Division, Some(&["IN1", "IN2"]));
-                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division);
+                    validate_divisor(validator, parameters, annotations, index);
                 }),
                 generic_name_resolver,
                 code: |_, _, _| {
@@ -831,6 +832,19 @@ fn validate_arithmetic_arguments(
 /// The arguments of ADD, SUB, MUL, or DIV in parameter order, a named argument resolved to its value
 fn arithmetic_arguments<'a>(parameters: &'a AstNode, named_parameters: Option<&[&str]>) -> Vec<&'a AstNode> {
     order_call_arguments(parameters, named_parameters).into_iter().map(extract_actual_parameter).collect()
+}
+
+/// Reports a literal or constant zero passed as the divisor `IN2` of DIV, as the `/` operator does
+fn validate_divisor(
+    validator: &mut Validator,
+    parameters: Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else { return };
+    if let [_, divisor] = arithmetic_arguments(params, Some(&["IN1", "IN2"])).as_slice() {
+        validate_zero_diviser(validator, annotations, index, divisor, &params.get_location());
+    }
 }
 
 fn validate_types_are_compatible_with_int(

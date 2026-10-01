@@ -3423,6 +3423,51 @@ fn division_by_zero_variable_must_not_result_in_error() {
 }
 
 #[test]
+fn builtin_division_by_zero_results_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        {external} FUNCTION DIV_TIME__LINT : TIME VAR_INPUT IN1 : TIME; IN2 : LINT; END_VAR END_FUNCTION
+
+        VAR_GLOBAL CONSTANT
+            ConstantZero : DINT := 0;
+        END_VAR
+
+        FUNCTION main
+            VAR
+                x : DINT;
+                t : TIME;
+            END_VAR
+
+            x := DIV(x, 0);
+            x := DIV(IN2 := ConstantZero, IN1 := x);
+            t := DIV(t, (0));
+            x := DIV(x, x);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E123]: Division by Zero
+       ┌─ <internal>:14:22
+       │
+    14 │             x := DIV(x, 0);
+       │                      ^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:15:22
+       │
+    15 │             x := DIV(IN2 := ConstantZero, IN1 := x);
+       │                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:16:22
+       │
+    16 │             t := DIV(t, (0));
+       │                      ^^^^^^ Division by Zero
+    ");
+}
+
+#[test]
 fn function_call_with_variadics_should_not_produce_downcast_warnings() {
     let diagnostics = parse_and_validate_buffered(
         "
