@@ -978,8 +978,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
             let ptr_type = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
             let output = self.llvm.builder.build_load(ptr_type, pointer_slot, "")?.into_pointer_value();
-            let initializer =
-                self.index.get_const_expressions().maybe_get_constant_statement(&variable.initial_value);
+            // only a resolved constant is applied here; any other initializer is assigned by the
+            // lowered stack initializer, which runs with the instance in scope
+            let initializer = variable
+                .initial_value
+                .as_ref()
+                .and_then(|id| self.index.get_const_expressions().get_resolved_constant_statement(id));
             self.llvm.generate_variable_initializer(
                 self.llvm_index,
                 self.index,
