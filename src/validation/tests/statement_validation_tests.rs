@@ -1122,11 +1122,11 @@ fn builtin_functions_named_arguments_invalid_parameter_names() {
     14 │             arr2 := MOVE(SOURCE := arr);
        │                          ^^^^^^ Could not resolve reference to SOURCE
 
-    error[E037]: Invalid assignment: cannot assign 'SEL with wrong parameter names a := SEL(WRONG := sel, IN0 := a, IN1 := b); a := SEL(G := sel, INVALID := a,' to 'ARRAY[0..5] OF INT'
+    error[E037]: Invalid assignment: cannot assign 'U' to 'ARRAY[0..5] OF INT'
        ┌─ <internal>:14:13
        │
     14 │             arr2 := MOVE(SOURCE := arr);
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'SEL with wrong parameter names a := SEL(WRONG := sel, IN0 := a, IN1 := b); a := SEL(G := sel, INVALID := a,' to 'ARRAY[0..5] OF INT'
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'U' to 'ARRAY[0..5] OF INT'
 
     error[E089]: Invalid call parameters
        ┌─ <internal>:17:25
@@ -3363,6 +3363,49 @@ fn division_by_local_zero_constant_results_in_error() {
        │
     12 │             divX := x / ConstantZero;
        │                     ^^^^^^^^^^^^^^^^ Division by Zero
+    ");
+}
+
+#[test]
+fn modulo_by_zero_literal_or_constant_results_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : DINT;
+                modX : DINT;
+            END_VAR
+            VAR CONSTANT
+                ConstantZero: DINT := 0;
+            END_VAR
+
+            x := 5;
+            modX := x MOD 0;
+            modX := x MOD (0);
+            modX := x MOD ConstantZero;
+            modX := 0 MOD x; // a zero dividend is valid
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E123]: Division by Zero
+       ┌─ <internal>:12:21
+       │
+    12 │             modX := x MOD 0;
+       │                     ^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:13:21
+       │
+    13 │             modX := x MOD (0);
+       │                     ^^^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:14:21
+       │
+    14 │             modX := x MOD ConstantZero;
+       │                     ^^^^^^^^^^^^^^^^^^ Division by Zero
     ");
 }
 

@@ -383,7 +383,7 @@ lazy_static! {
                         return;
                     };
 
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus, None)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus, None, &[TypeNature::Num])
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Plus, None);
@@ -409,7 +409,7 @@ lazy_static! {
                         return;
                     };
 
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication, None)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication, None, &[TypeNature::Num])
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Multiplication, None);
@@ -435,7 +435,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus, Some(&["IN1", "IN2"]))
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus, Some(&["IN1", "IN2"]), &[TypeNature::Num])
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Minus, Some(&["IN1", "IN2"]));
@@ -461,7 +461,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division, Some(&["IN1", "IN2"]))
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division, Some(&["IN1", "IN2"]), &[TypeNature::Num])
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     let named_parameters: Option<&[&str]> = Some(&["IN1", "IN2"]);
@@ -557,7 +557,139 @@ lazy_static! {
                 }
             }
         ),
-        // TODO: MOD and AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean ) - FIXME: these are all keywords and therefore conflicting
+        (
+            "MOD",
+            BuiltIn {
+                decl: "FUNCTION MOD<T1: ANY, T2: ANY> : T1
+                VAR_INPUT
+                    IN1 : T1;
+                    IN2 : T2;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Modulo, Some(&["IN1", "IN2"]), MODULO_NATURES)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, MODULO_NATURES);
+                    validate_duration_modulo(validator, parameters, annotations, index);
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Modulo);
+                    validate_divisor(validator, parameters, annotations, index, Some(&["IN1", "IN2"]));
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("MOD is not generated as a function call");
+                }
+            }
+        ),
+        // Bitwise functions, like their operators they accept bit and integer values
+        (
+            "AND",
+            BuiltIn {
+                decl: "FUNCTION AND<T: ANY> : T
+                VAR_INPUT
+                    args : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::And, None, BITWISE_NATURES)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::And)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("AND is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "OR",
+            BuiltIn {
+                decl: "FUNCTION OR<T: ANY> : T
+                VAR_INPUT
+                    args : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Or, None, BITWISE_NATURES)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Or)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("OR is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "XOR",
+            BuiltIn {
+                decl: "FUNCTION XOR<T: ANY> : T
+                VAR_INPUT
+                    args : {sized} T...;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Xor, None, BITWISE_NATURES)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Xor)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("XOR is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "NOT",
+            BuiltIn {
+                decl: "FUNCTION NOT<T: ANY> : T
+                VAR_INPUT
+                    IN : T;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_not_function(annotator, statement, operator, params, ctx)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_count(validator, operator, &parameters, 1);
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("NOT is not generated as a function call");
+                }
+            }
+        ),
         (
             "GT",
             BuiltIn {
@@ -772,6 +904,12 @@ lazy_static! {
     ]);
 }
 
+/// The natures the bitwise operators `AND`, `OR`, `XOR` and `NOT` accept
+const BITWISE_NATURES: &[TypeNature] = &[TypeNature::Bit, TypeNature::Int];
+
+/// The natures `MOD` accepts: numbers, and a duration together with a duration of the same type
+const MODULO_NATURES: &[TypeNature] = &[TypeNature::Num, TypeNature::Duration];
+
 fn validate_types(
     validator: &mut Validator,
     parameters: &Option<&AstNode>,
@@ -789,6 +927,74 @@ fn validate_types(
             validate_type_compatibility(validator, annotations, index, left, right);
         }
     }
+}
+
+/// Reports every argument of MOD, AND, OR, XOR, or NOT whose type has none of the natures the operator accepts
+fn validate_argument_natures(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    natures: &[TypeNature],
+) {
+    let Some(params) = parameters else { return };
+
+    for argument in flatten_expression_list(params).into_iter().map(extract_actual_parameter) {
+        let data_type = annotations.get_type_or_void(argument, index);
+        if data_type.is_void() || natures.iter().any(|nature| data_type.has_nature(*nature, index)) {
+            continue;
+        }
+
+        let natures = natures.iter().map(ToString::to_string).collect::<Vec<_>>().join(" or ");
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid type nature for generic argument. {} is no {natures}",
+                data_type.get_name()
+            ))
+            .with_error_code("E062")
+            .with_location(argument),
+        );
+    }
+}
+
+/// Reports a MOD call that combines a duration with a value of another type, such as `TIME` with `DINT`
+/// or with `LTIME`. MOD is defined on two `TIME` or two `LTIME` values only.
+fn validate_duration_modulo(
+    validator: &mut Validator,
+    parameters: Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else { return };
+    let arguments = arithmetic_arguments(params, Some(&["IN1", "IN2"]));
+    let [left, right] = arguments.as_slice() else { return };
+
+    let intrinsic_type = |argument: &AstNode| {
+        index.get_intrinsic_type_by_name(annotations.get_type_or_void(argument, index).get_name())
+    };
+    let (left_type, right_type) = (intrinsic_type(left), intrinsic_type(right));
+    let is_duration = |data_type: &DataType| data_type.has_nature(TypeNature::Duration, index);
+    let is_accepted =
+        |data_type: &DataType| is_duration(data_type) || data_type.has_nature(TypeNature::Num, index);
+
+    // an argument of another nature is reported on its own, a pair of numbers or equal durations is defined
+    if !is_accepted(left_type)
+        || !is_accepted(right_type)
+        || !(is_duration(left_type) || is_duration(right_type))
+        || left_type.get_name() == right_type.get_name()
+    {
+        return;
+    }
+
+    validator.push_diagnostic(
+        Diagnostic::new(format!(
+            "Operator `MOD` is not defined for `{}` and `{}`",
+            left_type.get_name(),
+            right_type.get_name()
+        ))
+        .with_error_code("E156")
+        .with_location(span_in_source_order(&arguments)),
+    );
 }
 
 /// Validates the arguments of ADD, SUB, MUL, and DIV. Numeric arguments must be compatible with
@@ -845,8 +1051,8 @@ fn arithmetic_arguments<'a>(parameters: &'a AstNode, named_parameters: Option<&[
     order_call_arguments(parameters, named_parameters).into_iter().map(extract_actual_parameter).collect()
 }
 
-/// Reports a literal or constant zero passed as the divisor of DIV, its second argument in parameter
-/// order, as the `/` operator does
+/// Reports a literal or constant zero passed as the divisor of DIV or MOD, its second argument in
+/// parameter order, as the `/` operator does
 fn validate_divisor(
     validator: &mut Validator,
     parameters: Option<&AstNode>,
@@ -889,7 +1095,7 @@ fn validate_builtin_symbol_parameter_count(
     let count = flatten_expression_list(params).len();
     match operation {
         // non-extensible operators
-        Operator::Minus | Operator::Division | Operator::NotEqual => {
+        Operator::Minus | Operator::Division | Operator::Modulo | Operator::NotEqual => {
             if count != 2 {
                 validator.push_diagnostic(Diagnostic::invalid_argument_count(2, count, operator));
             }
@@ -1014,6 +1220,13 @@ fn annotate_comparison_function(
     annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), statement);
 }
 
+/// Returns true if the argument value has one of the given natures.
+fn has_any_nature(annotator: &TypeAnnotator, argument: &AstNode, natures: &[TypeNature]) -> bool {
+    let data_type = annotator.annotation_map.get_type_or_void(argument, annotator.index);
+    natures.iter().any(|nature| data_type.has_nature(*nature, annotator.index))
+}
+
+#[allow(clippy::too_many_arguments)]
 fn annotate_arithmetic_function(
     annotator: &mut TypeAnnotator,
     statement: &AstNode,
@@ -1022,10 +1235,13 @@ fn annotate_arithmetic_function(
     ctx: VisitorContext,
     operation: Operator,
     option_named_parameters: Option<&[&str]>,
+    natures: &[TypeNature],
 ) {
     let params = order_call_arguments(parameters, option_named_parameters);
     let params_extracted: Vec<&AstNode> = params.iter().map(|it| extract_actual_parameter(it)).collect();
 
+    let accepts_date_or_time =
+        matches!(operation, Operator::Plus | Operator::Minus | Operator::Multiplication | Operator::Division);
     let is_date_or_time = |annotator: &TypeAnnotator, param: &AstNode| {
         let data_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
         annotator
@@ -1034,34 +1250,12 @@ fn annotate_arithmetic_function(
             .get_type_information()
             .is_date_or_time_type()
     };
-    let is_number = |annotator: &TypeAnnotator, param: &AstNode| {
-        annotator
-            .annotation_map
-            .get_type_or_void(param, annotator.index)
-            .has_nature(TypeNature::Num, annotator.index)
+    let is_accepted = |annotator: &TypeAnnotator, param: &AstNode| {
+        has_any_nature(annotator, param, natures)
+            || (accepts_date_or_time && is_date_or_time(annotator, param))
     };
-    if params_extracted.iter().any(|param| !is_number(annotator, param) && !is_date_or_time(annotator, param))
-    {
-        // an argument no arithmetic is defined for: the validator reports the call, every argument
-        // keeps its own type instead of the generic parameter's, and the call takes the first one
-        for param in &params_extracted {
-            let type_name =
-                annotator.annotation_map.get_type_or_void(param, annotator.index).get_name().to_owned();
-            annotator.annotation_map.annotate_type_hint(param, StatementAnnotation::value(type_name));
-        }
-        let function = annotator.annotation_map.get(operator).cloned();
-        if let (
-            Some(first),
-            Some(StatementAnnotation::Function { qualified_name, generic_name, call_name, .. }),
-        ) = (params_extracted.first(), function)
-        {
-            let return_type =
-                annotator.annotation_map.get_type_or_void(first, annotator.index).get_name().to_owned();
-            annotator.annotate(
-                operator,
-                StatementAnnotation::Function { qualified_name, return_type, generic_name, call_name },
-            );
-        }
+    if params_extracted.iter().any(|param| !is_accepted(annotator, param)) {
+        annotate_unaccepted_arguments(annotator, operator, &params_extracted);
         return;
     }
     let involves_date_or_time = params_extracted.iter().any(|param| is_date_or_time(annotator, param));
@@ -1095,6 +1289,67 @@ fn annotate_arithmetic_function(
     annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), &new_statement);
     annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
     annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), statement);
+}
+
+/// Annotates a call with an argument the operator is not defined for: the validator reports the call,
+/// every argument keeps its own type instead of the generic parameter's, and the call takes the first one
+fn annotate_unaccepted_arguments(annotator: &mut TypeAnnotator, operator: &AstNode, arguments: &[&AstNode]) {
+    for argument in arguments {
+        let type_name =
+            annotator.annotation_map.get_type_or_void(argument, annotator.index).get_name().to_owned();
+        annotator.annotation_map.annotate_type_hint(argument, StatementAnnotation::value(type_name));
+    }
+    let function = annotator.annotation_map.get(operator).cloned();
+    if let (
+        Some(first),
+        Some(StatementAnnotation::Function { qualified_name, generic_name, call_name, .. }),
+    ) = (arguments.first(), function)
+    {
+        let return_type =
+            annotator.annotation_map.get_type_or_void(first, annotator.index).get_name().to_owned();
+        annotator.annotate(
+            operator,
+            StatementAnnotation::Function { qualified_name, return_type, generic_name, call_name },
+        );
+    }
+}
+
+// replaces `NOT(x)` with the unary expression `NOT x`
+fn annotate_not_function(
+    annotator: &mut TypeAnnotator,
+    statement: &AstNode,
+    operator: &AstNode,
+    parameters: &AstNode,
+    ctx: VisitorContext,
+) {
+    let params = order_call_arguments(parameters, Some(&["IN"]));
+    let params_extracted: Vec<&AstNode> = params.iter().map(|it| extract_actual_parameter(it)).collect();
+
+    // a wrong argument count is reported during validation
+    let [value] = params_extracted.as_slice() else {
+        annotator.annotate_arguments(operator, parameters, &ctx);
+        return;
+    };
+
+    if !has_any_nature(annotator, value, BITWISE_NATURES) {
+        annotate_unaccepted_arguments(annotator, operator, &params_extracted);
+        return;
+    }
+
+    let type_name = annotator.annotation_map.get_type_or_void(value, annotator.index).get_name().to_owned();
+    hint_named_arguments(annotator, &params, &type_name);
+
+    let mut ctx = ctx;
+    let new_statement = AstFactory::create_not_expression(
+        (*value).clone(),
+        statement.get_location(),
+        ctx.id_provider.next_id(),
+    );
+
+    annotator.visit_statement(&ctx, &new_statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&type_name), &new_statement);
+    annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&type_name), statement);
 }
 
 fn annotate_variable_length_array_bound_function(
