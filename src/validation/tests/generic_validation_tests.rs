@@ -1678,10 +1678,10 @@ fn generic_call_with_formal_parameter() {
     21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
        │                                   ^^^^^^^^^^^^^^^^^^^^^ Could not resolve generic type T with ANY_NUMBER
 
-    error[E037]: Invalid assignment: cannot assign 'STRING' to 'FUNCTION FOO < T: ANY_NUM >: T VAR_INPUT x: T; END_VAR END_FUNCTION'
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'T'
        ┌─ <internal>:21:30
        │
     21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
-       │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'FUNCTION FOO < T: ANY_NUM >: T VAR_INPUT x: T; END_VAR END_FUNCTION'
+       │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'T'
     ");
 }
