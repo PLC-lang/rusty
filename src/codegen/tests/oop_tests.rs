@@ -2524,6 +2524,8 @@ fn fb_extension_with_output() {
       %outputValue = alloca ptr, align [filtered]
       store ptr %3, ptr %outputValue, align [filtered]
       store i16 0, ptr %foo.met1, align [filtered]
+      %4 = load ptr, ptr %outputValue, align [filtered]
+      store i16 0, ptr %4, align [filtered]
       %foo__met1_ret = load i16, ptr %foo.met1, align [filtered]
       ret i16 %foo__met1_ret
     }
@@ -2726,14 +2728,16 @@ fn function_with_output_used_in_main_by_extension() {
       %outputValue = alloca ptr, align [filtered]
       store ptr %3, ptr %outputValue, align [filtered]
       store i16 0, ptr %foo.met1, align [filtered]
+      %4 = load ptr, ptr %outputValue, align [filtered]
+      store i16 0, ptr %4, align [filtered]
       %deref = load ptr, ptr %outputValue, align [filtered]
       %load_mandatoryInput = load i16, ptr %mandatoryInput, align [filtered]
-      %4 = sext i16 %load_mandatoryInput to i32
+      %5 = sext i16 %load_mandatoryInput to i32
       %load_optionalInput = load i16, ptr %optionalInput, align [filtered]
-      %5 = sext i16 %load_optionalInput to i32
-      %tmpVar = add i32 %4, %5
-      %6 = trunc i32 %tmpVar to i16
-      store i16 %6, ptr %deref, align [filtered]
+      %6 = sext i16 %load_optionalInput to i32
+      %tmpVar = add i32 %5, %6
+      %7 = trunc i32 %tmpVar to i16
+      store i16 %7, ptr %deref, align [filtered]
       %foo__met1_ret = load i16, ptr %foo.met1, align [filtered]
       ret i16 %foo__met1_ret
     }

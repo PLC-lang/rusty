@@ -17,6 +17,10 @@ entry:
   store ptr %0, ptr %out1, align [filtered]
   %out2 = alloca ptr, align [filtered]
   store ptr %1, ptr %out2, align [filtered]
+  %2 = load ptr, ptr %out1, align [filtered]
+  store i32 0, ptr %2, align [filtered]
+  %3 = load ptr, ptr %out2, align [filtered]
+  store i32 0, ptr %3, align [filtered]
   ret void
 }
 

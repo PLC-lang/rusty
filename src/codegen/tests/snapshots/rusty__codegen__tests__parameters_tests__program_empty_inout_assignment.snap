@@ -1,5 +1,6 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
+assertion_line: 413
 expression: result
 ---
 ; ModuleID = '<internal>'
@@ -29,6 +30,7 @@ entry:
   %load_var1 = load i32, ptr %var1, align [filtered]
   store i32 %load_var1, ptr @prog_instance, align [filtered]
   %empty_varinout = alloca i32, align [filtered]
+  store i32 0, ptr %empty_varinout, align [filtered]
   store ptr %empty_varinout, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 2), align [filtered]
   call void @prog(ptr @prog_instance)
   %1 = load i32, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align [filtered]

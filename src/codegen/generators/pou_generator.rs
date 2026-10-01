@@ -623,6 +623,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     &function_context,
                     debug,
                 )?;
+                self.generate_initialization_of_output_params(&pou_members, &local_index)?;
             } else {
                 //Generate temp variables
                 let members = pou_members.into_iter().filter(|it| it.is_temp()).collect::<Vec<_>>();
@@ -933,6 +934,59 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 )
                 .into());
             }
+        }
+        Ok(())
+    }
+
+    /// resets every by-ref output parameter of a function or method to its initial value, so the
+    /// caller never observes a stale value through an output the body does not assign
+    fn generate_initialization_of_output_params(
+        &self,
+        variables: &[&VariableIndexEntry],
+        local_llvm_index: &LlvmTypedIndex,
+    ) -> Result<(), CodegenError> {
+        let exp_gen = ExpressionCodeGenerator::new_context_free(
+            &self.llvm,
+            self.index,
+            self.annotations,
+            local_llvm_index,
+        );
+        let outputs = variables.iter().filter(|it| it.is_output() && it.get_declaration_type().is_by_ref());
+
+        for variable in outputs {
+            let Some(inner_type_name) = self
+                .index
+                .find_effective_type_info(variable.get_type_name())
+                .and_then(|it| it.get_inner_pointer_type_name())
+            else {
+                continue;
+            };
+            // reference and alias outputs are bound by the body, not reset
+            if self
+                .index
+                .find_effective_type_info(inner_type_name)
+                .is_some_and(|it| it.is_reference_to() || it.is_alias())
+            {
+                continue;
+            }
+            let Some(pointer_slot) =
+                local_llvm_index.find_loaded_associated_variable_value(variable.get_qualified_name())
+            else {
+                continue;
+            };
+
+            let ptr_type = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+            let output = self.llvm.builder.build_load(ptr_type, pointer_slot, "")?.into_pointer_value();
+            let initializer =
+                self.index.get_const_expressions().maybe_get_constant_statement(&variable.initial_value);
+            self.llvm.generate_variable_initializer(
+                self.llvm_index,
+                self.index,
+                (variable.get_qualified_name(), inner_type_name, &variable.source_location),
+                output,
+                initializer,
+                &exp_gen,
+            )?;
         }
         Ok(())
     }
