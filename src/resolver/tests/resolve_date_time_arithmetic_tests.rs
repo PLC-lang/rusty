@@ -374,6 +374,40 @@ fn a_bare_integer_with_a_duration_takes_the_duration_type() {
 }
 
 #[test]
+fn a_builtin_call_with_a_date_or_time_argument_is_typed_by_the_root_of_its_chain() {
+    let types = right_side_types(
+        r#"
+        PROGRAM main
+        VAR
+            t, t2 : TIME;
+            dt : DT;
+            d1, d2 : DATE;
+            n : DINT;
+            s : SINT;
+        END_VAR
+            dt := ADD(dt, t, t2);
+            dt := SUB(IN2 := t, IN1 := dt);
+            t := SUB(d1, d2);
+            t := MUL(2, t, 3);
+            t := DIV(t, n);
+            t := ADD(t, 5);
+            n := ADD(s, s);
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(types, @"
+    DATE_AND_TIME
+    DATE_AND_TIME
+    TIME
+    TIME
+    TIME
+    TIME
+    SINT
+    ");
+}
+
+#[test]
 fn an_undefined_combination_falls_back_to_the_numeric_typing() {
     let types = right_side_types(
         r#"

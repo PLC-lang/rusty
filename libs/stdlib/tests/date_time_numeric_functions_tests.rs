@@ -1118,19 +1118,10 @@ fn div_ltime() {
 }
 
 #[test]
-#[should_panic]
-fn date_time_overloaded_add_function_called_with_too_many_params() {
+fn date_time_add_takes_any_number_of_durations() {
     let src = "
         FUNCTION main : LINT
-            // This test should panic because the argument count is incorrect, i.e. `ADD_TIME` is defined as
-            // FUNCTION ADD_TIME : LTIME
-            //   VAR_INPUT
-            //     IN1: LTIME;
-            //     IN2: LTIME;
-            //   END_VAR
-            // END_FUNCTION`
-
-            ADD(LTIME#3h, LTIME#2h, LTIME#2h, LTIME#3h, LTIME#30s);
+            main := ADD(LTIME#3h, LTIME#2h, LTIME#2h, LTIME#3h, LTIME#30s);
         END_FUNCTION
     ";
 
@@ -1230,100 +1221,40 @@ wrapping_tests!(
     ),
 );
 
-// The compatibility aliases carry their own wrapping bodies, so every exported symbol
-// is checked with the same boundary values as the named functions above.
-wrapping_tests!(
-    (add_alias_ltime_ltime_wraps_on_overflow, dtf::ADD__LTIME__LTIME, i64::MAX, 1, i64::MIN),
-    (add_alias_ltod_ltime_wraps_at_midnight, dtf::ADD__LTOD__LTIME, NANOS_PER_DAY - 1, 2, 1),
-    (add_alias_ldt_ltime_wraps_on_overflow, dtf::ADD__LDT__LTIME, i64::MAX, 1, i64::MIN),
-    (sub_alias_ltime_ltime_wraps_on_underflow, dtf::SUB__LTIME__LTIME, i64::MIN, 1, i64::MAX),
-    (sub_alias_ldate_ldate_wraps_on_large_delta, dtf::SUB__LDATE__LDATE, i64::MAX, i64::MIN, -1),
-    (sub_alias_ltod_ltime_wraps_at_midnight, dtf::SUB__LTOD__LTIME, 0, 1, NANOS_PER_DAY - 1),
-    (sub_alias_ltod_ltod_wraps_on_large_delta, dtf::SUB__LTOD__LTOD, i64::MAX, i64::MIN, -1),
-    (sub_alias_ldt_ltime_wraps_on_underflow, dtf::SUB__LDT__LTIME, i64::MIN, 1, i64::MAX),
-    (sub_alias_ldt_ldt_wraps_on_large_delta, dtf::SUB__LDT__LDT, i64::MAX, i64::MIN, -1),
-    (
-        add_alias_ldate_and_time_ltime_wraps_on_overflow,
-        dtf::ADD__LDATE_AND_TIME__LTIME,
-        i64::MAX,
-        1,
-        i64::MIN
-    ),
-    (add_alias_ltime_of_day_ltime_wraps_at_midnight, dtf::ADD__LTIME_OF_DAY__LTIME, NANOS_PER_DAY - 1, 2, 1),
-    (
-        sub_alias_ldate_and_time_ltime_wraps_on_underflow,
-        dtf::SUB__LDATE_AND_TIME__LTIME,
-        i64::MIN,
-        1,
-        i64::MAX
-    ),
-    (
-        sub_alias_ldate_and_time_ldate_and_time_wraps_on_large_delta,
-        dtf::SUB__LDATE_AND_TIME__LDATE_AND_TIME,
-        i64::MAX,
-        i64::MIN,
-        -1
-    ),
-    (sub_alias_ltime_of_day_ltime_wraps_at_midnight, dtf::SUB__LTIME_OF_DAY__LTIME, 0, 1, NANOS_PER_DAY - 1),
-    (
-        sub_alias_ltime_of_day_ltime_of_day_wraps_on_large_delta,
-        dtf::SUB__LTIME_OF_DAY__LTIME_OF_DAY,
-        i64::MAX,
-        i64::MIN,
-        -1
-    ),
-);
-
 // MUL: i64::MAX * 2 wraps to -2 for every factor width. The last case uses a factor
 // above i64::MAX to check that the u64 to i64 cast keeps the result correct mod 2^64.
 wrapping_tests!(
-    (mul_time_lint_wraps_on_overflow, dtf::MUL__TIME__LINT, i64::MAX, 2, -2),
-    (mul_time_lint_alias_wraps_on_overflow, dtf::MUL_TIME__LINT, u32::MAX, 2, u32::MAX - 1),
+    (mul_time_lint_wraps_on_overflow, dtf::MUL_TIME__LINT, u32::MAX, 2, u32::MAX - 1),
     (mul_ltime_lint_wraps_on_overflow, dtf::MUL_LTIME__LINT, i64::MAX, 2, -2),
-    (mul_alias_ltime_lint_wraps_on_overflow, dtf::MUL__LTIME__LINT, i64::MAX, 2, -2),
-    (mul_time_sint_wraps_on_overflow, dtf::MUL__TIME__SINT, i64::MAX, 2_i8, -2),
-    (mul_time_sint_alias_wraps_on_overflow, dtf::MUL_TIME__SINT, u32::MAX, 2_i8, u32::MAX - 1),
+    (mul_time_sint_wraps_on_overflow, dtf::MUL_TIME__SINT, u32::MAX, 2_i8, u32::MAX - 1),
     (mul_ltime_sint_wraps_on_overflow, dtf::MUL_LTIME__SINT, i64::MAX, 2_i8, -2),
-    (mul_alias_ltime_sint_wraps_on_overflow, dtf::MUL__LTIME__SINT, i64::MAX, 2_i8, -2),
-    (mul_time_int_wraps_on_overflow, dtf::MUL__TIME__INT, i64::MAX, 2_i16, -2),
-    (mul_time_int_alias_wraps_on_overflow, dtf::MUL_TIME__INT, u32::MAX, 2_i16, u32::MAX - 1),
+    (mul_time_int_wraps_on_overflow, dtf::MUL_TIME__INT, u32::MAX, 2_i16, u32::MAX - 1),
     (mul_ltime_int_wraps_on_overflow, dtf::MUL_LTIME__INT, i64::MAX, 2_i16, -2),
-    (mul_alias_ltime_int_wraps_on_overflow, dtf::MUL__LTIME__INT, i64::MAX, 2_i16, -2),
-    (mul_time_dint_wraps_on_overflow, dtf::MUL__TIME__DINT, i64::MAX, 2_i32, -2),
-    (mul_time_dint_alias_wraps_on_overflow, dtf::MUL_TIME__DINT, u32::MAX, 2_i32, u32::MAX - 1),
+    (mul_time_dint_wraps_on_overflow, dtf::MUL_TIME__DINT, u32::MAX, 2_i32, u32::MAX - 1),
     (mul_ltime_dint_wraps_on_overflow, dtf::MUL_LTIME__DINT, i64::MAX, 2_i32, -2),
-    (mul_alias_ltime_dint_wraps_on_overflow, dtf::MUL__LTIME__DINT, i64::MAX, 2_i32, -2),
-    (mul_time_usint_wraps_on_overflow, dtf::MUL__TIME__USINT, i64::MAX, 2_u8, -2),
-    (mul_time_usint_alias_wraps_on_overflow, dtf::MUL_TIME__USINT, u32::MAX, 2_u8, u32::MAX - 1),
+    (mul_time_usint_wraps_on_overflow, dtf::MUL_TIME__USINT, u32::MAX, 2_u8, u32::MAX - 1),
     (mul_ltime_usint_wraps_on_overflow, dtf::MUL_LTIME__USINT, i64::MAX, 2_u8, -2),
-    (mul_alias_ltime_usint_wraps_on_overflow, dtf::MUL__LTIME__USINT, i64::MAX, 2_u8, -2),
-    (mul_time_uint_wraps_on_overflow, dtf::MUL__TIME__UINT, i64::MAX, 2_u16, -2),
-    (mul_time_uint_alias_wraps_on_overflow, dtf::MUL_TIME__UINT, u32::MAX, 2_u16, u32::MAX - 1),
+    (mul_time_uint_wraps_on_overflow, dtf::MUL_TIME__UINT, u32::MAX, 2_u16, u32::MAX - 1),
     (mul_ltime_uint_wraps_on_overflow, dtf::MUL_LTIME__UINT, i64::MAX, 2_u16, -2),
-    (mul_alias_ltime_uint_wraps_on_overflow, dtf::MUL__LTIME__UINT, i64::MAX, 2_u16, -2),
-    (mul_time_udint_wraps_on_overflow, dtf::MUL__TIME__UDINT, i64::MAX, 2_u32, -2),
-    (mul_time_udint_alias_wraps_on_overflow, dtf::MUL_TIME__UDINT, u32::MAX, 2_u32, u32::MAX - 1),
+    (mul_time_udint_wraps_on_overflow, dtf::MUL_TIME__UDINT, u32::MAX, 2_u32, u32::MAX - 1),
     (mul_ltime_udint_wraps_on_overflow, dtf::MUL_LTIME__UDINT, i64::MAX, 2_u32, -2),
-    (mul_alias_ltime_udint_wraps_on_overflow, dtf::MUL__LTIME__UDINT, i64::MAX, 2_u32, -2),
-    (mul_time_ulint_wraps_on_overflow, dtf::MUL__TIME__ULINT, i64::MAX, 2_u64, -2),
-    (mul_time_ulint_alias_wraps_on_overflow, dtf::MUL_TIME__ULINT, u32::MAX, 2_u64, u32::MAX - 1),
+    (mul_time_ulint_wraps_on_overflow, dtf::MUL_TIME__ULINT, u32::MAX, 2_u64, u32::MAX - 1),
     (mul_ltime_ulint_wraps_on_overflow, dtf::MUL_LTIME__ULINT, i64::MAX, 2_u64, -2),
-    (mul_alias_ltime_ulint_wraps_on_overflow, dtf::MUL__LTIME__ULINT, i64::MAX, 2_u64, -2),
-    (mul_time_ulint_wraps_when_factor_exceeds_lint, dtf::MUL__TIME__ULINT, 1, u64::MAX, -1),
+    (mul_time_ulint_wraps_when_factor_exceeds_lint, dtf::MUL_TIME__ULINT, 1, u64::MAX, u32::MAX),
 );
 
 // Integer division panics only on a zero divisor (see the panic_*_div_zero suites);
 // every other input is total: i64::MIN / -1 wraps and a u64 divisor above the
 // signed range always exceeds the dividend magnitude, so the quotient is zero.
 #[test]
-fn div_time_min_by_minus_one_wraps() {
-    assert_eq!(dtf::DIV__TIME__LINT(i64::MIN, -1), i64::MIN);
+fn div_time_by_minus_one_wraps() {
+    assert_eq!(dtf::DIV_TIME__LINT(1, -1), u32::MAX);
     assert_eq!(dtf::DIV_LTIME__LINT(i64::MIN, -1), i64::MIN);
 }
 
 #[test]
 fn div_time_by_unsigned_divisor_above_lint_range_yields_zero() {
-    assert_eq!(dtf::DIV__TIME__ULINT(i64::MAX, u64::MAX), 0);
+    assert_eq!(dtf::DIV_TIME__ULINT(u32::MAX, u64::MAX), 0);
     assert_eq!(dtf::DIV_LTIME__ULINT(i64::MIN, u64::MAX), 0);
 }
 
@@ -1331,74 +1262,69 @@ fn div_time_by_unsigned_divisor_above_lint_range_yields_zero() {
 // (sign-aware), instead of panicking inside std::time::Duration.
 #[test]
 fn mul_time_with_nan_factor_yields_zero() {
-    assert_eq!(dtf::MUL__TIME__REAL(1_000, f32::NAN), 0);
     assert_eq!(dtf::MUL_TIME__REAL(1_000, f32::NAN), 0);
     assert_eq!(dtf::MUL_LTIME__REAL(1_000, f32::NAN), 0);
-    assert_eq!(dtf::MUL__LTIME__REAL(1_000, f32::NAN), 0);
-    assert_eq!(dtf::MUL__TIME__LREAL(1_000, f64::NAN), 0);
     assert_eq!(dtf::MUL_TIME__LREAL(1_000, f64::NAN), 0);
     assert_eq!(dtf::MUL_LTIME__LREAL(1_000, f64::NAN), 0);
-    assert_eq!(dtf::MUL__LTIME__LREAL(1_000, f64::NAN), 0);
 }
 
 #[test]
 fn mul_time_with_oversized_float_factor_saturates() {
-    assert_eq!(dtf::MUL__TIME__REAL(i64::MAX, 2.0), i64::MAX);
     assert_eq!(dtf::MUL_TIME__REAL(u32::MAX, f32::MAX), u32::MAX);
     assert_eq!(dtf::MUL_LTIME__REAL(i64::MAX, 2.0), i64::MAX);
-    assert_eq!(dtf::MUL__LTIME__REAL(i64::MAX, 2.0), i64::MAX);
-    assert_eq!(dtf::MUL__TIME__LREAL(i64::MAX, 2.0), i64::MAX);
     assert_eq!(dtf::MUL_TIME__LREAL(u32::MAX, f64::MAX), u32::MAX);
     assert_eq!(dtf::MUL_LTIME__LREAL(i64::MAX, 2.0), i64::MAX);
-    assert_eq!(dtf::MUL__LTIME__LREAL(i64::MAX, 2.0), i64::MAX);
 }
 
 #[test]
-fn mul_time_with_oversized_float_factor_saturates_negative() {
-    assert_eq!(dtf::MUL__TIME__REAL(i64::MAX, -2.0), -i64::MAX);
-    assert_eq!(dtf::MUL__TIME__LREAL(i64::MIN, 2.0), -i64::MAX);
+fn mul_time_with_a_negative_float_factor_wraps() {
+    assert_eq!(dtf::MUL_TIME__REAL(1_000, -2.0), u32::MAX - 1_999);
+    assert_eq!(dtf::MUL_TIME__LREAL(1_000, -2.0), u32::MAX - 1_999);
+}
+
+#[test]
+fn mul_ltime_with_an_oversized_negative_float_factor_saturates() {
+    assert_eq!(dtf::MUL_LTIME__REAL(i64::MAX, -2.0), -i64::MAX);
+    assert_eq!(dtf::MUL_LTIME__LREAL(i64::MIN, 2.0), -i64::MAX);
 }
 
 #[test]
 fn mul_zero_time_with_infinite_factor_yields_zero() {
-    assert_eq!(dtf::MUL__TIME__REAL(0, f32::INFINITY), 0);
-    assert_eq!(dtf::MUL__TIME__LREAL(0, f64::INFINITY), 0);
+    assert_eq!(dtf::MUL_TIME__REAL(0, f32::INFINITY), 0);
+    assert_eq!(dtf::MUL_TIME__LREAL(0, f64::INFINITY), 0);
 }
 
 #[test]
 fn div_time_by_nan_yields_zero() {
-    assert_eq!(dtf::DIV__TIME__REAL(1_000, f32::NAN), 0);
-    assert_eq!(dtf::DIV__TIME__LREAL(1_000, f64::NAN), 0);
+    assert_eq!(dtf::DIV_TIME__REAL(1_000, f32::NAN), 0);
+    assert_eq!(dtf::DIV_TIME__LREAL(1_000, f64::NAN), 0);
 }
 
 #[test]
 fn div_time_by_tiny_float_saturates() {
-    assert_eq!(dtf::DIV__TIME__REAL(i64::MAX, 0.5), i64::MAX);
-    assert_eq!(dtf::DIV__TIME__LREAL(i64::MAX, 0.5), i64::MAX);
-    assert_eq!(dtf::DIV__TIME__LREAL(i64::MAX, -0.5), -i64::MAX);
+    assert_eq!(dtf::DIV_TIME__REAL(u32::MAX, f32::MIN_POSITIVE), u32::MAX);
+    assert_eq!(dtf::DIV_TIME__LREAL(u32::MAX, f64::MIN_POSITIVE), u32::MAX);
+    assert_eq!(dtf::DIV_LTIME__LREAL(i64::MAX, 0.5), i64::MAX);
+    assert_eq!(dtf::DIV_LTIME__LREAL(i64::MAX, -0.5), -i64::MAX);
 }
 
 #[test]
 fn div_time_by_zero_float_saturates() {
-    assert_eq!(dtf::DIV__TIME__REAL(1, 0.0), i64::MAX);
     assert_eq!(dtf::DIV_TIME__REAL(1, 0.0), u32::MAX);
     assert_eq!(dtf::DIV_LTIME__REAL(1, 0.0), i64::MAX);
-    assert_eq!(dtf::DIV__LTIME__REAL(1, 0.0), i64::MAX);
-    assert_eq!(dtf::DIV__TIME__LREAL(1, 0.0), i64::MAX);
     assert_eq!(dtf::DIV_TIME__LREAL(1, 0.0), u32::MAX);
     assert_eq!(dtf::DIV_LTIME__LREAL(1, 0.0), i64::MAX);
-    assert_eq!(dtf::DIV__LTIME__LREAL(1, 0.0), i64::MAX);
-    assert_eq!(dtf::DIV__TIME__REAL(-1, 0.0), -i64::MAX);
-    assert_eq!(dtf::DIV__TIME__LREAL(1, -0.0), -i64::MAX);
+    assert_eq!(dtf::DIV_LTIME__REAL(-1, 0.0), -i64::MAX);
+    assert_eq!(dtf::DIV_LTIME__LREAL(1, -0.0), -i64::MAX);
 }
 
 #[test]
 fn div_zero_time_by_zero_float_yields_zero() {
-    assert_eq!(dtf::DIV__TIME__REAL(0, 0.0), 0);
-    assert_eq!(dtf::DIV__TIME__LREAL(0, 0.0), 0);
+    assert_eq!(dtf::DIV_TIME__REAL(0, 0.0), 0);
+    assert_eq!(dtf::DIV_TIME__LREAL(0, 0.0), 0);
 }
 
-macro_rules! panic_i64_i8_div_zero_tests {
+macro_rules! panic_i8_div_zero_tests {
     ($(($name:ident, $func:path)),+ $(,)?) => {
         $(
             #[test]
@@ -1410,7 +1336,7 @@ macro_rules! panic_i64_i8_div_zero_tests {
     };
 }
 
-macro_rules! panic_i64_i16_div_zero_tests {
+macro_rules! panic_i16_div_zero_tests {
     ($(($name:ident, $func:path)),+ $(,)?) => {
         $(
             #[test]
@@ -1422,7 +1348,7 @@ macro_rules! panic_i64_i16_div_zero_tests {
     };
 }
 
-macro_rules! panic_i64_i32_div_zero_tests {
+macro_rules! panic_i32_div_zero_tests {
     ($(($name:ident, $func:path)),+ $(,)?) => {
         $(
             #[test]
@@ -1434,7 +1360,7 @@ macro_rules! panic_i64_i32_div_zero_tests {
     };
 }
 
-macro_rules! panic_i64_i64_div_zero_tests {
+macro_rules! panic_i64_div_zero_tests {
     ($(($name:ident, $func:path)),+ $(,)?) => {
         $(
             #[test]
@@ -1446,7 +1372,7 @@ macro_rules! panic_i64_i64_div_zero_tests {
     };
 }
 
-macro_rules! panic_i64_u8_div_zero_tests {
+macro_rules! panic_u8_div_zero_tests {
     ($(($name:ident, $func:path)),+ $(,)?) => {
         $(
             #[test]
@@ -1458,7 +1384,7 @@ macro_rules! panic_i64_u8_div_zero_tests {
     };
 }
 
-macro_rules! panic_i64_u16_div_zero_tests {
+macro_rules! panic_u16_div_zero_tests {
     ($(($name:ident, $func:path)),+ $(,)?) => {
         $(
             #[test]
@@ -1470,7 +1396,7 @@ macro_rules! panic_i64_u16_div_zero_tests {
     };
 }
 
-macro_rules! panic_i64_u32_div_zero_tests {
+macro_rules! panic_u32_div_zero_tests {
     ($(($name:ident, $func:path)),+ $(,)?) => {
         $(
             #[test]
@@ -1482,7 +1408,7 @@ macro_rules! panic_i64_u32_div_zero_tests {
     };
 }
 
-macro_rules! panic_i64_u64_div_zero_tests {
+macro_rules! panic_u64_div_zero_tests {
     ($(($name:ident, $func:path)),+ $(,)?) => {
         $(
             #[test]
@@ -1494,58 +1420,42 @@ macro_rules! panic_i64_u64_div_zero_tests {
     };
 }
 
-panic_i64_i8_div_zero_tests!(
-    (div_time_sint_panics_on_zero, dtf::DIV__TIME__SINT),
-    (div_time_sint_alias_panics_on_zero, dtf::DIV_TIME__SINT),
+panic_i8_div_zero_tests!(
+    (div_time_sint_panics_on_zero, dtf::DIV_TIME__SINT),
     (div_ltime_sint_panics_on_zero, dtf::DIV_LTIME__SINT),
-    (div_alias_ltime_sint_panics_on_zero, dtf::DIV__LTIME__SINT)
 );
 
-panic_i64_i16_div_zero_tests!(
-    (div_time_int_panics_on_zero, dtf::DIV__TIME__INT),
-    (div_time_int_alias_panics_on_zero, dtf::DIV_TIME__INT),
+panic_i16_div_zero_tests!(
+    (div_time_int_panics_on_zero, dtf::DIV_TIME__INT),
     (div_ltime_int_panics_on_zero, dtf::DIV_LTIME__INT),
-    (div_alias_ltime_int_panics_on_zero, dtf::DIV__LTIME__INT)
 );
 
-panic_i64_i32_div_zero_tests!(
-    (div_time_dint_panics_on_zero, dtf::DIV__TIME__DINT),
-    (div_time_dint_alias_panics_on_zero, dtf::DIV_TIME__DINT),
+panic_i32_div_zero_tests!(
+    (div_time_dint_panics_on_zero, dtf::DIV_TIME__DINT),
     (div_ltime_dint_panics_on_zero, dtf::DIV_LTIME__DINT),
-    (div_alias_ltime_dint_panics_on_zero, dtf::DIV__LTIME__DINT)
 );
 
-panic_i64_i64_div_zero_tests!(
-    (div_time_lint_panics_on_zero, dtf::DIV__TIME__LINT),
-    (div_time_lint_alias_panics_on_zero, dtf::DIV_TIME__LINT),
+panic_i64_div_zero_tests!(
+    (div_time_lint_panics_on_zero, dtf::DIV_TIME__LINT),
     (div_ltime_lint_panics_on_zero, dtf::DIV_LTIME__LINT),
-    (div_alias_ltime_lint_panics_on_zero, dtf::DIV__LTIME__LINT)
 );
 
-panic_i64_u8_div_zero_tests!(
-    (div_time_usint_panics_on_zero, dtf::DIV__TIME__USINT),
-    (div_time_usint_alias_panics_on_zero, dtf::DIV_TIME__USINT),
+panic_u8_div_zero_tests!(
+    (div_time_usint_panics_on_zero, dtf::DIV_TIME__USINT),
     (div_ltime_usint_panics_on_zero, dtf::DIV_LTIME__USINT),
-    (div_alias_ltime_usint_panics_on_zero, dtf::DIV__LTIME__USINT)
 );
 
-panic_i64_u16_div_zero_tests!(
-    (div_time_uint_panics_on_zero, dtf::DIV__TIME__UINT),
-    (div_time_uint_alias_panics_on_zero, dtf::DIV_TIME__UINT),
+panic_u16_div_zero_tests!(
+    (div_time_uint_panics_on_zero, dtf::DIV_TIME__UINT),
     (div_ltime_uint_panics_on_zero, dtf::DIV_LTIME__UINT),
-    (div_alias_ltime_uint_panics_on_zero, dtf::DIV__LTIME__UINT)
 );
 
-panic_i64_u32_div_zero_tests!(
-    (div_time_udint_panics_on_zero, dtf::DIV__TIME__UDINT),
-    (div_time_udint_alias_panics_on_zero, dtf::DIV_TIME__UDINT),
+panic_u32_div_zero_tests!(
+    (div_time_udint_panics_on_zero, dtf::DIV_TIME__UDINT),
     (div_ltime_udint_panics_on_zero, dtf::DIV_LTIME__UDINT),
-    (div_alias_ltime_udint_panics_on_zero, dtf::DIV__LTIME__UDINT)
 );
 
-panic_i64_u64_div_zero_tests!(
-    (div_time_ulint_panics_on_zero, dtf::DIV__TIME__ULINT),
-    (div_time_ulint_alias_panics_on_zero, dtf::DIV_TIME__ULINT),
+panic_u64_div_zero_tests!(
+    (div_time_ulint_panics_on_zero, dtf::DIV_TIME__ULINT),
     (div_ltime_ulint_panics_on_zero, dtf::DIV_LTIME__ULINT),
-    (div_alias_ltime_ulint_panics_on_zero, dtf::DIV__LTIME__ULINT)
 );

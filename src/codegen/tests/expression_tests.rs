@@ -1858,3 +1858,142 @@ fn date_time_operators_call_the_standard_functions() {
     }
     "#);
 }
+
+#[test]
+fn builtin_arithmetic_with_date_and_time_arguments_calls_the_standard_functions() {
+    let src = r#"
+        {external} FUNCTION ADD_DT_TIME : DT VAR_INPUT IN1 : DT; IN2 : TIME; END_VAR END_FUNCTION
+        {external} FUNCTION SUB_DT_DT : TIME VAR_INPUT IN1 : DT; IN2 : DT; END_VAR END_FUNCTION
+        {external} FUNCTION MUL_TIME__LINT : TIME VAR_INPUT IN1 : TIME; IN2 : LINT; END_VAR END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            dt1, dt2 : DT;
+            t : TIME;
+        END_VAR
+            dt1 := ADD(dt1, t, t);
+            t := SUB(dt1, dt2);
+            t := MUL(2, t, 3);
+            t := ADD(t, 5);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    declare i32 @ADD_DT_TIME(i32, i32)
+
+    declare i32 @SUB_DT_DT(i32, i32)
+
+    declare i32 @MUL_TIME__LINT(i32, i64)
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %dt1 = alloca i32, align [filtered]
+      %dt2 = alloca i32, align [filtered]
+      %t = alloca i32, align [filtered]
+      store i32 0, ptr %dt1, align [filtered]
+      store i32 0, ptr %dt2, align [filtered]
+      store i32 0, ptr %t, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      %load_dt1 = load i32, ptr %dt1, align [filtered]
+      %load_t = load i32, ptr %t, align [filtered]
+      %call = call i32 @ADD_DT_TIME(i32 %load_dt1, i32 %load_t)
+      %load_t1 = load i32, ptr %t, align [filtered]
+      %call2 = call i32 @ADD_DT_TIME(i32 %call, i32 %load_t1)
+      store i32 %call2, ptr %dt1, align [filtered]
+      %load_dt13 = load i32, ptr %dt1, align [filtered]
+      %load_dt2 = load i32, ptr %dt2, align [filtered]
+      %call4 = call i32 @SUB_DT_DT(i32 %load_dt13, i32 %load_dt2)
+      store i32 %call4, ptr %t, align [filtered]
+      %load_t5 = load i32, ptr %t, align [filtered]
+      %call6 = call i32 @MUL_TIME__LINT(i32 %load_t5, i64 2)
+      %call7 = call i32 @MUL_TIME__LINT(i32 %call6, i64 3)
+      store i32 %call7, ptr %t, align [filtered]
+      %load_t8 = load i32, ptr %t, align [filtered]
+      %tmpVar = add i32 %load_t8, 5
+      store i32 %tmpVar, ptr %t, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+    "#);
+}
+
+#[test]
+fn replaced_expressions_are_cast_to_the_expected_type() {
+    let src = r#"
+        {external} FUNCTION MUL_TIME__REAL : TIME VAR_INPUT IN1 : TIME; IN2 : REAL; END_VAR END_FUNCTION
+        {external} FUNCTION ADD_TOD_TIME : TOD VAR_INPUT IN1 : TOD; IN2 : TIME; END_VAR END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            t : TIME;
+            tod : TOD;
+            n : DINT;
+            r : REAL;
+            x : LREAL;
+        END_VAR
+            x := t * r;
+            x := ADD(n, n);
+            n := ADD(n, r);
+            tod := (tod + t);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    declare i32 @MUL_TIME__REAL(i32, float)
+
+    declare i32 @ADD_TOD_TIME(i32, i32)
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %t = alloca i32, align [filtered]
+      %tod = alloca i32, align [filtered]
+      %n = alloca i32, align [filtered]
+      %r = alloca float, align [filtered]
+      %x = alloca double, align [filtered]
+      store i32 0, ptr %t, align [filtered]
+      store i32 0, ptr %tod, align [filtered]
+      store i32 0, ptr %n, align [filtered]
+      store float 0.000000e+00, ptr %r, align [filtered]
+      store double 0.000000e+00, ptr %x, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      %load_t = load i32, ptr %t, align [filtered]
+      %load_r = load float, ptr %r, align [filtered]
+      %call = call i32 @MUL_TIME__REAL(i32 %load_t, float %load_r)
+      %0 = uitofp i32 %call to double
+      store double %0, ptr %x, align [filtered]
+      %load_n = load i32, ptr %n, align [filtered]
+      %load_n1 = load i32, ptr %n, align [filtered]
+      %tmpVar = add i32 %load_n, %load_n1
+      %1 = sitofp i32 %tmpVar to double
+      store double %1, ptr %x, align [filtered]
+      %load_n2 = load i32, ptr %n, align [filtered]
+      %2 = sitofp i32 %load_n2 to float
+      %load_r3 = load float, ptr %r, align [filtered]
+      %tmpVar4 = fadd float %2, %load_r3
+      %3 = fptosi float %tmpVar4 to i32
+      store i32 %3, ptr %n, align [filtered]
+      %load_tod = load i32, ptr %tod, align [filtered]
+      %load_t5 = load i32, ptr %t, align [filtered]
+      %call6 = call i32 @ADD_TOD_TIME(i32 %load_tod, i32 %load_t5)
+      store i32 %call6, ptr %tod, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+    "#);
+}

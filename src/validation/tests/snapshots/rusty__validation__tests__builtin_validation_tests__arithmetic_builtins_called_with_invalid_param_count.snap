@@ -8,11 +8,11 @@ error[E032]: this POU takes 2 arguments but 0 arguments were supplied
 7 │             ADD();
   │             ^^^ this POU takes 2 arguments but 0 arguments were supplied
 
-error[E064]: Could not resolve generic type T with ANY_NUMBER
+error[E064]: Could not resolve generic type T with ANY
   ┌─ <internal>:7:13
   │
 7 │             ADD();
-  │             ^^^^^^ Could not resolve generic type T with ANY_NUMBER
+  │             ^^^^^^ Could not resolve generic type T with ANY
 
 error[E032]: this POU takes 2 arguments but 1 argument was supplied
   ┌─ <internal>:8:13

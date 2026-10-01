@@ -50,4 +50,12 @@ FUNCTION main
     tod_result := TOD#23:59:50 + TIME#20s;
     printf('%s$N', REF(TOD_TO_STRING(tod_result)));                                 // CHECK: TOD#00:00:10
 
+    // The builtins carry out the same functions as the operators
+    tod_result := ADD(tod1, t1, TIME#20s);
+    printf('%s$N', REF(TOD_TO_STRING(tod_result)));                                 // CHECK: TOD#12:06:20
+    tod_result := SUB(tod1, t1);
+    printf('%s$N', REF(TOD_TO_STRING(tod_result)));                                 // CHECK: TOD#12:04:00
+    result := SUB(tod1, tod2);
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#1h45m
+
 END_FUNCTION

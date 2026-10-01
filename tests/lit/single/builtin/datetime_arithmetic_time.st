@@ -34,4 +34,14 @@ FUNCTION main
     result := t1 + 5;
     printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#10s5ms
 
+    // The builtins carry out the same functions as the operators
+    result := ADD(t1, t2, T#1s);
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#14s
+    result := SUB(t1, t2);
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#7s
+    result := MUL(t1, 1.5);
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#15s
+    result := DIV(t1, 2.5);
+    printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: T#4s
+
 END_FUNCTION
