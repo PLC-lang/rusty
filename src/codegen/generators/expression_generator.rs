@@ -210,6 +210,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .as_r_value(self.llvm, self.get_load_name(expression))?
             .as_basic_value_enum();
 
+        self.cast_to_type_hint(expression, v)
+    }
+
+    /// converts the generated value `v` of `expression` to the type hint of `expression`
+    fn cast_to_type_hint(
+        &self,
+        expression: &AstNode,
+        v: BasicValueEnum<'ink>,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let Some(target_type) = self.annotations.get_type_hint(expression, self.index) else {
             // no type-hint -> we can return the value as is
             return Ok(v);
@@ -1337,9 +1346,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let value = self.generate_expression_value(argument)?;
             match value {
                 ExpressionValue::LValue(value, _) => value,
-                ExpressionValue::RValue(_) => {
-                    // Passed a literal to a byref parameter?
-                    let value = self.generate_expression(argument)?;
+                ExpressionValue::RValue(value) => {
+                    // Passed a literal or an expression to a byref parameter? Store the value generated
+                    // above, generating the argument again would repeat its side effects
+                    let value = self.cast_to_type_hint(argument, value)?;
                     let argument = self.llvm.builder.build_alloca(value.get_type(), "")?;
                     self.llvm.builder.build_store(argument, value)?;
                     argument
