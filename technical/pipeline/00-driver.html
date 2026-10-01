@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-31b48f01.js";
+            window.path_to_searchindex_js = "../../searchindex-fbcf2298.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -213,7 +213,7 @@
 </table>
 </div>
 <p>Before the pipeline runs, the driver loads the source files into memory and selects the diagnostic renderer (<code>--error-format</code>) and the linker (<code>--linker</code>). Later stages use the loaded copies. Parsing is sequential. Indexing, annotation, and codegen process units in parallel, with the thread count set by <code>--threads</code>.</p>
-<p>By default, codegen creates one LLVM module and object file per unit. The output path mirrors the source path under the build location. With <code>--single-module</code> or <code>-c</code>, the units are merged into one module, one after the other. The output format then decides the final step: merge IR or bitcode, copy a single object, or run the linker.</p>
+<p>By default, codegen creates one LLVM module and object file per unit. The object files land flat in the build location, in a subdirectory per <code>--target</code>, each named after the file name of its unit plus a digest of the unit’s path. The file name keeps only ASCII letters, digits, <code>.</code>, <code>-</code>, and <code>_</code>, with its stem cut to 32 characters and its extension to 16. The digest covers the path relative to the project, or the full path for a unit outside the project: two units with the same file name keep separate objects, and the paths stay short enough for the limits of the Windows file system. With <code>--single-module</code> or <code>-c</code>, the units are merged into one module, one after the other. The output format then decides the final step: merge IR or bitcode, copy a single object, or run the linker.</p>
 <h2 id="participants"><a class="header" href="#participants">Participants</a></h2>
 <p>The stages do not run back to back. At fixed points called <em>hooks</em>, the driver stops and hands the current result to the registered participants. They use these hooks to lower language features by rewriting the AST. A participant can read the project or return a rewritten one.</p>
 <pre class="mermaid">flowchart LR

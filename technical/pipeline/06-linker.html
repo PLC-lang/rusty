@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-31b48f01.js";
+            window.path_to_searchindex_js = "../../searchindex-fbcf2298.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -233,7 +233,7 @@ END_PROGRAM
 <p>A direct linker receives <code>--linker-arg</code> values unchanged. A compiler driver receives them through <code>-Xlinker</code>. With a driver, <code>--nocrt</code> and <code>--nolibc</code> omit startup files and default libraries for targets that supply their own.</p>
 <h2 id="the-command-line"><a class="header" href="#the-command-line">The command line</a></h2>
 <p>The command starts with the driver and the arguments it needs itself, then the supplied and generated objects, then the <code>-L</code> paths and the <code>-l</code> libraries. The sysroot and implicit search paths follow, then linker options, mode, and output path. For the two-file example with a library:</p>
-<pre><code>cc -fuse-ld=lld build/scale.st.o build/main.st.o -L/opt/plc/lib -liec61131std -L. -Lbuild -o out
+<pre><code>cc -fuse-ld=lld build/scale.st-1ae933b05dc18c2b.o build/main.st-13f45988f71756e9.o -L/opt/plc/lib -liec61131std -L. -Lbuild -o out
 </code></pre>
 <p>The command is written to the debug log before it runs, and <code>--log-level debug</code> shows it. The linker’s own output goes to the terminal unchanged, and a non-zero exit code becomes the diagnostic E077, “An error occurred during linking”. When the project comes from a build description, the <code>build</code> subcommand ends by copying every library marked as <code>Copy</code> next to the artifact, so that the result can be deployed as one directory.</p>
 <blockquote class="blockquote-tag blockquote-tag-note">

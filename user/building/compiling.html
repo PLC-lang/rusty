@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-31b48f01.js";
+            window.path_to_searchindex_js = "../../searchindex-fbcf2298.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -201,7 +201,7 @@ plc "src/**/*.st"                # everything below src
 </code></pre>
 <pre><code class="language-bash">plc build
 </code></pre>
-<p><code>plc build</code> reads <code>plc.json</code> from the current directory, or from the path that you give it. Everything lands in <code>build/</code>: the artifact, and one object file per source file under the path of the source, so <code>src/motor.st</code> becomes <code>build/src/motor.st.o</code>. <code>--build-location</code> moves that directory.</p>
+<p><code>plc build</code> reads <code>plc.json</code> from the current directory, or from the path that you give it. Everything lands in <code>build/</code>: the artifact, and one object file per source file, named after the file and a digest of its path within the project, so <code>src/motor.st</code> becomes <code>build/motor.st-0430507ece368196.o</code>. The digest keeps two files with the same name apart. <code>--build-location</code> moves that directory.</p>
 <p>The <a href="../reference/project-file.html">project file reference</a> describes every key, including the libraries.</p>
 <h2 id="choose-what-to-produce"><a class="header" href="#choose-what-to-produce">Choose what to produce</a></h2>
 <div class="table-wrapper">
@@ -237,7 +237,7 @@ plc check plc.json
 <p><code>--target</code> takes a target triple that LLVM knows, and <code>--sysroot</code> tells the linker where the headers and libraries of that target are. The compiler builds for one target per run, so a build for two machines runs twice.</p>
 <h2 id="speed"><a class="header" href="#speed">Speed</a></h2>
 <p>The compiler uses every core of the machine. <code>-j 4</code> limits it to four threads.</p>
-<p>Each unit becomes its own module, and the linker joins them. <code>--single-module</code> builds one module for the whole project instead, which is slower but sometimes necessary for a tool that reads the result. A <code>plc build</code> of the project above then writes one object file, <code>build/src/main.st.o</code>, in place of three.</p>
+<p>Each unit becomes its own module, and the linker joins them. <code>--single-module</code> builds one module for the whole project instead, which is slower but sometimes necessary for a tool that reads the result. A <code>plc build</code> of the project above then writes one object file, <code>build/main.st-c9c8d3daddf4f365.o</code>, in place of three.</p>
 <h2 id="which-compiler-built-an-artifact"><a class="header" href="#which-compiler-built-an-artifact">Which compiler built an artifact</a></h2>
 <p>Every artifact carries the version of the compiler that produced it. In a linked artifact it sits in the <code>.comment</code> section, next to the lines of the linker and of the C runtime:</p>
 <pre><code class="language-bash">readelf -p .comment app

@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-31b48f01.js";
+            window.path_to_searchindex_js = "../../searchindex-fbcf2298.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -257,7 +257,7 @@ END_FUNCTION
 cycle 2: left=8 right=10 full=1
 </code></pre>
 <p>The output shows what a function block is for. Each instance kept its own level between the two cycles, and the right tank reached its capacity in the second one.</p>
-<p>The build wrote everything into <code>build/</code>: the artifact <code>tank.out</code>, and one object file per source file under the path of the source, so <code>src/tank.st</code> became <code>build/src/tank.st.o</code>. The artifact carries the name of the project, because the file sets no <code>output</code>.</p>
+<p>The build wrote everything into <code>build/</code>: the artifact <code>tank.out</code>, and one object file per source file, named after the file and a digest of its path within the project, so <code>src/tank.st</code> became <code>build/tank.st-56b9fb2f5ee2adb6.o</code>. The digest keeps two files with the same name apart, and the flat layout keeps the paths short. The artifact carries the name of the project, because the file sets no <code>output</code>.</p>
 <h2 id="whats-next"><a class="header" href="#whats-next">What’s next</a></h2>
 <p>You can write, build, and run a project. The <a href="../language/README.html">Language Guide</a> starts at the beginning and explains the language itself, from the shape of a source file to interfaces and generics.</p>
 

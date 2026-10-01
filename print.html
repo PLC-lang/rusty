@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-31b48f01.js";
+            window.path_to_searchindex_js = "searchindex-fbcf2298.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e693153e.js"></script>
@@ -394,7 +394,7 @@ END_FUNCTION
 cycle 2: left=8 right=10 full=1
 </code></pre>
 <p>The output shows what a function block is for. Each instance kept its own level between the two cycles, and the right tank reached its capacity in the second one.</p>
-<p>The build wrote everything into <code>build/</code>: the artifact <code>tank.out</code>, and one object file per source file under the path of the source, so <code>src/tank.st</code> became <code>build/src/tank.st.o</code>. The artifact carries the name of the project, because the file sets no <code>output</code>.</p>
+<p>The build wrote everything into <code>build/</code>: the artifact <code>tank.out</code>, and one object file per source file, named after the file and a digest of its path within the project, so <code>src/tank.st</code> became <code>build/tank.st-56b9fb2f5ee2adb6.o</code>. The digest keeps two files with the same name apart, and the flat layout keeps the paths short. The artifact carries the name of the project, because the file sets no <code>output</code>.</p>
 <h2 id="whats-next-2"><a class="header" href="#whats-next-2">What’s next</a></h2>
 <p>You can write, build, and run a project. The <a href="user/language/README.html">Language Guide</a> starts at the beginning and explains the language itself, from the shape of a source file to interfaces and generics.</p>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -1805,7 +1805,7 @@ plc "src/**/*.st"                # everything below src
 </code></pre>
 <pre><code class="language-bash">plc build
 </code></pre>
-<p><code>plc build</code> reads <code>plc.json</code> from the current directory, or from the path that you give it. Everything lands in <code>build/</code>: the artifact, and one object file per source file under the path of the source, so <code>src/motor.st</code> becomes <code>build/src/motor.st.o</code>. <code>--build-location</code> moves that directory.</p>
+<p><code>plc build</code> reads <code>plc.json</code> from the current directory, or from the path that you give it. Everything lands in <code>build/</code>: the artifact, and one object file per source file, named after the file and a digest of its path within the project, so <code>src/motor.st</code> becomes <code>build/motor.st-0430507ece368196.o</code>. The digest keeps two files with the same name apart. <code>--build-location</code> moves that directory.</p>
 <p>The <a href="#project-file">project file reference</a> describes every key, including the libraries.</p>
 <h2 id="choose-what-to-produce"><a class="header" href="#choose-what-to-produce">Choose what to produce</a></h2>
 <div class="table-wrapper">
@@ -1841,7 +1841,7 @@ plc check plc.json
 <p><code>--target</code> takes a target triple that LLVM knows, and <code>--sysroot</code> tells the linker where the headers and libraries of that target are. The compiler builds for one target per run, so a build for two machines runs twice.</p>
 <h2 id="speed"><a class="header" href="#speed">Speed</a></h2>
 <p>The compiler uses every core of the machine. <code>-j 4</code> limits it to four threads.</p>
-<p>Each unit becomes its own module, and the linker joins them. <code>--single-module</code> builds one module for the whole project instead, which is slower but sometimes necessary for a tool that reads the result. A <code>plc build</code> of the project above then writes one object file, <code>build/src/main.st.o</code>, in place of three.</p>
+<p>Each unit becomes its own module, and the linker joins them. <code>--single-module</code> builds one module for the whole project instead, which is slower but sometimes necessary for a tool that reads the result. A <code>plc build</code> of the project above then writes one object file, <code>build/main.st-c9c8d3daddf4f365.o</code>, in place of three.</p>
 <h2 id="which-compiler-built-an-artifact"><a class="header" href="#which-compiler-built-an-artifact">Which compiler built an artifact</a></h2>
 <p>Every artifact carries the version of the compiler that produced it. In a linked artifact it sits in the <code>.comment</code> section, next to the lines of the linker and of the C runtime:</p>
 <pre><code class="language-bash">readelf -p .comment app
@@ -5040,7 +5040,7 @@ END_PROGRAM
 </table>
 </div>
 <p>Before the pipeline runs, the driver loads the source files into memory and selects the diagnostic renderer (<code>--error-format</code>) and the linker (<code>--linker</code>). Later stages use the loaded copies. Parsing is sequential. Indexing, annotation, and codegen process units in parallel, with the thread count set by <code>--threads</code>.</p>
-<p>By default, codegen creates one LLVM module and object file per unit. The output path mirrors the source path under the build location. With <code>--single-module</code> or <code>-c</code>, the units are merged into one module, one after the other. The output format then decides the final step: merge IR or bitcode, copy a single object, or run the linker.</p>
+<p>By default, codegen creates one LLVM module and object file per unit. The object files land flat in the build location, in a subdirectory per <code>--target</code>, each named after the file name of its unit plus a digest of the unit’s path. The file name keeps only ASCII letters, digits, <code>.</code>, <code>-</code>, and <code>_</code>, with its stem cut to 32 characters and its extension to 16. The digest covers the path relative to the project, or the full path for a unit outside the project: two units with the same file name keep separate objects, and the paths stay short enough for the limits of the Windows file system. With <code>--single-module</code> or <code>-c</code>, the units are merged into one module, one after the other. The output format then decides the final step: merge IR or bitcode, copy a single object, or run the linker.</p>
 <h2 id="participants"><a class="header" href="#participants">Participants</a></h2>
 <p>The stages do not run back to back. At fixed points called <em>hooks</em>, the driver stops and hands the current result to the registered participants. They use these hooks to lower language features by rewriting the AST. A participant can read the project or return a rewritten one.</p>
 <pre class="mermaid">flowchart LR
@@ -6259,7 +6259,7 @@ END_PROGRAM
 <p>A direct linker receives <code>--linker-arg</code> values unchanged. A compiler driver receives them through <code>-Xlinker</code>. With a driver, <code>--nocrt</code> and <code>--nolibc</code> omit startup files and default libraries for targets that supply their own.</p>
 <h2 id="the-command-line"><a class="header" href="#the-command-line">The command line</a></h2>
 <p>The command starts with the driver and the arguments it needs itself, then the supplied and generated objects, then the <code>-L</code> paths and the <code>-l</code> libraries. The sysroot and implicit search paths follow, then linker options, mode, and output path. For the two-file example with a library:</p>
-<pre><code>cc -fuse-ld=lld build/scale.st.o build/main.st.o -L/opt/plc/lib -liec61131std -L. -Lbuild -o out
+<pre><code>cc -fuse-ld=lld build/scale.st-1ae933b05dc18c2b.o build/main.st-13f45988f71756e9.o -L/opt/plc/lib -liec61131std -L. -Lbuild -o out
 </code></pre>
 <p>The command is written to the debug log before it runs, and <code>--log-level debug</code> shows it. The linker’s own output goes to the terminal unchanged, and a non-zero exit code becomes the diagnostic E077, “An error occurred during linking”. When the project comes from a build description, the <code>build</code> subcommand ends by copying every library marked as <code>Copy</code> next to the artifact, so that the result can be deployed as one directory.</p>
 <blockquote class="blockquote-tag blockquote-tag-note">

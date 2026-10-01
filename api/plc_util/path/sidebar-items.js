@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["normalize_lexical_path"]};
+window.SIDEBAR_ITEMS = {"fn":["normalize_lexical_path","path_digest"]};
