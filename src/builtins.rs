@@ -574,6 +574,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Modulo, Some(&["IN1", "IN2"]), &[TypeNature::Num])
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, &[TypeNature::Num]);
                     validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Modulo)
                 }),
@@ -600,6 +601,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::And, None, BITWISE_NATURES)
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
                     validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::And)
                 }),
@@ -625,6 +627,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Or, None, BITWISE_NATURES)
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
                     validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Or)
                 }),
@@ -650,6 +653,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Xor, None, BITWISE_NATURES)
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
                     validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Xor)
                 }),
@@ -919,6 +923,34 @@ fn validate_types(
     }
 }
 
+/// Reports every argument of MOD, AND, OR, or XOR whose type has none of the natures the operator accepts
+fn validate_argument_natures(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    natures: &[TypeNature],
+) {
+    let Some(params) = parameters else { return };
+
+    for argument in flatten_expression_list(params).into_iter().map(extract_actual_parameter) {
+        let data_type = annotations.get_type_or_void(argument, index);
+        if data_type.is_void() || natures.iter().any(|nature| data_type.has_nature(*nature, index)) {
+            continue;
+        }
+
+        let natures = natures.iter().map(ToString::to_string).collect::<Vec<_>>().join(" or ");
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid type nature for generic argument. {} is no {natures}",
+                data_type.get_name()
+            ))
+            .with_error_code("E062")
+            .with_location(argument),
+        );
+    }
+}
+
 /// Validates the arguments of ADD, SUB, MUL, and DIV. Numeric arguments must be compatible with
 /// each other; once an argument is not a number, the arguments fold from the left and every step
 /// must be a combination the standard defines.
@@ -1177,12 +1209,7 @@ fn annotate_arithmetic_function(
             || (accepts_date_or_time && is_date_or_time(annotator, param))
     };
     if params_extracted.iter().any(|param| !is_accepted(annotator, param)) {
-        // the generic call validation reports an argument outside the natures of the declaration
-        if !accepts_date_or_time {
-            annotator.annotate_arguments(operator, parameters, &ctx);
-            return;
-        }
-        // an argument no arithmetic is defined for: the validator reports the call, every argument
+        // an argument the operator is not defined for: the validator reports the call, every argument
         // keeps its own type instead of the generic parameter's, and the call takes the first one
         for param in &params_extracted {
             let type_name =

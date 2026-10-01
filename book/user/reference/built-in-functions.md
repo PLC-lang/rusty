@@ -43,9 +43,9 @@ The parameter names in the second column are the names a call can use.
 | `MUL(...)` | Two or more numbers or durations | The biggest argument type, or the date and time result | The product |
 | `SUB(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type, or the date and time result | `IN1 - IN2` |
 | `DIV(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type, or the date and time result | `IN1 / IN2` |
-| `MOD(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type | `IN1 MOD IN2` |
+| `MOD(IN1, IN2)` | `IN1` and `IN2: ANY_NUM` | The biggest argument type | `IN1 MOD IN2` |
 
-With a date or time argument, the first four take the combinations of [Time and Date](../language/time.md#calculating), folded from the left, and the result has the type that table gives: `ADD(stamp, T#1s, T#2s)` is `stamp + T#1s + T#2s`, a `DATE_AND_TIME`, and `SUB(day1, day2)` is a `TIME`. The compiler carries these operations out with the standard library, such as `ADD_DT_TIME`, so such a call needs `iec61131std` linked. An argument that is neither a number nor part of a defined combination is rejected (E156).
+With a date or time argument, the first four take the combinations of [Time and Date](../language/time.md#calculating), folded from the left, and the result has the type that table gives: `ADD(stamp, T#1s, T#2s)` is `stamp + T#1s + T#2s`, a `DATE_AND_TIME`, and `SUB(day1, day2)` is a `TIME`. The compiler carries these operations out with the standard library, such as `ADD_DT_TIME`, so such a call needs `iec61131std` linked. An argument that is neither a number nor part of a defined combination is rejected (E156). `MOD` takes numbers only, and rejects any other argument (E062).
 
 ### Comparison
 
@@ -69,7 +69,7 @@ A call with more than two arguments compares each neighbouring pair and combines
 | `XOR(...)` | Two or more `ANY_BIT` or `ANY_INT` | The biggest argument type | The arguments combined with `XOR` |
 | `NOT(IN)` | `IN: ANY_BIT` or `ANY_INT` | The type of `IN` | `NOT IN` |
 
-For a `BOOL` the result is the logical one, for any other type it is bit by bit, the same as the operator of the same name.
+For a `BOOL` the result is the logical one, for any other type it is bit by bit, the same as the operator of the same name. An argument that is neither a bit value nor an integer, such as a `REAL` or a `TIME`, is rejected (E062).
 
 ### Bit shifts
 
@@ -81,7 +81,7 @@ For a `BOOL` the result is the logical one, for any other type it is bit by bit,
 
 ## Names that are also operators
 
-`AND`, `OR`, `XOR`, `MOD`, and `NOT` are operator keywords as well as function names. A keyword directly followed by `(`, where no operand stands before it, is the function:
+`AND`, `OR`, `XOR`, `MOD`, and `NOT` are operator keywords as well as function names. A keyword followed by `(`, where no operand stands before it, is the function. A space between the keyword and `(` does not change this:
 
 ```iecst
 flag := AND(a, b, c);   (* the function, the same as a AND b AND c *)
