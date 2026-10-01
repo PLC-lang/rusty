@@ -832,10 +832,9 @@ fn validate_arithmetic_arguments(
 /// The location from the first to the last of the given arguments as they are written in the source,
 /// which differs from their parameter order for reordered named arguments such as `SUB(IN2 := b, IN1 := a)`
 fn span_in_source_order(arguments: &[&AstNode]) -> SourceLocation {
-    let start = |it: &&&AstNode| it.get_location().to_range().map(|range| range.start);
-    let end = |it: &&&AstNode| it.get_location().to_range().map(|range| range.end);
-    let (Some(first), Some(last)) = (arguments.iter().min_by_key(start), arguments.iter().max_by_key(end))
-    else {
+    let first = arguments.iter().min_by_key(|it| it.get_location().to_range().map(|range| range.start));
+    let last = arguments.iter().max_by_key(|it| it.get_location().to_range().map(|range| range.end));
+    let (Some(first), Some(last)) = (first, last) else {
         return SourceLocation::undefined();
     };
     first.get_location().span(&last.get_location())
