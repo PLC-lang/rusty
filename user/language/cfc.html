@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-fbcf2298.js";
+            window.path_to_searchindex_js = "../../searchindex-b919e45e.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -202,7 +202,7 @@
 <tr><th>Element</th><th>What it does</th></tr>
 </thead>
 <tbody>
-<tr><td>Input</td><td>Reads a variable or a literal and feeds it into a wire</td></tr>
+<tr><td>Input</td><td>Reads a variable or a literal, optionally negated with a minus, and feeds it into a wire</td></tr>
 <tr><td>Output</td><td>Writes the value of its wire into a variable</td></tr>
 <tr><td>Block</td><td>Calls a function, a function block instance, a program, or an action</td></tr>
 <tr><td>Connector and continuation</td><td>A named break in a wire, to avoid drawing across the whole sheet</td></tr>
@@ -236,7 +236,7 @@
 <pre><code>error[E083]: Unsupported CFC expression: `foo + 1`
  = mixer.cfc: Block 6
 </code></pre>
-<p>The number is the identifier that the tool gave the element. The message repeats the rule of the table above: an input or an output element holds a variable or a literal, and not an expression.</p>
+<p>The number is the identifier that the tool gave the element. The message repeats the rule of the table above: an input or an output element holds a variable or a literal, and not an expression. The one exception is a minus in front of the value of an input, such as <code>-speed</code>, because it only negates the value. An output is written to, so <code>-speed</code> is rejected there.</p>
 <p>Other checks are about the routing. A wire must lead somewhere, so a continuation needs a connector of its name, and a connector that something reads needs an input. A name is claimed once, so two connectors with the same label are rejected, and so are two labels with the same name. A jump to a label that no element defines is rejected as well. A label that no jump uses, a jump without a condition, and an element that you placed but never wired are warnings. A return without a condition is rejected, because it could never fire.</p>
 <p>A block is checked against what the project declares. Its type must be a POU that the project knows. Every output that a wire reads must be one that the callee declares, and only one output pin may carry the return value. A generic callee needs an input that decides its type. A block with <code>EN</code> needs a wire on that pin, and the chain of <code>ENO</code> pins behind it must not lead back to the block itself.</p>
 <p>The <a href="../reference/error-codes.html">error code reference</a> has a page per code.</p>

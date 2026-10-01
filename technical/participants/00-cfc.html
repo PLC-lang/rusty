@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-fbcf2298.js";
+            window.path_to_searchindex_js = "../../searchindex-b919e45e.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -291,7 +291,7 @@ baz := foo;
 </code></pre>
 <pre><code class="language-iecst">foo := 5;
 </code></pre>
-<p>The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as <code>in1 + 1</code> is rejected (E083), because a diagram models arithmetic as blocks. The condition of a return or a jump is the exception and accepts any expression.</p>
+<p>The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as <code>in1 + 1</code> is rejected (E083), because a diagram models arithmetic as blocks. Parentheses are looked through, so <code>(in1)</code> is a reference. A source may also negate its value with a unary minus, as in <code>-in1</code> or <code>-(in1)</code>, which the parser gives as a unary expression; a sink may not, because <code>-in1</code> is no assignment target. The condition of a return or a jump is the exception and accepts any expression.</p>
 <p>A negation bubble on the pin wraps the value in a <code>NOT</code>:</p>
 <pre><code>foo o--&gt; bar (0)
 </code></pre>
@@ -446,7 +446,7 @@ __out_myGenAdd_5 := myGenAdd(a := __out_myGenAdd_1, b := c);   (* c : DINT     -
 <tbody>
 <tr><td>E081</td><td>a connector label claimed twice</td></tr>
 <tr><td>E082</td><td>a continuation with no connector</td></tr>
-<tr><td>E083</td><td>an expression where only a name or a literal is allowed</td></tr>
+<tr><td>E083</td><td>an expression where only a name or a literal (negated, for a source) is allowed</td></tr>
 <tr><td>E084</td><td>an element that is placed but not wired</td></tr>
 <tr><td>E085</td><td>a return without a condition</td></tr>
 <tr><td>E086</td><td>a connector without an input</td></tr>

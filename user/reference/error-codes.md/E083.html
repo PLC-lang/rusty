@@ -36,7 +36,7 @@
             const path_to_root = "../../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../../searchindex-fbcf2298.js";
+            window.path_to_searchindex_js = "../../../searchindex-b919e45e.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../../toc-e693153e.js"></script>
@@ -184,8 +184,10 @@
                         <h1 id="unsupported-cfc-expression"><a class="header" href="#unsupported-cfc-expression">Unsupported CFC expression</a></h1>
 <p>A variable, source or sink element in a CFC network carries an expression that
 is not supported. Only variable references (<code>foo</code>), qualified references
-(<code>foo.bar</code>), indexed references (<code>arr[i]</code>) and literals (<code>5</code>) are allowed;
-function calls and other expressions are not.</p>
+(<code>foo.bar</code>), indexed references (<code>arr[i]</code>) and literals (<code>5</code>) are allowed. A
+source may also negate its value with a unary minus (<code>-foo</code>); a sink may not,
+because it is the target of an assignment. Function calls and other
+expressions are not allowed.</p>
 
                     </main>
 
