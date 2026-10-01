@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["set_llvm_option"],"trait":["TargetMachineExt"]};
+window.SIDEBAR_ITEMS = {"fn":["set_llvm_option"],"trait":["DebugInfoBuilderExt","InstructionValueExt","TargetMachineExt"]};
