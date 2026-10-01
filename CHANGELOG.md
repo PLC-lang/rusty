@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.6](https://github.com/PLC-lang/rusty/releases/tag/v1.0.6) - 2026-10-01
+
+### Fixed
+
+- **codegen**: Stop tail merging from stripping branch-body lines (1.0.x) (#1953)
+- **index**: Carry the unit linkage into enum variant entries (1.0.x) (#1955)
+- **validation**: Type-check variable initializers (1.0.x) (#1925)
+- Ensure TO_STRING conversion functions do not panic (1.0.x) (#1905)
+- **codegen**: Store struct literal members with assignment semantics (1.0.x) (#1916)
 ## [1.0.5](https://github.com/PLC-lang/rusty/releases/tag/v1.0.5) - 2026-09-14
 
 ### Fixed
