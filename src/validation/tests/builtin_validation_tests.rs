@@ -272,3 +272,50 @@ fn abs_with_invalid_argument_count() {
       │             ^^^ this POU takes 1 argument but 2 arguments were supplied
     ");
 }
+
+#[test]
+fn mod_with_a_zero_divisor_reports_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            x : DINT;
+        END_VAR
+        VAR CONSTANT
+            zero : DINT := 0;
+        END_VAR
+            x := MOD(x, 0);
+            x := MOD(IN1 := x, IN2 := 0);
+            x := MOD(IN2 := 0, IN1 := x);
+            x := MOD(x, zero);
+            x := MOD(0, x); // a zero dividend is valid
+        END_FUNCTION
+       ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E123]: Division by Zero
+      ┌─ <internal>:9:22
+      │
+    9 │             x := MOD(x, 0);
+      │                      ^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:10:22
+       │
+    10 │             x := MOD(IN1 := x, IN2 := 0);
+       │                      ^^^^^^^^^^^^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:11:22
+       │
+    11 │             x := MOD(IN2 := 0, IN1 := x);
+       │                      ^^^^^^^^^^^^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:12:22
+       │
+    12 │             x := MOD(x, zero);
+       │                      ^^^^^^^ Division by Zero
+    ");
+}

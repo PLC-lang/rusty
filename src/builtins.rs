@@ -577,7 +577,8 @@ lazy_static! {
                     validate_argument_natures(validator, &parameters, annotations, index, MODULO_NATURES);
                     validate_duration_modulo(validator, parameters, annotations, index);
                     validate_types(validator, &parameters, annotations, index);
-                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Modulo)
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Modulo);
+                    validate_divisor(validator, parameters, annotations, index, Some(&["IN1", "IN2"]));
                 }),
                 generic_name_resolver,
                 code: |_, _, _| {
@@ -1050,8 +1051,8 @@ fn arithmetic_arguments<'a>(parameters: &'a AstNode, named_parameters: Option<&[
     order_call_arguments(parameters, named_parameters).into_iter().map(extract_actual_parameter).collect()
 }
 
-/// Reports a literal or constant zero passed as the divisor of DIV, its second argument in parameter
-/// order, as the `/` operator does
+/// Reports a literal or constant zero passed as the divisor of DIV or MOD, its second argument in
+/// parameter order, as the `/` operator does
 fn validate_divisor(
     validator: &mut Validator,
     parameters: Option<&AstNode>,
