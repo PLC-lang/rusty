@@ -679,8 +679,9 @@ lazy_static! {
                     };
                     annotate_not_function(annotator, statement, operator, params, ctx)
                 }),
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_argument_count(validator, operator, &parameters, 1);
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |_, _, _| {
@@ -927,7 +928,7 @@ fn validate_types(
     }
 }
 
-/// Reports every argument of MOD, AND, OR, or XOR whose type has none of the natures the operator accepts
+/// Reports every argument of MOD, AND, OR, XOR, or NOT whose type has none of the natures the operator accepts
 fn validate_argument_natures(
     validator: &mut Validator,
     parameters: &Option<&AstNode>,
@@ -1253,26 +1254,7 @@ fn annotate_arithmetic_function(
             || (accepts_date_or_time && is_date_or_time(annotator, param))
     };
     if params_extracted.iter().any(|param| !is_accepted(annotator, param)) {
-        // an argument the operator is not defined for: the validator reports the call, every argument
-        // keeps its own type instead of the generic parameter's, and the call takes the first one
-        for param in &params_extracted {
-            let type_name =
-                annotator.annotation_map.get_type_or_void(param, annotator.index).get_name().to_owned();
-            annotator.annotation_map.annotate_type_hint(param, StatementAnnotation::value(type_name));
-        }
-        let function = annotator.annotation_map.get(operator).cloned();
-        if let (
-            Some(first),
-            Some(StatementAnnotation::Function { qualified_name, generic_name, call_name, .. }),
-        ) = (params_extracted.first(), function)
-        {
-            let return_type =
-                annotator.annotation_map.get_type_or_void(first, annotator.index).get_name().to_owned();
-            annotator.annotate(
-                operator,
-                StatementAnnotation::Function { qualified_name, return_type, generic_name, call_name },
-            );
-        }
+        annotate_unaccepted_arguments(annotator, operator, &params_extracted);
         return;
     }
     let involves_date_or_time = params_extracted.iter().any(|param| is_date_or_time(annotator, param));
@@ -1308,6 +1290,29 @@ fn annotate_arithmetic_function(
     annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), statement);
 }
 
+/// Annotates a call with an argument the operator is not defined for: the validator reports the call,
+/// every argument keeps its own type instead of the generic parameter's, and the call takes the first one
+fn annotate_unaccepted_arguments(annotator: &mut TypeAnnotator, operator: &AstNode, arguments: &[&AstNode]) {
+    for argument in arguments {
+        let type_name =
+            annotator.annotation_map.get_type_or_void(argument, annotator.index).get_name().to_owned();
+        annotator.annotation_map.annotate_type_hint(argument, StatementAnnotation::value(type_name));
+    }
+    let function = annotator.annotation_map.get(operator).cloned();
+    if let (
+        Some(first),
+        Some(StatementAnnotation::Function { qualified_name, generic_name, call_name, .. }),
+    ) = (arguments.first(), function)
+    {
+        let return_type =
+            annotator.annotation_map.get_type_or_void(first, annotator.index).get_name().to_owned();
+        annotator.annotate(
+            operator,
+            StatementAnnotation::Function { qualified_name, return_type, generic_name, call_name },
+        );
+    }
+}
+
 // replaces `NOT(x)` with the unary expression `NOT x`
 fn annotate_not_function(
     annotator: &mut TypeAnnotator,
@@ -1326,9 +1331,7 @@ fn annotate_not_function(
     };
 
     if !has_any_nature(annotator, value, BITWISE_NATURES) {
-        // we are trying to call this function with a type the operator does not accept, so we redirect back
-        // to the resolver
-        annotator.annotate_arguments(operator, parameters, &ctx);
+        annotate_unaccepted_arguments(annotator, operator, &params_extracted);
         return;
     }
 
