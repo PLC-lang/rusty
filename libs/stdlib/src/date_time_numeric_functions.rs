@@ -1,3 +1,5 @@
+const NANOS_PER_DAY: i128 = 60 * 60 * 24 * 1_000_000_000;
+
 /// .
 /// This operator returns the value of adding up two TIME operands.
 /// Wraps on overflow
@@ -10,12 +12,12 @@ pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator returns the value of adding up TOD and TIME.
-/// Wraps on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> i64 {
-    in1.wrapping_add(in2)
+    (i128::from(in1) + i128::from(in2)).rem_euclid(NANOS_PER_DAY) as i64
 }
 
 /// .
@@ -50,12 +52,12 @@ pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator produces the subtraction of TOD and TIME
-/// Wraps on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> i64 {
-    in1.wrapping_sub(in2)
+    (i128::from(in1) - i128::from(in2)).rem_euclid(NANOS_PER_DAY) as i64
 }
 
 /// .
@@ -810,5 +812,41 @@ fn div_time_by_f64(in1: i64, in2: f64) -> i64 {
         -res
     } else {
         res
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::counting_allocator::allocations_during;
+
+    #[test]
+    fn arithmetic_does_not_allocate() {
+        let allocations = allocations_during(|| {
+            std::hint::black_box((
+                ADD_TIME(1_000, 500),
+                ADD_TOD_TIME(86_399_999_999_999, 20_000_000_000),
+                ADD_DT_TIME(1_705_321_800_000_000_000, 1_500_000_000),
+                SUB_TIME(10_000, 3_000),
+                SUB_DATE_DATE(1_705_276_800_000_000_000, 1_704_844_800_000_000_000),
+                SUB_TOD_TIME(0, 1),
+                SUB_TOD_TOD(37_800_000, 37_200_000),
+                SUB_DT_TIME(1_705_321_805, 3_000),
+                SUB_DT_DT(i64::MAX, i64::MIN),
+                MUL_TIME__LINT(i64::MAX, 2),
+                MUL_TIME__ULINT(1, u64::MAX),
+                DIV_TIME__DINT(10_000, 4),
+                DIV_TIME__ULINT(i64::MAX, u64::MAX),
+                MUL_TIME__REAL(10_000, 1.5),
+                MUL_TIME__REAL(i64::MAX, f32::MAX),
+                MUL_TIME__LREAL(1_000, f64::NAN),
+                DIV_TIME__REAL(1, 0.0),
+                DIV_TIME__LREAL(i64::MAX, f64::MIN_POSITIVE),
+                MUL_LTIME__LREAL(i64::MIN, 2.0),
+                DIV_LTIME__REAL(-1, 0.0),
+            ));
+        });
+
+        assert_eq!(allocations, 0);
     }
 }

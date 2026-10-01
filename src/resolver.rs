@@ -29,9 +29,12 @@ use crate::{
     builtins::{self, BuiltIn},
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
-        self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
-        BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
-        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        self, get_bigger_type, get_date_time_arithmetic, DataTypeInformation, DateTimeArithmetic,
+        InternalType, StringEncoding, StructSource, BOOL_TYPE, BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE,
+        DINT_TYPE, DWORD_TYPE, LINT_TYPE, LONG_DATE_AND_TIME_TYPE, LONG_DATE_AND_TIME_TYPE_SHORTENED,
+        LONG_DATE_TYPE, LONG_DATE_TYPE_SHORTENED, LONG_TIME_OF_DAY_TYPE, LONG_TIME_OF_DAY_TYPE_SHORTENED,
+        LONG_TIME_TYPE, LONG_TIME_TYPE_SHORTENED, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE,
+        TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 use crate::{
@@ -261,6 +264,33 @@ impl TypeAnnotator<'_> {
         self.update_expected_types(self.index.get_type_or_panic(typesystem::BOOL_TYPE), &call_statement);
         self.annotate(statement, StatementAnnotation::ReplacementAst { statement: call_statement });
         self.update_expected_types(self.index.get_type_or_panic(typesystem::BOOL_TYPE), statement);
+    }
+
+    /// rewrites `left <operator> right` on a date or time operand into the call of the standard
+    /// library function that carries it out, e.g. `dt + t` into `ADD_DT_TIME(dt, t)`
+    fn visit_date_time_arithmetic(
+        &mut self,
+        ctx: &VisitorContext,
+        statement: &AstNode,
+        function: &str,
+        result_type: &str,
+        swap_operands: bool,
+    ) {
+        let AstStatement::BinaryExpression(BinaryExpression { left, right, .. }) = statement.get_stmt()
+        else {
+            return;
+        };
+        let (first, second) = if swap_operands { (right, left) } else { (left, right) };
+        let call = AstFactory::create_call_to_with_ids(
+            function,
+            vec![first.as_ref().clone(), second.as_ref().clone()],
+            &statement.get_location(),
+            ctx.id_provider.clone(),
+        );
+        self.visit_statement(ctx, &call);
+        self.update_expected_types(self.index.get_type_or_panic(result_type), &call);
+        self.annotate(statement, StatementAnnotation::ReplacementAst { statement: call });
+        self.update_expected_types(self.index.get_type_or_panic(result_type), statement);
     }
 
     /// tries to call one of the EQUAL_XXX, LESS_XXX, GREATER_XXX functions for the
@@ -1042,6 +1072,47 @@ pub trait AnnotationMap {
 
     fn get_type<'i>(&'i self, s: &AstNode, index: &'i Index) -> Option<&'i typesystem::DataType> {
         self.get(s).and_then(|it| self.get_type_for_annotation(index, it))
+    }
+
+    /// The type of a statement as declared. The long date and time types are aliases of the short
+    /// ones and an annotation carries the effective type, so a long literal and the declared type
+    /// of a variable are consulted first.
+    fn get_declared_type<'i>(&'i self, s: &AstNode, index: &'i Index) -> Option<&'i typesystem::DataType> {
+        let declared = match (s.get_stmt(), self.get(s)) {
+            (AstStatement::Literal(AstLiteral::Time(literal)), _) if literal.is_long => Some(LONG_TIME_TYPE),
+            (_, Some(StatementAnnotation::Variable { qualified_name, .. })) => {
+                index.find_fully_qualified_variable(qualified_name).map(|it| it.get_type_name())
+            }
+            _ => None,
+        };
+        let mut declared: Option<&'i typesystem::DataType> = declared.and_then(|name| index.find_type(name));
+        // a user alias resolves to the date or time type it names, which is where the family shows
+        let is_family_name = |name: &str| {
+            matches!(
+                name,
+                TIME_TYPE
+                    | TIME_OF_DAY_TYPE
+                    | DATE_TYPE
+                    | DATE_AND_TIME_TYPE
+                    | LONG_TIME_TYPE
+                    | LONG_TIME_OF_DAY_TYPE
+                    | LONG_DATE_TYPE
+                    | LONG_DATE_AND_TIME_TYPE
+                    | LONG_TIME_TYPE_SHORTENED
+                    | LONG_TIME_OF_DAY_TYPE_SHORTENED
+                    | LONG_DATE_TYPE_SHORTENED
+                    | LONG_DATE_AND_TIME_TYPE_SHORTENED
+            )
+        };
+        for _ in 0..16 {
+            match declared.map(|it| it.get_type_information()) {
+                Some(DataTypeInformation::Alias { name, referenced_type }) if !is_family_name(name) => {
+                    declared = index.find_type(referenced_type);
+                }
+                _ => break,
+            }
+        }
+        declared.or_else(|| self.get_type(s, index))
     }
 
     fn get_type_for_annotation<'a>(
@@ -2176,7 +2247,46 @@ impl<'i> TypeAnnotator<'i> {
                     let r_intrinsic_type =
                         self.index.get_intrinsic_type_by_name(right_type.get_name()).get_type_information();
 
-                    if l_intrinsic_type.is_numerical() && r_intrinsic_type.is_numerical() {
+                    // arithmetic with a date or time operand follows its own table
+                    let date_time_arithmetic = if data.operator.is_arithmetic_operator()
+                        && (l_intrinsic_type.is_date_or_time_type()
+                            || r_intrinsic_type.is_date_or_time_type())
+                    {
+                        // the declared types, the long family only differs from the short one by name
+                        let left_declared = self.annotation_map.get_declared_type(&data.left, self.index);
+                        let right_declared = self.annotation_map.get_declared_type(&data.right, self.index);
+                        match (left_declared, right_declared) {
+                            (Some(left), Some(right)) => {
+                                get_date_time_arithmetic(self.index, left, &data.operator, right)
+                            }
+                            _ => None,
+                        }
+                    } else {
+                        None
+                    };
+
+                    if let Some(DateTimeArithmetic::Call { function, result_type, swap_operands, .. }) =
+                        date_time_arithmetic
+                    {
+                        if self.index.find_pou_implementation(&function).is_some() {
+                            self.visit_date_time_arithmetic(
+                                ctx,
+                                statement,
+                                &function,
+                                result_type,
+                                swap_operands,
+                            );
+                            None
+                        } else {
+                            // the validator reports the missing function, the type is known regardless
+                            Some(result_type.to_string())
+                        }
+                    } else if let Some(DateTimeArithmetic::Plain { result_type, .. }) = date_time_arithmetic {
+                        let result = self.index.get_type_or_panic(result_type);
+                        self.update_expected_types(result, &data.left);
+                        self.update_expected_types(result, &data.right);
+                        Some(result_type.to_string())
+                    } else if l_intrinsic_type.is_numerical() && r_intrinsic_type.is_numerical() {
                         let bigger_type = if l_intrinsic_type.is_bool() && r_intrinsic_type.is_bool() {
                             left_type
                         } else {

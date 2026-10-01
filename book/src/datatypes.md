@@ -95,6 +95,22 @@ Examples:
 Note that RuSTy already treats `TIME`, `TIME_OF_DAY`, `DATE` and `DATE_AND_TIME` as 64 bit numbers.
 Therefore the long pendants `LTIME`, `LTOD`, `LDATE` and `LDT` are mere aliases to the original types.
 
+### Calculating
+
+The operators `+`, `-`, `*` and `/` accept the combinations of IEC 61131-3: a `TIME` adds to and
+subtracts from a `TIME`, a `TIME_OF_DAY` or a `DATE_AND_TIME`; two `DATE`, `TIME_OF_DAY` or
+`DATE_AND_TIME` values subtract to a `TIME`; and a `TIME` multiplies and divides by a number.
+Because every type counts nanoseconds, these are plain integer operations, with two exceptions
+that the standard library carries out: a `TIME_OF_DAY` wraps around midnight
+(`TOD#23:59:50 + T#20s` is `TOD#00:00:10`), and a real factor is applied as such
+(`T#10s * 1.5` is `T#15s`). A project that uses these two must therefore link `iec61131std`.
+
+A `TIME` plus or minus a bare integer reads the integer as nanoseconds and warns (E157).
+Any other combination, such as two `DATE_AND_TIME` values added together, still compiles as a plain
+integer operation but warns (E156), because the next version rejects it. The same warning is given
+when a short type meets its long pendant, for example `TIME + LTIME`: the two are the same type
+here, but the next version makes the short types 32 bit wide and rejects the combination.
+
 ### DATE
 
 The `DATE` datatype is used to represent a Date in the Gregorian Calendar.

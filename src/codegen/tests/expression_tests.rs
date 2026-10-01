@@ -1684,3 +1684,84 @@ fn modulo_of_mix_signed_types_should_use_srem() {
     }
     "#)
 }
+
+#[test]
+fn date_time_operators_call_the_standard_functions() {
+    let src = r#"
+        {external} FUNCTION ADD_TOD_TIME : TOD VAR_INPUT IN1 : TOD; IN2 : TIME; END_VAR END_FUNCTION
+        {external} FUNCTION MUL_TIME__REAL : TIME VAR_INPUT IN1 : TIME; IN2 : REAL; END_VAR END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            tod : TOD;
+            dt : DT;
+            t1, t2 : TIME;
+            n : DINT;
+        END_VAR
+            tod := tod + t1;
+            t1 := t1 * 1.5;
+            t1 := 1.5 * t1;
+            dt := dt + t1;
+            t1 := t1 - t2;
+            t1 := t1 * 2;
+            t1 := t1 + n;
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    declare i64 @ADD_TOD_TIME(i64, i64)
+
+    declare i64 @MUL_TIME__REAL(i64, float)
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %tod = alloca i64, align [filtered]
+      %dt = alloca i64, align [filtered]
+      %t1 = alloca i64, align [filtered]
+      %t2 = alloca i64, align [filtered]
+      %n = alloca i32, align [filtered]
+      store i64 0, ptr %tod, align [filtered]
+      store i64 0, ptr %dt, align [filtered]
+      store i64 0, ptr %t1, align [filtered]
+      store i64 0, ptr %t2, align [filtered]
+      store i32 0, ptr %n, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      %load_tod = load i64, ptr %tod, align [filtered]
+      %load_t1 = load i64, ptr %t1, align [filtered]
+      %call = call i64 @ADD_TOD_TIME(i64 %load_tod, i64 %load_t1)
+      store i64 %call, ptr %tod, align [filtered]
+      %load_t11 = load i64, ptr %t1, align [filtered]
+      %call2 = call i64 @MUL_TIME__REAL(i64 %load_t11, float 1.500000e+00)
+      store i64 %call2, ptr %t1, align [filtered]
+      %load_t13 = load i64, ptr %t1, align [filtered]
+      %call4 = call i64 @MUL_TIME__REAL(i64 %load_t13, float 1.500000e+00)
+      store i64 %call4, ptr %t1, align [filtered]
+      %load_dt = load i64, ptr %dt, align [filtered]
+      %load_t15 = load i64, ptr %t1, align [filtered]
+      %tmpVar = add i64 %load_dt, %load_t15
+      store i64 %tmpVar, ptr %dt, align [filtered]
+      %load_t16 = load i64, ptr %t1, align [filtered]
+      %load_t2 = load i64, ptr %t2, align [filtered]
+      %tmpVar7 = sub i64 %load_t16, %load_t2
+      store i64 %tmpVar7, ptr %t1, align [filtered]
+      %load_t18 = load i64, ptr %t1, align [filtered]
+      %tmpVar9 = mul i64 %load_t18, 2
+      store i64 %tmpVar9, ptr %t1, align [filtered]
+      %load_t110 = load i64, ptr %t1, align [filtered]
+      %load_n = load i32, ptr %n, align [filtered]
+      %0 = sext i32 %load_n to i64
+      %tmpVar11 = add i64 %load_t110, %0
+      store i64 %tmpVar11, ptr %t1, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+    "#);
+}
