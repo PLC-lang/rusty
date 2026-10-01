@@ -1017,7 +1017,6 @@ fn annotate_arithmetic_function(
     {
         // an argument no arithmetic is defined for: the validator reports the call, every argument
         // keeps its own type instead of the generic parameter's, and the call takes the first one
-        annotator.visit_statement(&ctx, parameters);
         for param in &params_extracted {
             let type_name =
                 annotator.annotation_map.get_type_or_void(param, annotator.index).get_name().to_owned();
@@ -1041,8 +1040,10 @@ fn annotate_arithmetic_function(
     let involves_date_or_time = params_extracted.iter().any(|param| is_date_or_time(annotator, param));
 
     let mut ctx = ctx;
-    let bigger_type = find_biggest_type_name(annotator, &params_extracted);
-    if involves_date_or_time {
+    let bigger_type = (!involves_date_or_time).then(|| find_biggest_type_name(annotator, &params_extracted));
+    if let Some(bigger_type) = &bigger_type {
+        hint_named_arguments(annotator, &params, bigger_type);
+    } else {
         // a named argument keeps its own type, the rows of the chain decide the result
         for argument in params.iter().filter(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
             let value = extract_actual_parameter(argument);
@@ -1050,8 +1051,6 @@ fn annotate_arithmetic_function(
                 annotator.annotation_map.get_type_or_void(value, annotator.index).get_name().to_owned();
             hint_argument_value(annotator, value, &own_type);
         }
-    } else {
-        hint_named_arguments(annotator, &params, &bigger_type);
     }
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
@@ -1063,11 +1062,9 @@ fn annotate_arithmetic_function(
 
     annotator.visit_statement(&ctx, &new_statement);
     // a date or time chain is typed by its root, e.g. `SUB(d1, d2)` is a TIME; numbers keep the biggest argument type
-    let result_type = if involves_date_or_time {
+    let result_type = bigger_type.unwrap_or_else(|| {
         annotator.annotation_map.get_type_or_void(&new_statement, annotator.index).get_name().to_owned()
-    } else {
-        bigger_type
-    };
+    });
     annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), &new_statement);
     annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
     annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), statement);
