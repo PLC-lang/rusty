@@ -571,10 +571,11 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Modulo, Some(&["IN1", "IN2"]), &[TypeNature::Num])
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Modulo, Some(&["IN1", "IN2"]), MODULO_NATURES)
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_argument_natures(validator, &parameters, annotations, index, &[TypeNature::Num]);
+                    validate_argument_natures(validator, &parameters, annotations, index, MODULO_NATURES);
+                    validate_duration_modulo(validator, parameters, annotations, index);
                     validate_types(validator, &parameters, annotations, index);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Modulo)
                 }),
@@ -904,6 +905,9 @@ lazy_static! {
 /// The natures the bitwise operators `AND`, `OR`, `XOR` and `NOT` accept
 const BITWISE_NATURES: &[TypeNature] = &[TypeNature::Bit, TypeNature::Int];
 
+/// The natures `MOD` accepts: numbers, and a duration together with a duration of the same type
+const MODULO_NATURES: &[TypeNature] = &[TypeNature::Num, TypeNature::Duration];
+
 fn validate_types(
     validator: &mut Validator,
     parameters: &Option<&AstNode>,
@@ -949,6 +953,46 @@ fn validate_argument_natures(
             .with_location(argument),
         );
     }
+}
+
+/// Reports a MOD call that combines a duration with a value of another type, such as `TIME` with `DINT`
+/// or with `LTIME`. MOD is defined on two `TIME` or two `LTIME` values only.
+fn validate_duration_modulo(
+    validator: &mut Validator,
+    parameters: Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else { return };
+    let arguments = arithmetic_arguments(params, Some(&["IN1", "IN2"]));
+    let [left, right] = arguments.as_slice() else { return };
+
+    let intrinsic_type = |argument: &AstNode| {
+        index.get_intrinsic_type_by_name(annotations.get_type_or_void(argument, index).get_name())
+    };
+    let (left_type, right_type) = (intrinsic_type(left), intrinsic_type(right));
+    let is_duration = |data_type: &DataType| data_type.has_nature(TypeNature::Duration, index);
+    let is_accepted =
+        |data_type: &DataType| is_duration(data_type) || data_type.has_nature(TypeNature::Num, index);
+
+    // an argument of another nature is reported on its own, a pair of numbers or equal durations is defined
+    if !is_accepted(left_type)
+        || !is_accepted(right_type)
+        || !(is_duration(left_type) || is_duration(right_type))
+        || left_type.get_name() == right_type.get_name()
+    {
+        return;
+    }
+
+    validator.push_diagnostic(
+        Diagnostic::new(format!(
+            "Operator `MOD` is not defined for `{}` and `{}`",
+            left_type.get_name(),
+            right_type.get_name()
+        ))
+        .with_error_code("E156")
+        .with_location(span_in_source_order(&arguments)),
+    );
 }
 
 /// Validates the arguments of ADD, SUB, MUL, and DIV. Numeric arguments must be compatible with

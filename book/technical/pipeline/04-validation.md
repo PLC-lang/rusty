@@ -155,7 +155,7 @@ the body of `main` produces one diagnostic per statement, each from a different 
                    ^^^^^          E095  annotation: the reference resolves to the action Buffer.reset, but the statement is not a call
 ```
 
-Declarations with external or include linkage belong to another compilation and are skipped. Generated nodes with internal locations are trusted. Built-ins use placeholder parameter types, so general argument checks do not always apply. Built-ins such as `ADR`, `REF`, and `SEL` provide their own validation rules. `MOD`, `AND`, `OR`, and `XOR` check the natures of their arguments themselves: an argument that is not a number for `MOD`, or neither a bit value nor an integer for the other three, is E062.
+Declarations with external or include linkage belong to another compilation and are skipped. Generated nodes with internal locations are trusted. Built-ins use placeholder parameter types, so general argument checks do not always apply. Built-ins such as `ADR`, `REF`, and `SEL` provide their own validation rules. `MOD`, `AND`, `OR`, and `XOR` check the natures of their arguments themselves: an argument that is neither a number nor a duration for `MOD`, or neither a bit value nor an integer for the other three, is E062. `MOD` reports E156 as well for a duration paired with a value of another type.
 
 
 ## Severity and reporting
