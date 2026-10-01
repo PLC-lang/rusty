@@ -306,7 +306,7 @@ Argument {
 
 `Argument` is used only as a hint. It connects each argument to a parameter. A positional argument carries the hint on its expression; a named argument carries it on the assignment node.
 
-The built-ins that an operator expression replaces are the exception. `ADD`, `MUL`, `SUB`, `DIV`, `MOD`, `AND`, `OR`, `XOR`, `NOT`, and the comparisons build that expression from the argument values, so the declared parameter is gone by the time codegen runs. Their annotation function therefore orders the arguments, unwraps every named one to its value, and drops the hint the resolver put on it. A positional argument of such a call carries no hint at that point either, so both forms then take their hint from the binary expression, the same way an operand of a written-out `a - b` does. `src/builtins.rs` holds the rule.
+The built-ins that an operator expression replaces are the exception. `ADD`, `MUL`, `SUB`, `DIV`, `MOD`, `AND`, `OR`, `XOR`, `NOT`, and the comparisons build that expression from the argument values, so the declared parameter is gone by the time codegen runs. Their annotation function therefore orders the arguments, unwraps every named one to its value, and drops the hint the resolver put on it. A positional argument of such a call carries no hint at that point either, so both forms then take their hint from the replacement expression, the same way an operand of a written-out `a - b` does. For `NOT` that expression is the unary `NOT a`, for the others it is a binary expression. `src/builtins.rs` holds the rule.
 
 ```
     counter(limit := 3, step := 2, count => i);
@@ -420,7 +420,7 @@ Codegen compares the annotated type with the expected type from the hint. The an
 | `Program` | references to programs, classes, actions | qualified name | codegen (instance address), validator (E095) |
 | `Argument` (hint only) | every call argument | type, position, depth, declaring POU | codegen (parameter slot), aggregate-return lowerer, conversion like any hint |
 | `Property` | property references before lowering | accessor name | property lowerer |
-| `ReplacementAst` | string and other library-compared comparisons, calls of the arithmetic and comparison built-ins, arithmetic on date and time operands | the replacement statement | codegen |
+| `ReplacementAst` | string and other library-compared comparisons, calls of the arithmetic, bitwise, and comparison built-ins, arithmetic on date and time operands | the replacement statement | codegen |
 | `Label` | jump statements from CFC | label name | codegen |
 | `MethodDeclarations` | block, class, and interface declarations (by declaration ID) | method name to declarations | validator (E111, E112) |
 | `Override` | method declarations that override (by declaration ID) | overridden methods | validator (E112, E118) |
