@@ -1230,15 +1230,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a86d3146ed3995b5913c414f6664344b9617457320782e64f0bb44afd49d74"
 
 [[package]]
-name = "nom"
-version = "8.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df9761775871bdef83bee530e60050f7e54b1105350d6884eb0fb4f46c2f9405"
-dependencies = [
- "memchr",
-]
-
-[[package]]
 name = "num"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1515,7 +1506,6 @@ dependencies = [
  "plc_util",
  "pretty_assertions",
  "rustc-hash",
- "section_mangler",
  "serde",
  "serde_json",
  "serial_test",
@@ -1609,7 +1599,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "toml 0.8.23",
 ]
 
 [[package]]
@@ -2046,13 +2035,6 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
-
-[[package]]
-name = "section_mangler"
-version = "1.1.0-dev"
-dependencies = [
- "nom",
-]
 
 [[package]]
 name = "semver"

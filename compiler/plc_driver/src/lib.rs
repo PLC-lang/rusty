@@ -24,7 +24,7 @@ use plc::{
     codegen::CodegenContext,
     linker::LinkerType,
     output::{FormatOption, RelocationPreference},
-    DebugLevel, ErrorFormat, OnlineChange, OptimizationLevel, Target,
+    DebugLevel, ErrorFormat, OptimizationLevel, Target,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};
@@ -61,7 +61,6 @@ pub struct CompileOptions {
     pub debug_prefix_maps: Vec<(PathBuf, PathBuf)>,
     pub debug_compilation_dir: Option<PathBuf>,
     pub single_module: bool,
-    pub online_change: OnlineChange,
     pub constructors_only: bool,
     /// Producer string embedded in the compiled module's `llvm.ident` named
     /// metadata. Surfaces in the ELF `.comment` section post-link. `None`
@@ -83,7 +82,6 @@ impl Default for CompileOptions {
             debug_prefix_maps: vec![],
             debug_compilation_dir: None,
             single_module: false,
-            online_change: OnlineChange::Disabled,
             constructors_only: false,
             build_info: None,
         }
@@ -249,7 +247,6 @@ pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
             target,
             objects: pipeline.project.get_objects().to_vec(),
         })),
-        got_layout: Default::default(),
         compile_dirs: Default::default(),
         root: Default::default(),
         libraries: pipeline.project.get_libraries().to_vec(),

@@ -2,10 +2,8 @@
 pub mod tests {
 
     use std::{
-        collections::HashMap,
         path::{Path, PathBuf},
         str::FromStr,
-        sync::Mutex,
     };
 
     use plc_ast::{
@@ -33,7 +31,7 @@ pub mod tests {
             StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
-        DebugLevel, OnlineChange, Target, Validator,
+        DebugLevel, Target, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -356,30 +354,17 @@ pub mod tests {
     }
 
     pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, String> {
-        codegen_debug_without_unwrap_oc(src, debug_level, OnlineChange::Disabled)
+        codegen_debug_without_unwrap_with_build_info(src, debug_level, None)
     }
 
-    /// Returns either a string or an error, in addition it always returns
-    /// reported diagnostics. Therefor the return value of this method is always a tuple.
-    /// TODO: This should not be so, we should have a diagnostic type that holds multiple new
-    /// issues.
-    pub fn codegen_debug_without_unwrap_oc(
-        src: &str,
-        debug_level: DebugLevel,
-        online_change: OnlineChange,
-    ) -> Result<String, String> {
-        codegen_debug_without_unwrap_oc_with_build_info(src, debug_level, online_change, None)
-    }
-
-    /// Same as [`codegen_debug_without_unwrap_oc`] but lets the caller inject a
+    /// Same as [`codegen_debug_without_unwrap`] but lets the caller inject a
     /// fixed `build_info` string into the produced module. Use this when you
     /// need to assert on the `!llvm.ident` emission; everywhere else pass
     /// `None` (via the simpler entry points) so the produced IR stays
     /// deterministic across test runs.
-    pub fn codegen_debug_without_unwrap_oc_with_build_info(
+    pub fn codegen_debug_without_unwrap_with_build_info(
         src: &str,
         debug_level: DebugLevel,
-        online_change: OnlineChange,
         build_info: Option<&str>,
     ) -> Result<String, String> {
         let mut reporter = Diagnostician::buffered();
@@ -393,8 +378,6 @@ pub mod tests {
 
         let annotations = AstAnnotations::new(annotations, id_provider.next_id());
 
-        let got_layout = Mutex::new(HashMap::default());
-
         let (unit, dependencies, literals) = annotated_units;
         let context = CodegenContext::create();
         let path = PathBuf::from_str("src").ok();
@@ -406,12 +389,11 @@ pub mod tests {
             debug_level,
             &[],
             None,
-            online_change.clone(),
             &Target::System,
             build_info,
         );
         let llvm_index = code_generator
-            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout, false)
+            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, false)
             .map_err(|err| {
                 reporter.handle(&[err.into()]);
                 reporter.buffer().unwrap()
@@ -480,19 +462,15 @@ pub mod tests {
                     debug_level,
                     debug_prefix_maps,
                     debug_compilation_dir,
-                    crate::OnlineChange::Disabled,
                     &Target::System,
                     None, // build_info: deterministic IR for tests
                 );
-                let got_layout = Mutex::new(HashMap::default());
-
                 let llvm_index = code_generator.generate_llvm_index(
                     context,
                     &annotations,
                     &literals,
                     &dependencies,
                     &index,
-                    &got_layout,
                     false,
                 )?;
 

@@ -117,8 +117,6 @@ The default name comes from the first argument as it was written, so a glob patt
 | `--hwmap-file[=<file>]` | Write the map of hardware-bound variables. The `=` is required |
 | `--generate-external-constructors` | Also write constructors for `{external}` units |
 | `--constructors-only` | Write the generated constructors and no bodies |
-| `--online-change` | Emit the type information that a runtime needs to exchange code while it runs |
-| `--got-layout-file <file>` | Read and write the table layout that an online change keeps stable |
 
 
 ## Deprecated
