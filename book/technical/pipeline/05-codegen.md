@@ -207,7 +207,7 @@ In a function, `VAR_IN_OUT` and `VAR_OUTPUT` parameters are pointers, and an agg
 
 Functions are created in two passes, like structs: first a declaration for every POU the unit depends on, including POUs from other units, then the bodies of the POUs declared in this unit. If `scale` were in a second file, the module of `main` would contain `declare i32 @scale(i32, i16, ptr, ptr)` with no body.
 
-A body starts by making every variable addressable, so the statements can treat both kinds alike. A function copies each argument into a stack slot, starts its return variable at zero, and starts each output at its initial value, or zero, through the address the caller passed; a stateful POU computes one pointer per member into the instance:
+A body starts by making every variable addressable, so the statements can treat both kinds alike. A function copies each argument into a stack slot, starts its return variable at zero, and starts each output at its initial value, or zero, through the address the caller passed (a variable length array output keeps the caller's bounds and is not reset); a stateful POU computes one pointer per member into the instance:
 
 ```llvm
 define i32 @scale(i32 %0, i16 %1, ptr %2, ptr %3) {
@@ -318,7 +318,7 @@ call void @llvm.memcpy.p0.p0.i32(ptr align 1 %text, ptr align 1 @utf08_literal_1
 
 ### Calls to functions
 
-Codegen places named and positional arguments in parameter order and fills omitted parameters with their defaults, or with zero when the parameter declares none; an omitted `VAR_OUTPUT` or `VAR_IN_OUT` gets the address of a zeroed temporary. It passes scalar inputs by value and `VAR_IN_OUT` and `VAR_OUTPUT` arguments by address. The callee writes through these addresses. For `i := scale(i, factor := 3, total := counter, overflow => flag)`:
+Codegen places named and positional arguments in parameter order. A parameter without an argument, which validation allows for a trailing input with a default and for any parameter of a method, and a parameter whose argument is written empty (`overflow =>`), gets its default, or zero; a by-address parameter then receives a temporary holding that value. It passes scalar inputs by value and `VAR_IN_OUT` and `VAR_OUTPUT` arguments by address. The callee writes through these addresses. For `i := scale(i, factor := 3, total := counter, overflow => flag)`:
 
 ```llvm
 %call = call i32 @scale(i32 %load_i, i16 3, ptr @counter, ptr %flag)   ; value, factor, address of total, address of overflow

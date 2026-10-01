@@ -556,6 +556,10 @@ impl VariableBlockType {
     pub fn is_inout(&self) -> bool {
         matches!(self, VariableBlockType::InOut)
     }
+
+    pub fn is_output(&self) -> bool {
+        matches!(self, VariableBlockType::Output)
+    }
 }
 
 impl Display for VariableBlockType {

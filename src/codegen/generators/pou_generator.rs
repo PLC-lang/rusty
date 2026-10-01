@@ -961,11 +961,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             else {
                 continue;
             };
-            // reference and alias outputs are bound by the body, not reset
+            // reference and alias outputs are bound by the body, and a variable length array
+            // output holds the caller's bounds and data pointer, so neither is reset
             if self
                 .index
                 .find_effective_type_info(inner_type_name)
-                .is_some_and(|it| it.is_reference_to() || it.is_alias())
+                .is_some_and(|it| it.is_reference_to() || it.is_alias() || it.is_vla())
             {
                 continue;
             }

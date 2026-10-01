@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
-assertion_line: 413
 expression: result
 ---
 ; ModuleID = '<internal>'

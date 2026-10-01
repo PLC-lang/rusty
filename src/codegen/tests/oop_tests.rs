@@ -2543,6 +2543,7 @@ fn fb_extension_with_output() {
       %1 = load ptr, ptr %met1, align [filtered]
       %deref3 = load ptr, ptr %this, align [filtered]
       %2 = alloca i16, align [filtered]
+      store i16 0, ptr %2, align [filtered]
       %fnptr_call = call i16 %1(ptr %deref3, i16 0, i16 0, ptr %2)
       ret void
     }

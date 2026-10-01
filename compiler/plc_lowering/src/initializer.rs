@@ -246,7 +246,11 @@ impl AstVisitor for Initializer {
         };
         let mut stmts = vec![];
         let base = Self::get_base_ident(&variable_block_type, is_stateful);
-        if !variable_block_type.is_inout() {
+        let is_vla = variable
+            .data_type_declaration
+            .get_referenced_type()
+            .is_some_and(|it| index.get_type_information_or_void(it).is_vla());
+        if !variable_block_type.is_inout() && !is_vla {
             if let Some(constructor) = variable
                 .data_type_declaration
                 .get_referenced_type()
@@ -331,10 +335,7 @@ impl AstVisitor for Initializer {
                 }
             }
         }
-        if variable_block_type.is_temp()
-            || (variable_block_type.is_local() && !is_stateful)
-            || variable_block_type.is_inout()
-        {
+        if Self::is_stack_variable(&variable_block_type, is_stateful) || variable_block_type.is_inout() {
             self.add_to_current_stack_constructor(stmts);
         } else {
             self.add_to_current_constructor(stmts);
@@ -1032,9 +1033,15 @@ impl Initializer {
         None
     }
 
+    /// Temps, and locals and outputs of a stateless POU, live on the stack and are initialized on
+    /// every call; an output of a function or method is reset through the caller's address.
+    fn is_stack_variable(variable_block_type: &VariableBlockType, is_stateful: bool) -> bool {
+        variable_block_type.is_temp()
+            || ((variable_block_type.is_local() || variable_block_type.is_output()) && !is_stateful)
+    }
+
     fn get_base_ident(variable_block_type: &VariableBlockType, is_stateful: bool) -> Option<&str> {
-        if variable_block_type.is_temp()
-            || (variable_block_type.is_local() && !is_stateful)
+        if Self::is_stack_variable(variable_block_type, is_stateful)
             || variable_block_type.is_inout()
             || variable_block_type.is_global()
         {
