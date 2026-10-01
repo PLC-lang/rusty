@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["alt","permutation"],"struct":["Choice","Permutation"]};

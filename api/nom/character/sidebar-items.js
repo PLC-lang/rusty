@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["anychar","char","digit1","is_bin_digit","multispace0","none_of","one_of","satisfy"],"mod":["complete","streaming"],"struct":["AnyChar","Char","Digit1","MultiSpace0","Satisfy"]};
