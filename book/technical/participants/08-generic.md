@@ -79,7 +79,7 @@ Nested calls need more than one pass. In `times_two(times_two(a))` the inner cal
 
 The third pass changes nothing and ends the loop. A call whose type parameter gets no offer at all, because no argument is bound to a parameter of that type, is skipped in every pass and stays a generic call.
 
-Two kinds of call are never touched. Built-in generics such as `MUX`, `SEL`, `ADD`, or `SHL` are resolved by the resolver and generated inline by codegen, so there is no implementation to pick. A call inside the body of a generic template works on `T` itself, and a template is never generated; such a call stays as written, and the validator reports it as an unresolved generic type (E064).
+Two kinds of call are never touched. Built-in generics such as `MUX`, `SEL`, `ADD`, or `SHL` are resolved by the resolver and generated inline by codegen, so there is no implementation to pick. With a date or time argument, `ADD`, `SUB`, `MUL`, and `DIV` call standard library functions such as `ADD_DT_TIME` instead, which are not generic either. A call inside the body of a generic template works on `T` itself, and a template is never generated; such a call stays as written, and the validator reports it as an unresolved generic type (E064).
 
 
 ## Interactions

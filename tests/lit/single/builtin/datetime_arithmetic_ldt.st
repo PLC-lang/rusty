@@ -36,4 +36,10 @@ FUNCTION main
     lresult := ldt1 - ldt2;
     printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#10s
 
+    // The builtins carry out the same functions as the operators
+    ldt_result := ADD(ldt1, lt1, lt1);
+    printf('%s$N', REF(LDT_TO_STRING(ldt_result)));                                 // CHECK: LDT#2024-01-15-12:30:16
+    lresult := SUB(ldt1, ldt2);
+    printf('%s$N', REF(LTIME_TO_STRING(lresult)));                                  // CHECK: LTIME#10s
+
 END_FUNCTION

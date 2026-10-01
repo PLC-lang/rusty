@@ -28,9 +28,14 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
+    typesystem::{
+        self, get_bigger_type, get_literal_actual_signed_type_name, DataType, DataTypeInformationProvider,
+    },
     validation::{
-        statement::{validate_type_compatibility, validate_type_compatibility_with_data_types},
+        statement::{
+            validate_date_time_arithmetic, validate_type_compatibility,
+            validate_type_compatibility_with_data_types, validate_zero_diviser,
+        },
         Validator, Validators,
     },
 };
@@ -367,7 +372,7 @@ lazy_static! {
         (
             "ADD",
             BuiltIn {
-                decl: "FUNCTION ADD<T: ANY_NUM> : T
+                decl: "FUNCTION ADD<T: ANY> : T
                     VAR_INPUT
                         args: {sized} T...;
                     END_VAR
@@ -381,7 +386,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus, None)
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
-                    validate_types(validator, &parameters, annotations, index);
+                    validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Plus, None);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Plus);
                 }),
                 generic_name_resolver,
@@ -393,7 +398,7 @@ lazy_static! {
         (
             "MUL",
             BuiltIn {
-                decl: "FUNCTION MUL<T: ANY_NUM> : T
+                decl: "FUNCTION MUL<T: ANY> : T
                 VAR_INPUT
                     args: {sized} T...;
                 END_VAR
@@ -407,7 +412,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication, None)
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
-                    validate_types(validator, &parameters, annotations, index);
+                    validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Multiplication, None);
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Multiplication)
                 }),
                 generic_name_resolver,
@@ -433,7 +438,7 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus, Some(&["IN1", "IN2"]))
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
-                    validate_types(validator, &parameters, annotations, index);
+                    validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Minus, Some(&["IN1", "IN2"]));
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Minus)
                 }),
                 generic_name_resolver,
@@ -459,8 +464,10 @@ lazy_static! {
                     annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division, Some(&["IN1", "IN2"]))
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
-                    validate_types(validator, &parameters, annotations, index);
-                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
+                    let named_parameters: Option<&[&str]> = Some(&["IN1", "IN2"]);
+                    validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Division, named_parameters);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division);
+                    validate_divisor(validator, parameters, annotations, index, named_parameters);
                 }),
                 generic_name_resolver,
                 code: |_, _, _| {
@@ -784,6 +791,75 @@ fn validate_types(
     }
 }
 
+/// Validates the arguments of ADD, SUB, MUL, and DIV. Numeric arguments must be compatible with
+/// each other; once an argument is not a number, the arguments fold from the left and every step
+/// must be a combination the standard defines.
+fn validate_arithmetic_arguments(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    operator: Operator,
+    named_parameters: Option<&[&str]>,
+) {
+    let Some(params) = parameters else { return };
+    let arguments = arithmetic_arguments(params, named_parameters);
+    let is_number = |data_type: &DataType| data_type.has_nature(TypeNature::Num, index);
+    if arguments.iter().all(|argument| is_number(annotations.get_type_or_void(argument, index))) {
+        validate_types(validator, parameters, annotations, index);
+        return;
+    }
+
+    let Some(first) = arguments.first() else { return };
+    let mut left_type = annotations.get_type_or_void(first, index);
+    for (position, right) in arguments.iter().enumerate().skip(1) {
+        let right_type = annotations.get_type_or_void(right, index);
+        let location = span_in_source_order(&arguments[..=position]);
+        if left_type.is_void() || right_type.is_void() {
+            return;
+        }
+        let result_type = if is_number(left_type) && is_number(right_type) {
+            validate_type_compatibility_with_data_types(validator, left_type, right_type, &location);
+            Some(get_bigger_type(left_type, right_type, index))
+        } else {
+            validate_date_time_arithmetic(validator, index, left_type, &operator, right_type, &location)
+        };
+        let Some(result_type) = result_type else { return };
+        left_type = result_type;
+    }
+}
+
+/// The location from the first to the last of the given arguments as they are written in the source,
+/// which differs from their parameter order for reordered named arguments such as `SUB(IN2 := b, IN1 := a)`
+fn span_in_source_order(arguments: &[&AstNode]) -> SourceLocation {
+    let first = arguments.iter().min_by_key(|it| it.get_location().to_range().map(|range| range.start));
+    let last = arguments.iter().max_by_key(|it| it.get_location().to_range().map(|range| range.end));
+    let (Some(first), Some(last)) = (first, last) else {
+        return SourceLocation::undefined();
+    };
+    first.get_location().span(&last.get_location())
+}
+
+/// The arguments of ADD, SUB, MUL, or DIV in parameter order, a named argument resolved to its value
+fn arithmetic_arguments<'a>(parameters: &'a AstNode, named_parameters: Option<&[&str]>) -> Vec<&'a AstNode> {
+    order_call_arguments(parameters, named_parameters).into_iter().map(extract_actual_parameter).collect()
+}
+
+/// Reports a literal or constant zero passed as the divisor of DIV, its second argument in parameter
+/// order, as the `/` operator does
+fn validate_divisor(
+    validator: &mut Validator,
+    parameters: Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    named_parameters: Option<&[&str]>,
+) {
+    let Some(params) = parameters else { return };
+    if let [_, divisor] = arithmetic_arguments(params, named_parameters).as_slice() {
+        validate_zero_diviser(validator, annotations, index, divisor, &params.get_location());
+    }
+}
+
 fn validate_types_are_compatible_with_int(
     validator: &mut Validator,
     parameters: &Option<&AstNode>,
@@ -950,20 +1026,59 @@ fn annotate_arithmetic_function(
     let params = order_call_arguments(parameters, option_named_parameters);
     let params_extracted: Vec<&AstNode> = params.iter().map(|it| extract_actual_parameter(it)).collect();
 
-    if params_extracted.iter().any(|param| {
-        !annotator
+    let is_date_or_time = |annotator: &TypeAnnotator, param: &AstNode| {
+        let data_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
+        annotator
+            .index
+            .get_intrinsic_type_by_name(data_type.get_name())
+            .get_type_information()
+            .is_date_or_time_type()
+    };
+    let is_number = |annotator: &TypeAnnotator, param: &AstNode| {
+        annotator
             .annotation_map
             .get_type_or_void(param, annotator.index)
             .has_nature(TypeNature::Num, annotator.index)
-    }) {
-        // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
-        annotator.annotate_arguments(operator, parameters, &ctx);
+    };
+    if params_extracted.iter().any(|param| !is_number(annotator, param) && !is_date_or_time(annotator, param))
+    {
+        // an argument no arithmetic is defined for: the validator reports the call, every argument
+        // keeps its own type instead of the generic parameter's, and the call takes the first one
+        for param in &params_extracted {
+            let type_name =
+                annotator.annotation_map.get_type_or_void(param, annotator.index).get_name().to_owned();
+            annotator.annotation_map.annotate_type_hint(param, StatementAnnotation::value(type_name));
+        }
+        let function = annotator.annotation_map.get(operator).cloned();
+        if let (
+            Some(first),
+            Some(StatementAnnotation::Function { qualified_name, generic_name, call_name, .. }),
+        ) = (params_extracted.first(), function)
+        {
+            let return_type =
+                annotator.annotation_map.get_type_or_void(first, annotator.index).get_name().to_owned();
+            annotator.annotate(
+                operator,
+                StatementAnnotation::Function { qualified_name, return_type, generic_name, call_name },
+            );
+        }
         return;
     }
+    let involves_date_or_time = params_extracted.iter().any(|param| is_date_or_time(annotator, param));
 
     let mut ctx = ctx;
-    let bigger_type = find_biggest_type_name(annotator, &params_extracted);
-    hint_named_arguments(annotator, &params, &bigger_type);
+    let bigger_type = (!involves_date_or_time).then(|| find_biggest_type_name(annotator, &params_extracted));
+    if let Some(bigger_type) = &bigger_type {
+        hint_named_arguments(annotator, &params, bigger_type);
+    } else {
+        // a named argument keeps its own type, the rows of the chain decide the result
+        for argument in params.iter().filter(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
+            let value = extract_actual_parameter(argument);
+            let own_type =
+                annotator.annotation_map.get_type_or_void(value, annotator.index).get_name().to_owned();
+            hint_argument_value(annotator, value, &own_type);
+        }
+    }
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
@@ -973,9 +1088,13 @@ fn annotate_arithmetic_function(
     });
 
     annotator.visit_statement(&ctx, &new_statement);
-    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), &new_statement);
+    // a date or time chain is typed by its root, e.g. `SUB(d1, d2)` is a TIME; numbers keep the biggest argument type
+    let result_type = bigger_type.unwrap_or_else(|| {
+        annotator.annotation_map.get_type_or_void(&new_statement, annotator.index).get_name().to_owned()
+    });
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), &new_statement);
     annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
-    annotator.update_expected_types(annotator.index.get_type_or_panic(&bigger_type), statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), statement);
 }
 
 fn annotate_variable_length_array_bound_function(
