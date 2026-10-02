@@ -4,5 +4,5 @@ survived the routing (`bar = 7`).
 
 Illustrated:
 ```
-foo --> a    a --> b    b --> c    c --> bar (0)
+foo --> a    a --> b    b --> c    c --> bar (1)
 ```

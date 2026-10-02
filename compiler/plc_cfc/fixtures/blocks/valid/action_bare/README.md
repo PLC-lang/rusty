@@ -5,5 +5,5 @@ call lowers cleanly.
 
 Illustrated:
 ```
-[inst : counter.reset] (0)
+[inst : counter.reset] (1)
 ```

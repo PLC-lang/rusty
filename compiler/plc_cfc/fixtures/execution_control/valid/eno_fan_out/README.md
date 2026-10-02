@@ -4,10 +4,10 @@ vetted to literals and references.
 
 Illustrated:
 ```
-              inst : counter (0)
+              inst : counter (1)
             +-------------------+
-trigger --> | EN            ENO | --+--> d1 (1)
-localIn --> | in            out |   '--> d2 (2)
+trigger --> | EN            ENO | --+--> d1 (2)
+localIn --> | in            out |   '--> d2 (3)
             +-------------------+
             (out unread)
 ```

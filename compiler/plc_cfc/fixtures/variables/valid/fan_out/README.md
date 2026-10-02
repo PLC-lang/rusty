@@ -1,9 +1,9 @@
-What: One source feeding two sinks — `bar := foo` (0) and `baz := foo` (1). A
+What: One source feeding two sinks — `bar := foo` (1) and `baz := foo` (2). A
 single `ConnectionPointOut` is referenced by multiple `Connection`s. Modeled as a
 `FUNCTION_BLOCK`.
 
 Illustrated:
 ```
-foo --+--> bar (0)
-      +--> baz (1)
+foo --+--> bar (1)
+      +--> baz (2)
 ```

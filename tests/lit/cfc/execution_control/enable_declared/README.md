@@ -4,10 +4,10 @@ other variable; the program compiles and behaves like a normal guarded call.
 
 Illustrated:
 ```
-              inst : counter (0)
+              inst : counter (1)
             +-------------------+
-     EN --> | EN            ENO | --> ENO (2)
-localIn --> | in            out | --> localOut (1)
+     EN --> | EN            ENO | --> ENO (3)
+localIn --> | in            out | --> localOut (2)
             +-------------------+
             (EN and ENO are ordinary caller variables)
 ```

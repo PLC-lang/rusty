@@ -4,9 +4,9 @@ call site wires that POU's EN and ENO pins.
 
 Illustrated:
 ```
-              inst : sneaky (0)
+              inst : sneaky (1)
             +-------------------+
-trigger --> | EN            ENO | --> done (1)
+trigger --> | EN            ENO | --> done (2)
             +-------------------+
             (body: ENO := FALSE;  -> E048)
 ```

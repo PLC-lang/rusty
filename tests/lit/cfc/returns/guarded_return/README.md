@@ -4,6 +4,6 @@ guard returns early and `result` keeps its prior value (`result = 7`).
 
 Illustrated:
 ```
-guard --> RETURN (0)
-42 --> result (1)
+guard --> RETURN (1)
+42 --> result (2)
 ```

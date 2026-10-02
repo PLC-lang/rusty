@@ -4,5 +4,5 @@ an indexed reference (not just a plain name) on the sink side. Modeled as a
 
 Illustrated:
 ```
-source --> values[1] (0)
+source --> values[1] (1)
 ```

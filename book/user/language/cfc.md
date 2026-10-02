@@ -41,8 +41,8 @@ A small bubble on a pin negates the value that passes it.
 The wires say where a value goes, not when. The order of the statements is the order of the **evaluation priority** that you give the elements in the tool. It is not the order of the wires and not the position on the sheet:
 
 ```
-        Add (0)             Scale (1)
- a --> | in1   out | --> | in    out | --> result (2)
+        Add (1)             Scale (2)
+ a --> | in1   out | --> | in    out | --> result (3)
  b --> | in2       |
 ```
 

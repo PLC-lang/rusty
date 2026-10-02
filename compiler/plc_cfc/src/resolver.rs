@@ -1099,7 +1099,7 @@ mod tests {
             LABEL skipAssignment");
             insta::assert_snapshot!(diagnostics("jumps/valid/disconnected_jump"), @r"
             warning[E145]: Jump element is not connected to a condition and can never be taken
-             = disconnected_jump.cfc, diagram disconnected_jump, execution order 0
+             = disconnected_jump.cfc, diagram disconnected_jump, execution order 1
             ");
         }
 
@@ -1110,7 +1110,7 @@ mod tests {
             LABEL orphan");
             insta::assert_snapshot!(diagnostics("jumps/valid/unused_label"), @r"
             warning[E143]: Label `orphan` is not referenced by any jump
-             = unused_label.cfc, diagram unused_label, execution order 1
+             = unused_label.cfc, diagram unused_label, execution order 2
             ");
         }
 
@@ -1368,7 +1368,7 @@ mod tests {
         fn call_expression() {
             insta::assert_snapshot!(diagnostics("variables/invalid/call_expression"), @r"
             error[E083]: Unsupported CFC expression: `MAX(foo, bar)`
-             = call_expression.cfc, diagram call_expression, execution order 0
+             = call_expression.cfc, diagram call_expression, execution order 1
             ");
         }
 
@@ -1376,7 +1376,7 @@ mod tests {
         fn binary_expression() {
             insta::assert_snapshot!(diagnostics("variables/invalid/binary_expression"), @r"
             error[E083]: Unsupported CFC expression: `foo + 1`
-             = binary_expression.cfc, diagram binary_expression, execution order 0
+             = binary_expression.cfc, diagram binary_expression, execution order 1
             ");
         }
 
@@ -1384,7 +1384,7 @@ mod tests {
         fn negative_sink() {
             insta::assert_snapshot!(diagnostics("variables/invalid/negative_sink"), @r"
             error[E083]: Unsupported CFC expression: `-bar`
-             = negative_sink.cfc, diagram negative_sink, execution order 0
+             = negative_sink.cfc, diagram negative_sink, execution order 1
             ");
         }
 
@@ -1413,7 +1413,7 @@ mod tests {
             insta::assert_snapshot!(resolve_project("returns/invalid/disconnected_return"), @"RETURN myCondition");
             insta::assert_snapshot!(transpile_project("returns/invalid/disconnected_return").unwrap_err(), @r"
             error[E085]: Return element is not connected to a condition
-             = disconnected_return.cfc, diagram disconnected_return, execution order 1
+             = disconnected_return.cfc, diagram disconnected_return, execution order 2
             ");
         }
 
@@ -1421,7 +1421,7 @@ mod tests {
         fn undefined_jump_target() {
             insta::assert_snapshot!(transpile_project("jumps/invalid/undefined_jump_target").unwrap_err(), @r"
             error[E142]: Jump refers to undefined label `missing`
-             = undefined_jump_target.cfc, diagram undefined_jump_target, execution order 0
+             = undefined_jump_target.cfc, diagram undefined_jump_target, execution order 1
             ");
         }
 
@@ -1429,7 +1429,7 @@ mod tests {
         fn duplicate_label() {
             insta::assert_snapshot!(transpile_project("jumps/invalid/duplicate_label").unwrap_err(), @r"
             error[E144]: Label `dup` is already defined
-             = duplicate_label.cfc, diagram duplicate_label, execution order 2
+             = duplicate_label.cfc, diagram duplicate_label, execution order 3
             ");
         }
 
@@ -1437,7 +1437,7 @@ mod tests {
         fn unknown_type() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/unknown_type").unwrap_err(), @r"
             error[E146]: Block `counter` refers to an undeclared POU
-             = unknown_type.cfc, diagram unknown_type, execution order 0
+             = unknown_type.cfc, diagram unknown_type, execution order 1
             ");
         }
 
@@ -1445,7 +1445,7 @@ mod tests {
         fn generic_unresolved() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/generic_unresolved").unwrap_err(), @r"
             error[E149]: Cannot determine a type for generic block `myGenAdd`: no input decides its type
-             = generic_unresolved.cfc, diagram generic_unresolved, execution order 0
+             = generic_unresolved.cfc, diagram generic_unresolved, execution order 1
             ");
         }
 
@@ -1453,7 +1453,7 @@ mod tests {
         fn generic_unbound_feedback() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/generic_unbound_feedback").unwrap_err(), @r"
             error[E149]: Cannot determine a type for generic block `myGenScale`: no input decides its type
-             = generic_unbound_feedback.cfc, diagram generic_unbound_feedback, execution order 0
+             = generic_unbound_feedback.cfc, diagram generic_unbound_feedback, execution order 1
             ");
         }
 
@@ -1461,7 +1461,7 @@ mod tests {
         fn unwired_en() {
             insta::assert_snapshot!(transpile_project("execution_control/invalid/unwired_en").unwrap_err(), @r"
             error[E152]: Block `counter` has an unconnected EN pin
-             = unwired_en.cfc, diagram unwired_en, execution order 0, pin 0
+             = unwired_en.cfc, diagram unwired_en, execution order 1, pin 0
             ");
         }
 
@@ -1469,10 +1469,10 @@ mod tests {
         fn eno_cycle() {
             insta::assert_snapshot!(transpile_project("execution_control/invalid/eno_cycle").unwrap_err(), @r"
             error[E153]: EN pin of block `counter` resolves through an ENO cycle
-             = eno_cycle.cfc, diagram eno_cycle, execution order 0
+             = eno_cycle.cfc, diagram eno_cycle, execution order 1
 
             error[E153]: EN pin of block `counter` resolves through an ENO cycle
-             = eno_cycle.cfc, diagram eno_cycle, execution order 1
+             = eno_cycle.cfc, diagram eno_cycle, execution order 2
             ");
         }
 
@@ -1493,7 +1493,7 @@ mod tests {
         fn function_stale_output() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_stale_output").unwrap_err(), @r"
             error[E147]: Output `oldDoubled` is not declared by `myAdd`
-             = function_stale_output.cfc, diagram function_stale_output, execution order 0
+             = function_stale_output.cfc, diagram function_stale_output, execution order 1
             ");
         }
 
@@ -1501,7 +1501,7 @@ mod tests {
         fn function_duplicate_return() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_duplicate_return").unwrap_err(), @r"
             error[E155]: Block `myAdd` has more than one return pin
-             = function_duplicate_return.cfc, diagram function_duplicate_return, execution order 0
+             = function_duplicate_return.cfc, diagram function_duplicate_return, execution order 1
             ");
         }
 
@@ -1509,10 +1509,10 @@ mod tests {
         fn storage_reference_negated() {
             insta::assert_snapshot!(transpile_project("variables/invalid/storage_reference_negated").unwrap_err(), @r"
             error[E154]: Reference assignment to `b` cannot be negated
-             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 0
+             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 1
 
             error[E154]: Reference assignment to `b` cannot be negated
-             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 1
+             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 2
             ");
         }
     }

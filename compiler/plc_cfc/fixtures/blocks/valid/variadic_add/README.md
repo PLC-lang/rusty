@@ -8,9 +8,9 @@ return is inferred as the promoted candidate type (`DINT`).
 
 Illustrated:
 ```
-        ADD (0)
+        ADD (1)
       +---------------+
-x --> | IN1       ADD | --> result (1)
+x --> | IN1       ADD | --> result (2)
 y --> |               |
 5 --> |               |
       +---------------+

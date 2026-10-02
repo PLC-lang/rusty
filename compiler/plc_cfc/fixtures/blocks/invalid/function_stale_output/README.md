@@ -5,5 +5,5 @@ pin cannot be typed, so the block is rejected (E147).
 Illustrated:
 ```
 a --> in1 [myAdd] myAdd
-b --> in2  (0)    oldDoubled? (stale) --> result (1)
+b --> in2  (1)    oldDoubled? (stale) --> result (2)
 ```

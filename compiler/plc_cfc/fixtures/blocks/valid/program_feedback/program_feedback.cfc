@@ -11,7 +11,7 @@
                 <ppx:FbdObject xsi:type="ppx:Block" typeName="counter" globalId="1">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="0"/>
+                            <EvaluationPriority priorityInNetwork="1"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="660" y="160"/>

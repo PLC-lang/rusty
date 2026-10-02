@@ -5,9 +5,9 @@ call captures just the return and passes the dangling output as an empty argumen
 
 Illustrated:
 ```
-        myAdd (0)
+        myAdd (1)
       +--------------------+
-a --> | in1          myAdd | --> sum (1)
+a --> | in1          myAdd | --> sum (2)
 b --> | in2   myAddDoubled | --> (unread)
       +--------------------+
 ```

@@ -4,7 +4,7 @@ negated value to its sink.
 
 Illustrated:
 ```
--foo   --> a (0)
--(foo) --> b (1)
-(-foo) --> c (2)
+-foo   --> a (1)
+-(foo) --> b (2)
+(-foo) --> c (3)
 ```

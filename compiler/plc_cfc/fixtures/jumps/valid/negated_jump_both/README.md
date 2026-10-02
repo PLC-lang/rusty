@@ -4,9 +4,9 @@ condition is true, `JMP skipAssignment IF NOT NOT myCondition`.
 
 Illustrated:
 ```
-myCondition o--o JMP skipAssignment (0)
+myCondition o--o JMP skipAssignment (1)
 
-x --> y (1)
+x --> y (2)
 
-LABEL skipAssignment (2)
+LABEL skipAssignment (3)
 ```

@@ -4,9 +4,9 @@ both guards and the final `done` sink all read `trigger` directly.
 
 Illustrated:
 ```
-              a : counter (0)            b : counter (1)
+              a : counter (1)            b : counter (2)
             +-----------------+        +-----------------+
-trigger --> | EN          ENO | -----> | EN          ENO | --> done (3)
-   seed --> | in          out | -----> | in          out | --> result (2)
+trigger --> | EN          ENO | -----> | EN          ENO | --> done (4)
+   seed --> | in          out | -----> | in          out | --> result (3)
             +-----------------+        +-----------------+
 ```
