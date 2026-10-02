@@ -4,5 +4,5 @@ negated lvalue.
 
 Illustrated:
 ```
-foo --o bar (0)
+foo --o bar (1)
 ```

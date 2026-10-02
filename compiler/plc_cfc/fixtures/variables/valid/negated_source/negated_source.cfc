@@ -27,7 +27,7 @@ END_VAR</bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="bar" globalId="3">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="0"/>
+                            <EvaluationPriority priorityInNetwork="1"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="400" y="140"/>

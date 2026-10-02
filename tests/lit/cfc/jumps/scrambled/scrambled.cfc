@@ -16,7 +16,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="bmx:CfcLabel" label="end" globalId="8">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="7"/>
+                            <EvaluationPriority priorityInNetwork="8"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="850" y="610"/>
@@ -28,7 +28,7 @@ END_VAR
                             <bmx:Negation inNegated="false"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="5"/>
+                            <EvaluationPriority priorityInNetwork="6"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="850" y="450"/>
@@ -41,7 +41,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="a" globalId="2">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="1"/>
+                            <EvaluationPriority priorityInNetwork="2"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="850" y="130"/>
@@ -57,7 +57,7 @@ END_VAR
                             <bmx:Negation inNegated="false"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="0"/>
+                            <EvaluationPriority priorityInNetwork="1"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="850" y="50"/>
@@ -77,7 +77,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="bmx:CfcLabel" label="mid" globalId="4">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="3"/>
+                            <EvaluationPriority priorityInNetwork="4"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="850" y="290"/>
@@ -86,7 +86,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="c" globalId="7">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="6"/>
+                            <EvaluationPriority priorityInNetwork="7"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="850" y="530"/>
@@ -106,7 +106,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="b" globalId="5">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="4"/>
+                            <EvaluationPriority priorityInNetwork="5"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="850" y="370"/>
@@ -122,7 +122,7 @@ END_VAR
                             <bmx:Negation inNegated="false"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="2"/>
+                            <EvaluationPriority priorityInNetwork="3"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="850" y="210"/>

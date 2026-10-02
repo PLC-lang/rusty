@@ -9,8 +9,8 @@ harvest the type from the annotated output parameter, not the call itself.
 
 Illustrated:
 ```
-        myGenOut (0)
+        myGenOut (1)
       +------------------+
-x --> | a        doubled | --> y (1)
+x --> | a        doubled | --> y (2)
       +------------------+
 ```

@@ -6,9 +6,9 @@ emit faithfully rather than pre-validate.
 
 Illustrated:
 ```
-          addInto (0)
+          addInto (1)
         +--------------------+
-  5 --> | delta      addInto | --> result (1)
+  5 --> | delta      addInto | --> result (2)
    (unwired) acc             |
         +--------------------+
 ```

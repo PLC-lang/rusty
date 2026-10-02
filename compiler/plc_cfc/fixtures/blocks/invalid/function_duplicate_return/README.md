@@ -5,5 +5,5 @@ cannot be matched to anything; the block is rejected (E155).
 Illustrated:
 ```
 a --> in1 [myAdd] (return)
-b --> in2  (0)    (return)? (duplicate) --> result (1)
+b --> in2  (1)    (return)? (duplicate) --> result (2)
 ```

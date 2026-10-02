@@ -5,12 +5,12 @@ skip covers.
 
 Illustrated (in priority order):
 ```
-g1 --> JMP mid  (0)
-x  --> a        (1)
-g2 --> JMP end  (2)
-LABEL mid       (3)
-x  --> b        (4)
-g3 --> JMP end  (5)
-x  --> c        (6)
-LABEL end       (7)
+g1 --> JMP mid  (1)
+x  --> a        (2)
+g2 --> JMP end  (3)
+LABEL mid       (4)
+x  --> b        (5)
+g3 --> JMP end  (6)
+x  --> c        (7)
+LABEL end       (8)
 ```

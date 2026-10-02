@@ -4,10 +4,10 @@ stateless callee is never invoked twice for a fanned-out output.
 
 Illustrated:
 ```
-        myAdd (0)
+        myAdd (1)
       +--------------------+
-a --> | in1          myAdd | --+--> x (1)
-b --> | in2   myAddDoubled |   '--> y (2)
+a --> | in1          myAdd | --+--> x (2)
+b --> | in2   myAddDoubled |   '--> y (3)
       +--------------------+
       (myAddDoubled unread)
 ```

@@ -15,7 +15,7 @@
                 <ppx:FbdObject xsi:type="ppx:Block" typeName="counter" globalId="1">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="0"/>
+                            <EvaluationPriority priorityInNetwork="1"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="680" y="160"/>
@@ -45,7 +45,7 @@
                 <ppx:FbdObject xsi:type="ppx:Block" typeName="counter" globalId="4">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="1"/>
+                            <EvaluationPriority priorityInNetwork="2"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="800" y="160"/>
@@ -70,7 +70,7 @@
                 <ppx:FbdObject xsi:type="ppx:Block" typeName="counter" globalId="6">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="2"/>
+                            <EvaluationPriority priorityInNetwork="3"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="920" y="160"/>

@@ -9,9 +9,9 @@ candidates (`DINT`).
 
 Illustrated:
 ```
-          MUX (0)
+          MUX (1)
         +---------------+
-sel --> | K         MUX | --> result (1)
+sel --> | K         MUX | --> result (2)
   a --> |               |
   b --> |               |
         +---------------+

@@ -2,13 +2,13 @@ RUN: %COMPILE_IR %S/guarded_return.cfc | %CHECK_IR %s
 
 The diagram, with execution orders in parentheses:
 
-guard --> RETURN (0)
-42 -----> result (1)
+guard --> RETURN (1)
+42 -----> result (2)
 
 Each ordered element must get a debug location in the diagram's own file,
 at line = order + 1, so a debugger can break on it.
 
-Guard load, branch and return are one element (order 0); the store is the sink (order 1).
+Guard load, branch and return are one element (order 1); the store is the sink (order 2).
 The instructions are matched inside the function, so no other function's instructions can bind.
 CHECK-LABEL: define void @guarded_return(ptr %0) !dbg ![[#SCOPE_FUNCTION:]]
 CHECK:       %load_guard = load i8, ptr %guard, {{.*}}!dbg ![[#LOCATION_RETURN:]]
@@ -28,10 +28,10 @@ CHECK-DAG: ![[#SCOPE_FUNCTION]] = distinct !DISubprogram(name: "guarded_return",
 CHECK-DAG: ![[#SCOPE_DIAGRAM:]] = distinct !DILexicalBlock(scope: ![[#SCOPE_FUNCTION]], file: ![[#FILE_DIAGRAM]])
 
 Diagram statements are scoped to that block, line = execution order + 1 (0 is reserved).
-CHECK-DAG: ![[#LOCATION_RETURN]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]])
+CHECK-DAG: ![[#LOCATION_RETURN]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]])
 
 The last side effect of an element in each block is a key instruction, the only place a debugger
 stops: the return element has two, its guard branch and the return behind it.
-CHECK-DAG: ![[#KEY_GUARD]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
-CHECK-DAG: ![[#KEY_RETURN]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
-CHECK-DAG: ![[#KEY_RESULT]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
+CHECK-DAG: ![[#KEY_GUARD]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
+CHECK-DAG: ![[#KEY_RETURN]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
+CHECK-DAG: ![[#KEY_RESULT]] = !DILocation(line: 3, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)

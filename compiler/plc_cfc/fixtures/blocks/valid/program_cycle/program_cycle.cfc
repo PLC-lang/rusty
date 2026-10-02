@@ -11,7 +11,7 @@
                 <ppx:FbdObject xsi:type="ppx:Block" typeName="ping" globalId="1">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="1"/>
+                            <EvaluationPriority priorityInNetwork="2"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="530" y="150"/>
@@ -36,7 +36,7 @@
                 <ppx:FbdObject xsi:type="ppx:Block" typeName="pong" globalId="3">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="0"/>
+                            <EvaluationPriority priorityInNetwork="1"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="700" y="150"/>

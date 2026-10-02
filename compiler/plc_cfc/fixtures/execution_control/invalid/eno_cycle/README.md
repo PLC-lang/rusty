@@ -5,7 +5,7 @@ rejects both blocks, mirroring the connector cycle guard.
 Illustrated:
 ```
        +----------------------------------------------------+
-       |     a : counter (0)            b : counter (1)     |
+       |     a : counter (1)            b : counter (2)     |
        |   +-----------------+        +-----------------+   |
        +-> | EN          ENO | -----> | EN          ENO | --+
 seed --+-> | in          out |   +--> | in          out |

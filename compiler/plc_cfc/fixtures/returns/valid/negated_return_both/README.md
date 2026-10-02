@@ -4,5 +4,5 @@ each inserts its own NOT, so they cancel at runtime,
 
 Illustrated:
 ```
-myCondition o--o RETURN (0)
+myCondition o--o RETURN (1)
 ```

@@ -5,9 +5,9 @@ source, not on the jump element (the IDE still writes an explicit
 
 Illustrated:
 ```
-myCondition o-- JMP skipAssignment (0)
+myCondition o-- JMP skipAssignment (1)
 
-x --> y (1)
+x --> y (2)
 
-LABEL skipAssignment (2)
+LABEL skipAssignment (3)
 ```

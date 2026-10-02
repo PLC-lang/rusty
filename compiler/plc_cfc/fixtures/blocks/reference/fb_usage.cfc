@@ -15,7 +15,7 @@ END_VAR</bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="ppx:Block" typeName="counter" instanceName="counterInstanceA" globalId="8">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="0"/>
+                            <EvaluationPriority priorityInNetwork="1"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="490" y="120"/>
@@ -47,7 +47,7 @@ END_VAR</bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="localOut" globalId="12">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="1"/>
+                            <EvaluationPriority priorityInNetwork="2"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="650" y="140"/>
