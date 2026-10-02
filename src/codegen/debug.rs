@@ -133,8 +133,7 @@ pub trait Debug<'ink> {
         value: PointerValue<'ink>,
         scope: &FunctionContext,
         block: BasicBlock<'ink>,
-        line: usize,
-        column: usize,
+        location: &SourceLocation,
     );
 
     /// When code generation is done, this method needs to be called to ensure the inner LLVM state
@@ -520,7 +519,7 @@ impl<'ink> DebugBuilder<'ink> {
             file.as_debug_info_scope(),
             name,
             file,
-            location.get_line_plus_one() as u32,
+            location.get_debug_line() as u32,
             size_bits,
             align_bits,
             &enum_elements,
@@ -595,7 +594,7 @@ impl<'ink> DebugBuilder<'ink> {
                             file.as_debug_info_scope(),
                             member_name,
                             member_file,
-                            member.source_location.get_line_plus_one() as u32,
+                            member.source_location.get_debug_line() as u32,
                             size_bits,
                             align_bits,
                             offset_bits,
@@ -614,7 +613,7 @@ impl<'ink> DebugBuilder<'ink> {
             file.as_debug_info_scope(),
             name,
             file,
-            location.get_line_plus_one() as u32,
+            location.get_debug_line() as u32,
             llvm_size,
             struct_align_bits,
             DIFlags::PUBLIC,
@@ -855,7 +854,7 @@ impl<'ink> DebugBuilder<'ink> {
             inner_type.into(),
             name,
             file,
-            location.get_line_plus_one() as u32,
+            location.get_debug_line() as u32,
             file.as_debug_info_scope(),
             align_bits,
         );
@@ -901,7 +900,7 @@ impl<'ink> DebugBuilder<'ink> {
             inner_type.into(),
             &typedef_name,
             file,
-            location.get_line_plus_one() as u32,
+            location.get_debug_line() as u32,
             file.as_debug_info_scope(),
             align_bits,
         );
@@ -952,7 +951,7 @@ impl<'ink> DebugBuilder<'ink> {
             pou.get_name(),
             Some(pou.get_name()), // for generics e.g. NAME__TYPE
             file,
-            location.get_line_plus_one() as u32,
+            location.get_debug_line() as u32,
             // entry for the function
             ditype,
             false,
@@ -1073,7 +1072,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         let scope = self.diagram_scope(scope, location).unwrap_or_else(|| subprogram.as_debug_info_scope());
         let location = self.debug_info.create_debug_location(
             self.context,
-            location.get_line_plus_one() as u32,
+            location.get_debug_line() as u32,
             location.get_column() as u32,
             scope,
             None,
@@ -1235,7 +1234,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 name,
                 "",
                 file,
-                location.get_line_plus_one() as u32,
+                location.get_debug_line() as u32,
                 debug_type,
                 false,
                 None,
@@ -1258,7 +1257,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let file = self.debug_file(location);
-        let line = location.get_line_plus_one() as u32;
+        let line = location.get_debug_line() as u32;
 
         let scope = function_scope
             .function
@@ -1296,7 +1295,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         let type_name = variable.get_type_name();
         let location = &variable.source_location;
         let file = self.debug_file(location);
-        let line = location.get_line_plus_one() as u32;
+        let line = location.get_debug_line() as u32;
         let scope = function_scope
             .function
             .get_subprogram()
@@ -1336,7 +1335,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             VariableKey::new(name, Some(&function_scope.linking_context.get_call_name_for_ir()));
         if let Some(debug_type) = self.types.get(&name.to_lowercase()) {
             let debug_type = *debug_type;
-            let line = function_scope.linking_context.get_location().get_line_plus_one() as u32;
+            let line = function_scope.linking_context.get_location().get_debug_line() as u32;
             let debug_variable = self.debug_info.create_parameter_variable(
                 scope,
                 name,
@@ -1357,8 +1356,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         value: PointerValue<'ink>,
         function_scope: &FunctionContext,
         block: BasicBlock<'ink>,
-        line: usize,
-        column: usize,
+        location: &SourceLocation,
     ) {
         let file = function_scope
             .linking_context
@@ -1374,8 +1372,8 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
 
         let location = self.debug_info.create_debug_location(
             self.context,
-            (line + 1) as u32,
-            column as u32,
+            location.get_debug_line() as u32,
+            location.get_column() as u32,
             scope,
             None,
         );
@@ -1592,12 +1590,11 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         value: PointerValue<'ink>,
         scope: &FunctionContext,
         block: BasicBlock<'ink>,
-        line: usize,
-        column: usize,
+        location: &SourceLocation,
     ) {
         match self {
             Self::None | Self::VariablesOnly(_) => {}
-            Self::Full(obj) => obj.add_variable_declaration(name, value, scope, block, line, column),
+            Self::Full(obj) => obj.add_variable_declaration(name, value, scope, block, location),
         }
     }
 

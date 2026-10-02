@@ -1,0 +1,6 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+Execution orders start at 1. The sink with order 0 is rejected at its own location;
+the sink with order 1 is valid.
+CHECK: {{.*}}zero_order.cfc.zero_order:0: error[E158]: Element has an execution order of 0, which is invalid; execution orders start at 1, the project may be corrupted
+CHECK: error: Compilation aborted due to critical errors

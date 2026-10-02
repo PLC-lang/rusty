@@ -387,6 +387,12 @@ impl<'index> Resolver<'index> {
         let mut targets = HashSet::new();
 
         for object in network.elements() {
+            // Orders start at 1; line 0 of the diagram's debug file would be no line at all.
+            if object.priority() == Some(0) {
+                let location = self.location(object);
+                self.diagnostics.push(Diagnostic::invalid_execution_order(location));
+            }
+
             // Register every output pin an incoming wire could reference.
             if let Some(out) = &object.connection_out {
                 by_pin.insert(out.id, object);
@@ -1385,6 +1391,14 @@ mod tests {
             insta::assert_snapshot!(diagnostics("variables/invalid/negative_sink"), @r"
             error[E083]: Unsupported CFC expression: `-bar`
              = negative_sink.cfc, diagram negative_sink, execution order 1
+            ");
+        }
+
+        #[test]
+        fn zero_order() {
+            insta::assert_snapshot!(diagnostics("variables/invalid/zero_order"), @r"
+            error[E158]: Element has an execution order of 0, which is invalid; execution orders start at 1, the project may be corrupted
+             = zero_order.cfc, diagram zero_order, execution order 0
             ");
         }
 

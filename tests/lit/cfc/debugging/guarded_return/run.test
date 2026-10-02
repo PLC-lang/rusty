@@ -6,7 +6,7 @@ guard --> RETURN (1)
 42 -----> result (2)
 
 Each ordered element must get a debug location in the diagram's own file,
-at line = order + 1, so a debugger can break on it.
+at line = order, so a debugger reads line N as order N.
 
 Guard load, branch and return are one element (order 1); the store is the sink (order 2).
 The instructions are matched inside the function, so no other function's instructions can bind.
@@ -27,11 +27,11 @@ The function places its stops by Key Instructions.
 CHECK-DAG: ![[#SCOPE_FUNCTION]] = distinct !DISubprogram(name: "guarded_return", {{.*}}, file: ![[#FILE_DECLARATION]], line: 1, {{.*}}keyInstructions: true)
 CHECK-DAG: ![[#SCOPE_DIAGRAM:]] = distinct !DILexicalBlock(scope: ![[#SCOPE_FUNCTION]], file: ![[#FILE_DIAGRAM]])
 
-Diagram statements are scoped to that block, line = execution order + 1 (0 is reserved).
-CHECK-DAG: ![[#LOCATION_RETURN]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]])
+Diagram statements are scoped to that block, line = execution order.
+CHECK-DAG: ![[#LOCATION_RETURN]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]])
 
 The last side effect of an element in each block is a key instruction, the only place a debugger
 stops: the return element has two, its guard branch and the return behind it.
-CHECK-DAG: ![[#KEY_GUARD]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
-CHECK-DAG: ![[#KEY_RETURN]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
-CHECK-DAG: ![[#KEY_RESULT]] = !DILocation(line: 3, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
+CHECK-DAG: ![[#KEY_GUARD]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
+CHECK-DAG: ![[#KEY_RETURN]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
+CHECK-DAG: ![[#KEY_RESULT]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
