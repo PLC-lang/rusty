@@ -21,25 +21,27 @@ entry:
   store i16 1, ptr %v, align [filtered]
   store i16 2, ptr %vt, align [filtered]
   store i32 0, ptr %func, align [filtered]
+  %3 = load ptr, ptr %o, align [filtered]
+  store i64 0, ptr %3, align [filtered]
   %load_i = load i16, ptr %i, align [filtered]
-  %3 = sext i16 %load_i to i32
+  %4 = sext i16 %load_i to i32
   %deref = load ptr, ptr %io, align [filtered]
   %load_io = load i8, ptr %deref, align [filtered]
-  %4 = sext i8 %load_io to i32
-  %tmpVar = mul i32 %3, %4
-  %5 = sext i32 %tmpVar to i64
+  %5 = sext i8 %load_io to i32
+  %tmpVar = mul i32 %4, %5
+  %6 = sext i32 %tmpVar to i64
   %deref1 = load ptr, ptr %o, align [filtered]
   %load_o = load i64, ptr %deref1, align [filtered]
-  %tmpVar2 = sub i64 %5, %load_o
+  %tmpVar2 = sub i64 %6, %load_o
   %load_v = load i16, ptr %v, align [filtered]
-  %6 = sext i16 %load_v to i32
+  %7 = sext i16 %load_v to i32
   %load_vt = load i16, ptr %vt, align [filtered]
-  %7 = sext i16 %load_vt to i32
-  %tmpVar3 = mul i32 %6, %7
-  %8 = sext i32 %tmpVar3 to i64
-  %tmpVar4 = add i64 %tmpVar2, %8
-  %9 = trunc i64 %tmpVar4 to i32
-  store i32 %9, ptr %func, align [filtered]
+  %8 = sext i16 %load_vt to i32
+  %tmpVar3 = mul i32 %7, %8
+  %9 = sext i32 %tmpVar3 to i64
+  %tmpVar4 = add i64 %tmpVar2, %9
+  %10 = trunc i64 %tmpVar4 to i32
+  store i32 %10, ptr %func, align [filtered]
   %func_ret = load i32, ptr %func, align [filtered]
   ret i32 %func_ret
 }

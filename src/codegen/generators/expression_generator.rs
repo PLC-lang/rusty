@@ -1322,22 +1322,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         declared_parameter: Option<&VariableIndexEntry>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         if argument.is_empty_statement() {
-            // Uninitialized var_output / var_in_out
+            // an explicitly empty by-ref argument gets an initialized temporary, like an omitted one
+            if let Some(parameter) = declared_parameter {
+                return self.generate_empty_expression(parameter);
+            }
             let v_type = self
                 .llvm_index
                 .find_associated_type(type_name)
                 .ok_or_else(|| Diagnostic::unknown_type(type_name, argument))?;
-
             let ptr_value = self.llvm.builder.build_alloca(v_type, "")?;
-            if let Some(p) = declared_parameter {
-                if let Some(initial_value) =
-                    self.get_initial_value(&p.initial_value, &self.get_parameter_type(p))
-                {
-                    let value = self.generate_expression(initial_value)?;
-                    self.llvm.builder.build_store(ptr_value, value)?;
-                }
-            }
-
+            self.llvm.builder.build_store(ptr_value, v_type.const_zero())?;
             return Ok(ptr_value.into());
         }
 
@@ -1595,9 +1589,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .find_effective_type_info(parameter.get_type_name())
             .is_some_and(|it| it.is_reference_to());
 
+        // a missing argument gets its declared initial value, or zero
+        let initial_value = self.get_initial_value(&parameter.initial_value, &parameter_type_name);
+
         match declaration_type {
             ArgumentType::ByVal(..) if parameter_is_reference_to => {
+                // REFERENCE TO parameters expect an address; pass the address of a zeroed temporary
                 let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
+                self.llvm.builder.build_store(ptr_value, parameter_type.const_zero())?;
                 Ok(ptr_value.as_basic_value_enum())
             }
             ArgumentType::ByVal(..)
@@ -1605,36 +1604,25 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             {
                 // Aggregate VAR_INPUT defaults are passed by reference in function signatures.
                 let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
-                if let Some(initial_value) =
-                    self.get_initial_value(&parameter.initial_value, &parameter_type_name)
-                {
-                    let value = self.generate_expression(initial_value)?;
-                    self.llvm.builder.build_store(ptr_value, value)?;
-                }
+                let value = match initial_value {
+                    Some(initial_value) => self.generate_expression(initial_value)?,
+                    None => parameter_type.const_zero(),
+                };
+                self.llvm.builder.build_store(ptr_value, value)?;
                 Ok(ptr_value.as_basic_value_enum())
             }
-            ArgumentType::ByVal(..) => {
-                if let Some(initial_value) =
-                    self.get_initial_value(&parameter.initial_value, &parameter_type_name)
-                {
-                    self.generate_expression(initial_value)
-                } else {
-                    let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
-                    let pointee = parameter_type;
-                    Ok(self.llvm.load_pointer(pointee, &ptr_value, "")?)
-                }
-            }
+            ArgumentType::ByVal(..) => match initial_value {
+                Some(initial_value) => self.generate_expression(initial_value),
+                None => Ok(parameter_type.const_zero()),
+            },
             _ => {
+                // by-ref parameters receive the address of an initialized temporary
                 let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
-
-                // if default value is given for an output
-                // we need to initialize the pointer value before returning
-                if let Some(initial_value) =
-                    self.get_initial_value(&parameter.initial_value, &parameter_type_name)
-                {
-                    let value = self.generate_expression(initial_value)?;
-                    self.llvm.builder.build_store(ptr_value, value)?;
-                }
+                let value = match initial_value {
+                    Some(initial_value) => self.generate_expression(initial_value)?,
+                    None => parameter_type.const_zero(),
+                };
+                self.llvm.builder.build_store(ptr_value, value)?;
                 Ok(ptr_value.as_basic_value_enum())
             }
         }
@@ -1714,7 +1702,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .llvm_index
                         .find_associated_type(inner_type_name)
                         .ok_or_else(|| Diagnostic::unknown_type(parameter.get_name(), expression))?;
-                    builder.build_alloca(temp_type, "empty_varinout")?.as_basic_value_enum()
+                    let temp = builder.build_alloca(temp_type, "empty_varinout")?;
+                    builder.build_store(temp, temp_type.const_zero())?;
+                    temp.as_basic_value_enum()
                 } else {
                     self.generate_lvalue(expression)?.as_basic_value_enum()
                 };

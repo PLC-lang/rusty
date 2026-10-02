@@ -65,7 +65,7 @@ END_FUNCTION
 
 `VAR_IN_OUT` is for data that the function reads and writes. It is always the caller's variable.
 
-`VAR_OUTPUT` carries a second result out of the call.
+`VAR_OUTPUT` carries a second result out of the call. Every call starts the output at its initial value, or at zero when it has none, exactly like a local variable, so the caller never reads a stale value from a path that does not assign it. An output that is a variable length array, a `REFERENCE TO`, or an alias (`AT`) is the exception: it keeps what the caller passed. The function does this through the caller's variable when it starts, so do not pass one variable as an output and also as a `VAR_IN_OUT` or `VAR_INPUT {ref}` of the same call: the function would read it as zero.
 
 
 ## Calling
