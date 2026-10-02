@@ -390,6 +390,8 @@ The generic lowerer, at `post_annotate`, replaces the generic calls in the rende
 
 The transpiler does not generate loops. Its `IF` guards are the shape parsed text produces, so the later participants treat them like any other. Its jumps, its labels, and its conditional `RETURN` have no Structured Text syntax at all; they exist for this participant, and codegen has a branch for each.
 
+The debug info of the diagram comes from codegen. It scopes the rendered statements to a lexical block bound to a debug file of their own, `<file>.cfc.<diagram>`, and places each element at its evaluation priority as the line, without an offset: the tool reads line N of that file as priority N. A priority of 0 would be line 0, which DWARF reserves for "no line", so the participant rejects it (E158).
+
 
 ## Validation
 
@@ -414,5 +416,6 @@ The participant checks the diagram before pins and wires disappear from the AST.
 | E153 | an `ENO` chain that loops |
 | E154 | a negation bubble on a reference assignment |
 | E155 | a block with two unnamed return pins |
+| E158 | an element with evaluation priority 0 |
 
 Everything about the rendered statements themselves (unknown variables, type mismatches, wrong argument counts) is left to the validation stage, which reports it at the block location of the element too.
