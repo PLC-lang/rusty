@@ -106,8 +106,6 @@ error[E089]: Invalid call parameters
 
 `SEL` looks like `MUX` but is not variadic, so all three of its parameters have a name.
 
-The [standard library](standard-library.md) overloads `ADD` and `MUL` with a named first parameter `IN1` and a variadic rest. With the library linked, `ADD(IN1 := a, b)` is a valid call as well, and every argument after the first stays positional.
-
 
 ## How many arguments
 
