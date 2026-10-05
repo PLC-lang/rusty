@@ -74,11 +74,7 @@ pub trait Pipeline {
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic>;
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
-    fn generate(
-        &mut self,
-        context: &CodegenContext,
-        project: AnnotatedProject,
-    ) -> Result<(), Diagnostic>;
+    fn generate(&mut self, context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic>;
     fn generate_headers(&mut self, project: AnnotatedProject) -> Result<(), Diagnostic>;
 }
 
@@ -527,11 +523,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         Ok(annotated_project)
     }
 
-    fn generate(
-        &mut self,
-        _context: &CodegenContext,
-        project: AnnotatedProject,
-    ) -> Result<(), Diagnostic> {
+    fn generate(&mut self, _context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic> {
         self.participants.iter_mut().try_fold((), |_, participant| participant.pre_generate(&project))?;
         let Some(compile_options) = self.get_compile_options() else {
             log::debug!("No compile options provided");
@@ -932,7 +924,6 @@ impl AnnotatedProject {
         let modules =
             targets.iter().map(|target| self.generate_single_module(&context, compile_options, Some(target)));
         let mut result = vec![];
-
         for (target, module) in targets.iter().zip(modules) {
             let obj: Object = module?
                 .unwrap()
