@@ -71,6 +71,33 @@ Members lie in memory in the order of their declaration. A struct can hold anoth
 Assigning one struct to another copies every member.
 
 
+## Unions
+
+A union is a struct where all members share the same memory. They overlap from the same address, so writing one member changes the bits that another member sees. You use a union when you need to read the same bytes as different types, for example an array of bytes and a floating-point number that live in the same slot:
+
+```iecst
+TYPE Data : UNION
+    bytes : ARRAY[0..7] OF BYTE;
+    real  : LREAL;
+END_UNION
+END_TYPE
+
+PROGRAM Reader
+    VAR
+        data : Data;
+    END_VAR
+        data.real := 3.14;
+        (* data.bytes now holds the byte representation of 3.14 *)
+END_PROGRAM
+```
+
+All members start at the same address. The union takes the size of the largest member, rounded up to that member's alignment, plus enough padding so the whole union meets that alignment. The union holds whatever is largest, nothing more.
+
+Member access uses the same dot notation as structs: `data.bytes[0]` and `data.real` both reach into the same storage. Assignment copies the whole union, like a struct. A union cannot carry an initializer in a literal form, so `data := (real := 1.0)` is not allowed.
+
+A union must be a named type. An inline union inside a struct or a variable block is not supported.
+
+
 ## Enumerations
 
 An array and a struct collect values. An enumeration instead lists the values that one variable may take. Each name stands for a number, counting from zero, and a name can set its own value, after which counting continues from there:
