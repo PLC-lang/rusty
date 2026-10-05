@@ -280,8 +280,8 @@ fn link_with_library_path() {
             target,
             objects: pipeline.project.get_objects().to_vec(),
         })),
-        got_layout: Default::default(),
         compile_dirs: Default::default(),
+        root: Default::default(),
         libraries: pipeline.project.get_libraries().to_vec(),
     };
     pipeline.register_participant(Box::new(codegen_participant));
@@ -306,8 +306,8 @@ fn captured_linker_args(args: &[&str]) -> Vec<String> {
             target,
             objects: pipeline.project.get_objects().to_vec(),
         })),
-        got_layout: Default::default(),
         compile_dirs: Default::default(),
+        root: Default::default(),
         libraries: pipeline.project.get_libraries().to_vec(),
     };
     pipeline.register_participant(Box::new(codegen_participant));

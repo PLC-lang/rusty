@@ -15,8 +15,8 @@ use rustc_hash::FxHashSet;
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, DirectAccessType, Operator,
-        ReferenceAccess, ReferenceExpr,
+        flatten_expression_list, resolve_argument_slots, Assignment, AstFactory, AstNode, AstStatement,
+        DirectAccessType, Operator, ReferenceAccess, ReferenceExpr,
     },
     literals::AstLiteral,
     try_from,
@@ -205,17 +205,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// entry point into the expression generator.
     /// generates the given expression and returns the resulting BasicValueEnum
     pub fn generate_expression(&self, expression: &AstNode) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        // If the expression was replaced by the resolver, generate the replacement
-        if let Some(StatementAnnotation::ReplacementAst { statement }) = self.annotations.get(expression) {
-            // we trust that the validator only passed us valid parameters (so left & right should be same type)
-            return self.generate_expression(statement);
-        }
-
         let v = self
             .generate_expression_value(expression)?
             .as_r_value(self.llvm, self.get_load_name(expression))?
             .as_basic_value_enum();
 
+        self.cast_to_type_hint(expression, v)
+    }
+
+    /// converts the generated value `v` of `expression` to the type hint of `expression`
+    fn cast_to_type_hint(
+        &self,
+        expression: &AstNode,
+        v: BasicValueEnum<'ink>,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let Some(target_type) = self.annotations.get_type_hint(expression, self.index) else {
             // no type-hint -> we can return the value as is
             return Ok(v);
@@ -252,6 +255,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, CodegenError> {
+        // If the expression was replaced by the resolver, generate the replacement. The replaced
+        // expression has the type of its replacement, so the caller casts it like any other value.
+        if let Some(StatementAnnotation::ReplacementAst { statement }) = self.annotations.get(expression) {
+            return self.generate_expression(statement).map(ExpressionValue::RValue);
+        }
+
         //see if this is a constant - maybe we can short curcuit this codegen
         if let Some(StatementAnnotation::Variable {
             qualified_name, constant: true, resulting_type, ..
@@ -408,7 +417,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         {
             self.create_llvm_binary_expression_for_pointer(operator, left, ltype, right, rtype, expression)
         } else {
-            self.create_llvm_generic_binary_expression(left, right, expression)
+            self.create_llvm_generic_binary_expression(left, right)
         }
     }
 
@@ -1188,57 +1197,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut variadic_parameters = Vec::new();
         let mut passed_param_indices = Vec::new();
 
-        // Mixed-call resolution: named args claim their slots first, then positional args
-        // fill the remaining slots in declaration order. **This rule must match
-        // `TypeAnnotator::annotate_arguments_mixed` in the resolver** — the resolver uses it
-        // for type hinting, we use it here to compute the LLVM argument index.
-        //
-        // Why duplicated? The function-call codegen path threads args through
-        // `get_implicit_call_parameter`, which was designed for pure-positional / pure-named
-        // calls and expects the caller to pre-compute the slot. FB/PROGRAM calls use the
-        // resolver's `Argument` hint directly and don't need this.
-        let is_mixed = arguments.iter().any(|a| a.is_assignment() || a.is_output_assignment())
-            && arguments.iter().any(|a| !a.is_assignment() && !a.is_output_assignment());
-        let named_positions: Vec<usize> = if is_mixed {
-            arguments
-                .iter()
-                .filter_map(|arg| match arg.get_stmt() {
-                    AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
-                        let name = data.left.get_flat_reference_name()?;
-                        declared_parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))
-                    }
-                    _ => None,
-                })
-                .collect()
-        } else {
-            vec![]
-        };
-        let positional_positions: Vec<usize> =
-            (0..declared_parameters.len()).filter(|i| !named_positions.contains(i)).collect();
-        let mut positional_cursor = 0usize;
+        // Named args claim their slots first, then positional args fill the remaining slots in
+        // declaration order, see `resolve_argument_slots`. The slot is the LLVM argument index; a
+        // surplus positional arg binds to no slot and is collected as a variadic below. FB/PROGRAM
+        // calls use the resolver's `Argument` hint directly and don't need this.
+        let slots = resolve_argument_slots(arguments, declared_parameters.iter().map(|it| it.get_name()));
 
-        for (arg_idx, orig_argument) in arguments.iter().enumerate() {
-            // For mixed calls, positional args are remapped to the next free slot; named args
-            // and all args in pure calls keep their natural call index.
-            //
-            // The `unwrap_or(arg_idx)` fallback fires for variadic overflow: surplus args past
-            // the declared params carry their call index through to be collected as variadics
-            // below (where `declared_parameters.get(i) == None` → push to `variadic_parameters`).
-            let effective_idx =
-                if is_mixed && !orig_argument.is_assignment() && !orig_argument.is_output_assignment() {
-                    let idx = positional_positions.get(positional_cursor).copied().unwrap_or(arg_idx);
-                    positional_cursor += 1;
-                    idx
-                } else {
-                    arg_idx
-                };
-            let (i, argument, _) =
-                get_implicit_call_parameter(orig_argument, &declared_parameters, effective_idx)?;
+        for (orig_argument, slot) in arguments.iter().zip(slots) {
+            let (slot, argument, _) = get_implicit_call_parameter(orig_argument, slot)?;
             let argument_is_reference_to = self.is_member_reference_to_reference_to(argument);
 
             // parameter_info includes the declaration type and type name
-            let parameter_info = declared_parameters
-                .get(i)
+            let parameter_info = slot
+                .and_then(|slot| declared_parameters.get(slot))
                 .map(|it| {
                     let name = it.get_type_name();
                     let parameter_is_reference_to = self
@@ -1277,7 +1248,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 })?;
 
-            if let Some((declaration_type, type_name, parameter_is_reference_to)) = parameter_info {
+            if let (Some(i), Some((declaration_type, type_name, parameter_is_reference_to))) =
+                (slot, parameter_info)
+            {
                 // REFERENCE TO parameters always receive an address: the address of a plain
                 // variable argument, or the target address of a reference argument.
                 let argument: BasicValueEnum = if declaration_type.is_by_ref()
@@ -1298,9 +1271,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 };
                 result.push((i, argument));
+                passed_param_indices.push(i);
             }
-
-            passed_param_indices.push(i);
         }
 
         // handle missing parameters, generate empty expression
@@ -1374,9 +1346,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let value = self.generate_expression_value(argument)?;
             match value {
                 ExpressionValue::LValue(value, _) => value,
-                ExpressionValue::RValue(_) => {
-                    // Passed a literal to a byref parameter?
-                    let value = self.generate_expression(argument)?;
+                ExpressionValue::RValue(value) => {
+                    // Passed a literal or an expression to a byref parameter? Store the value generated
+                    // above, generating the argument again would repeat its side effects
+                    let value = self.cast_to_type_hint(argument, value)?;
                     let argument = self.llvm.builder.build_alloca(value.get_type(), "")?;
                     self.llvm.builder.build_store(argument, value)?;
                     argument
@@ -2923,8 +2896,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         );
         for e in elements {
             //generate with correct type hint using context-free generator
-            let value = ctx_free_gen.generate_literal(e)?;
-            v.push(value.get_basic_value_enum());
+            let value = ctx_free_gen.generate_literal(e)?.get_basic_value_enum();
+            // numeric literals take the type of the array element, e.g. `1.5` in an ARRAY OF INT
+            let value = match value {
+                BasicValueEnum::IntValue(_) | BasicValueEnum::FloatValue(_) => cast_if_needed!(
+                    ctx_free_gen,
+                    inner_type,
+                    self.annotations.get_type_or_void(e, self.index),
+                    value,
+                    self.annotations.get(e)
+                )?,
+                _ => value,
+            };
+            v.push(value);
         }
 
         if v.len() < expected_len {
@@ -3130,34 +3114,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.create_const_int_for_type(target_type_name, converted)
     }
 
-    /// creates a binary expression (left op right) with generic
-    /// left & right expressions (non-numerics)
-    /// this function attempts to call optional
-    /// EQUAL_XXX, LESS_XXX or GREATER_XXX functions for comparison
-    /// expressions
+    /// reports a binary expression on operands no instruction exists for. A comparison or
+    /// arithmetic on such operands that the resolver rewrote into a call never gets here, see
+    /// `generate_expression_value`.
     fn create_llvm_generic_binary_expression(
         &self,
         left: &AstNode,
         right: &AstNode,
-        binary_statement: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        if let Some(StatementAnnotation::ReplacementAst { statement }) =
-            self.annotations.get(binary_statement)
-        {
-            // we trust that the validator only passed us valid parameters (so left & right should be same type)
-            self.generate_expression(statement)
-        } else {
-            Err(Diagnostic::codegen_error(
-                format!(
-                    "Invalid types, cannot generate binary expression for {:?} and {:?}",
-                    self.get_type_hint_for(left)?.get_name(),
-                    self.get_type_hint_for(right)?.get_name(),
-                )
-                .as_str(),
-                left,
+        Err(Diagnostic::codegen_error(
+            format!(
+                "Invalid types, cannot generate binary expression for {:?} and {:?}",
+                self.get_type_hint_for(left)?.get_name(),
+                self.get_type_hint_for(right)?.get_name(),
             )
-            .into())
-        }
+            .as_str(),
+            left,
+        )
+        .into())
     }
 
     pub fn generate_store(
@@ -3568,18 +3542,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 }
 
-/// Returns the information required to call a parameter implicitly in a function
-/// If the parameter is already implicit, it does nothing.
-/// if the parameter is explicit ´param := value´,
-/// it returns the location of the parameter in the function declaration
-/// as well as the parameter value (right side) ´param := value´ => ´value´
-/// and `true` for implicit / `false` for explicit parameters
-pub fn get_implicit_call_parameter<'a>(
-    argument: &'a AstNode,
-    parameters: &[&VariableIndexEntry],
-    idx: usize,
-) -> Result<(usize, &'a AstNode, bool), CodegenError> {
-    let (location, rhs_assignment_value, is_implicit) = match argument.get_stmt() {
+/// Splits a call argument into the slot of the declared parameter it binds to, its value and whether it
+/// is positional (implicit). `slot` is the one `resolve_argument_slots` derived for the argument; a
+/// named argument that names no declared parameter is an error.
+pub fn get_implicit_call_parameter(
+    argument: &AstNode,
+    slot: Option<usize>,
+) -> Result<(Option<usize>, &AstNode, bool), CodegenError> {
+    match argument.get_stmt() {
         // Explicit
         AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
             let Some(left_name) = data.left.as_ref().get_flat_reference_name() else {
@@ -3592,19 +3562,13 @@ pub fn get_implicit_call_parameter<'a>(
                 );
             };
 
-            let loc = parameters
-                .iter()
-                .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
-                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.as_ref()))?;
-
-            (loc, data.right.as_ref(), false)
+            let slot = slot.ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.as_ref()))?;
+            Ok((Some(slot), data.right.as_ref(), false))
         }
 
         // Implicit
-        _ => (idx, argument, true),
-    };
-
-    Ok((location, rhs_assignment_value, is_implicit))
+        _ => Ok((slot, argument, true)),
+    }
 }
 
 /// turns the given IntValue into an i1 by comparing it to 0 (of the same size)

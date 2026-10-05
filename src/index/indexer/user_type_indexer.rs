@@ -318,6 +318,7 @@ impl UserTypeIndexer<'_, '_> {
                     &variant,
                     Some(init),
                     ele.get_location(),
+                    self.user_type.linkage,
                 ))
             } else {
                 unreachable!("the preprocessor should have provided explicit assignments for enum values")

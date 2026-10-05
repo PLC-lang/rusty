@@ -44,6 +44,27 @@ IF level THEN        (* accepted, with a warning *)
 IF level <> 0 THEN   (* the same test, and it says so *)
 ```
 
+`BOOL` is not a number. A `TRUE` or `FALSE`, the result of a comparison, or one bit of a bit string cannot be stored in an integer, a real, or a bit string. The compiler rejects the assignment, and the standard library converts when you need a `0` or a `1`:
+
+```iecst
+VAR
+    ready: BOOL;
+    count: DINT;
+END_VAR
+
+count := ready;                 (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
+count := BOOL_TO_DINT(ready);   (* 1 when ready is TRUE, 0 otherwise *)
+```
+
+The other direction takes the digits `0` and `1`, which are the two `BOOL` values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning. Like every downcast it keeps the low bits of the value, so it does not test "is not zero". Write the comparison when that is what you mean:
+
+```iecst
+ready := 1;             (* TRUE *)
+ready := 5;             (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL' *)
+ready := count;         (* warning[E067]: Implicit downcast from 'DINT' to 'BOOL'. *)
+ready := count <> 0;    (* the test, and it says so *)
+```
+
 
 ## Bit strings
 
@@ -131,7 +152,10 @@ A type name with `#` in front of a value states the type of that value. On a lit
 ```iecst
 x := DINT#16#2A;    (* the literal 16#2A, as a DINT *)
 y := DINT#small;    (* small, converted to DINT *)
+z := DINT#TRUE;     (* error[E054]: Literal true is not compatible to DINT *)
 ```
+
+The literal must be a value of the type in front of it: `DINT#1.5` and `DINT#TRUE` are rejected, because neither a real nor a `BOOL` is a `DINT`.
 
 
 ## What's next
