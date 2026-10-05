@@ -37,7 +37,7 @@ use inkwell::{
     module::Module,
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode, TargetData},
-    types::BasicTypeEnum};
+};
 use plc_ast::ast::{CompilationUnit, PouType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_llvm::TargetMachineExt;
