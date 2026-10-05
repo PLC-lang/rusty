@@ -3,7 +3,7 @@
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
-use plc_ast::ast::{AstFactory, AstNode, AstStatement};
+use plc_ast::ast::{AstFactory, AstNode, AstStatement, Operator, UnaryExpression};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
@@ -125,7 +125,7 @@ impl<'index> Resolver<'index> {
                     // The traced source becomes the sink's assigned value,
                     // negated once more by the sink's own inversion bubble.
                     Trace::Reached(source) => {
-                        let sink = self.expression(object, &location);
+                        let sink = self.expression(object, &location, is_supported);
                         let source = self.value(&source, &location);
                         let source = self.negate_if(source, &location, object.in_negated());
 
@@ -454,11 +454,17 @@ impl<'index> Resolver<'index> {
         Survey { by_pin, block_output, connector_by_label, labels, targets }
     }
 
-    fn expression(&mut self, object: &FbdObject, location: &SourceLocation) -> AstNode {
+    fn expression(
+        &mut self,
+        object: &FbdObject,
+        location: &SourceLocation,
+        is_supported: fn(&AstNode) -> bool,
+    ) -> AstNode {
         let node = self.parse(object, location);
 
-        // A variable element may only hold a literal or a reference; anything
-        // else (a call, arithmetic) must be modeled as a block element instead.
+        // A variable element may only hold a literal or a reference, which a
+        // source may negate; anything else (a call, arithmetic) must be
+        // modeled as a block element instead.
         if !is_supported(&node) {
             let text = object.identifier().unwrap_or_default();
             self.diagnostics.push(Diagnostic::unsupported_cfc_expression(text, location.clone()));
@@ -473,7 +479,7 @@ impl<'index> Resolver<'index> {
     fn value(&mut self, source: &Source, location: &SourceLocation) -> AstNode {
         match source {
             Source::Variable { object, negated } => {
-                let node = self.expression(object, location);
+                let node = self.expression(object, location, is_supported_source);
                 let node = self.negate_if(node, location, object.out_negated());
                 self.negate_if(node, location, *negated)
             }
@@ -653,6 +659,17 @@ fn trace<'model>(start: Option<usize>, survey: &Survey<'model>) -> Trace<'model>
 // Sees through parentheses, e.g. `(foo)` or `((5))`.
 fn is_supported(node: &AstNode) -> bool {
     matches!(node.get_stmt_peeled(), AstStatement::Literal(_) | AstStatement::ReferenceExpr(_))
+}
+
+// A source may also negate its value, e.g. `-foo` or `-(5)`; a sink may not,
+// because `-foo` is no assignment target.
+fn is_supported_source(node: &AstNode) -> bool {
+    match node.get_stmt_peeled() {
+        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
+            is_supported(value)
+        }
+        _ => is_supported(node),
+    }
 }
 
 // Classification, naming, and call-target helpers for block elements.
@@ -906,6 +923,15 @@ mod tests {
         #[test]
         fn literal_assignment() {
             insta::assert_snapshot!(resolve_project("variables/valid/literal_assignment"), @"foo := 5");
+        }
+
+        #[test]
+        fn negative_source() {
+            insta::assert_snapshot!(resolve_project("variables/valid/negative_source"), @r"
+            a := -foo
+            b := -(foo)
+            c := (-foo)
+            ");
         }
 
         #[test]
@@ -1351,6 +1377,14 @@ mod tests {
             insta::assert_snapshot!(diagnostics("variables/invalid/binary_expression"), @r"
             error[E083]: Unsupported CFC expression: `foo + 1`
              = binary_expression.cfc, diagram binary_expression, execution order 0
+            ");
+        }
+
+        #[test]
+        fn negative_sink() {
+            insta::assert_snapshot!(diagnostics("variables/invalid/negative_sink"), @r"
+            error[E083]: Unsupported CFC expression: `-bar`
+             = negative_sink.cfc, diagram negative_sink, execution order 0
             ");
         }
 

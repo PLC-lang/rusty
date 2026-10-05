@@ -77,7 +77,6 @@ fn lword_to_lreal_conversion() {
         ret : myType;
     END_VAR
         ret.zero := LWORD_TO_LREAL(LWORD#0);
-        // bit transfer for conversion 4611686018427387904 should be the first bit from the exponent resulting in decimal 2
         ret.max := LWORD_TO_LREAL(LWORD#4611686018427387904);
     END_PROGRAM
         ";
@@ -86,7 +85,7 @@ fn lword_to_lreal_conversion() {
     let mut maintype = F64Type::default();
     let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
-    assert_eq!(maintype.max, 2f64);
+    assert_eq!(maintype.max, 4611686018427387904f64);
 }
 
 #[test]
@@ -285,7 +284,6 @@ fn dword_to_real_conversion() {
         ret : myType;
     END_VAR
         ret.zero := DWORD_TO_REAL(DWORD#0);
-        // bit transfer for conversion 1073741824 should be the first bit from the exponent resulting in decimal 2
         ret.max := DWORD_TO_REAL(DWORD#1073741824);
     END_PROGRAM
         ";
@@ -294,7 +292,7 @@ fn dword_to_real_conversion() {
     let mut maintype = F32Type::default();
     let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
-    assert_eq!(maintype.max, 2f32);
+    assert_eq!(maintype.max, 1073741824f32);
 }
 
 #[test]
@@ -1049,8 +1047,6 @@ fn lreal_to_lword_conversion() {
         ret : myType;
     END_VAR
         ret.zero := LREAL_TO_LWORD(LREAL#0);
-        // counter test LWORD_TO_LREAL
-        // 2 in LREAL is the first bit from exponent 2^62 = 4611686018427387904
         ret.max := LREAL_TO_LWORD(LREAL#2);
     END_PROGRAM
         ";
@@ -1059,7 +1055,7 @@ fn lreal_to_lword_conversion() {
     let mut maintype = U64Type::default();
     let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
-    assert_eq!(maintype.max, 4611686018427387904u64);
+    assert_eq!(maintype.max, 2u64);
 }
 
 #[test]
@@ -1074,8 +1070,6 @@ fn real_to_dword_conversion() {
         ret : myType;
     END_VAR
         ret.zero := REAL_TO_DWORD(REAL#0);
-        // counter test DWORD_TO_REAL
-        // 2 in REAL is the first bit from exponent 30 = 1073741824
         ret.max := REAL_TO_DWORD(REAL#2);
     END_PROGRAM
         ";
@@ -1084,7 +1078,7 @@ fn real_to_dword_conversion() {
     let mut maintype = U32Type::default();
     let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
-    assert_eq!(maintype.max, 1073741824u32);
+    assert_eq!(maintype.max, 2u32);
 }
 
 #[test]

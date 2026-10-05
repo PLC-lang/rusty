@@ -137,7 +137,7 @@ A literal source works in the same way. The identifier goes through the compiler
 foo := 5;
 ```
 
-The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as `in1 + 1` is rejected (E083), because a diagram models arithmetic as blocks. The condition of a return or a jump is the exception and accepts any expression.
+The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as `in1 + 1` is rejected (E083), because a diagram models arithmetic as blocks. Parentheses are looked through, so `(in1)` is a reference. A source may also negate its value with a unary minus, as in `-in1` or `-(in1)`, which the parser gives as a unary expression; a sink may not, because `-in1` is no assignment target. The condition of a return or a jump is the exception and accepts any expression.
 
 A negation bubble on the pin wraps the value in a `NOT`:
 
@@ -173,7 +173,7 @@ a --> [b |S] (0)
 IF a THEN b := TRUE; END_IF
 ```
 
-`Reset` mode is the counterpart and stores `FALSE` under the same guard. `Reference` mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:
+`Reset` mode is the counterpart and stores `FALSE` under the same guard. The rendered assignment is validated like any other, so a sink with either mode on a variable that is not a `BOOL` is an invalid assignment (E037), reported at the sink. `Reference` mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:
 
 ```
 a --> [b |REF] (0)
@@ -399,7 +399,7 @@ The participant checks the diagram before pins and wires disappear from the AST.
 |---|---|
 | E081 | a connector label claimed twice |
 | E082 | a continuation with no connector |
-| E083 | an expression where only a name or a literal is allowed |
+| E083 | an expression where only a name or a literal (negated, for a source) is allowed |
 | E084 | an element that is placed but not wired |
 | E085 | a return without a condition |
 | E086 | a connector without an input |

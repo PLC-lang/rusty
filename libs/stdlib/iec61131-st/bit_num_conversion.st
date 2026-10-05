@@ -3,11 +3,23 @@
 * Converts LWORD to LREAL
 *
 *********************)
-{external}
 FUNCTION LWORD_TO_LREAL : LREAL
 VAR_INPUT
     in : LWORD;
 END_VAR
+    LWORD_TO_LREAL := in;
+END_FUNCTION
+
+(********************
+*
+* Converts LWORD to REAL
+*
+*********************)
+FUNCTION LWORD_TO_REAL : REAL
+VAR_INPUT
+    in : LWORD;
+END_VAR
+    LWORD_TO_REAL := in;
 END_FUNCTION
 
 (********************
@@ -111,11 +123,23 @@ END_FUNCTION
 * Converts DWORD to REAL
 *
 *********************)
-{external}
 FUNCTION DWORD_TO_REAL : REAL
 VAR_INPUT
     in : DWORD;
 END_VAR
+    DWORD_TO_REAL := in;
+END_FUNCTION
+
+(********************
+*
+* Converts DWORD to LREAL
+*
+*********************)
+FUNCTION DWORD_TO_LREAL : LREAL
+VAR_INPUT
+    in : DWORD;
+END_VAR
+    DWORD_TO_LREAL := in;
 END_FUNCTION
 
 (********************
@@ -228,6 +252,30 @@ END_FUNCTION
 
 (********************
 *
+* Converts WORD to REAL
+*
+*********************)
+FUNCTION WORD_TO_REAL : REAL
+VAR_INPUT
+    in : WORD;
+END_VAR
+    WORD_TO_REAL := in;
+END_FUNCTION
+
+(********************
+*
+* Converts WORD to LREAL
+*
+*********************)
+FUNCTION WORD_TO_LREAL : LREAL
+VAR_INPUT
+    in : WORD;
+END_VAR
+    WORD_TO_LREAL := in;
+END_FUNCTION
+
+(********************
+*
 * Converts WORD to DINT
 *
 *********************)
@@ -324,6 +372,30 @@ END_FUNCTION
 
 (********************
 *
+* Converts BYTE to REAL
+*
+*********************)
+FUNCTION BYTE_TO_REAL : REAL
+VAR_INPUT
+    in : BYTE;
+END_VAR
+    BYTE_TO_REAL := in;
+END_FUNCTION
+
+(********************
+*
+* Converts BYTE to LREAL
+*
+*********************)
+FUNCTION BYTE_TO_LREAL : LREAL
+VAR_INPUT
+    in : BYTE;
+END_VAR
+    BYTE_TO_LREAL := in;
+END_FUNCTION
+
+(********************
+*
 * Converts BYTE to DINT
 *
 *********************)
@@ -415,7 +487,43 @@ FUNCTION BOOL_TO_LINT : LINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_LINT := in;
+    IF in THEN
+        BOOL_TO_LINT := 1;
+    ELSE
+        BOOL_TO_LINT := 0;
+    END_IF;
+END_FUNCTION
+
+(********************
+*
+* Converts BOOL to REAL
+*
+*********************)
+FUNCTION BOOL_TO_REAL : REAL
+VAR_INPUT
+    in : BOOL;
+END_VAR
+    IF in THEN
+        BOOL_TO_REAL := 1.0;
+    ELSE
+        BOOL_TO_REAL := 0.0;
+    END_IF;
+END_FUNCTION
+
+(********************
+*
+* Converts BOOL to LREAL
+*
+*********************)
+FUNCTION BOOL_TO_LREAL : LREAL
+VAR_INPUT
+    in : BOOL;
+END_VAR
+    IF in THEN
+        BOOL_TO_LREAL := 1.0;
+    ELSE
+        BOOL_TO_LREAL := 0.0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -427,7 +535,11 @@ FUNCTION BOOL_TO_DINT : DINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_DINT := in;
+    IF in THEN
+        BOOL_TO_DINT := 1;
+    ELSE
+        BOOL_TO_DINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -439,7 +551,11 @@ FUNCTION BOOL_TO_INT : INT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_INT := in;
+    IF in THEN
+        BOOL_TO_INT := 1;
+    ELSE
+        BOOL_TO_INT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -451,7 +567,11 @@ FUNCTION BOOL_TO_SINT : SINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_SINT := in;
+    IF in THEN
+        BOOL_TO_SINT := 1;
+    ELSE
+        BOOL_TO_SINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -463,7 +583,11 @@ FUNCTION BOOL_TO_ULINT : ULINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_ULINT := in;
+    IF in THEN
+        BOOL_TO_ULINT := 1;
+    ELSE
+        BOOL_TO_ULINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -475,7 +599,11 @@ FUNCTION BOOL_TO_UDINT : UDINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_UDINT := in;
+    IF in THEN
+        BOOL_TO_UDINT := 1;
+    ELSE
+        BOOL_TO_UDINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -487,7 +615,11 @@ FUNCTION BOOL_TO_UINT : UINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_UINT := in;
+    IF in THEN
+        BOOL_TO_UINT := 1;
+    ELSE
+        BOOL_TO_UINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
@@ -499,12 +631,16 @@ FUNCTION BOOL_TO_USINT : USINT
 VAR_INPUT
     in : BOOL;
 END_VAR
-    BOOL_TO_USINT := in;
+    IF in THEN
+        BOOL_TO_USINT := 1;
+    ELSE
+        BOOL_TO_USINT := 0;
+    END_IF;
 END_FUNCTION
 
 (********************
 *
-* Converts LREAL to LWORD
+* Rounds LREAL to the nearest integer, ties away from zero, and keeps the low bits of LWORD
 *
 *********************)
 {external}
@@ -516,11 +652,83 @@ END_FUNCTION
 
 (********************
 *
-* Converts REAL to DWORD
+* Rounds REAL to the nearest integer, ties away from zero, and keeps the low bits of DWORD
 *
 *********************)
 {external}
 FUNCTION REAL_TO_DWORD : DWORD
+VAR_INPUT
+    in : REAL;
+END_VAR
+END_FUNCTION
+
+(********************
+*
+* Rounds LREAL to the nearest integer, ties away from zero, and keeps the low bits of DWORD
+*
+*********************)
+{external}
+FUNCTION LREAL_TO_DWORD : DWORD
+VAR_INPUT
+    in : LREAL;
+END_VAR
+END_FUNCTION
+
+(********************
+*
+* Rounds LREAL to the nearest integer, ties away from zero, and keeps the low bits of WORD
+*
+*********************)
+{external}
+FUNCTION LREAL_TO_WORD : WORD
+VAR_INPUT
+    in : LREAL;
+END_VAR
+END_FUNCTION
+
+(********************
+*
+* Rounds LREAL to the nearest integer, ties away from zero, and keeps the low bits of BYTE
+*
+*********************)
+{external}
+FUNCTION LREAL_TO_BYTE : BYTE
+VAR_INPUT
+    in : LREAL;
+END_VAR
+END_FUNCTION
+
+(********************
+*
+* Rounds REAL to the nearest integer, ties away from zero, and keeps the low bits of LWORD
+*
+*********************)
+{external}
+FUNCTION REAL_TO_LWORD : LWORD
+VAR_INPUT
+    in : REAL;
+END_VAR
+END_FUNCTION
+
+(********************
+*
+* Rounds REAL to the nearest integer, ties away from zero, and keeps the low bits of WORD
+*
+*********************)
+{external}
+FUNCTION REAL_TO_WORD : WORD
+VAR_INPUT
+    in : REAL;
+END_VAR
+END_FUNCTION
+
+(********************
+*
+* Rounds REAL to the nearest integer, ties away from zero, and keeps the low bits of BYTE
+*
+*********************)
+{external}
+FUNCTION REAL_TO_BYTE : BYTE
 VAR_INPUT
     in : REAL;
 END_VAR

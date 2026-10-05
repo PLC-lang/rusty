@@ -26,7 +26,7 @@ The body is the network: the elements and the wires between them. The compiler t
 
 | Element | What it does |
 |---|---|
-| Input | Reads a variable or a literal and feeds it into a wire |
+| Input | Reads a variable or a literal, optionally negated with a minus, and feeds it into a wire |
 | Output | Writes the value of its wire into a variable |
 | Block | Calls a function, a function block instance, a program, or an action |
 | Connector and continuation | A named break in a wire, to avoid drawing across the whole sheet |
@@ -71,6 +71,8 @@ When `EN` is false, the call does not run, and the outputs of the block keep the
 
 An output element can carry a storage mode, which you set in the tool. Without one, the output writes the value on its wire every time it runs. With `Set`, the wire is a condition instead: when it is true, the variable becomes `TRUE`, and when it is false, nothing is written and the variable keeps its value. `Reset` writes `FALSE` under the same condition. Two outputs on one variable, one with each mode, build a latch.
 
+Both modes store a `BOOL`, so the variable of such an output must be a `BOOL`. A numeric variable behind a `Set` or `Reset` output is rejected with the same error that `count := TRUE` gets in text, reported at the output element. The [basic types](basic-types.md#bool) chapter explains why a `BOOL` is not a number.
+
 `Reference` writes no value at all. The output becomes a [reference](pointers.md#references) that is bound to the variable on its wire, so a later read of the output sees the value that variable holds at that time. A negation bubble on such an output is rejected.
 
 
@@ -83,7 +85,7 @@ error[E083]: Unsupported CFC expression: `foo + 1`
  = mixer.cfc: Block 6
 ```
 
-The number is the identifier that the tool gave the element. The message repeats the rule of the table above: an input or an output element holds a variable or a literal, and not an expression.
+The number is the identifier that the tool gave the element. The message repeats the rule of the table above: an input or an output element holds a variable or a literal, and not an expression. The one exception is a minus in front of the value of an input, such as `-speed`, because it only negates the value. An output is written to, so `-speed` is rejected there.
 
 Other checks are about the routing. A wire must lead somewhere, so a continuation needs a connector of its name, and a connector that something reads needs an input. A name is claimed once, so two connectors with the same label are rejected, and so are two labels with the same name. A jump to a label that no element defines is rejected as well. A label that no jump uses, a jump without a condition, and an element that you placed but never wired are warnings. A return without a condition is rejected, because it could never fire.
 

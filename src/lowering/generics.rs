@@ -19,8 +19,8 @@
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstNode, AstStatement, CallStatement, CompilationUnit, DataType,
-        DataTypeDeclaration, Implementation, LinkageType, Pou,
+        flatten_expression_list, resolve_argument_slots, AstNode, AstStatement, CallStatement,
+        CompilationUnit, DataType, DataTypeDeclaration, Implementation, LinkageType, Pou,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -417,34 +417,23 @@ pub fn derive_call_generic_map(
     Some(derive_generic_types(index, index, generics, candidates))
 }
 
-/// Pairs each call argument with the declared type name of the parameter it binds to. As in the
-/// annotator and codegen, named arguments claim their slots first, positional arguments fill the
-/// remaining slots left-to-right and surplus positional arguments bind to the variadic member.
+/// Pairs each call argument with the declared type name of the parameter it binds to, see
+/// `resolve_argument_slots`. A surplus positional argument binds to the variadic member.
 fn paired_args<'a>(index: &Index, pou_name: &str, args: &[&'a AstNode]) -> Vec<(String, &'a AstNode)> {
     let params = index.get_available_parameters(pou_name);
+    let slots = resolve_argument_slots(args, params.iter().map(|it| it.get_name()));
 
-    let named_positions: FxHashSet<usize> = args
-        .iter()
-        .filter_map(|arg| {
-            let name = arg.get_assignment_identifier()?;
-            params.iter().position(|it| it.get_name().eq_ignore_ascii_case(name))
+    args.iter()
+        .zip(slots)
+        .filter_map(|(arg, slot)| {
+            let param = match slot {
+                Some(slot) => params[slot],
+                None if arg.get_assignment_identifier().is_none() => index.get_variadic_member(pou_name)?,
+                None => return None,
+            };
+            Some((param.get_type_name().to_string(), *arg))
         })
-        .collect();
-    let mut free_slots = (0..params.len()).filter(|it| !named_positions.contains(it));
-
-    let mut pairs = Vec::new();
-    for arg in args {
-        if let Some(name) = arg.get_assignment_identifier() {
-            if let Some(param) = params.iter().find(|it| it.get_name().eq_ignore_ascii_case(name)) {
-                pairs.push((param.get_type_name().to_string(), *arg));
-            }
-        } else if let Some(slot) = free_slots.next() {
-            pairs.push((params[slot].get_type_name().to_string(), *arg));
-        } else if let Some(vararg) = index.get_variadic_member(pou_name) {
-            pairs.push((vararg.get_type_name().to_string(), *arg));
-        }
-    }
-    pairs
+        .collect()
 }
 
 impl AstVisitorMut for GenericLowerer {

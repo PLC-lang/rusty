@@ -44,6 +44,87 @@ FUNCTION TO_BOOL__LWORD : BOOL
     TO_BOOL__LWORD := LWORD_TO_BOOL(in);
 END_FUNCTION
 
+FUNCTION TO_BOOL__SINT : BOOL
+    VAR_INPUT
+        in : SINT;
+    END_VAR
+
+    TO_BOOL__SINT := SINT_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__USINT : BOOL
+    VAR_INPUT
+        in : USINT;
+    END_VAR
+
+    TO_BOOL__USINT := USINT_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__INT : BOOL
+    VAR_INPUT
+        in : INT;
+    END_VAR
+
+    TO_BOOL__INT := INT_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__UINT : BOOL
+    VAR_INPUT
+        in : UINT;
+    END_VAR
+
+    TO_BOOL__UINT := UINT_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__DINT : BOOL
+    VAR_INPUT
+        in : DINT;
+    END_VAR
+
+    TO_BOOL__DINT := DINT_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__UDINT : BOOL
+    VAR_INPUT
+        in : UDINT;
+    END_VAR
+
+    TO_BOOL__UDINT := UDINT_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__LINT : BOOL
+    VAR_INPUT
+        in : LINT;
+    END_VAR
+
+    TO_BOOL__LINT := LINT_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__ULINT : BOOL
+    VAR_INPUT
+        in : ULINT;
+    END_VAR
+
+    TO_BOOL__ULINT := ULINT_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__REAL : BOOL
+    VAR_INPUT
+        in : REAL;
+    END_VAR
+
+    TO_BOOL__REAL := REAL_TO_BOOL(in);
+END_FUNCTION
+
+FUNCTION TO_BOOL__LREAL : BOOL
+    VAR_INPUT
+        in : LREAL;
+    END_VAR
+
+    TO_BOOL__LREAL := LREAL_TO_BOOL(in);
+END_FUNCTION
+
+
 // ======================================================================================================== //
 
 FUNCTION TO_BYTE<T: ANY> : BYTE
@@ -107,6 +188,23 @@ FUNCTION TO_BYTE__LWORD : BYTE
 
     TO_BYTE__LWORD := LWORD_TO_BYTE(in);
 END_FUNCTION
+
+FUNCTION TO_BYTE__REAL : BYTE
+    VAR_INPUT
+        in : REAL;
+    END_VAR
+
+    TO_BYTE__REAL := REAL_TO_BYTE(in);
+END_FUNCTION
+
+FUNCTION TO_BYTE__LREAL : BYTE
+    VAR_INPUT
+        in : LREAL;
+    END_VAR
+
+    TO_BYTE__LREAL := LREAL_TO_BYTE(in);
+END_FUNCTION
+
 
 // ======================================================================================================== //
 
@@ -172,6 +270,23 @@ FUNCTION TO_WORD__LWORD : WORD
     TO_WORD__LWORD := LWORD_TO_WORD(in);
 END_FUNCTION
 
+FUNCTION TO_WORD__REAL : WORD
+    VAR_INPUT
+        in : REAL;
+    END_VAR
+
+    TO_WORD__REAL := REAL_TO_WORD(in);
+END_FUNCTION
+
+FUNCTION TO_WORD__LREAL : WORD
+    VAR_INPUT
+        in : LREAL;
+    END_VAR
+
+    TO_WORD__LREAL := LREAL_TO_WORD(in);
+END_FUNCTION
+
+
 // ======================================================================================================== //
 
 FUNCTION TO_DWORD<T: ANY> : DWORD
@@ -235,6 +350,23 @@ FUNCTION TO_DWORD__LWORD : DWORD
 
     TO_DWORD__LWORD := LWORD_TO_DWORD(in);
 END_FUNCTION
+
+FUNCTION TO_DWORD__REAL : DWORD
+    VAR_INPUT
+        in : REAL;
+    END_VAR
+
+    TO_DWORD__REAL := REAL_TO_DWORD(in);
+END_FUNCTION
+
+FUNCTION TO_DWORD__LREAL : DWORD
+    VAR_INPUT
+        in : LREAL;
+    END_VAR
+
+    TO_DWORD__LREAL := LREAL_TO_DWORD(in);
+END_FUNCTION
+
 
 // ======================================================================================================== //
 
@@ -300,3 +432,18 @@ FUNCTION TO_LWORD__DWORD : LWORD
     TO_LWORD__DWORD := DWORD_TO_LWORD(in);
 END_FUNCTION
 
+FUNCTION TO_LWORD__REAL : LWORD
+    VAR_INPUT
+        in : REAL;
+    END_VAR
+
+    TO_LWORD__REAL := REAL_TO_LWORD(in);
+END_FUNCTION
+
+FUNCTION TO_LWORD__LREAL : LWORD
+    VAR_INPUT
+        in : LREAL;
+    END_VAR
+
+    TO_LWORD__LREAL := LREAL_TO_LWORD(in);
+END_FUNCTION

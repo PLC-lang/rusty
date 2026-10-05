@@ -13,7 +13,7 @@ use std::{
 };
 
 use plc::output::{FormatOption, RelocationPreference};
-use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
+use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads};
 use plc_util::path::normalize_lexical_path;
 
 pub type ParameterError = clap::Error;
@@ -253,20 +253,6 @@ pub struct CompileParameters {
     pub hwmap_file: Option<Option<String>>,
 
     #[clap(
-        name = "got-layout-file",
-        long,
-        global = true,
-        help = "Obtain information about the current custom GOT layout from the given file if it exists.
-    Save information about the generated custom GOT layout to the given file.
-    Format is detected by extension.
-    Supported formats : json, toml",
-        default_value = DEFAULT_GOT_LAYOUT_FILE,
-        parse(try_from_str = validate_config),
-        requires = "online-change"
-    ) ]
-    pub got_layout_file: String,
-
-    #[clap(
         name = "optimization",
         long,
         short = 'O',
@@ -420,13 +406,6 @@ pub struct CompileParameters {
 
     #[clap(name = "check", long, help = "Check only, do not generate any output", global = true)]
     pub check_only: bool,
-
-    #[clap(
-        long,
-        help = "Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime",
-        global = true
-    )]
-    pub online_change: bool,
 
     #[clap(name = "generate-headers", long, help = "Generate headers only, do not compile.", global = true)]
     pub generate_headers_only: bool,
@@ -753,11 +732,6 @@ impl CompileParameters {
         let format = get_config_format(&path)
             .ok_or_else(|| format!("Cannot identify --hwmap-file format from path: {path}"))?;
         Ok(Some((path, format)))
-    }
-
-    pub fn got_layout_format(&self) -> ConfigFormat {
-        // It is safe to unwrap here, since the provided argument to `--got-online-change` has been checked with `validate_config`
-        get_config_format(&self.got_layout_file).unwrap()
     }
 
     /// Returns the location where intermediate build artifacts are written.
