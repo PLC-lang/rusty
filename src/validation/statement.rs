@@ -27,8 +27,9 @@ use crate::{
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     resolver::{const_evaluator, AnnotationMap, AutoDerefType, StatementAnnotation},
     typesystem::{
-        self, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
-        DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
+        self, get_date_time_arithmetic, get_equals_function_name_for, get_literal_actual_signed_type_name,
+        DataType, DataTypeInformation, DateTimeArithmetic, Dimension, StructSource, BOOL_TYPE,
+        LONG_TIME_TYPE, POINTER_SIZE,
     },
 };
 
@@ -1047,7 +1048,7 @@ fn visit_binary_expression<T: AnnotationMap>(
         }
         Operator::Division => {
             validate_binary_expression(validator, statement, operator, left, right, context);
-            validate_zero_diviser(context, validator, right, &statement.location);
+            validate_zero_diviser(validator, context.annotations, context.index, right, &statement.location);
         }
         _ => validate_binary_expression(validator, statement, operator, left, right, context),
     }
@@ -1063,8 +1064,30 @@ fn validate_binary_expression<T: AnnotationMap>(
     right: &AstNode,
     context: &ValidationContext<T>,
 ) {
-    let left_type = context.annotations.get_type_or_void(left, context.index).get_type_information();
-    let right_type = context.annotations.get_type_or_void(right, context.index).get_type_information();
+    let left_data_type = context.annotations.get_type_or_void(left, context.index);
+    let right_data_type = context.annotations.get_type_or_void(right, context.index);
+    let left_type = left_data_type.get_type_information();
+    let right_type = right_data_type.get_type_information();
+
+    // arithmetic with a date or time operand follows its own table
+    let involves_date_or_time =
+        context.index.get_intrinsic_type_information(left_type).is_date_or_time_type()
+            || context.index.get_intrinsic_type_information(right_type).is_date_or_time_type();
+    if operator.is_arithmetic_operator()
+        && involves_date_or_time
+        && !left_type.is_void()
+        && !right_type.is_void()
+    {
+        validate_date_time_arithmetic(
+            validator,
+            context.index,
+            left_data_type,
+            operator,
+            right_data_type,
+            &statement.get_location(),
+        );
+        return;
+    }
 
     // if the type is a subrange, check if the intrinsic type is numerical
     let is_numerical = context.index.get_intrinsic_type_information(left_type).is_numerical();
@@ -1085,6 +1108,56 @@ fn validate_binary_expression<T: AnnotationMap>(
             );
         }
     }
+}
+
+/// Validates `left <operator> right` for a date or time operand and returns the type of the
+/// result. A combination the standard does not define is E156, a defined one needs its standard
+/// library function (E073), and a duration combined with a bare integer is accepted with E157.
+pub fn validate_date_time_arithmetic<'i>(
+    validator: &mut Validator,
+    index: &'i Index,
+    left: &DataType,
+    operator: &Operator,
+    right: &DataType,
+    location: &SourceLocation,
+) -> Option<&'i DataType> {
+    let left_name = validator.get_type_name_or_slice(left);
+    let right_name = validator.get_type_name_or_slice(right);
+    let Some(arithmetic) = get_date_time_arithmetic(index, left, operator, right) else {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Operator `{operator}` is not defined for `{left_name}` and `{right_name}`"
+            ))
+            .with_error_code("E156")
+            .with_location(location),
+        );
+        return None;
+    };
+
+    match &arithmetic {
+        DateTimeArithmetic::Call { function, .. } if index.find_pou_implementation(function).is_none() => {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Missing function `{function}` for `{left_name} {operator} {right_name}`"
+                ))
+                .with_error_code("E073")
+                .with_location(location),
+            );
+        }
+        DateTimeArithmetic::Plain { result_type, bare_number: true } => {
+            let unit = if *result_type == LONG_TIME_TYPE { "nanoseconds" } else { "milliseconds" };
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "The integer operand of `{operator}` has no unit and is read as {unit} of `{result_type}`"
+                ))
+                .with_error_code("E157")
+                .with_location(location),
+            );
+        }
+        _ => {}
+    }
+
+    index.find_effective_type_by_name(arithmetic.result_type())
 }
 
 fn validate_unary_expression<T: AnnotationMap>(
@@ -2626,10 +2699,21 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
         lhs_is_signed_int: bool,
         is_builtin_call: bool,
     ) -> FxHashMap<&'b DataType, Vec<SourceLocation>> {
+        // arithmetic on date and time operands is carried out by a function, its result is the value
+        let carried_out_by_function = |left: &AstNode, operator: &Operator, right: &AstNode| {
+            let left_type = context.annotations.get_type_or_void(left, context.index);
+            let right_type = context.annotations.get_type_or_void(right, context.index);
+            operator.is_arithmetic_operator()
+                && matches!(
+                    get_date_time_arithmetic(context.index, left_type, operator, right_type),
+                    Some(DateTimeArithmetic::Call { .. })
+                )
+        };
+
         let mut map: FxHashMap<&DataType, Vec<SourceLocation>> = FxHashMap::default();
         match expression.get_stmt_peeled() {
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
-                if !operator.is_comparison_operator() =>
+                if !operator.is_comparison_operator() && !carried_out_by_function(left, operator, right) =>
             {
                 get_expression_types_and_locations(left, context, lhs_is_signed_int, false)
                     .into_iter()
@@ -2767,13 +2851,14 @@ fn validate_argument_count<T: AnnotationMap>(
 }
 
 /// Validates an expression to ensure that the given literal or constant is not 0
-fn validate_zero_diviser<T: AnnotationMap>(
-    context: &ValidationContext<T>,
+pub fn validate_zero_diviser(
     validator: &mut Validator,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
     statement: &AstNode,
     location: &SourceLocation,
 ) {
-    if is_literal_or_const_expr_value_zero(statement, context) {
+    if is_literal_or_const_expr_value_zero(statement, annotations, index) {
         validator.push_diagnostic(
             Diagnostic::new("Division by Zero").with_error_code("E123").with_location(location),
         );
@@ -2851,23 +2936,22 @@ pub(crate) mod helper {
         variant_const_values
     }
 
-    pub fn is_literal_or_const_expr_value_zero<T>(right: &AstNode, context: &ValidationContext<T>) -> bool
-    where
-        T: AnnotationMap,
-    {
+    pub fn is_literal_or_const_expr_value_zero(
+        right: &AstNode,
+        annotations: &dyn AnnotationMap,
+        index: &Index,
+    ) -> bool {
         let right = right.get_node_peeled();
         if right.is_zero() {
             return true;
         }
 
-        if let Some(statement_annotation) = context.annotations.get(right) {
+        if let Some(statement_annotation) = annotations.get(right) {
             if let Some(path) = statement_annotation.qualified_name() {
-                if let Some(element) = context.index.find_fully_qualified_variable(path) {
+                if let Some(element) = index.find_fully_qualified_variable(path) {
                     if statement_annotation.is_const() {
-                        if let Some(constant_statement) = context
-                            .index
-                            .get_const_expressions()
-                            .maybe_get_constant_statement(&element.initial_value)
+                        if let Some(constant_statement) =
+                            index.get_const_expressions().maybe_get_constant_statement(&element.initial_value)
                         {
                             return constant_statement.is_zero();
                         }
