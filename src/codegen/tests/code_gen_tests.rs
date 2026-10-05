@@ -4862,3 +4862,73 @@ fn var_input_constant_has_no_effect_on_codegen() {
     }
     "#);
 }
+
+#[test]
+fn union_members_share_the_union_storage() {
+    let result = codegen(
+        r#"
+        TYPE Overlay : UNION
+            Raw : ARRAY[0..8] OF BYTE;
+            Real : LREAL;
+        END_UNION
+        END_TYPE
+
+        VAR_GLOBAL
+            x : Overlay;
+        END_VAR
+
+        FUNCTION main : BYTE
+            x.Real := 1.5;
+            main := x.Raw[7];
+        END_FUNCTION
+        "#,
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %Overlay = type { double, [8 x i8] }
+
+    @x = global %Overlay zeroinitializer
+
+    define i8 @main() {
+    entry:
+      %main = alloca i8, align [filtered]
+      store i8 0, ptr %main, align [filtered]
+      store double 1.500000e+00, ptr @x, align [filtered]
+      %load_tmpVar = load i8, ptr getelementptr inbounds ([9 x i8], ptr @x, i32 0, i32 7), align [filtered]
+      store i8 %load_tmpVar, ptr %main, align [filtered]
+      %main_ret = load i8, ptr %main, align [filtered]
+      ret i8 %main_ret
+    }
+    "#);
+}
+
+#[test]
+fn union_without_padding_uses_its_largest_member_as_body() {
+    let result = codegen(
+        r#"
+        TYPE WORDBits : UNION
+            Bytes : ARRAY[0..1] OF BYTE;
+            WORDVal : WORD;
+        END_UNION
+        END_TYPE
+
+        VAR_GLOBAL
+            x : WORDBits;
+        END_VAR
+        "#,
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %WORDBits = type { i16 }
+
+    @x = global %WORDBits zeroinitializer
+    "#);
+}

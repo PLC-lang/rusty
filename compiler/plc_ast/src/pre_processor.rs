@@ -90,6 +90,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                         data_type.set_name(type_name);
                         add_nested_datatypes(name, &mut data_type, &mut new_types, &location, dt.linkage);
                         let data_type = UserTypeDeclaration {
+                            is_union: false,
                             data_type: *data_type,
                             initializer: None,
                             location,
@@ -133,6 +134,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                                 build_enum_initializer(&last_name, &location, &mut id_provider, enum_name)
                             });
                             last_name = Some(element_name.to_string());
+
                             AstFactory::create_assignment(
                                 AstFactory::create_member_reference(
                                     AstFactory::create_identifier(
@@ -452,6 +454,7 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
 
         //Generate a type for the generic
         let data_type = UserTypeDeclaration {
+            is_union: false,
             data_type: DataType::GenericType {
                 name: new_name.clone(),
                 generic_symbol: binding.name.clone(),
@@ -490,7 +493,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
     let linkage = pou.linkage;
     if let Some(return_type) = &pou.return_type {
         if should_generate_implicit(return_type) {
-            let type_name = format!("__{}_return", &pou.name); // TODO: Naming convention (see plc_util/src/convention.rs)
+            let type_name = format!("__{}_return", pou.name); // TODO: Naming convention (see plc_util/src/convention.rs)
             let type_ref = DataTypeDeclaration::Reference {
                 referenced_type: type_name.clone(),
                 location: return_type.get_location(),
@@ -500,6 +503,7 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                 data_type.set_name(type_name);
                 add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location, linkage);
                 let data_type = UserTypeDeclaration {
+                    is_union: false,
                     data_type: *data_type,
                     initializer: None,
                     location,
@@ -560,6 +564,7 @@ fn process_property(
                     linkage,
                 );
                 user_types.push(UserTypeDeclaration {
+                    is_union: false,
                     data_type: *data_type,
                     initializer: None,
                     location,
@@ -619,6 +624,7 @@ fn rewrite_inline_data_type(
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location, linkage);
         data_type.set_name(new_type_name);
         types.push(UserTypeDeclaration {
+            is_union: false,
             data_type: *data_type,
             initializer: None,
             location,
@@ -649,6 +655,7 @@ fn add_nested_datatypes(
         data_type.set_name(new_type_name.clone());
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &inner_location, linkage);
         types.push(UserTypeDeclaration {
+            is_union: false,
             data_type: *data_type,
             initializer: None,
             location: location.clone(),

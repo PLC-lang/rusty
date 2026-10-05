@@ -40,7 +40,7 @@ use inkwell::{
 use inkwell::{
     module::Module,
     passes::PassBuilderOptions,
-    targets::{CodeModel, FileType, InitializationConfig, RelocMode},
+    targets::{CodeModel, FileType, InitializationConfig, RelocMode, TargetData},
     types::BasicTypeEnum,
 };
 use plc_ast::ast::{CompilationUnit, LinkageType, PouType};
@@ -179,6 +179,7 @@ impl<'ink> CodeGen<'ink> {
             self.module.get_triple().as_str().to_string_lossy().into_owned(),
         );
         let mut index = LlvmTypedIndex::default();
+        let target_data = TargetData::create(&self.module.get_data_layout().as_str().to_string_lossy());
         //Generate types index, and any global variables associated with them.
         let llvm_type_index = data_type_generator::generate_data_types(
             &llvm,
@@ -186,6 +187,7 @@ impl<'ink> CodeGen<'ink> {
             dependencies,
             global_index,
             annotations,
+            &target_data,
         )?;
         index.merge(llvm_type_index);
 

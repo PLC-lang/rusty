@@ -490,6 +490,8 @@ pub struct CompilationUnit {
     pub user_types: Vec<UserTypeDeclaration>,
     pub file: FileMarker,
     pub linkage: LinkageType,
+    /// library namespace that qualifies every type and POU declared in this unit
+    pub namespace: Option<String>,
 }
 
 impl CompilationUnit {
@@ -503,7 +505,13 @@ impl CompilationUnit {
             user_types: Vec::new(),
             file: FileMarker::File(file_name),
             linkage: LinkageType::Internal,
+            namespace: None,
         }
+    }
+
+    pub fn with_namespace(mut self, namespace: Option<String>) -> Self {
+        self.namespace = namespace;
+        self
     }
 
     pub fn with_implementations(mut self, implementations: Vec<Implementation>) -> Self {
@@ -540,6 +548,7 @@ pub enum VariableBlockType {
     InOut,
     External,
 }
+
 impl VariableBlockType {
     pub fn is_temp(&self) -> bool {
         matches!(self, VariableBlockType::Temp)
@@ -561,13 +570,13 @@ impl VariableBlockType {
 impl Display for VariableBlockType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            VariableBlockType::Local => write!(f, "Local"),
-            VariableBlockType::Temp => write!(f, "Temp"),
-            VariableBlockType::Input(_) => write!(f, "Input"),
-            VariableBlockType::Output => write!(f, "Output"),
-            VariableBlockType::Global => write!(f, "Global"),
-            VariableBlockType::InOut => write!(f, "InOut"),
-            VariableBlockType::External => write!(f, "External"),
+            VariableBlockType::Local => write!(f, "local"),
+            VariableBlockType::Temp => write!(f, "temp"),
+            VariableBlockType::Input(_) => write!(f, "input"),
+            VariableBlockType::Output => write!(f, "output"),
+            VariableBlockType::Global => write!(f, "global"),
+            VariableBlockType::InOut => write!(f, "inout"),
+            VariableBlockType::External => write!(f, "external"),
         }
     }
 }
@@ -576,6 +585,38 @@ impl Display for VariableBlockType {
 pub enum ArgumentProperty {
     ByVal,
     ByRef,
+}
+
+#[derive(Debug, Copy, PartialEq, Eq, Clone, Default, Serialize, Deserialize)]
+pub enum NetworkPublish {
+    #[default]
+    DoNotPublish,
+    PublishOnly,
+    Input,
+    Output,
+}
+
+impl NetworkPublish {
+    pub fn parse(value: &str) -> Option<Self> {
+        match value.to_ascii_lowercase().as_str() {
+            "donotpublish" => Some(NetworkPublish::DoNotPublish),
+            "publishonly" => Some(NetworkPublish::PublishOnly),
+            "input" => Some(NetworkPublish::Input),
+            "output" => Some(NetworkPublish::Output),
+            _ => None,
+        }
+    }
+}
+
+impl Display for NetworkPublish {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NetworkPublish::DoNotPublish => write!(f, "DoNotPublish"),
+            NetworkPublish::PublishOnly => write!(f, "PublishOnly"),
+            NetworkPublish::Input => write!(f, "Input"),
+            NetworkPublish::Output => write!(f, "Output"),
+        }
+    }
 }
 
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
@@ -587,6 +628,8 @@ pub struct VariableBlock {
     pub variables: Vec<Variable>,
     pub kind: VariableBlockType,
     pub linkage: LinkageType,
+    pub network_publish: NetworkPublish,
+    pub address_pragmas: Vec<(String, String)>,
     pub location: SourceLocation,
 }
 
@@ -632,6 +675,8 @@ impl Default for VariableBlock {
             variables: vec![],
             kind: VariableBlockType::Local,
             linkage: LinkageType::Internal,
+            network_publish: NetworkPublish::DoNotPublish,
+            address_pragmas: vec![],
             location: SourceLocation::internal(),
         }
     }
@@ -647,6 +692,9 @@ impl Debug for VariableBlock {
         }
         if self.retain {
             result.field("retain", &self.retain);
+        }
+        if self.network_publish != NetworkPublish::DoNotPublish {
+            result.field("network_publish", &self.network_publish);
         }
         result.finish()
     }
@@ -812,6 +860,8 @@ pub struct UserTypeDeclaration {
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
     pub linkage: LinkageType,
+    #[serde(default)]
+    pub is_union: bool,
 }
 
 impl Debug for UserTypeDeclaration {
@@ -1109,7 +1159,7 @@ impl Debug for AstNode {
         match &self.stmt {
             AstStatement::EmptyStatement(..) => f.debug_struct("EmptyStatement").finish(),
             AstStatement::DefaultValue(..) => f.debug_struct("DefaultValue").finish(),
-            AstStatement::Literal(literal) => literal.fmt(f),
+            AstStatement::Literal(literal) => Debug::fmt(literal, f),
             AstStatement::Identifier(name) => f.debug_struct("Identifier").field("name", name).finish(),
             AstStatement::Super(Some(_)) => f.debug_struct("Super(derefed)").finish(),
             AstStatement::Super(_) => f.debug_struct("Super").finish(),
@@ -1795,13 +1845,13 @@ mod tests {
 
     #[test]
     fn display_variable_block_type() {
-        assert_eq!(VariableBlockType::Local.to_string(), "Local");
-        assert_eq!(VariableBlockType::Temp.to_string(), "Temp");
-        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), "Input");
-        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), "Input");
-        assert_eq!(VariableBlockType::Output.to_string(), "Output");
-        assert_eq!(VariableBlockType::Global.to_string(), "Global");
-        assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
+        assert_eq!(VariableBlockType::Local.to_string(), "local");
+        assert_eq!(VariableBlockType::Temp.to_string(), "temp");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByVal).to_string(), "input");
+        assert_eq!(VariableBlockType::Input(ArgumentProperty::ByRef).to_string(), "input");
+        assert_eq!(VariableBlockType::Output.to_string(), "output");
+        assert_eq!(VariableBlockType::Global.to_string(), "global");
+        assert_eq!(VariableBlockType::InOut.to_string(), "inout");
     }
 }
 
@@ -1896,6 +1946,7 @@ impl AstFactory {
     pub fn create_or_expression(left: AstNode, right: AstNode) -> AstNode {
         let id = left.get_id();
         let location = left.get_location().span(&right.get_location());
+
         AstNode::new(
             AstStatement::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
@@ -1957,6 +2008,7 @@ impl AstFactory {
 
     pub fn create_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
+
         AstNode::new(
             AstStatement::Assignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
@@ -1966,6 +2018,7 @@ impl AstFactory {
 
     pub fn create_output_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
+
         AstNode::new(
             AstStatement::OutputAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
@@ -1979,6 +2032,7 @@ impl AstFactory {
     //       and then fn create_assignment(kind: AssignmentKind, ...)
     pub fn create_ref_assignment(left: AstNode, right: AstNode, id: AstId) -> AstNode {
         let location = left.location.span(&right.location);
+
         AstNode::new(
             AstStatement::RefAssignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,

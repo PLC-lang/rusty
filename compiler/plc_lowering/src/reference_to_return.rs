@@ -333,6 +333,7 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
             };
 
             let new_user_type = UserTypeDeclaration {
+                is_union: false,
                 data_type: DataType::PointerType {
                     name: Some(new_data_type_name),
                     referenced_type: Box::new(return_type_inner_type.clone()),
@@ -366,6 +367,8 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                     constant: false,
                     retain: false,
                     linkage: plc_ast::ast::LinkageType::Internal,
+                    network_publish: plc_ast::ast::NetworkPublish::DoNotPublish,
+                    address_pragmas: vec![],
                     location,
                     access: AccessModifier::Public,
                 });
@@ -403,6 +406,7 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                     };
 
                     let new_user_type = UserTypeDeclaration {
+                        is_union: false,
                         data_type: DataType::PointerType {
                             name: Some(new_data_type_name.clone()),
                             referenced_type: Box::new(return_type_inner_type_for_call.clone()),
@@ -444,6 +448,8 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                         constant: false,
                         retain: false,
                         linkage: plc_ast::ast::LinkageType::Internal,
+                        network_publish: plc_ast::ast::NetworkPublish::DoNotPublish,
+                        address_pragmas: vec![],
                         location: return_type_for_call_location.clone(),
                         access: AccessModifier::Private,
                     });
