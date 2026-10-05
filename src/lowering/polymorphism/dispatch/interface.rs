@@ -829,6 +829,7 @@ mod helper {
     pub fn create_fat_pointer_struct() -> UserTypeDeclaration {
         let location = SourceLocation::internal();
         UserTypeDeclaration {
+            is_union: false,
             data_type: AstDataType::StructType {
                 name: Some(FATPOINTER_TYPE_NAME.to_string()),
                 variables: vec![

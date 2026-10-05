@@ -6,9 +6,9 @@ use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
         ConfigVariable, DataType, DataTypeDeclaration, DeclarationKind, DirectAccessType, GenericBinding,
-        HardwareAccessType, Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou,
-        PouType, PropertyBlock, PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr,
-        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        HardwareAccessType, Identifier, Implementation, Interface, LinkageType, NetworkPublish,
+        PolymorphismMode, Pou, PouType, PropertyBlock, PropertyImplementation, PropertyKind, ReferenceAccess,
+        ReferenceExpr, TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -72,6 +72,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
 
     let mut linkage = lnk;
     let mut constant = false;
+    let mut network_publish = NetworkPublish::default();
     loop {
         match lexer.token {
             PropertyExternal => {
@@ -91,7 +92,21 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                 let (interfaces, _) = parse_interface(&mut lexer);
                 unit.interfaces.push(interfaces);
             }
-            KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
+            PropertyNetworkPublish => {
+                network_publish = parse_network_publish_pragma(&mut lexer);
+                lexer.advance();
+                continue;
+            }
+            PropertyNamespace => {
+                unit.namespace = parse_namespace_pragma(&mut lexer);
+                lexer.advance();
+                continue;
+            }
+            KeywordVarGlobal => {
+                let mut block = parse_variable_block(&mut lexer, linkage);
+                block.network_publish = network_publish;
+                unit.global_vars.push(block);
+            }
             KeywordVarConfig => unit.var_config.extend(parse_config_variables(&mut lexer)),
 
             KeywordProgram | KeywordClass | KeywordFunction | KeywordFunctionBlock => {
@@ -146,6 +161,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
             }
         };
         linkage = lnk;
+        network_publish = NetworkPublish::default();
     }
     //the match in the loop will always return
 }
@@ -869,6 +885,7 @@ fn is_property_datatype_start(token: &Token) -> bool {
     matches!(
         token,
         KeywordStruct
+            | KeywordUnion
             | KeywordArray
             | KeywordPointer
             | KeywordRef
@@ -1032,6 +1049,7 @@ fn parse_type(lexer: &mut ParseSession, linkage: LinkageType) -> Vec<UserTypeDec
             };
             lexer.try_consume_or_report(KeywordColon);
 
+            let is_union = lexer.token == KeywordUnion;
             let result = parse_full_data_type_definition(lexer, Some(name));
 
             if let Some((DataTypeDeclaration::Definition { data_type, .. }, initializer)) = result {
@@ -1041,6 +1059,7 @@ fn parse_type(lexer: &mut ParseSession, linkage: LinkageType) -> Vec<UserTypeDec
                     location: name_location,
                     scope: lexer.scope.clone(),
                     linkage,
+                    is_union,
                 });
             }
         }
@@ -1054,7 +1073,11 @@ fn parse_full_data_type_definition(
     lexer: &mut ParseSession,
     name: Option<String>,
 ) -> Option<DataTypeWithInitializer> {
-    let end_keyword = if lexer.token == KeywordStruct { KeywordEndStruct } else { KeywordSemicolon };
+    let end_keyword = match lexer.token {
+        KeywordStruct => KeywordEndStruct,
+        KeywordUnion => KeywordEndUnion,
+        _ => KeywordSemicolon,
+    };
     let parsed_datatype = parse_any_in_region(lexer, vec![end_keyword], |lexer| {
         let sized = lexer.try_consume(PropertySized);
         if lexer.try_consume(KeywordDotDotDot) {
@@ -1089,7 +1112,7 @@ fn parse_full_data_type_definition(
 
     // The standard allows semicolons at the end of an `END_STRUCT` keyword, hence if we parsed
     // a struct, try to also consume a semicolon if it exists
-    if end_keyword == KeywordEndStruct {
+    if end_keyword == KeywordEndStruct || end_keyword == KeywordEndUnion {
         lexer.try_consume(KeywordSemicolon);
     }
 
@@ -1104,7 +1127,26 @@ fn parse_data_type_definition(
     let start = lexer.location();
     if lexer.try_consume(KeywordStruct) {
         // Parse struct
-        let variables = parse_variable_list(lexer, "a struct field name");
+        let (variables, _) = parse_variable_list(lexer, "a struct field name");
+        Some((
+            DataTypeDeclaration::Definition {
+                data_type: Box::new(DataType::StructType { name, variables }),
+                location: start.span(&lexer.location()),
+                scope: lexer.scope.clone(),
+            },
+            None,
+        ))
+    } else if lexer.try_consume(KeywordUnion) {
+        if name.is_none() {
+            lexer.accept_diagnostic(
+                Diagnostic::new(
+                    "Inline UNION declarations are not supported, declare the union as a named TYPE",
+                )
+                .with_error_code("E024")
+                .with_location(lexer.last_location()),
+            );
+        }
+        let (variables, _) = parse_variable_list(lexer, "a union field name");
         Some((
             DataTypeDeclaration::Definition {
                 data_type: Box::new(DataType::StructType { name, variables }),
@@ -1579,6 +1621,63 @@ fn parse_control(lexer: &mut ParseSession) -> AstNode {
     parse_control_statement(lexer)
 }
 
+fn parse_network_publish_pragma(lexer: &mut ParseSession) -> NetworkPublish {
+    let slice = lexer.slice();
+    let parsed = slice.split('\'').nth(1).and_then(NetworkPublish::parse);
+
+    match parsed {
+        Some(mode) => mode,
+        None => {
+            lexer.accept_diagnostic(
+                Diagnostic::new(format!(
+                    "Invalid network publish mode in `{slice}`, expected DoNotPublish, PublishOnly, Input or Output"
+                ))
+                .with_error_code("E024")
+                .with_location(lexer.location()),
+            );
+            NetworkPublish::default()
+        }
+    }
+}
+
+fn parse_address_pragma(lexer: &mut ParseSession) -> Option<String> {
+    let slice = lexer.slice();
+    let parsed = slice.split('\'').nth(1).map(str::trim).filter(|address| !address.is_empty());
+
+    match parsed {
+        Some(address) => Some(String::from(address)),
+        None => {
+            lexer.accept_diagnostic(
+                Diagnostic::new(format!(
+                    "Invalid address in `{slice}`, expected a quoted address such as {{at := 'MC://_MC_AX[1]'}}"
+                ))
+                .with_error_code("E024")
+                .with_location(lexer.location()),
+            );
+            None
+        }
+    }
+}
+
+fn parse_namespace_pragma(lexer: &mut ParseSession) -> Option<String> {
+    let slice = lexer.slice();
+    let parsed = slice.split('\'').nth(1).map(str::trim).filter(|name| !name.is_empty());
+
+    match parsed {
+        Some(name) => Some(String::from(name)),
+        None => {
+            lexer.accept_diagnostic(
+                Diagnostic::new(format!(
+                    "Invalid namespace in `{slice}`, expected a quoted library name such as {{namespace := 'Common'}}"
+                ))
+                .with_error_code("E024")
+                .with_location(lexer.location()),
+            );
+            None
+        }
+    }
+}
+
 fn parse_variable_block_type(lexer: &mut ParseSession) -> VariableBlockType {
     let block_type = lexer.token;
     //Consume the type token
@@ -1630,7 +1729,7 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
         }
         _ => "a variable name",
     };
-    let mut variables =
+    let (mut variables, address_pragmas) =
         parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| parse_variable_list(lexer, slot_label));
 
     if constant && !matches!(variable_block_type, VariableBlockType::External) {
@@ -1640,7 +1739,17 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
         });
     }
 
-    VariableBlock { access, constant, retain, variables, kind: variable_block_type, linkage, location }
+    VariableBlock {
+        access,
+        constant,
+        retain,
+        variables,
+        kind: variable_block_type,
+        linkage,
+        network_publish: NetworkPublish::DoNotPublish,
+        address_pragmas,
+        location,
+    }
 }
 
 /// Consumes a var-block modifier, but only if the following token is not a
@@ -1657,13 +1766,32 @@ fn try_consume_var_modifier(lexer: &mut ParseSession, modifier: Token) -> bool {
     true
 }
 
-fn parse_variable_list(lexer: &mut ParseSession, slot_label: &'static str) -> Vec<Variable> {
+fn parse_variable_list(
+    lexer: &mut ParseSession,
+    slot_label: &'static str,
+) -> (Vec<Variable>, Vec<(String, String)>) {
     let mut variables = vec![];
-    while is_name_slot_candidate(lexer) {
+    let mut address_pragmas = vec![];
+    loop {
+        let address = if lexer.token == PropertyAt {
+            let address = parse_address_pragma(lexer);
+            lexer.advance();
+            address
+        } else {
+            None
+        };
+
+        if !is_name_slot_candidate(lexer) {
+            break;
+        }
+
         let mut line_vars = parse_variable_line(lexer, slot_label);
+        if let Some(address) = address {
+            address_pragmas.extend(line_vars.iter().map(|it| (it.name.clone(), address.clone())));
+        }
         variables.append(&mut line_vars);
     }
-    variables
+    (variables, address_pragmas)
 }
 
 /// True when the current token is something [`expect_name_slot`] would consume.

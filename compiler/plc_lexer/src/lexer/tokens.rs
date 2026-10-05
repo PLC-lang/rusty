@@ -26,6 +26,15 @@ pub enum Token {
     #[token("{sized}")]
     PropertySized,
 
+    #[regex(r"\{network_publish[^}]*\}")]
+    PropertyNetworkPublish,
+
+    #[regex(r"\{namespace[^}]*\}")]
+    PropertyNamespace,
+
+    #[regex(r"\{at\s*:=[^}]*\}")]
+    PropertyAt,
+
     #[token("PROGRAM", ignore(case))]
     KeywordProgram,
 
@@ -170,6 +179,13 @@ pub enum Token {
     #[token("END_STRUCT", ignore(case))]
     #[token("ENDSTRUCT", ignore(case))]
     KeywordEndStruct,
+
+    #[token("UNION", ignore(case))]
+    KeywordUnion,
+
+    #[token("END_UNION", ignore(case))]
+    #[token("ENDUNION", ignore(case))]
+    KeywordEndUnion,
 
     #[token("ACTIONS", ignore(case))]
     KeywordActions,

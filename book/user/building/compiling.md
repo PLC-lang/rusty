@@ -46,11 +46,89 @@ The [project file reference](../reference/project-file.md) describes every key, 
 | `-c` | An object file, not linked |
 | `--shared` | A shared object |
 | `--ir` | LLVM intermediate representation, as text |
+| `--xml-omron` | IEC 61131-10 XML format for Omron Sysmac Studio |
 
 In a project file, the key `compile_type` does the same. Use `Static`, `Object`, `Shared`, `Relocatable`, `Bitcode`, or `IR`.
 
 > [!NOTE]
 > `Static` and `--static` mean "link the units into one executable". They do not produce a fully static binary. The system libraries, the C library included, stay dynamic.
+
+
+## Library namespaces in the Omron XML
+
+Sysmac Studio keeps library types in a namespace and refers to them with a backslash, as in `Common\ServoDev`. `--xml-omron` writes that qualified form when the file that declares the type carries the [`{namespace}` attribute](../language/source-files.md#library-namespaces).
+
+```iecst
+{namespace := 'Common'}
+
+{external}
+TYPE ServoDev : STRUCT
+    Position: LREAL;
+END_STRUCT END_TYPE
+```
+
+A type in another file that refers to `ServoDev` then exports as `Common\ServoDev`, and an array exports as `ARRAY[0..9] OF Common\LogEntry`. Sysmac Studio resolves the member against the library and keeps it. Without the attribute the export says `ServoDev`, Sysmac Studio finds no such type in the global namespace, and it discards the member when you import the file.
+
+Declarations that the namespaced file owns go into a `<NamespaceDecl>` element inside `<GlobalNamespace>`:
+
+```xml
+<Types>
+  <GlobalNamespace>
+    <DataTypeDecl name="TransferArmMod">
+      <UserDefinedTypeSpec xsi:type="StructTypeSpec">
+        <Member name="RotationalServo">
+          <Type>
+            <TypeName><![CDATA[Common\ServoDev]]></TypeName>
+          </Type>
+        </Member>
+      </UserDefinedTypeSpec>
+    </DataTypeDecl>
+    <NamespaceDecl name="Common">
+      <DataTypeDecl name="ServoDev">
+        ...
+      </DataTypeDecl>
+    </NamespaceDecl>
+  </GlobalNamespace>
+</Types>
+```
+
+An `{external}` type declares the name but contributes no declaration, so a library of external types qualifies the references and writes no `<NamespaceDecl>` element. An empty namespace never reaches the file.
+
+
+## POU comments in the Omron XML
+
+The body that `--xml-omron` writes is the source text between the first statement and the last, so a comment reaches the `<ST>` element only when statements surround it. A comment above the POU, or one in the declaration section, falls outside that range.
+
+The comment that stands immediately above a POU becomes its `<Documentation>` instead:
+
+```iecst
+(*
+    Moves the transfer arm to the upper, middle or lower position
+*)
+FUNCTION_BLOCK TransferArmLiftSubSequence
+```
+
+```xml
+<FunctionBlock name="TransferArmLiftSubSequence">
+  <Documentation xsi:type="SimpleText"><![CDATA[Moves the transfer arm to the upper, middle or lower position]]></Documentation>
+  <AddData>
+    ...
+```
+
+A `(* *)` block and a run of `//` lines both work. The compiler removes the comment markers and the indentation that every line shares, so the relative indentation of a list stays. A comment that holds no text writes no element.
+
+A variable takes its comment the same way, which fills the comment column of the Sysmac variable table. A comment on the same line documents that variable, and a comment on the line above documents the variable below it:
+
+```iecst
+VAR_GLOBAL
+    DO_CameraCapture: BOOL;                 // Camera capture output
+    DI_PlateEjectCylinderRetracted: BOOL;   (* Eject cylinder retracted limit *)
+    (* Extends the plate eject cylinder *)
+    DO_PlateEjectCylinderExtend: BOOL;
+END_VAR
+```
+
+This applies to every variable that the export writes, global or local, and a variable with no comment writes no element.
 
 
 ## Optimization

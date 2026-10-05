@@ -369,6 +369,7 @@ fn var_config_test() {
             "test.st",
         ),
         linkage: Internal,
+        namespace: None,
     }
     "#);
 }
@@ -495,6 +496,7 @@ fn var_external() {
             "test.st",
         ),
         linkage: Internal,
+        namespace: None,
     }
     "#);
 }
@@ -609,6 +611,7 @@ fn var_external_constant() {
             "test.st",
         ),
         linkage: Internal,
+        namespace: None,
     }
     "#);
 }
@@ -758,4 +761,40 @@ fn retain_block_in_function_block() {
     let (result, _) = parse(src);
     let var_block = &result.pous[0].variable_blocks[0];
     assert!(var_block.retain);
+}
+
+#[test]
+fn namespace_pragma_is_parsed() {
+    let src = r#"
+    {namespace := 'Common'}
+    TYPE ServoDev : STRUCT Position : LREAL; END_STRUCT END_TYPE
+    "#;
+
+    let (result, diagnostics) = parse(src);
+
+    assert!(diagnostics.is_empty());
+    assert_eq!(result.namespace.as_deref(), Some("Common"));
+}
+
+#[test]
+fn unit_without_namespace_pragma_has_no_namespace() {
+    let src = "TYPE ServoDev : STRUCT Position : LREAL; END_STRUCT END_TYPE";
+
+    let (result, _) = parse(src);
+
+    assert_eq!(result.namespace, None);
+}
+
+#[test]
+fn namespace_pragma_without_a_name_is_reported() {
+    let src = r#"
+    {namespace}
+    TYPE ServoDev : STRUCT Position : LREAL; END_STRUCT END_TYPE
+    "#;
+
+    let (result, diagnostics) = parse(src);
+
+    assert_eq!(result.namespace, None);
+    assert_eq!(diagnostics.len(), 1);
+    assert_eq!(diagnostics[0].get_error_code(), "E024");
 }

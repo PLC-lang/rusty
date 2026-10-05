@@ -40,13 +40,14 @@ use inkwell::{
 use inkwell::{
     module::Module,
     passes::PassBuilderOptions,
-    targets::{CodeModel, FileType, InitializationConfig, RelocMode},
+    targets::{CodeModel, FileType, InitializationConfig, RelocMode, TargetData},
     types::BasicTypeEnum,
 };
 use plc_ast::ast::{CompilationUnit, LinkageType, PouType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_llvm::TargetMachineExt;
 use plc_source::source_location::{FileMarker, SourceLocation};
+use plc_xmlgen::{serializer::Node, xml_gen::*};
 
 mod debug;
 pub(crate) mod generators;
@@ -179,6 +180,7 @@ impl<'ink> CodeGen<'ink> {
             self.module.get_triple().as_str().to_string_lossy().into_owned(),
         );
         let mut index = LlvmTypedIndex::default();
+        let target_data = TargetData::create(&self.module.get_data_layout().as_str().to_string_lossy());
         //Generate types index, and any global variables associated with them.
         let llvm_type_index = data_type_generator::generate_data_types(
             &llvm,
@@ -186,6 +188,7 @@ impl<'ink> CodeGen<'ink> {
             dependencies,
             global_index,
             annotations,
+            &target_data,
         )?;
         index.merge(llvm_type_index);
 
@@ -487,6 +490,7 @@ impl<'ink> GeneratedModule<'ink> {
 
     /// Persists the module into the disk based on output and target requirments
     /// If an object file should be generated, all optimizations will be executed on the object
+    #[allow(clippy::too_many_arguments)]
     pub fn persist(
         &self,
         output_dir: Option<&Path>,
@@ -495,6 +499,8 @@ impl<'ink> GeneratedModule<'ink> {
         relocation_preference: RelocationPreference,
         target: &Target,
         optimization_level: OptimizationLevel,
+        annotated_project: &Vec<&CompilationUnit>,
+        compilation_options: &GenerationParameters,
     ) -> Result<PathBuf, CodegenError> {
         let output = Self::get_output_file(output_dir, output_name, target);
         //ensure output exists
@@ -534,6 +540,7 @@ impl<'ink> GeneratedModule<'ink> {
             },
             FormatOption::Bitcode => self.persist_to_bitcode(output),
             FormatOption::IR => self.persist_to_ir(output),
+            FormatOption::XML => self.persist_to_xml(output, annotated_project, compilation_options),
         }
     }
 
@@ -549,6 +556,42 @@ impl<'ink> GeneratedModule<'ink> {
 
     pub fn get_unit_location(&self) -> &Path {
         &self.location
+    }
+
+    fn persist_to_xml(
+        &self,
+        output: PathBuf,
+        annotated_project: &Vec<&CompilationUnit>,
+        compilation_options: &GenerationParameters,
+    ) -> Result<PathBuf, CodegenError> {
+        let schema_path: &'static str;
+
+        let template: Node = if compilation_options.output_xml_omron {
+            if let Some((message, location)) = find_unsupported_omron_type(annotated_project) {
+                return Err(CodegenError::DiagnosticError(
+                    Diagnostic::new(message).with_error_code("E156").with_location(location), //E156: Unsupported Syntax for the Chosen XML Target
+                ));
+            }
+
+            schema_path = OMRON_SCHEMA;
+            get_omron_template()
+        } else {
+            return Err(CodegenError::GenericError(
+                String::from("No XML variant chosen as CLI argument but XML output format was specified."),
+                SourceLocation::undefined(),
+            ));
+        };
+
+        match parse_project_into_nodetree(
+            compilation_options,
+            annotated_project,
+            schema_path,
+            &output,
+            template,
+        ) {
+            Ok(_) => Ok(output),
+            Err(error) => Err(CodegenError::GenericError(error.to_string(), SourceLocation::default())),
+        }
     }
 
     ///
