@@ -9,7 +9,7 @@ use std::{
     env, fs,
     path::{Path, PathBuf},
     rc::Rc,
-    sync::{Arc, Mutex, RwLock},
+    sync::{Arc, RwLock},
 };
 
 use ast::provider::IdProvider;
@@ -17,7 +17,7 @@ use plc::{
     codegen::GeneratedModule,
     lowering::{calls::AggregateTypeLowerer, generics::GenericLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
-    ConfigFormat, OnlineChange, Target,
+    Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
@@ -103,7 +103,6 @@ pub struct CodegenParticipant<T: SourceContainer> {
     pub compile_options: crate::CompileOptions,
     pub link_options: crate::LinkOptions,
     pub target: Target,
-    pub got_layout: Mutex<HashMap<String, u64>>,
     pub compile_dirs: HashMap<Target, PathBuf>,
     /// Canonical root of the project, resolved once before the first unit is generated.
     pub root: PathBuf,
@@ -151,37 +150,12 @@ impl<T: SourceContainer> CodegenParticipant<T> {
             Err(_) => Ok(unit_location),
         }
     }
-    pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
-        let path = Path::new(location);
-        if !path.is_file() {
-            // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
-            // creating our file when we want to.
-            return Ok(HashMap::new());
-        }
-
-        let s = fs::read_to_string(location)
-            .map_err(|_| Diagnostic::new("GOT layout could not be read from file"))?;
-        match format {
-            ConfigFormat::JSON => serde_json::from_str(&s)
-                .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from JSON")),
-            ConfigFormat::TOML => toml::de::from_str(&s)
-                .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from TOML")),
-        }
-    }
 }
 
 impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
     fn pre_generate(&mut self, _annotated_project: &AnnotatedProject) -> Result<(), Diagnostic> {
         self.ensure_compile_dirs()?;
         self.resolve_root()?;
-
-        let got_layout =
-            if let OnlineChange::Enabled { file_name, format } = &self.compile_options.online_change {
-                Self::read_got_layout(file_name, *format)?
-            } else {
-                HashMap::default()
-            };
-        self.got_layout = Mutex::new(got_layout);
         Ok(())
     }
 

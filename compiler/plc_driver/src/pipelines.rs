@@ -1,11 +1,9 @@
 use std::{
-    collections::HashMap,
     env,
     ffi::OsStr,
     fs::{self, File},
     io::Write,
     path::{Path, PathBuf},
-    sync::Mutex,
 };
 
 use crate::{
@@ -34,7 +32,7 @@ use plc::{
         TypeAnnotator,
     },
     validation::Validator,
-    ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
+    ConfigFormat, ErrorFormat, Target, Threads,
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
@@ -56,9 +54,6 @@ use project::{
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use source_code::{source_location::SourceLocation, SourceContainer};
-
-use serde_json;
-use toml;
 
 pub mod participant;
 pub mod property;
@@ -209,14 +204,6 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 debug_prefix_maps: params.debug_prefix_maps(),
                 debug_compilation_dir: params.debug_compilation_dir.clone(),
                 single_module: params.single_module,
-                online_change: if params.online_change {
-                    OnlineChange::Enabled {
-                        file_name: params.got_layout_file.clone(),
-                        format: params.got_layout_format(),
-                    }
-                } else {
-                    OnlineChange::Disabled
-                },
                 constructors_only: params.constructors_only,
                 // Resolved at *this crate's* build time via `build.rs`; if
                 // `RUSTY_BUILD_INFO` was not set we skip rather than embed a
@@ -542,12 +529,6 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             log::debug!("No compile options provided");
             return Ok(());
         };
-        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-            read_got_layout(file_name, *format)?
-        } else {
-            HashMap::default()
-        };
-        let got_layout = Mutex::new(got_layout);
         let target = self.compile_parameters.as_ref().and_then(|it| it.target.as_ref());
         if compile_options.single_module || matches!(compile_options.output_format, FormatOption::Object) {
             log::info!("Using single module mode");
@@ -570,15 +551,11 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                         unit,
                         dependencies,
                         literals,
-                        &got_layout,
                         target,
                     )?;
                     self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
                 })
                 .collect::<Result<Vec<_>, Diagnostic>>()?;
-        }
-        if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-            write_got_layout(got_layout.into_inner().unwrap(), file_name, *format)?;
         }
         self.participants
             .iter()
@@ -618,39 +595,6 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
 
         Ok(())
     }
-}
-
-pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
-    if !Path::new(location).is_file() {
-        // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
-        // creating our file when we want to.
-        return Ok(HashMap::new());
-    }
-
-    let s = fs::read_to_string(location)
-        .map_err(|_| Diagnostic::new("GOT layout could not be read from file"))?;
-    match format {
-        ConfigFormat::JSON => serde_json::from_str(&s)
-            .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from JSON")),
-        ConfigFormat::TOML => {
-            toml::de::from_str(&s).map_err(|_| Diagnostic::new("Could not deserialize GOT layout from TOML"))
-        }
-    }
-}
-
-fn write_got_layout(
-    got_entries: HashMap<String, u64>,
-    location: &str,
-    format: ConfigFormat,
-) -> Result<(), Diagnostic> {
-    let s = match format {
-        ConfigFormat::JSON => serde_json::to_string(&got_entries)
-            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to JSON"))?,
-        ConfigFormat::TOML => toml::ser::to_string(&got_entries)
-            .map_err(|_| Diagnostic::new("Could not serialize GOT layout to TOML"))?,
-    };
-
-    fs::write(location, s).map_err(|_| Diagnostic::new("GOT layout could not be written to file"))
 }
 
 fn write_header_file(generated_header: Box<dyn GeneratedHeader>) -> Result<(), Diagnostic> {
@@ -885,27 +829,12 @@ impl AnnotatedProject {
     }
 
     pub fn codegen_to_string(&self, compile_options: &CompileOptions) -> Result<Vec<String>, Diagnostic> {
-        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-            read_got_layout(file_name, *format)?
-        } else {
-            HashMap::default()
-        };
-        let got_layout = Mutex::new(got_layout);
-
         self.units
             .iter()
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 let context = CodegenContext::create();
-                self.generate_module(
-                    &context,
-                    compile_options,
-                    unit,
-                    dependencies,
-                    literals,
-                    &got_layout,
-                    None,
-                )
-                .map(|it| it.persist_to_string())
+                self.generate_module(&context, compile_options, unit, dependencies, literals, None)
+                    .map(|it| it.persist_to_string())
             })
             .collect()
     }
@@ -916,27 +845,12 @@ impl AnnotatedProject {
         compile_options: &CompileOptions,
         target: Option<&Target>,
     ) -> Result<Option<GeneratedModule<'ctx>>, Diagnostic> {
-        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-            read_got_layout(file_name, *format)?
-        } else {
-            HashMap::default()
-        };
-        let got_layout = Mutex::new(got_layout);
-
         let Some(module) = self
             .units
             .iter()
             // TODO: this can be parallelized
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                self.generate_module(
-                    context,
-                    compile_options,
-                    unit,
-                    dependencies,
-                    literals,
-                    &got_layout,
-                    target,
-                )
+                self.generate_module(context, compile_options, unit, dependencies, literals, target)
             })
             .reduce(|a, b| {
                 let a = a?;
@@ -949,7 +863,6 @@ impl AnnotatedProject {
         module.map(Some)
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn generate_module<'ctx>(
         &self,
         context: &'ctx CodegenContext,
@@ -957,7 +870,6 @@ impl AnnotatedProject {
         unit: &CompilationUnit,
         dependencies: &FxIndexSet<Dependency>,
         literals: &StringLiterals,
-        got_layout: &Mutex<HashMap<String, u64>>,
         target: Option<&Target>,
     ) -> Result<GeneratedModule<'ctx>, Diagnostic> {
         // Determine target from compile_options or use default
@@ -971,8 +883,6 @@ impl AnnotatedProject {
             compile_options.debug_level,
             &compile_options.debug_prefix_maps,
             compile_options.debug_compilation_dir.as_deref(),
-            //FIXME don't clone here
-            compile_options.online_change.clone(),
             target,
             compile_options.build_info.as_deref(),
         );
@@ -984,7 +894,6 @@ impl AnnotatedProject {
             literals,
             dependencies,
             &self.index,
-            got_layout,
             compile_options.constructors_only,
         )?;
         code_generator
@@ -1038,24 +947,10 @@ impl AnnotatedProject {
         context: &'ctx CodegenContext,
         compile_options: &CompileOptions,
     ) -> Result<Vec<GeneratedModule<'ctx>>, Diagnostic> {
-        let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
-            read_got_layout(file_name, *format)?
-        } else {
-            HashMap::default()
-        };
-        let got_layout = Mutex::new(got_layout);
         self.units
             .iter()
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                self.generate_module(
-                    context,
-                    compile_options,
-                    unit,
-                    dependencies,
-                    literals,
-                    &got_layout,
-                    None,
-                )
+                self.generate_module(context, compile_options, unit, dependencies, literals, None)
             })
             .collect()
     }

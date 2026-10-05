@@ -16,7 +16,6 @@ pub struct LlvmTypedIndex<'ink> {
     type_associations: FxHashMap<String, AnyTypeEnum<'ink>>,
     pou_type_associations: FxHashMap<String, AnyTypeEnum<'ink>>,
     global_values: FxHashMap<String, GlobalValue<'ink>>,
-    got_indices: FxHashMap<String, u64>,
     initial_value_associations: FxHashMap<String, BasicValueEnum<'ink>>,
     loaded_variable_associations: FxHashMap<String, PointerValue<'ink>>,
     implementations: FxHashMap<String, FunctionValue<'ink>>,
@@ -52,7 +51,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
             type_associations: FxHashMap::default(),
             pou_type_associations: FxHashMap::default(),
             global_values: FxHashMap::default(),
-            got_indices: FxHashMap::default(),
             initial_value_associations: FxHashMap::default(),
             loaded_variable_associations: FxHashMap::default(),
             implementations: FxHashMap::default(),
@@ -73,9 +71,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
         }
         for (name, value) in other.global_values.drain() {
             self.global_values.insert(name, value);
-        }
-        for (name, index) in other.got_indices.drain() {
-            self.got_indices.insert(name, index);
         }
         for (name, assocication) in other.initial_value_associations.drain() {
             self.initial_value_associations.insert(name, assocication);
@@ -149,8 +144,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
         log::trace!("registered `{name}` as global variable type `{}`", global_variable.print_to_string());
         self.global_values.insert(name.clone(), global_variable);
         self.initial_value_associations.insert(name, global_variable.as_pointer_value().into());
-
-        // FIXME: Do we want to call .insert_new_got_index() here?
         Ok(())
     }
 
@@ -177,25 +170,11 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.utf16_literals.insert(literal.to_string(), literal_variable);
     }
 
-    pub fn associate_got_index(&mut self, variable_name: &str, index: u64) -> Result<(), CodegenError> {
-        let name = variable_name.to_lowercase();
-        self.got_indices.insert(name, index);
-
-        Ok(())
-    }
-
     pub fn find_global_value(&self, name: &str) -> Option<GlobalValue<'ink>> {
         self.global_values
             .get(&name.to_lowercase())
             .copied()
             .or_else(|| self.parent_index.and_then(|it| it.find_global_value(name)))
-    }
-
-    pub fn find_got_index(&self, name: &str) -> Option<u64> {
-        self.got_indices
-            .get(&name.to_lowercase())
-            .copied()
-            .or_else(|| self.parent_index.and_then(|it| it.find_got_index(name)))
     }
 
     pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
@@ -230,14 +209,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .get(&type_name.to_lowercase())
             .copied()
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_initial_value(type_name)))
-    }
-
-    pub fn insert_new_got_index(&mut self, variable_name: &str) -> Result<(), CodegenError> {
-        let idx = self.got_indices.values().max().copied().unwrap_or(0);
-
-        self.got_indices.insert(variable_name.to_lowercase(), idx);
-
-        Ok(())
     }
 
     pub fn find_associated_implementation(&self, callable_name: &str) -> Option<FunctionValue<'ink>> {
