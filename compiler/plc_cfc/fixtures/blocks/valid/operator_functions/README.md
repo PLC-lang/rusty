@@ -7,9 +7,9 @@ expression on its own, the block's `typeName` still becomes the callee:
 
 Illustrated:
 ```
-a, b, c --> [AND] --> and_result (0, 5)
-a, b    --> [OR]  --> or_result  (1, 6)
-a, b    --> [XOR] --> xor_result (2, 7)
-x, y    --> [MOD] --> mod_result (3, 8)
-a       --> [NOT] --> not_result (4, 9)
+a, b, c --> [AND] --> and_result (1, 6)
+a, b    --> [OR]  --> or_result  (2, 7)
+a, b    --> [XOR] --> xor_result (3, 8)
+x, y    --> [MOD] --> mod_result (4, 9)
+a       --> [NOT] --> not_result (5, 10)
 ```
