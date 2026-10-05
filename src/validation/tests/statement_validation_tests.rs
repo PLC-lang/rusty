@@ -3410,6 +3410,48 @@ fn modulo_by_zero_literal_or_constant_results_in_error() {
 }
 
 #[test]
+fn modulo_by_zero_duration_results_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                t : TIME;
+                lt : LTIME;
+            END_VAR
+            VAR CONSTANT
+                ZeroTime : TIME := T#0s;
+            END_VAR
+
+            t := t MOD T#0s;
+            lt := lt MOD LTIME#0ms;
+            t := t MOD ZeroTime;
+            t := t MOD T#1ms;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E123]: Division by Zero
+       ┌─ <internal>:11:18
+       │
+    11 │             t := t MOD T#0s;
+       │                  ^^^^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:12:19
+       │
+    12 │             lt := lt MOD LTIME#0ms;
+       │                   ^^^^^^^^^^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:13:18
+       │
+    13 │             t := t MOD ZeroTime;
+       │                  ^^^^^^^^^^^^^^ Division by Zero
+    ");
+}
+
+#[test]
 fn division_by_zero_in_struct_constant_results_in_error() {
     let diagnostics = parse_and_validate_buffered(
         "

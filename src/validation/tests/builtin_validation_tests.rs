@@ -280,6 +280,8 @@ fn mod_with_a_zero_divisor_reports_an_error() {
         FUNCTION main : DINT
         VAR
             x : DINT;
+            t : TIME;
+            lt : LTIME;
         END_VAR
         VAR CONSTANT
             zero : DINT := 0;
@@ -289,34 +291,48 @@ fn mod_with_a_zero_divisor_reports_an_error() {
             x := MOD(IN2 := 0, IN1 := x);
             x := MOD(x, zero);
             x := MOD(0, x); // a zero dividend is valid
+            t := MOD(t, T#0s);
+            lt := MOD(IN2 := LTIME#0s, IN1 := lt);
         END_FUNCTION
        ",
     );
 
     assert_snapshot!(diagnostics, @r"
     error[E123]: Division by Zero
-      ┌─ <internal>:9:22
-      │
-    9 │             x := MOD(x, 0);
-      │                      ^^^^ Division by Zero
-
-    error[E123]: Division by Zero
-       ┌─ <internal>:10:22
-       │
-    10 │             x := MOD(IN1 := x, IN2 := 0);
-       │                      ^^^^^^^^^^^^^^^^^^ Division by Zero
-
-    error[E123]: Division by Zero
        ┌─ <internal>:11:22
        │
-    11 │             x := MOD(IN2 := 0, IN1 := x);
-       │                      ^^^^^^^^^^^^^^^^^^ Division by Zero
+    11 │             x := MOD(x, 0);
+       │                      ^^^^ Division by Zero
 
     error[E123]: Division by Zero
        ┌─ <internal>:12:22
        │
-    12 │             x := MOD(x, zero);
+    12 │             x := MOD(IN1 := x, IN2 := 0);
+       │                      ^^^^^^^^^^^^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:13:22
+       │
+    13 │             x := MOD(IN2 := 0, IN1 := x);
+       │                      ^^^^^^^^^^^^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:14:22
+       │
+    14 │             x := MOD(x, zero);
        │                      ^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:16:22
+       │
+    16 │             t := MOD(t, T#0s);
+       │                      ^^^^^^^ Division by Zero
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:17:23
+       │
+    17 │             lt := MOD(IN2 := LTIME#0s, IN1 := lt);
+       │                       ^^^^^^^^^^^^^^^^^^^^^^^^^^ Division by Zero
     ");
 }
 
