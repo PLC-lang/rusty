@@ -97,11 +97,15 @@ sum := ADD(a, b, c);          (* correct *)
 value := MUX(K := 1, a, b);   (* correct, K is not variadic *)
 ```
 
-A name for such an argument is rejected:
+A name for such an argument is rejected, also `IN1`, which the standard uses for the first input:
+
+```iecst
+sum := ADD(IN1 := a, b);      (* error *)
+```
 
 ```
-error[E048]: Could not resolve reference to args
 error[E089]: Invalid call parameters
+error[E048]: Could not resolve reference to IN1
 ```
 
 `SEL` looks like `MUX` but is not variadic, so all three of its parameters have a name.
