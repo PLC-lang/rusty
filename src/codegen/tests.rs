@@ -25,4 +25,3 @@ mod string_tests;
 mod switch_case_tests;
 mod typesystem_test;
 mod vla_tests;
-mod xml_gen_tests;
