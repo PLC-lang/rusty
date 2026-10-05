@@ -941,7 +941,13 @@ fn validate_argument_natures(
 
     for argument in flatten_expression_list(params).into_iter().map(extract_actual_parameter) {
         let data_type = annotations.get_type_or_void(argument, index);
-        if data_type.is_void() || natures.iter().any(|nature| data_type.has_nature(*nature, index)) {
+        let is_accepted = !data_type.is_void() && natures.iter().any(|it| data_type.has_nature(*it, index));
+        // an unresolved reference is reported on its own, an empty or output argument is not
+        let is_unresolved = data_type.is_void()
+            && annotations.get(argument).is_none()
+            && !argument.is_empty_statement()
+            && !argument.is_output_assignment();
+        if is_accepted || is_unresolved {
             continue;
         }
 
@@ -978,7 +984,9 @@ fn validate_duration_modulo(
         |data_type: &DataType| is_duration(data_type) || data_type.has_nature(TypeNature::Num, index);
 
     // an argument of another nature is reported on its own, a pair of numbers or equal durations is defined
-    if !is_accepted(left_type)
+    if left_type.is_void()
+        || right_type.is_void()
+        || !is_accepted(left_type)
         || !is_accepted(right_type)
         || !(is_duration(left_type) || is_duration(right_type))
         || left_type.get_name() == right_type.get_name()
@@ -1220,10 +1228,11 @@ fn annotate_comparison_function(
     annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), statement);
 }
 
-/// Returns true if the argument value has one of the given natures.
+/// Returns true if the argument value has one of the given natures. An argument without a type, such as
+/// an unresolved reference, has none.
 fn has_any_nature(annotator: &TypeAnnotator, argument: &AstNode, natures: &[TypeNature]) -> bool {
     let data_type = annotator.annotation_map.get_type_or_void(argument, annotator.index);
-    natures.iter().any(|nature| data_type.has_nature(*nature, annotator.index))
+    !data_type.is_void() && natures.iter().any(|nature| data_type.has_nature(*nature, annotator.index))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1254,7 +1263,8 @@ fn annotate_arithmetic_function(
         has_any_nature(annotator, param, natures)
             || (accepts_date_or_time && is_date_or_time(annotator, param))
     };
-    if params_extracted.iter().any(|param| !is_accepted(annotator, param)) {
+    // a call without arguments, e.g. `ADD(0(1))`, is reported during validation
+    if params_extracted.is_empty() || params_extracted.iter().any(|param| !is_accepted(annotator, param)) {
         annotate_unaccepted_arguments(annotator, operator, &params_extracted);
         return;
     }

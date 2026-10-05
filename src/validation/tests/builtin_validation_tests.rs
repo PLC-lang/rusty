@@ -557,3 +557,106 @@ fn bitwise_builtins_reject_arguments_other_than_bits_and_integers() {
        │                            ^ Invalid type nature for generic argument. REAL is no ANY_BIT or ANY_INT
     ");
 }
+
+#[test]
+fn operator_builtins_report_missing_and_unresolved_arguments() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            a : BOOL;
+            x : DINT;
+        END_VAR
+            AND(0(TRUE));
+            MOD(0(1));
+            NOT(IN := );
+            MOD(IN1 := x, IN2 := );
+            NOT(IN => a);
+            NOT(IN := missing);
+            MOD(missing, x);
+            MOD(IN1 := x, IN2 := missing);
+            XOR(missing, a);
+        END_FUNCTION
+       ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E032]: this POU takes 2 arguments but 0 arguments were supplied
+      ┌─ <internal>:7:13
+      │
+    7 │             AND(0(TRUE));
+      │             ^^^ this POU takes 2 arguments but 0 arguments were supplied
+
+    error[E064]: Could not resolve generic type T with ANY
+      ┌─ <internal>:7:13
+      │
+    7 │             AND(0(TRUE));
+      │             ^^^^^^^^^^^^ Could not resolve generic type T with ANY
+
+    error[E032]: this POU takes 2 arguments but 0 arguments were supplied
+      ┌─ <internal>:8:13
+      │
+    8 │             MOD(0(1));
+      │             ^^^ this POU takes 2 arguments but 0 arguments were supplied
+
+    error[E064]: Could not resolve generic type T1 with ANY
+      ┌─ <internal>:8:13
+      │
+    8 │             MOD(0(1));
+      │             ^^^^^^^^^ Could not resolve generic type T1 with ANY
+
+    error[E062]: Invalid type nature for generic argument. VOID is no ANY_BIT or ANY_INT
+      ┌─ <internal>:9:23
+      │
+    9 │             NOT(IN := );
+      │                       ^ Invalid type nature for generic argument. VOID is no ANY_BIT or ANY_INT
+
+    error[E062]: Invalid type nature for generic argument. VOID is no ANY_NUMBER or ANY_DURATION
+       ┌─ <internal>:10:34
+       │
+    10 │             MOD(IN1 := x, IN2 := );
+       │                                  ^ Invalid type nature for generic argument. VOID is no ANY_NUMBER or ANY_DURATION
+
+    error[E062]: Invalid type nature for generic argument. VOID is no ANY_BIT or ANY_INT
+       ┌─ <internal>:11:17
+       │
+    11 │             NOT(IN => a);
+       │                 ^^^^^^^ Invalid type nature for generic argument. VOID is no ANY_BIT or ANY_INT
+
+    warning[E135]: 'IN' is an input parameter; use ':=' instead of '=>'
+       ┌─ <internal>:11:17
+       │
+    11 │             NOT(IN => a);
+       │                 ^^^^^^^ 'IN' is an input parameter; use ':=' instead of '=>'
+
+    warning[E067]: Implicit downcast from 'BOOL' to 'T'.
+       ┌─ <internal>:11:23
+       │
+    11 │             NOT(IN => a);
+       │                       ^ Implicit downcast from 'BOOL' to 'T'.
+
+    error[E048]: Could not resolve reference to missing
+       ┌─ <internal>:12:23
+       │
+    12 │             NOT(IN := missing);
+       │                       ^^^^^^^ Could not resolve reference to missing
+
+    error[E048]: Could not resolve reference to missing
+       ┌─ <internal>:13:17
+       │
+    13 │             MOD(missing, x);
+       │                 ^^^^^^^ Could not resolve reference to missing
+
+    error[E048]: Could not resolve reference to missing
+       ┌─ <internal>:14:34
+       │
+    14 │             MOD(IN1 := x, IN2 := missing);
+       │                                  ^^^^^^^ Could not resolve reference to missing
+
+    error[E048]: Could not resolve reference to missing
+       ┌─ <internal>:15:17
+       │
+    15 │             XOR(missing, a);
+       │                 ^^^^^^^ Could not resolve reference to missing
+    ");
+}
