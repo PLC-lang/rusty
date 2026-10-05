@@ -318,7 +318,7 @@ call void @llvm.memcpy.p0.p0.i32(ptr align 1 %text, ptr align 1 @utf08_literal_1
 
 ### Calls to functions
 
-Codegen places named and positional arguments in parameter order. A parameter without an argument, which validation allows for a trailing input with a default and for any parameter of a method, and a parameter whose argument is written empty (`overflow =>`), gets its default, or zero; a by-address parameter then receives a temporary holding that value. It passes scalar inputs by value and `VAR_IN_OUT` and `VAR_OUTPUT` arguments by address. The callee writes through these addresses. For `i := scale(i, factor := 3, total := counter, overflow => flag)`:
+Codegen places named and positional arguments in parameter order. A parameter without an argument, which validation allows for a trailing input with a default of a function and for any input or output of a method but never for a `VAR_IN_OUT` or a `REFERENCE TO` input, and an output whose argument is written empty (`overflow =>`), gets its default, or zero; a by-address parameter then receives a temporary holding that value. It passes scalar inputs by value and `VAR_IN_OUT` and `VAR_OUTPUT` arguments by address. The callee writes through these addresses. For `i := scale(i, factor := 3, total := counter, overflow => flag)`:
 
 ```llvm
 %call = call i32 @scale(i32 %load_i, i16 3, ptr @counter, ptr %flag)   ; value, factor, address of total, address of overflow
