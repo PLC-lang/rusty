@@ -1687,9 +1687,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .expect("POU type for parameter struct must exist");
             let pointer_to_param = self.build_parameter_struct_gep(pointee, param_context);
 
-            let parameter = self
-                .index
-                .find_parameter(param_context.declaring_pou, index)
+            let parameter_entry = self.index.find_parameter(param_context.declaring_pou, index);
+            let parameter = parameter_entry
                 .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
@@ -1698,13 +1697,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 //this is a VAR_IN_OUT assignment, so don't load the value, assign the pointer
                 //expression may be empty -> generate a local variable for it
                 let generated_exp = if expression.is_empty_statement() {
-                    let temp_type = self
-                        .llvm_index
-                        .find_associated_type(inner_type_name)
-                        .ok_or_else(|| Diagnostic::unknown_type(parameter.get_name(), expression))?;
-                    let temp = builder.build_alloca(temp_type, "empty_varinout")?;
-                    builder.build_store(temp, temp_type.const_zero())?;
-                    temp.as_basic_value_enum()
+                    match parameter_entry {
+                        // the temporary starts at the parameter's default, or zero
+                        Some(parameter_entry) => self.generate_empty_expression(parameter_entry)?,
+                        None => {
+                            let temp_type = self
+                                .llvm_index
+                                .find_associated_type(inner_type_name)
+                                .ok_or_else(|| Diagnostic::unknown_type(parameter.get_name(), expression))?;
+                            let temp = builder.build_alloca(temp_type, "empty_varinout")?;
+                            builder.build_store(temp, temp_type.const_zero())?;
+                            temp.as_basic_value_enum()
+                        }
+                    }
                 } else {
                     self.generate_lvalue(expression)?.as_basic_value_enum()
                 };

@@ -28,11 +28,11 @@ entry:
   %var3 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
   %load_var1 = load i32, ptr %var1, align [filtered]
   store i32 %load_var1, ptr @prog_instance, align [filtered]
-  %empty_varinout = alloca i32, align [filtered]
-  store i32 0, ptr %empty_varinout, align [filtered]
-  store ptr %empty_varinout, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 2), align [filtered]
+  %1 = alloca i32, align [filtered]
+  store i32 0, ptr %1, align [filtered]
+  store ptr %1, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 2), align [filtered]
   call void @prog(ptr @prog_instance)
-  %1 = load i32, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align [filtered]
-  store i32 %1, ptr %var2, align [filtered]
+  %2 = load i32, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align [filtered]
+  store i32 %2, ptr %var2, align [filtered]
   ret void
 }
