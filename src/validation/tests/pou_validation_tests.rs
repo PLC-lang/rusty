@@ -587,13 +587,13 @@ END_FUNCTION",
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E158]: `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    error[E159]: `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
       ┌─ <internal>:6:5
       │
     6 │     FbAlias();
       │     ^^^^^^^ `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
 
-    error[E158]: `SecondAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    error[E159]: `SecondAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
       ┌─ <internal>:7:5
       │
     7 │     SecondAlias();
@@ -616,7 +616,7 @@ END_FUNCTION",
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E158]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    error[E159]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
       ┌─ <internal>:8:5
       │
     8 │     MyFb(x := 1, y => value, z := value);
@@ -637,7 +637,7 @@ END_FUNCTION",
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E158]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    error[E159]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
       ┌─ <internal>:6:5
       │
     6 │     MyFb(unknown);
@@ -664,7 +664,7 @@ END_FUNCTION",
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E158]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    error[E159]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
       ┌─ <internal>:6:5
       │
     6 │     MyFb(x := unknown);
@@ -691,7 +691,7 @@ END_FUNCTION",
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E158]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    error[E159]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
       ┌─ <internal>:6:5
       │
     6 │     MyFb(y => unknown);
@@ -718,13 +718,13 @@ END_FUNCTION",
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E158]: `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    error[E159]: `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
       ┌─ <internal>:6:5
       │
     6 │     FbAlias(x := MyFb(x := 1));
       │     ^^^^^^^ `FbAlias` is a FUNCTION_BLOCK. Declare an instance and call that instance
 
-    error[E158]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    error[E159]: `MyFb` is a FUNCTION_BLOCK. Declare an instance and call that instance
       ┌─ <internal>:6:18
       │
     6 │     FbAlias(x := MyFb(x := 1));

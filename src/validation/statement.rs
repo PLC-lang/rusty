@@ -837,7 +837,7 @@ fn function_block_called_without_instance<T: AnnotationMap>(
         Diagnostic::new(format!(
             "`{type_name}` is a FUNCTION_BLOCK. Declare an instance and call that instance"
         ))
-        .with_error_code("E158")
+        .with_error_code("E159")
         .with_location(operator),
     )
 }

@@ -3601,7 +3601,7 @@ fn function_block_type_call_reports_missing_instance() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E158]: `fn_with_one_parameter` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    error[E159]: `fn_with_one_parameter` is a FUNCTION_BLOCK. Declare an instance and call that instance
       ┌─ <internal>:9:13
       │
     9 │             fn_with_one_parameter(1);
