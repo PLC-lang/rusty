@@ -141,7 +141,7 @@ An array of a built-in type gets an empty constructor. An array literal that is 
 
 ### Stack variables
 
-Function and method locals and outputs, and `VAR_TEMP` variables in any POU, are initialized at the start of the POU body. These statements use no `self.` prefix. A function also constructs its return value when needed: `FUNCTION useLine: Point` with `localLine: Line` starts with `Line__ctor(localLine);` and `Point__ctor(useLine);`. An output of a function or method is caller-owned storage like a return value, and gets the same treatment: codegen zero-fills it on entry, then the constructor call and the initializer assignment run. `VAR_IN_OUT` variables and variable length array outputs use caller-owned storage that the body must not reset, and get no constructor call.
+Function and method locals and outputs, and `VAR_TEMP` variables in any POU, are initialized at the start of the POU body. These statements use no `self.` prefix. A function also constructs its return value when needed: `FUNCTION useLine: Point` with `localLine: Line` starts with `Line__ctor(localLine);` and `Point__ctor(useLine);`. An output of a function or method is caller-owned storage like a return value, and gets the same treatment: codegen zero-fills it on entry, then the constructor call and the initializer assignment run. `VAR_IN_OUT` variables and variable length array outputs use caller-owned storage that the body must not reset, and get no constructor call; a `REFERENCE TO` or alias output is bound by the body and is not reset either.
 
 ### Linkage
 

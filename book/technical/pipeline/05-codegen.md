@@ -207,7 +207,7 @@ In a function, `VAR_IN_OUT` and `VAR_OUTPUT` parameters are pointers, and an agg
 
 Functions are created in two passes, like structs: first a declaration for every POU the unit depends on, including POUs from other units, then the bodies of the POUs declared in this unit. If `scale` were in a second file, the module of `main` would contain `declare i32 @scale(i32, i16, ptr, ptr)` with no body.
 
-A body starts by making every variable addressable, so the statements can treat both kinds alike. A function copies each argument into a stack slot, starts its return variable at zero, and starts each output at its initial value, or zero, through the address the caller passed (a variable length array output keeps the caller's bounds and is not reset); a stateful POU computes one pointer per member into the instance:
+A body starts by making every variable addressable, so the statements can treat both kinds alike. A function copies each argument into a stack slot, starts its return variable at zero, and starts each output at its initial value, or zero, through the address the caller passed (a variable length array output keeps the caller's bounds, and a `REFERENCE TO` or alias output is bound by the body, so neither is reset); a stateful POU computes one pointer per member into the instance:
 
 ```llvm
 define i32 @scale(i32 %0, i16 %1, ptr %2, ptr %3) {

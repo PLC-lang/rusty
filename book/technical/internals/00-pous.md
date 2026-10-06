@@ -273,7 +273,7 @@ entry:
 
 The `%this` slot provides the instance pointer for `THIS^` in function blocks and their methods and actions. Programs and classes do not get this slot. A method or action of `Counter` computes the same member pointers, so `reset` writes directly to the instance. An action also gets a fresh stack slot for each `VAR_TEMP` of its owner, so a temp never carries a value from one call to the next. A method cannot reach a `VAR_TEMP` of its owner at all.
 
-A function allocates stack slots for its parameters, locals, and return variable. It stores the incoming arguments in those slots, gives each local its initial value, zeroes the return variable, and starts each output at its initial value, or zero, through the address the caller passed:
+A function allocates stack slots for its parameters, locals, and return variable. It stores the incoming arguments in those slots, gives each local its initial value, zeroes the return variable, and starts each output at its initial value, or zero, through the address the caller passed, except a variable length array, `REFERENCE TO`, or alias output, which keeps what the caller passed:
 
 ```llvm
 define i32 @scale(i32 %0, i16 %1, ptr %2, ptr %3) {

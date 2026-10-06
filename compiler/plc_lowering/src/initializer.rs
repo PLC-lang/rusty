@@ -250,16 +250,17 @@ impl AstVisitor for Initializer {
             .data_type_declaration
             .get_referenced_type()
             .is_some_and(|it| index.get_type_information_or_void(it).is_vla());
-        // a scalar output of a function or method needs no constructor: codegen resets it to the
-        // default of its type, and a constructor call on it would fail the by-ref type check
-        // for alias types
+        // a non-pointer scalar output of a function or method needs no constructor: codegen
+        // resets it to the constant default of its type, and a constructor call on it would fail
+        // the by-ref type check for alias types. A pointer output keeps its constructor, which
+        // applies an address-valued default such as ADR(g).
         let is_scalar_output = variable_block_type.is_output()
             && !is_stateful
             && !variable
                 .data_type_declaration
                 .get_referenced_type()
                 .and_then(|it| index.find_effective_type_by_name(it))
-                .is_some_and(|it| it.is_aggregate_type());
+                .is_some_and(|it| it.is_aggregate_type() || it.get_type_information().is_pointer());
         if !variable_block_type.is_inout() && !is_vla && !is_scalar_output {
             if let Some(constructor) = variable
                 .data_type_declaration
@@ -1660,11 +1661,16 @@ mod tests {
         END_STRUCT
         END_TYPE
         TYPE MyInt : INT; END_TYPE
+        TYPE MyPtr : POINTER TO INT := ADR(gVar); END_TYPE
+        VAR_GLOBAL
+            gVar : INT;
+        END_VAR
 
         FUNCTION MyFunction
         VAR_OUTPUT
             outStruct : MyStruct;
             outAlias : MyInt;
+            outPointer : MyPtr;
             outDefault : INT := 3;
         END_VAR
         END_FUNCTION
@@ -1680,11 +1686,12 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        // Outputs of a function are stack variables: the struct gets a constructor call, the
-        // default an assignment, and the scalar alias nothing (codegen resets it)
+        // Outputs of a function are stack variables: the struct and the pointer get a constructor
+        // call, the default an assignment, and the scalar alias nothing (codegen resets it)
         insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFunction").unwrap()), @"
         intern:
         MyStruct__ctor(outStruct)
+        MyPtr__ctor(outPointer)
         outDefault := 3
         ");
         insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFb.MyMethod").unwrap()), @"
