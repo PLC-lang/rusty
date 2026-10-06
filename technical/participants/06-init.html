@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-c9ab22fa.js";
+            window.path_to_searchindex_js = "../../searchindex-9d74174c.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -286,7 +286,7 @@ END_PROGRAM
 </code></pre>
 <p>An array of a built-in type gets an empty constructor. An array literal that is not constant, such as <code>[five(), 2]</code>, cannot be static data: the participant assigns it in the constructor and removes it from the declaration, so codegen emits zeros for the global. A constant array literal stays in the declaration and is additionally assigned in the constructor, from the version the constant evaluator folded.</p>
 <h3 id="stack-variables"><a class="header" href="#stack-variables">Stack variables</a></h3>
-<p>Function and method locals, and <code>VAR_TEMP</code> variables in any POU, are initialized at the start of the POU body. These statements use no <code>self.</code> prefix. A function also constructs its return value when needed: <code>FUNCTION useLine: Point</code> with <code>localLine: Line</code> starts with <code>Line__ctor(localLine);</code> and <code>Point__ctor(useLine);</code>. <code>VAR_IN_OUT</code> variables use caller-owned storage and get no constructor call.</p>
+<p>Function and method locals and outputs, and <code>VAR_TEMP</code> variables in any POU, are initialized at the start of the POU body. These statements use no <code>self.</code> prefix. A function also constructs its return value when needed: <code>FUNCTION useLine: Point</code> with <code>localLine: Line</code> starts with <code>Line__ctor(localLine);</code> and <code>Point__ctor(useLine);</code>. An output of a function or method is caller-owned storage like a return value, and gets the same treatment: codegen zero-fills it on entry, then the constructor call and the initializer assignment run. <code>VAR_IN_OUT</code> variables and variable length array outputs use caller-owned storage that the body must not reset, and get no constructor call; a <code>REFERENCE TO</code> or alias output is bound by the body and is not reset either.</p>
 <h3 id="linkage"><a class="header" href="#linkage">Linkage</a></h3>
 <p>For external or included types and POUs, the participant declares constructors without bodies. The linker must find their definitions in the library. Calls are still generated where the types are used. <code>--generate-external-constructors</code>, also implied by <code>--constructors-only</code>, generates bodies for <code>{external}</code> items. This lets a library be built from its external declarations.</p>
 <h2 id="interactions"><a class="header" href="#interactions">Interactions</a></h2>

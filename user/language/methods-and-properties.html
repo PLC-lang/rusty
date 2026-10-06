@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-c9ab22fa.js";
+            window.path_to_searchindex_js = "../../searchindex-9d74174c.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -208,7 +208,7 @@ END_VAR
 
 value := inlet.Fill(amount := 3);
 </code></pre>
-<p><code>value</code> is now <code>3</code>, the new level. A method is called like a <a href="functions.html#calling">function</a>: the arguments come by position, in the order of the declaration, or by name. Give every parameter a value, because a parameter that the call leaves out takes the default value of its declaration, and a parameter without a default holds no defined value. The body of the block and its methods share the data of the instance, but a local variable of a method does not survive the call.</p>
+<p><code>value</code> is now <code>3</code>, the new level. A method is called like a <a href="functions.html#calling">function</a>: the arguments come by position, in the order of the declaration, or by name. A method call may leave out an input or an output, but it must supply every <code>VAR_IN_OUT</code> and every <code>REFERENCE TO</code> input. A parameter that the call leaves out takes the default value of its declaration, or zero when it has none, and an output that the call leaves out is written to a temporary that the caller never sees. The outputs that the call does supply start every call at their initial value, or zero, exactly as the outputs of a <a href="functions.html#parameters">function</a> do, so the caller’s variable never keeps a stale value from a path that does not assign it. The reset reaches the caller’s variable before the body runs, so a member of the instance that the call passes as an output is already at its default when the body reads it. The body of the block and its methods share the data of the instance, but a local variable of a method does not survive the call.</p>
 <p>Inside a method, <code>THIS^</code> names the instance itself. You need it when a parameter and a member have the same name, because the parameter hides the member:</p>
 <pre><code class="language-iecst">METHOD SetLevel
     VAR_INPUT

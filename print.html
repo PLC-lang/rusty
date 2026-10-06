@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c9ab22fa.js";
+            window.path_to_searchindex_js = "searchindex-9d74174c.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-645c3480.js"></script>
@@ -1162,7 +1162,7 @@ END_FUNCTION
 <p><code>VAR_INPUT</code> gives the function a copy, so a change inside the function stays inside it. This holds for large values as well: a string, an array, or a struct in <code>VAR_INPUT</code> is copied, and the caller does not see a write to it.</p>
 <p><code>VAR_INPUT {ref}</code> marks the whole block as “do not copy”. The function then works on the value of the caller, which is what a foreign function usually expects, and what you want for a large value that the function only reads.</p>
 <p><code>VAR_IN_OUT</code> is for data that the function reads and writes. It is always the caller’s variable.</p>
-<p><code>VAR_OUTPUT</code> carries a second result out of the call.</p>
+<p><code>VAR_OUTPUT</code> carries a second result out of the call. Every call starts the output at its initial value, or at zero when it has none, exactly like a local variable, so the caller never reads a stale value from a path that does not assign it. An output that is a variable length array, a <code>REFERENCE TO</code>, or an alias (<code>AT</code>) is the exception: it keeps what the caller passed. The function does this through the caller’s variable when it starts, so a variable that the body can reach in another way is already reset when the body reads it. That is the case when the caller passes one variable as an output and also as a <code>VAR_IN_OUT</code> or <code>VAR_INPUT {ref}</code> of the same call, and when the output target is a global variable, or an instance member in a method, that the body reads. <code>bump(o =&gt; g)</code> with the body <code>o := g + 1</code> therefore yields the initial value of <code>o</code> plus one, whatever <code>g</code> held before the call. Pass such a value in through an input instead.</p>
 <h2 id="calling"><a class="header" href="#calling">Calling</a></h2>
 <p>A call supplies <strong>every</strong> parameter, including the outputs. Either by position, in the order of the declaration, or by name:</p>
 <pre><code class="language-iecst">r := Measure(raw, 'sensor', total, valid);
@@ -1174,6 +1174,7 @@ r := Measure(raw := raw, label := 'sensor', total := total, valid =&gt; valid);
 <pre><code>error[E031]: Expected a reference for parameter total because their type is InOut
 </code></pre>
 <p>and it can accept a value where the parameter needs a variable, which then binds a temporary that the caller never sees.</p>
+<p>An output argument may also be left empty, as in <code>scale(5, overflow =&gt; )</code>. The call then binds a temporary that starts at the parameter’s initial value, or zero, and the function writes there instead of into a variable of the caller. A <code>VAR_IN_OUT</code> or <code>REFERENCE TO</code> argument cannot be empty.</p>
 <p>A missing argument is an error, in both forms:</p>
 <pre><code>error[E032]: this POU takes 4 arguments but 2 arguments were supplied
 </code></pre>
@@ -1348,7 +1349,7 @@ END_VAR
 
 value := inlet.Fill(amount := 3);
 </code></pre>
-<p><code>value</code> is now <code>3</code>, the new level. A method is called like a <a href="#calling">function</a>: the arguments come by position, in the order of the declaration, or by name. Give every parameter a value, because a parameter that the call leaves out takes the default value of its declaration, and a parameter without a default holds no defined value. The body of the block and its methods share the data of the instance, but a local variable of a method does not survive the call.</p>
+<p><code>value</code> is now <code>3</code>, the new level. A method is called like a <a href="#calling">function</a>: the arguments come by position, in the order of the declaration, or by name. A method call may leave out an input or an output, but it must supply every <code>VAR_IN_OUT</code> and every <code>REFERENCE TO</code> input. A parameter that the call leaves out takes the default value of its declaration, or zero when it has none, and an output that the call leaves out is written to a temporary that the caller never sees. The outputs that the call does supply start every call at their initial value, or zero, exactly as the outputs of a <a href="#parameters">function</a> do, so the caller’s variable never keeps a stale value from a path that does not assign it. The reset reaches the caller’s variable before the body runs, so a member of the instance that the call passes as an output is already at its default when the body reads it. The body of the block and its methods share the data of the instance, but a local variable of a method does not survive the call.</p>
 <p>Inside a method, <code>THIS^</code> names the instance itself. You need it when a parameter and a member have the same name, because the parameter hides the member:</p>
 <pre><code class="language-iecst">METHOD SetLevel
     VAR_INPUT
@@ -6108,7 +6109,7 @@ define void @main(ptr %0)                             ; the instance
 </code></pre>
 <p>In a function, <code>VAR_IN_OUT</code> and <code>VAR_OUTPUT</code> parameters are pointers, and an aggregate input (struct, array, string) is passed as a pointer and copied into a local inside the callee. In a stateful POU only <code>VAR_IN_OUT</code> is a pointer; an output and an aggregate input are ordinary members of the instance, which the caller fills before the call and reads after it.</p>
 <p>Functions are created in two passes, like structs: first a declaration for every POU the unit depends on, including POUs from other units, then the bodies of the POUs declared in this unit. If <code>scale</code> were in a second file, the module of <code>main</code> would contain <code>declare i32 @scale(i32, i16, ptr, ptr)</code> with no body.</p>
-<p>A body starts by making every variable addressable, so the statements can treat both kinds alike. A function copies each argument into a stack slot and starts its return variable at zero; a stateful POU computes one pointer per member into the instance:</p>
+<p>A body starts by making every variable addressable, so the statements can treat both kinds alike. A function copies each argument into a stack slot, starts its return variable at zero, and starts each output at its initial value, or zero, through the address the caller passed (a variable length array output keeps the caller’s bounds, and a <code>REFERENCE TO</code> or alias output is bound by the body, so neither is reset); a stateful POU computes one pointer per member into the instance:</p>
 <pre><code class="language-llvm">define i32 @scale(i32 %0, i16 %1, ptr %2, ptr %3) {
 entry:
   %scale = alloca i32                 ; stack slot for the return variable
@@ -6121,6 +6122,8 @@ entry:
   %overflow = alloca ptr              ; output: same
   store ptr %3, ptr %overflow
   store i32 0, ptr %scale             ; the return variable starts at zero
+  %4 = load ptr, ptr %overflow        ; the output starts at zero, in the caller's variable
+  store i8 0, ptr %4
   ...
   %scale_ret = load i32, ptr %scale   ; read the return variable
   ret i32 %scale_ret                  ; and return it
@@ -6184,7 +6187,7 @@ store i8 %5, ptr %deref3                    ; write overflow through the output 
 call void @llvm.memcpy.p0.p0.i32(ptr align 1 %text, ptr align 1 @utf08_literal_1, i32 6, i1 false)   ; copy 6 bytes into text
 </code></pre>
 <h3 id="calls-to-functions"><a class="header" href="#calls-to-functions">Calls to functions</a></h3>
-<p>Codegen places named and positional arguments in parameter order and fills omitted parameters with defaults. It passes scalar inputs by value and <code>VAR_IN_OUT</code> and <code>VAR_OUTPUT</code> arguments by address. The callee writes through these addresses. For <code>i := scale(i, factor := 3, total := counter, overflow =&gt; flag)</code>:</p>
+<p>Codegen places named and positional arguments in parameter order. A parameter without an argument, which validation allows for a trailing input with a default of a function and for any input or output of a method but never for a <code>VAR_IN_OUT</code> or a <code>REFERENCE TO</code> input, and an output whose argument is written empty (<code>overflow =&gt;</code>), gets its default, or zero; a by-address parameter then receives a temporary holding that value. It passes scalar inputs by value and <code>VAR_IN_OUT</code> and <code>VAR_OUTPUT</code> arguments by address. The callee writes through these addresses. For <code>i := scale(i, factor := 3, total := counter, overflow =&gt; flag)</code>:</p>
 <pre><code class="language-llvm">%call = call i32 @scale(i32 %load_i, i16 3, ptr @counter, ptr %flag)   ; value, factor, address of total, address of overflow
 store i32 %call, ptr %i                                                ; write the result to i
 </code></pre>
@@ -7568,7 +7571,7 @@ END_PROGRAM
 </code></pre>
 <p>An array of a built-in type gets an empty constructor. An array literal that is not constant, such as <code>[five(), 2]</code>, cannot be static data: the participant assigns it in the constructor and removes it from the declaration, so codegen emits zeros for the global. A constant array literal stays in the declaration and is additionally assigned in the constructor, from the version the constant evaluator folded.</p>
 <h3 id="stack-variables"><a class="header" href="#stack-variables">Stack variables</a></h3>
-<p>Function and method locals, and <code>VAR_TEMP</code> variables in any POU, are initialized at the start of the POU body. These statements use no <code>self.</code> prefix. A function also constructs its return value when needed: <code>FUNCTION useLine: Point</code> with <code>localLine: Line</code> starts with <code>Line__ctor(localLine);</code> and <code>Point__ctor(useLine);</code>. <code>VAR_IN_OUT</code> variables use caller-owned storage and get no constructor call.</p>
+<p>Function and method locals and outputs, and <code>VAR_TEMP</code> variables in any POU, are initialized at the start of the POU body. These statements use no <code>self.</code> prefix. A function also constructs its return value when needed: <code>FUNCTION useLine: Point</code> with <code>localLine: Line</code> starts with <code>Line__ctor(localLine);</code> and <code>Point__ctor(useLine);</code>. An output of a function or method is caller-owned storage like a return value, and gets the same treatment: codegen zero-fills it on entry, then the constructor call and the initializer assignment run. <code>VAR_IN_OUT</code> variables and variable length array outputs use caller-owned storage that the body must not reset, and get no constructor call; a <code>REFERENCE TO</code> or alias output is bound by the body and is not reset either.</p>
 <h3 id="linkage"><a class="header" href="#linkage">Linkage</a></h3>
 <p>For external or included types and POUs, the participant declares constructors without bodies. The linker must find their definitions in the library. Calls are still generated where the types are used. <code>--generate-external-constructors</code>, also implied by <code>--constructors-only</code>, generates bodies for <code>{external}</code> items. This lets a library be built from its external declarations.</p>
 <h2 id="interactions-6"><a class="header" href="#interactions-6">Interactions</a></h2>
@@ -8504,7 +8507,7 @@ entry:
 }
 </code></pre>
 <p>The <code>%this</code> slot provides the instance pointer for <code>THIS^</code> in function blocks and their methods and actions. Programs and classes do not get this slot. A method or action of <code>Counter</code> computes the same member pointers, so <code>reset</code> writes directly to the instance. An action also gets a fresh stack slot for each <code>VAR_TEMP</code> of its owner, so a temp never carries a value from one call to the next. A method cannot reach a <code>VAR_TEMP</code> of its owner at all.</p>
-<p>A function allocates stack slots for its parameters, locals, and return variable. It stores the incoming arguments in those slots, gives each local its initial value, and zeroes the return variable:</p>
+<p>A function allocates stack slots for its parameters, locals, and return variable. It stores the incoming arguments in those slots, gives each local its initial value, zeroes the return variable, and starts each output at its initial value, or zero, through the address the caller passed, except a variable length array, <code>REFERENCE TO</code>, or alias output, which keeps what the caller passed:</p>
 <pre><code class="language-llvm">define i32 @scale(i32 %0, i16 %1, ptr %2, ptr %3) {
 entry:
   %scale = alloca i32, align 4
@@ -8519,12 +8522,14 @@ entry:
   %tmp = alloca i32, align 4
   store i32 0, ptr %tmp, align 4
   store i32 0, ptr %scale, align 4
+  %4 = load ptr, ptr %overflow, align 8
+  store i8 0, ptr %4, align 1
   ...
   %scale_ret = load i32, ptr %scale, align 4
   ret i32 %scale_ret
 }
 </code></pre>
-<p><code>count</code> and <code>overflow</code> hold pointers, and every access loads the pointer first and then the value behind it; that is the auto-dereference the resolver marked. Writing <code>overflow</code> writes the caller’s <code>flag</code> directly.</p>
+<p><code>count</code> and <code>overflow</code> hold pointers, and every access loads the pointer first and then the value behind it; that is the auto-dereference the resolver marked. Writing <code>overflow</code> writes the caller’s <code>flag</code> directly, and the reset at entry has already written zero there, so <code>flag</code> holds the output’s default even on a path that never assigns it.</p>
 <h3 id="calls-2"><a class="header" href="#calls-2">Calls</a></h3>
 <p>The kind of the callee decides how a call is built. A call to a stateful POU stores each passed argument into the member of the instance, calls the function with the instance pointer, and, after the call, copies every <code>=&gt;</code> output out of the instance into its target. Unpassed inputs keep their last value:</p>
 <pre><code class="language-llvm">  %1 = getelementptr inbounds %Counter, ptr %counter, i32 0, i32 1

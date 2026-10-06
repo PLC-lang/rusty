@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-c9ab22fa.js";
+            window.path_to_searchindex_js = "../../searchindex-9d74174c.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -228,7 +228,7 @@ END_FUNCTION
 <p><code>VAR_INPUT</code> gives the function a copy, so a change inside the function stays inside it. This holds for large values as well: a string, an array, or a struct in <code>VAR_INPUT</code> is copied, and the caller does not see a write to it.</p>
 <p><code>VAR_INPUT {ref}</code> marks the whole block as “do not copy”. The function then works on the value of the caller, which is what a foreign function usually expects, and what you want for a large value that the function only reads.</p>
 <p><code>VAR_IN_OUT</code> is for data that the function reads and writes. It is always the caller’s variable.</p>
-<p><code>VAR_OUTPUT</code> carries a second result out of the call.</p>
+<p><code>VAR_OUTPUT</code> carries a second result out of the call. Every call starts the output at its initial value, or at zero when it has none, exactly like a local variable, so the caller never reads a stale value from a path that does not assign it. An output that is a variable length array, a <code>REFERENCE TO</code>, or an alias (<code>AT</code>) is the exception: it keeps what the caller passed. The function does this through the caller’s variable when it starts, so a variable that the body can reach in another way is already reset when the body reads it. That is the case when the caller passes one variable as an output and also as a <code>VAR_IN_OUT</code> or <code>VAR_INPUT {ref}</code> of the same call, and when the output target is a global variable, or an instance member in a method, that the body reads. <code>bump(o =&gt; g)</code> with the body <code>o := g + 1</code> therefore yields the initial value of <code>o</code> plus one, whatever <code>g</code> held before the call. Pass such a value in through an input instead.</p>
 <h2 id="calling"><a class="header" href="#calling">Calling</a></h2>
 <p>A call supplies <strong>every</strong> parameter, including the outputs. Either by position, in the order of the declaration, or by name:</p>
 <pre><code class="language-iecst">r := Measure(raw, 'sensor', total, valid);
@@ -240,6 +240,7 @@ r := Measure(raw := raw, label := 'sensor', total := total, valid =&gt; valid);
 <pre><code>error[E031]: Expected a reference for parameter total because their type is InOut
 </code></pre>
 <p>and it can accept a value where the parameter needs a variable, which then binds a temporary that the caller never sees.</p>
+<p>An output argument may also be left empty, as in <code>scale(5, overflow =&gt; )</code>. The call then binds a temporary that starts at the parameter’s initial value, or zero, and the function writes there instead of into a variable of the caller. A <code>VAR_IN_OUT</code> or <code>REFERENCE TO</code> argument cannot be empty.</p>
 <p>A missing argument is an error, in both forms:</p>
 <pre><code>error[E032]: this POU takes 4 arguments but 2 arguments were supplied
 </code></pre>

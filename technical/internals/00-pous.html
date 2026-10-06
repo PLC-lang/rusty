@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-c9ab22fa.js";
+            window.path_to_searchindex_js = "../../searchindex-9d74174c.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -410,7 +410,7 @@ entry:
 }
 </code></pre>
 <p>The <code>%this</code> slot provides the instance pointer for <code>THIS^</code> in function blocks and their methods and actions. Programs and classes do not get this slot. A method or action of <code>Counter</code> computes the same member pointers, so <code>reset</code> writes directly to the instance. An action also gets a fresh stack slot for each <code>VAR_TEMP</code> of its owner, so a temp never carries a value from one call to the next. A method cannot reach a <code>VAR_TEMP</code> of its owner at all.</p>
-<p>A function allocates stack slots for its parameters, locals, and return variable. It stores the incoming arguments in those slots, gives each local its initial value, and zeroes the return variable:</p>
+<p>A function allocates stack slots for its parameters, locals, and return variable. It stores the incoming arguments in those slots, gives each local its initial value, zeroes the return variable, and starts each output at its initial value, or zero, through the address the caller passed, except a variable length array, <code>REFERENCE TO</code>, or alias output, which keeps what the caller passed:</p>
 <pre><code class="language-llvm">define i32 @scale(i32 %0, i16 %1, ptr %2, ptr %3) {
 entry:
   %scale = alloca i32, align 4
@@ -425,12 +425,14 @@ entry:
   %tmp = alloca i32, align 4
   store i32 0, ptr %tmp, align 4
   store i32 0, ptr %scale, align 4
+  %4 = load ptr, ptr %overflow, align 8
+  store i8 0, ptr %4, align 1
   ...
   %scale_ret = load i32, ptr %scale, align 4
   ret i32 %scale_ret
 }
 </code></pre>
-<p><code>count</code> and <code>overflow</code> hold pointers, and every access loads the pointer first and then the value behind it; that is the auto-dereference the resolver marked. Writing <code>overflow</code> writes the caller’s <code>flag</code> directly.</p>
+<p><code>count</code> and <code>overflow</code> hold pointers, and every access loads the pointer first and then the value behind it; that is the auto-dereference the resolver marked. Writing <code>overflow</code> writes the caller’s <code>flag</code> directly, and the reset at entry has already written zero there, so <code>flag</code> holds the output’s default even on a path that never assigns it.</p>
 <h3 id="calls"><a class="header" href="#calls">Calls</a></h3>
 <p>The kind of the callee decides how a call is built. A call to a stateful POU stores each passed argument into the member of the instance, calls the function with the instance pointer, and, after the call, copies every <code>=&gt;</code> output out of the instance into its target. Unpassed inputs keep their last value:</p>
 <pre><code class="language-llvm">  %1 = getelementptr inbounds %Counter, ptr %counter, i32 0, i32 1
