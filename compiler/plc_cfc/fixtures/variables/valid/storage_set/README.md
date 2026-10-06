@@ -4,5 +4,5 @@ written while `a` is `FALSE`, so a once-set `b` stays latched.
 
 Illustrated:
 ```
-a --> [b |S] (0)
+a --> [b |S] (1)
 ```

@@ -4,10 +4,10 @@ free like any block-output read.
 
 Illustrated:
 ```
-  g : gate (0)          inst : counter (1)
+  g : gate (1)          inst : counter (2)
 +-------------+        +-------------------+
 |          ok | -----> | EN                |
 +-------------+        |                   |
-           localIn --> | in            out | --> localOut (2)
+           localIn --> | in            out | --> localOut (3)
                        +-------------------+
 ```

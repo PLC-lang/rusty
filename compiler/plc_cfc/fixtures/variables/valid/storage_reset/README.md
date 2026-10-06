@@ -4,5 +4,5 @@ Nothing is written while `a` is `FALSE`, so `b` keeps its value until reset.
 
 Illustrated:
 ```
-a --> [b |R] (0)
+a --> [b |R] (1)
 ```

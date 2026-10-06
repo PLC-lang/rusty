@@ -4,10 +4,10 @@ more by the ENO bubble, so the two bubbles cancel and `done` reads `trigger`.
 
 Illustrated:
 ```
-              inst : counter (0)
+              inst : counter (1)
             +-------------------+
-trigger --o | EN            ENO | o--> done (2)
-localIn --> | in            out | ---> localOut (1)
+trigger --o | EN            ENO | o--> done (3)
+localIn --> | in            out | ---> localOut (2)
             +-------------------+
             (o marks the inversion bubbles)
 ```

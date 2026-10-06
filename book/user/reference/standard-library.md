@@ -2,7 +2,7 @@
 
 `iec61131std` provides the functions and function blocks of IEC 61131-3. This page says what is in it and which file declares each family. For the signature of a single function, read that file.
 
-A few names appear here and in [Built-in Functions](built-in-functions.md): `ABS`, `ADD`, and `MUL` are built into the compiler, and the library declares them again to widen what a call accepts.
+One name appears here and in [Built-in Functions](built-in-functions.md): `ABS` is built into the compiler, and the library declares it again to widen what a call accepts.
 
 
 ## Using it
@@ -29,7 +29,7 @@ Some parts of the language call the library by themselves, so link it also when 
 
 | Family | Declared in | Contains |
 |---|---|---|
-| Arithmetic | `arithmetic_functions.st` | `SQRT`, `LN`, `LOG`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `EXPT`, the variadic `ADD` and `MUL`, and the constants `PI_REAL`, `FRAC_PI_2_REAL`, `FRAC_PI_4_REAL`, `E_REAL`, `INF_REAL`, and `NAN_REAL`, each also in an `LREAL` form such as `PI_LREAL` |
+| Arithmetic | `arithmetic_functions.st` | `SQRT`, `LN`, `LOG`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `EXPT`, and the constants `PI_REAL`, `FRAC_PI_2_REAL`, `FRAC_PI_4_REAL`, `E_REAL`, `INF_REAL`, and `NAN_REAL`, each also in an `LREAL` form such as `PI_LREAL` |
 | Numerical | `numerical_functions.st` | `ABS` |
 | Selectors | `selectors.st` | `MAX`, `MIN`, `LIMIT` |
 | Bit shifts | `bit_shift_functions.st` | `ROL`, `ROR` |

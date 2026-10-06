@@ -23,6 +23,46 @@ fn arithmetic_builtins_allow_mixing_of_fp_and_int_params() {
 }
 
 #[test]
+fn add_and_mul_reject_a_named_argument() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            a, b : DINT;
+        END_VAR
+            main := ADD(IN1 := a, b);
+            main := MUL(IN1 := a, b);
+        END_FUNCTION
+       ",
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E089]: Invalid call parameters
+      ┌─ <internal>:6:25
+      │
+    6 │             main := ADD(IN1 := a, b);
+      │                         ^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to IN1
+      ┌─ <internal>:6:25
+      │
+    6 │             main := ADD(IN1 := a, b);
+      │                         ^^^ Could not resolve reference to IN1
+
+    error[E089]: Invalid call parameters
+      ┌─ <internal>:7:25
+      │
+    7 │             main := MUL(IN1 := a, b);
+      │                         ^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to IN1
+      ┌─ <internal>:7:25
+      │
+    7 │             main := MUL(IN1 := a, b);
+      │                         ^^^ Could not resolve reference to IN1
+    ");
+}
+
+#[test]
 #[ignore = "FIXME: no validation for incompatible types for arithmetic operations"]
 fn arithmetic_builtins_called_with_incompatible_types() {
     let diagnostics = parse_and_validate_buffered(

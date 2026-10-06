@@ -5,6 +5,6 @@ be negated. `main` checks both directions with flipped inputs.
 
 Illustrated:
 ```
-a o--> route1    route1 --> b (0)
-c ---> route2    route2 --o d (1)
+a o--> route1    route1 --> b (1)
+c ---> route2    route2 --o d (2)
 ```

@@ -5,6 +5,6 @@ member read. Verbatim IDE export.
 Illustrated:
 ```
            +---- inst : counter ----+
-a1 ------o-| in                 out |-o------> b1 (1)
-           +------------------------+ (0)
+a1 ------o-| in                 out |-o------> b1 (2)
+           +------------------------+ (1)
 ```

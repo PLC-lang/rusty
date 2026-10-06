@@ -5,8 +5,8 @@ untouched: `IF NOT NOT a THEN b := TRUE`.
 
 Illustrated:
 ```
-a --> [b |S] (0)
-a --o [b |S] (1)
-a o-> [b |R] (2)
-a o-o [b |S] (3)
+a --> [b |S] (1)
+a --o [b |S] (2)
+a o-> [b |R] (3)
+a o-o [b |S] (4)
 ```

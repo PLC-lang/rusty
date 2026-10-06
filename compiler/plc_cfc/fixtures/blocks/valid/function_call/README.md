@@ -5,9 +5,9 @@ through generated persistent temporaries captured by the call, not `inst.member`
 
 Illustrated:
 ```
-          myAdd (0)
+          myAdd (1)
         +--------------------+
-in1 --> | in1          myAdd | --> function_call (1)
-in2 --> | in2   myAddDoubled | --> doubledOut (2)
+in1 --> | in1          myAdd | --> function_call (2)
+in2 --> | in2   myAddDoubled | --> doubledOut (3)
         +--------------------+
 ```

@@ -4,7 +4,7 @@ received the value (`x = 5, y = 5`).
 
 Illustrated:
 ```
-5 --> src (0)
-src --+--> x (1)
-      +--> y (2)
+5 --> src (1)
+src --+--> x (2)
+      +--> y (3)
 ```

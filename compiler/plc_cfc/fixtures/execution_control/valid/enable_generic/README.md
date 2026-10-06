@@ -5,10 +5,10 @@ statements never sees it.
 
 Illustrated:
 ```
-              myGenAdd<T: ANY_NUM> (0)
+              myGenAdd<T: ANY_NUM> (1)
             +------------------------+
 trigger --> | EN                     |
-      x --> | a             myGenAdd | --> result (1)
+      x --> | a             myGenAdd | --> result (2)
       y --> | b                      |
             +------------------------+
 ```

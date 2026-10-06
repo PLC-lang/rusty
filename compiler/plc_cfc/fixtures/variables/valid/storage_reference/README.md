@@ -4,5 +4,5 @@ see whatever value `a` holds at that time.
 
 Illustrated:
 ```
-a --> [b |REF] (0)
+a --> [b |REF] (1)
 ```

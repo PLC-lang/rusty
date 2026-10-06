@@ -3,5 +3,5 @@ value arrived (`x = 42`).
 
 Illustrated:
 ```
-42 --> x (0)
+42 --> x (1)
 ```

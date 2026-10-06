@@ -4,5 +4,5 @@ continuations themselves can not be negated, only the nodes wired to them.
 
 Illustrated:
 ```
-foo o--> x    x --> bar (0)
+foo o--> x    x --> bar (1)
 ```

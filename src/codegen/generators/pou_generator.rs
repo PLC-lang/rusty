@@ -692,8 +692,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         ptr,
                         function_context,
                         block,
-                        m.source_location.get_line(),
-                        m.source_location.get_column(),
+                        &m.source_location,
                     );
                 }
 
@@ -774,14 +773,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .ok_or_else(|| CodegenError::from(Diagnostic::missing_function(location)))?;
         //Generate POU struct declaration for debug
         if let Some(block) = self.llvm.builder.get_insert_block() {
-            debug.add_variable_declaration(
-                type_name,
-                param_pointer,
-                function_context,
-                block,
-                location.get_line(),
-                location.get_column(),
-            );
+            debug.add_variable_declaration(type_name, param_pointer, function_context, block, location);
         }
 
         if ((function_context.linking_context.is_method() || function_context.linking_context.is_action())
@@ -853,8 +845,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         left,
                         function_context,
                         block,
-                        variable.source_location.get_line(),
-                        variable.source_location.get_column(),
+                        &variable.source_location,
                     );
                 }
 

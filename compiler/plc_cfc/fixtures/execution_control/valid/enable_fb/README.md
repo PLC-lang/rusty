@@ -5,9 +5,9 @@ source, so no extra storage is generated: `done := trigger`.
 
 Illustrated:
 ```
-              inst : counter (0)
+              inst : counter (1)
             +-------------------+
-trigger --> | EN            ENO | --> done (2)
-localIn --> | in            out | --> localOut (1)
+trigger --> | EN            ENO | --> done (3)
+localIn --> | in            out | --> localOut (2)
             +-------------------+
 ```
