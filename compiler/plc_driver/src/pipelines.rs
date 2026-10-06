@@ -7,6 +7,7 @@ use std::{
 };
 
 use crate::{
+    build,
     cli::{self, CompileParameters, ConfigOption, GenerateOption, SubCommands},
     get_project, CompileOptions, LinkOptions, LinkerScript,
 };
@@ -205,14 +206,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 debug_compilation_dir: params.debug_compilation_dir.clone(),
                 single_module: params.single_module,
                 constructors_only: params.constructors_only,
-                // Resolved at *this crate's* build time via `build.rs`; if
-                // `RUSTY_BUILD_INFO` was not set we skip rather than embed a
-                // placeholder.
-                build_info: if params.fno_ident {
-                    None
-                } else {
-                    option_env!("RUSTY_BUILD_INFO").map(|info| format!("plc version {info}"))
-                },
+                build_info: (!params.fno_ident).then(ident),
             }
         })
     }
@@ -393,11 +387,6 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         {
             return self.print_config_options(options);
         }
-        if let Some(CompileParameters { build_info: true, .. }) = self.compile_parameters {
-            println!("{}", option_env!("RUSTY_BUILD_INFO").unwrap_or("version information unavailable"));
-            return Ok(());
-        }
-
         if let Some(CompileParameters { commands: Some(SubCommands::Explain { error }), .. }) =
             &self.compile_parameters
         {
@@ -594,6 +583,15 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         }
 
         Ok(())
+    }
+}
+
+/// Identifies the compiler in the `.comment` section of compiled artifacts. Omits the build
+/// time so that rebuilding the same source with the same compiler gives identical artifacts.
+fn ident() -> String {
+    match build::SHORT_COMMIT {
+        "" => format!("plc version {}", build::PKG_VERSION),
+        commit => format!("plc version {} ({}, {commit})", build::PKG_VERSION, build::COMMIT_DATE),
     }
 }
 
