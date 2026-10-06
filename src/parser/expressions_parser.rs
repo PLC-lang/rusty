@@ -3,7 +3,7 @@
 use crate::{
     expect_token,
     lexer::Token::*,
-    lexer::{ParseSession, Token},
+    lexer::{ParseSession, Token, TokenClass},
     parser::parse_any_in_region,
 };
 use plc_ast::{
@@ -160,12 +160,12 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstNode {
         OperatorMinus => Some(Operator::Minus),
         _ => None,
     } {
-        operators.push(operator);
+        operators.push((operator, lexer.location()));
         lexer.advance();
     }
     // created nested statements if necessary (e.g. &&)
     let init = parse_leaf_expression(lexer);
-    operators.iter().rev().fold(init, |expression, operator| {
+    operators.into_iter().rev().fold(init, |expression, (operator, operator_location)| {
         let expression_location = expression.get_location();
         let location = start_location.span(&expression_location);
 
@@ -195,9 +195,28 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstNode {
                 AstFactory::create_identifier(name, &location, lexer.next_id())
             }
 
-            _ => AstFactory::create_unary_expression(*operator, expression, location, lexer.next_id()),
+            // `NOT(IN := a)` and `NOT(a, b)` hold an argument list, thus call the `NOT` builtin function
+            (Operator::Not, AstStatement::ParenExpression(inner)) if is_argument_list(inner) => {
+                let identifier = AstFactory::create_identifier("NOT", operator_location, lexer.next_id());
+                let reference = AstFactory::create_member_reference(identifier, None, lexer.next_id());
+                AstFactory::create_call_statement(
+                    reference,
+                    Some((**inner).clone()),
+                    lexer.next_id(),
+                    location,
+                )
+            }
+
+            _ => AstFactory::create_unary_expression(operator, expression, location, lexer.next_id()),
         }
     })
+}
+
+fn is_argument_list(node: &AstNode) -> bool {
+    matches!(
+        node.get_stmt(),
+        AstStatement::ExpressionList(_) | AstStatement::Assignment(_) | AstStatement::OutputAssignment(_)
+    )
 }
 
 fn to_operator(token: &Token) -> Option<Operator> {
@@ -298,6 +317,13 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
             })
         }
         token if token.is_identifier_like() => Some(parse_identifier(lexer)),
+        // `AND(a, b)`: an operator keyword directly followed by `(` names the builtin function
+        token
+            if token.classes().contains(&TokenClass::OperatorFunction)
+                && lexer.peek() == KeywordParensOpen =>
+        {
+            Some(parse_identifier(lexer))
+        }
         KeywordSuper => {
             lexer.advance();
             Some(AstFactory::create_super_reference(

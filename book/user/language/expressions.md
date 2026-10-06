@@ -32,7 +32,7 @@ Note that the test for equality is a single `=`, because `:=` is the assignment.
 
 ## Boolean and bit operators
 
-`AND`, `OR`, `XOR`, and `NOT` do two jobs. On `BOOL` values they are the logical operators; on the bit string types they work bit by bit. `&` is another spelling of `AND`.
+`AND`, `OR`, `XOR`, and `NOT` do two jobs. On `BOOL` values they are the logical operators; on the bit string types and on integers they work bit by bit. `&` is another spelling of `AND`. Each of them, and `MOD` as well, also has a function form, such as `AND(a, b, c)`; see [Built-in Functions](../reference/built-in-functions.md#names-that-are-also-operators).
 
 ```iecst
 ready := motorOn AND NOT alarm;

@@ -1678,10 +1678,50 @@ fn generic_call_with_formal_parameter() {
     21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
        │                                   ^^^^^^^^^^^^^^^^^^^^^ Could not resolve generic type T with ANY_NUMBER
 
-    error[E037]: Invalid assignment: cannot assign 'STRING' to 'FUNCTION FOO < T: ANY_NUM >: T VAR_INPUT x: T; END_VAR END_FUNCTION'
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'T'
        ┌─ <internal>:21:30
        │
     21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
-       │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'FUNCTION FOO < T: ANY_NUM >: T VAR_INPUT x: T; END_VAR END_FUNCTION'
+       │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'T'
+    ");
+}
+
+#[test]
+fn unresolved_generic_return_type_is_named_by_its_symbol() {
+    let src = "
+    FUNCTION foo<U: ANY> : U
+    VAR_INPUT
+        in : U;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION main : DINT
+    VAR
+        arr : ARRAY[0..5] OF INT;
+        arr2 : ARRAY[0..5] OF INT;
+    END_VAR
+        arr2 := foo(SOURCE := arr);
+    END_FUNCTION
+";
+
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(diagnostics, @r"
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:13:21
+       │
+    13 │         arr2 := foo(SOURCE := arr);
+       │                     ^^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to SOURCE
+       ┌─ <internal>:13:21
+       │
+    13 │         arr2 := foo(SOURCE := arr);
+       │                     ^^^^^^ Could not resolve reference to SOURCE
+
+    error[E037]: Invalid assignment: cannot assign 'U' to 'ARRAY[0..5] OF INT'
+       ┌─ <internal>:13:9
+       │
+    13 │         arr2 := foo(SOURCE := arr);
+       │         ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'U' to 'ARRAY[0..5] OF INT'
     ");
 }

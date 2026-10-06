@@ -1046,7 +1046,7 @@ fn visit_binary_expression<T: AnnotationMap>(
             // check for the = operator
             validate_binary_expression(validator, statement, &Operator::Equal, left, right, context);
         }
-        Operator::Division => {
+        Operator::Division | Operator::Modulo => {
             validate_binary_expression(validator, statement, operator, left, right, context);
             validate_zero_diviser(validator, context.annotations, context.index, right, &statement.location);
         }
@@ -2868,7 +2868,8 @@ pub fn validate_zero_diviser(
 pub(crate) mod helper {
     use std::ops::Range;
 
-    use plc_ast::ast::{AstNode, DirectAccessType};
+    use plc_ast::ast::{AstNode, AstStatement, DirectAccessType};
+    use plc_ast::literals::{AstLiteral, Time};
 
     use crate::index::VariableIndexEntry;
     use crate::resolver::AnnotationMap;
@@ -2942,7 +2943,7 @@ pub(crate) mod helper {
         index: &Index,
     ) -> bool {
         let right = right.get_node_peeled();
-        if right.is_zero() {
+        if is_zero_literal(right) {
             return true;
         }
 
@@ -2953,7 +2954,7 @@ pub(crate) mod helper {
                         if let Some(constant_statement) =
                             index.get_const_expressions().maybe_get_constant_statement(&element.initial_value)
                         {
-                            return constant_statement.is_zero();
+                            return is_zero_literal(constant_statement);
                         }
                     }
                 }
@@ -2961,5 +2962,11 @@ pub(crate) mod helper {
         }
 
         false
+    }
+
+    /// Returns true if the node is a number or a duration literal of value zero
+    fn is_zero_literal(node: &AstNode) -> bool {
+        node.is_zero()
+            || matches!(node.get_stmt(), AstStatement::Literal(AstLiteral::Time(Time { nanos: 0, .. })))
     }
 }
