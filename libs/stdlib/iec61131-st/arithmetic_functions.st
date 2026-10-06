@@ -16,32 +16,6 @@ VAR_GLOBAL
     NAN_LREAL: LREAL;
 END_VAR
 
-(********************
-*
-* This operator returns the value of adding up the operands.
-* It overloads the variadic builtin ADD with a named first parameter IN1
-*
-*********************)
-FUNCTION ADD < T1: ANY, T2: ANY >: T1
-VAR_INPUT
-    IN1: T1;
-    IN2: T2...;
-END_VAR
-END_FUNCTION
-
-(********************
-*
-* This operator produces the multiplication of the operands.
-* It overloads the variadic builtin MUL with a named first parameter IN1
-*
-*********************)
-FUNCTION MUL < T1: ANY, T2: ANY >: T1
-VAR_INPUT
-    IN1: T1;
-    IN2: T2...;
-END_VAR
-END_FUNCTION
-
 (* Calculates the square root of a given value *)
 {external}
 FUNCTION SQRT<T : ANY_REAL> : T
