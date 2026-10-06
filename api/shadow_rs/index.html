@@ -1,0 +1,154 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`shadow-rs`: Build-time information stored in your Rust project (binary, lib, cdylib, dylib)."><title>shadow_rs - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="shadow_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.97.1 (8bab26f4f 2026-07-14)" data-channel="1.97.1" data-search-js="search-fd9372ac.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-fcd733ba.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate shadow_rs</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../shadow_rs/index.html"><img src="https://raw.githubusercontent.com/baoyachi/shadow-rs/master/shadow-rs.png" alt="logo"></a><h2><a href="../shadow_rs/index.html">shadow_<wbr>rs</a><span class="version">2.0.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li><li><a href="#setup" title="Setup">Setup</a><ul><li><a href="#1-modify-cargotoml-fields" title="1) Modify `Cargo.toml` fields">1) Modify <code>Cargo.toml</code> fields</a></li><li><a href="#2-create-buildrs-file" title="2) Create `build.rs` file">2) Create <code>build.rs</code> file</a></li><li><a href="#3-integrate-shadow" title="3) Integrate Shadow">3) Integrate Shadow</a></li><li><a href="#4-use-shadow-constants" title="4) Use Shadow Constants">4) Use Shadow Constants</a></li><li><a href="#clap" title="Clap">Clap</a></li></ul></li><li><a href="#list-of-generated-output-constants" title="List of Generated Output Constants">List of Generated Output Constants</a></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#macros" title="Macros">Macros</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#constants" title="Constants">Constants</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#derives" title="Derive Macros">Derive Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>shadow_<wbr>rs</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/shadow_rs/lib.rs.html#1-224">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>shadow-rs</code>: Build-time information stored in your Rust project (binary, lib, cdylib, dylib).</p>
+<p><code>shadow-rs</code> allows you to access properties of the build process and environment at runtime, including:</p>
+<ul>
+<li><code>Cargo.toml</code> information, such as the project version</li>
+<li>Dependency information</li>
+<li>Git information, such as the commit that produced the build artifact</li>
+<li>What version of the Rust toolchain was used in compilation</li>
+<li>The build variant, e.g. <code>debug</code> or <code>release</code></li>
+<li>… And more!</li>
+</ul>
+<p>You can use this crate to programmatically check where a binary came from and how it was built.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<ul>
+<li>Check out the <a href="https://github.com/baoyachi/shadow-rs/tree/master/example_shadow">example_shadow</a> for a simple demonstration of how <code>shadow-rs</code> might be used to provide build-time information at run-time.</li>
+<li>Check out the <a href="https://github.com/baoyachi/shadow-rs/tree/master/example_shadow_hook">example_shadow_hook</a> for a demonstration of how custom hooks can be used to add extra information to <code>shadow-rs</code>’s output.</li>
+<li>Check out the <a href="https://github.com/baoyachi/shadow-rs/tree/master/examples/builtin_fn.rs"><code>builtin_fn</code> example</a> for a simple demonstration of the built-in functions that <code>shadow-rs</code> provides.</li>
+</ul>
+<h2 id="setup"><a class="doc-anchor" href="#setup">§</a>Setup</h2><h4 id="1-modify-cargotoml-fields"><a class="doc-anchor" href="#1-modify-cargotoml-fields">§</a>1) Modify <code>Cargo.toml</code> fields</h4>
+<p>Modify your <code>Cargo.toml</code> like so:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[package]
+build = &quot;build.rs&quot;
+
+[dependencies]
+shadow-rs = { version = &quot;{latest version}&quot;, default-features = false }
+
+[build-dependencies]
+shadow-rs = &quot;{latest version}&quot;</code></pre></div><h4 id="2-create-buildrs-file"><a class="doc-anchor" href="#2-create-buildrs-file">§</a>2) Create <code>build.rs</code> file</h4>
+<p>Now in the root of your project (same directory as <code>Cargo.toml</code>) add a file <code>build.rs</code>:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main() {
+    ShadowBuilder::builder()
+        .build_pattern(BuildPattern::RealTime)
+        .build().unwrap();
+}</code></pre></div><h4 id="3-integrate-shadow"><a class="doc-anchor" href="#3-integrate-shadow">§</a>3) Integrate Shadow</h4>
+<p>In your main Rust file (usually <code>main.rs</code> or <code>lib.rs</code>), add this:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>shadow_rs::shadow;
+
+<span class="macro">shadow!</span>(build);</code></pre></div>
+<p>The <code>shadow!</code> macro uses the given identifier to create a module with that name.</p>
+<h4 id="4-use-shadow-constants"><a class="doc-anchor" href="#4-use-shadow-constants">§</a>4) Use Shadow Constants</h4>
+<p>You can now use the module defined with <code>shadow!</code> to access build-time information.</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>main(){
+    <span class="macro">println!</span>(<span class="string">"debug:{}"</span>, shadow_rs::is_debug()); <span class="comment">// check if this is a debug build. e.g 'true/false'
+    </span><span class="macro">println!</span>(<span class="string">"branch:{}"</span>, shadow_rs::branch()); <span class="comment">// get current project branch. e.g 'master/develop'
+    </span><span class="macro">println!</span>(<span class="string">"tag:{}"</span>, shadow_rs::tag()); <span class="comment">// get current project tag. e.g 'v1.3.5'
+    </span><span class="macro">println!</span>(<span class="string">"git_clean:{}"</span>, shadow_rs::git_clean()); <span class="comment">// get current project clean. e.g 'true/false'
+    </span><span class="macro">println!</span>(<span class="string">"git_status_file:{}"</span>, shadow_rs::git_status_file()); <span class="comment">// get current project statue file. e.g '  * examples/builtin_fn.rs (dirty)'
+
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::VERSION); <span class="comment">//print version const
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::CLAP_LONG_VERSION); <span class="comment">//print CLAP_LONG_VERSION const
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::BRANCH); <span class="comment">//master
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::SHORT_COMMIT);<span class="comment">//8405e28e
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::COMMIT_HASH);<span class="comment">//8405e28e64080a09525a6cf1b07c22fcaf71a5c5
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::COMMIT_DATE);<span class="comment">//2021-08-04 12:34:03 +00:00
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::COMMIT_AUTHOR);<span class="comment">//baoyachi
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::COMMIT_EMAIL);<span class="comment">//xxx@gmail.com
+
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::BUILD_OS);<span class="comment">//macos-x86_64
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::RUST_VERSION);<span class="comment">//rustc 1.45.0 (5c1f21c3b 2020-07-13)
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::RUST_CHANNEL);<span class="comment">//stable-x86_64-apple-darwin (default)
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::CARGO_VERSION);<span class="comment">//cargo 1.45.0 (744bd1fbb 2020-06-15)
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::PKG_VERSION);<span class="comment">//0.3.13
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::CARGO_TREE); <span class="comment">//like command:cargo tree
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::CARGO_MANIFEST_DIR); <span class="comment">// /User/baoyachi/shadow-rs/ |
+
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::PROJECT_NAME);<span class="comment">//shadow-rs
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::BUILD_TIME);<span class="comment">//2020-08-16 14:50:25
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::BUILD_RUST_CHANNEL);<span class="comment">//debug
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::GIT_CLEAN);<span class="comment">//false
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, build::GIT_STATUS_FILE);<span class="comment">//* src/lib.rs (dirty)
+</span>}</code></pre></div><h3 id="clap"><a class="doc-anchor" href="#clap">§</a>Clap</h3>
+<p>You can also use <code>shadow-rs</code> to provide information to command-line interface crates such as <a href="https://docs.rs/clap/latest/clap/"><code>clap</code></a>. An example of this can be found in <a href="https://github.com/baoyachi/shadow-rs/blob/master/example_shadow/src/main.rs"><code>example_shadow</code></a>.</p>
+<p>For the user guide and further documentation, see the <a href="https://github.com/baoyachi/shadow-rs">README of <code>shadow-rs</code></a>.</p>
+<h2 id="list-of-generated-output-constants"><a class="doc-anchor" href="#list-of-generated-output-constants">§</a>List of Generated Output Constants</h2>
+<p>All constants produced by <code>shadow-rs</code> are documented in the module created with <a href="macro.shadow.html" title="macro shadow_rs::shadow"><code>shadow!</code></a>, so <code>rustdoc</code> and your IDE will pick it up.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">pub const </span>PKG_VERSION: <span class="kw-2">&amp;</span>str = <span class="string">"1.3.8-beta3"</span>;
+<span class="kw">pub const </span>PKG_VERSION_MAJOR: <span class="kw-2">&amp;</span>str = <span class="string">"1"</span>;
+<span class="kw">pub const </span>PKG_VERSION_MINOR: <span class="kw-2">&amp;</span>str = <span class="string">"3"</span>;
+<span class="kw">pub const </span>PKG_VERSION_PATCH: <span class="kw-2">&amp;</span>str = <span class="string">"8"</span>;
+<span class="kw">pub const </span>PKG_VERSION_PRE: <span class="kw-2">&amp;</span>str = <span class="string">"beta3"</span>;
+<span class="kw">pub const </span>RUST_VERSION: <span class="kw-2">&amp;</span>str = <span class="string">"rustc 1.45.0 (5c1f21c3b 2020-07-13)"</span>;
+<span class="kw">pub const </span>BUILD_RUST_CHANNEL: <span class="kw-2">&amp;</span>str = <span class="string">"debug"</span>;
+<span class="kw">pub const </span>COMMIT_AUTHOR: <span class="kw-2">&amp;</span>str = <span class="string">"baoyachi"</span>;
+<span class="kw">pub const </span>BUILD_TIME: <span class="kw-2">&amp;</span>str = <span class="string">"2020-08-16 13:48:52"</span>;
+<span class="kw">pub const </span>BUILD_TIME_2822: <span class="kw-2">&amp;</span>str = <span class="string">"Thu, 24 Jun 2021 21:44:14 +0800"</span>;
+<span class="kw">pub const </span>BUILD_TIME_3339: <span class="kw-2">&amp;</span>str = <span class="string">"2021-06-24T15:53:55+08:00"</span>;
+<span class="kw">pub const </span>BUILD_TIMESTAMP: i64 = <span class="number">1624548839</span>;
+<span class="kw">pub const </span>COMMIT_DATE: <span class="kw-2">&amp;</span>str = <span class="string">"2021-08-04 12:34:03 +00:00"</span>;
+<span class="kw">pub const </span>COMMIT_DATE_2822: <span class="kw-2">&amp;</span>str = <span class="string">"Thu, 24 Jun 2021 21:44:14 +0800"</span>;
+<span class="kw">pub const </span>COMMIT_DATE_3339: <span class="kw-2">&amp;</span>str = <span class="string">"2021-06-24T21:44:14.473058+08:00"</span>;
+<span class="kw">pub const </span>COMMIT_TIMESTAMP: i64 = <span class="number">1624548854</span>;
+<span class="kw">pub const </span>COMMIT_EMAIL: <span class="kw-2">&amp;</span>str = <span class="string">"xxx@gmail.com"</span>;
+<span class="kw">pub const </span>PROJECT_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"shadow-rs"</span>;
+<span class="kw">pub const </span>RUST_CHANNEL: <span class="kw-2">&amp;</span>str = <span class="string">"stable-x86_64-apple-darwin (default)"</span>;
+<span class="kw">pub const </span>BRANCH: <span class="kw-2">&amp;</span>str = <span class="string">"master"</span>;
+<span class="kw">pub const </span>CARGO_LOCK: <span class="kw-2">&amp;</span>str = <span class="string">r#"
+├── chrono v0.4.19
+│   ├── libc v0.2.80
+│   ├── num-integer v0.1.44
+│   │   └── num-traits v0.2.14
+│   │       [build-dependencies]
+│   │       └── autocfg v1.0.1
+│   ├── num-traits v0.2.14 (*)
+│   └── time v0.1.44
+│       └── libc v0.2.80
+└── git2 v0.13.12
+├── log v0.4.11
+│   └── cfg-if v0.1.10
+└── url v2.2.0
+├── form_urlencoded v1.0.0
+│   └── percent-encoding v2.1.0
+└── percent-encoding v2.1.0"#</span>;
+<span class="kw">pub const </span>CARGO_VERSION: <span class="kw-2">&amp;</span>str = <span class="string">"cargo 1.45.0 (744bd1fbb 2020-06-15)"</span>;
+<span class="kw">pub const </span>BUILD_OS: <span class="kw-2">&amp;</span>str = <span class="string">"macos-x86_64"</span>;
+<span class="kw">pub const </span>COMMIT_HASH: <span class="kw-2">&amp;</span>str = <span class="string">"386741540d73c194a3028b96b92fdeb53ca2788a"</span>;
+<span class="kw">pub const </span>GIT_CLEAN: bool = <span class="bool-val">true</span>;
+<span class="kw">pub const </span>GIT_STATUS_FILE: <span class="kw-2">&amp;</span>str = <span class="string">"* src/lib.rs (dirty)"</span>;</code></pre></div></div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="fmt/index.html" title="mod shadow_rs::fmt">fmt</a></dt><dd>Re-exported from the is_debug crate
+Utilities for formatting and printing strings.</dd><dt><a class="mod" href="rust_2015/index.html" title="mod shadow_rs::rust_2015">rust_<wbr>2015</a></dt><dd>Re-exported from the is_debug crate
+The 2015 version of the core prelude.</dd><dt><a class="mod" href="rust_2018/index.html" title="mod shadow_rs::rust_2018">rust_<wbr>2018</a></dt><dd>Re-exported from the is_debug crate
+The 2018 version of the core prelude.</dd><dt><a class="mod" href="rust_2021/index.html" title="mod shadow_rs::rust_2021">rust_<wbr>2021</a></dt><dd>Re-exported from the is_debug crate
+The 2021 version of the core prelude.</dd><dt><a class="mod" href="rust_2024/index.html" title="mod shadow_rs::rust_2024">rust_<wbr>2024</a></dt><dd>Re-exported from the is_debug crate
+The 2024 version of the core prelude.</dd><dt><a class="mod" href="v1/index.html" title="mod shadow_rs::v1">v1</a></dt><dd>Re-exported from the is_debug crate
+The first version of the core prelude.</dd></dl><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><dl class="item-table"><dt><a class="macro" href="macro.cfg.html" title="macro shadow_rs::cfg">cfg</a></dt><dd>Re-exported from the is_debug crate
+Evaluates boolean combinations of configuration flags at compile-time.</dd><dt><a class="macro" href="macro.concatcp.html" title="macro shadow_rs::concatcp">concatcp</a></dt><dd>Re-exported from the const_format crate
+Concatenates constants of primitive types into a <code>&amp;'static str</code>.</dd><dt><a class="macro" href="macro.formatcp.html" title="macro shadow_rs::formatcp">formatcp</a></dt><dd>Re-exported from the const_format crate
+Formats constants of primitive types into a <code>&amp;'static str</code></dd><dt><a class="macro" href="macro.map_ascii_case.html" title="macro shadow_rs::map_ascii_case">map_<wbr>ascii_<wbr>case</a></dt><dd>Re-exported from the const_format crate
+Converts the casing style of a <code>&amp;'static str</code> constant,
+ignoring non-ascii unicode characters.</dd><dt><a class="macro" href="macro.matches.html" title="macro shadow_rs::matches">matches</a></dt><dd>Re-exported from the is_debug crate
+Returns whether the given expression matches the provided pattern.</dd><dt><a class="macro" href="macro.shadow.html" title="macro shadow_rs::shadow">shadow</a></dt><dd>Add a module with the provided name which contains the build information generated by <code>shadow-rs</code>.</dd><dt><a class="macro" href="macro.str_get.html" title="macro shadow_rs::str_get">str_get</a></dt><dd>Re-exported from the const_format crate
+Indexes a <code>&amp;'static str</code> constant,
+returning <code>None</code> when the index is not on a character boundary.</dd><dt><a class="macro" href="macro.str_index.html" title="macro shadow_rs::str_index">str_<wbr>index</a></dt><dd>Re-exported from the const_format crate
+Indexes a <code>&amp;'static str</code> constant.</dd><dt><a class="macro" href="macro.str_repeat.html" title="macro shadow_rs::str_repeat">str_<wbr>repeat</a></dt><dd>Re-exported from the const_format crate
+Creates a <code>&amp;'static str</code> by repeating a <code>&amp;'static str</code> constant <code>times</code> times</dd><dt><a class="macro" href="macro.str_replace.html" title="macro shadow_rs::str_replace">str_<wbr>replace</a></dt><dd>Re-exported from the const_format crate
+Replaces all the instances of <code>$pattern</code> in <code>$input</code>
+(a <code>&amp;'static str</code> constant) with <code>$replace_with</code> (a <code>&amp;'static str</code> constant).</dd><dt><a class="macro" href="macro.str_splice.html" title="macro shadow_rs::str_splice">str_<wbr>splice</a></dt><dd>Re-exported from the const_format crate
+Replaces a substring in a <code>&amp;'static str</code> constant.
+Returns both the new resulting <code>&amp;'static str</code>, and the replaced substring.</dd><dt><a class="macro" href="macro.str_splice_out.html" title="macro shadow_rs::str_splice_out">str_<wbr>splice_<wbr>out</a></dt><dd>Re-exported from the const_format crate
+Alternative version of <a href="./macro.str_splice.html"><code>str_splice</code></a> which only returns the string
+with the applied replacement.</dd><dt><a class="macro" href="macro.str_split.html" title="macro shadow_rs::str_split">str_<wbr>split</a></dt><dd>Re-exported from the const_format crate
+Splits <code>$string</code> (a <code>&amp;'static str</code> constant) with <code>$splitter</code>,
+returning an array of <code>&amp;'static str</code>s.</dd><dt><a class="macro" href="macro.str_split_pat.html" title="macro shadow_rs::str_split_pat">str_<wbr>split_<wbr>pat</a></dt><dd>Re-exported from the const_format crate
+Version of <a href="macro.str_split.html" title="macro shadow_rs::str_split"><code>str_split</code></a> which evaluates to a <code>&amp;'static [&amp;'static str]</code>.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.PWrapper.html" title="struct shadow_rs::PWrapper">PWrapper</a></dt><dd>Re-exported from the const_format crate
+Wrapper for many std types,
+which implements the <code>const_debug_fmt</code> and/or <code>const_display_fmt</code> methods for them.</dd><dt><a class="struct" href="struct.SplicedStr.html" title="struct shadow_rs::SplicedStr">Spliced<wbr>Str</a></dt><dd>Re-exported from the const_format crate
+The return value of <a href="./macro.str_splice.html"><code>str_splice</code></a></dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.BuildModel.html" title="enum shadow_rs::BuildModel">Build<wbr>Model</a></dt><dd>Re-exported from the is_debug crate</dd><dt><a class="enum" href="enum.Case.html" title="enum shadow_rs::Case">Case</a></dt><dd>Re-exported from the const_format crate
+The casing style of a string.</dd></dl><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><dl class="item-table"><dt><a class="constant" href="constant.CARGO_CLIPPY_ALLOW_ALL.html" title="constant shadow_rs::CARGO_CLIPPY_ALLOW_ALL">CARGO_<wbr>CLIPPY_<wbr>ALLOW_<wbr>ALL</a></dt></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Debug.html" title="trait shadow_rs::Debug">Debug</a></dt><dd>Re-exported from the is_debug crate
+<code>?</code> formatting.</dd><dt><a class="trait" href="trait.PartialEq.html" title="trait shadow_rs::PartialEq">Partial<wbr>Eq</a></dt><dd>Re-exported from the is_debug crate
+Trait for comparisons using the equality operator.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.build_channel.html" title="fn shadow_rs::build_channel">build_<wbr>channel</a></dt><dd>Re-exported from the is_debug crate</dd><dt><a class="fn" href="fn.is_debug.html" title="fn shadow_rs::is_debug">is_<wbr>debug</a></dt><dd>Re-exported from the is_debug crate</dd><dt><a class="fn" href="fn.is_release.html" title="fn shadow_rs::is_release">is_<wbr>release</a></dt><dd>Re-exported from the is_debug crate</dd></dl><h2 id="derives" class="section-header">Derive Macros<a href="#derives" class="anchor">§</a></h2><dl class="item-table"><dt><a class="derive" href="derive.Debug.html" title="derive shadow_rs::Debug">Debug</a></dt><dd>Re-exported from the is_debug crate
+Derive macro generating an impl of the trait <code>Debug</code>.</dd><dt><a class="derive" href="derive.PartialEq.html" title="derive shadow_rs::PartialEq">Partial<wbr>Eq</a></dt><dd>Re-exported from the is_debug crate
+Derive macro generating an impl of the trait <a href="trait.PartialEq.html" title="trait shadow_rs::PartialEq"><code>PartialEq</code></a>.
+The behavior of this macro is described in detail <a href="trait.PartialEq.html#derivable" title="trait shadow_rs::PartialEq">here</a>.</dd></dl><script type="text/json" id="notable-traits-data">{"IntoIter<T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/1.97.1/core/result/struct.IntoIter.html\" title=\"struct core::result::IntoIter\">IntoIter</a>&lt;T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;T&gt; <a class=\"trait\" href=\"v1/trait.Iterator.html\" title=\"trait shadow_rs::v1::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/1.97.1/core/result/struct.IntoIter.html\" title=\"struct core::result::IntoIter\">IntoIter</a>&lt;T&gt;</div><div class=\"where\">    type <a href=\"v1/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = T;</div>","Iter<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/1.97.1/core/result/struct.Iter.html\" title=\"struct core::result::Iter\">Iter</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"v1/trait.Iterator.html\" title=\"trait shadow_rs::v1::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/1.97.1/core/result/struct.Iter.html\" title=\"struct core::result::Iter\">Iter</a>&lt;'a, T&gt;</div><div class=\"where\">    type <a href=\"v1/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"primitive\" href=\"https://doc.rust-lang.org/1.97.1/core/primitive.reference.html\">&amp;'a T</a>;</div>","IterMut<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/1.97.1/core/result/struct.IterMut.html\" title=\"struct core::result::IterMut\">IterMut</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"v1/trait.Iterator.html\" title=\"trait shadow_rs::v1::Iterator\">Iterator</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/1.97.1/core/result/struct.IterMut.html\" title=\"struct core::result::IterMut\">IterMut</a>&lt;'a, T&gt;</div><div class=\"where\">    type <a href=\"v1/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = <a class=\"primitive\" href=\"https://doc.rust-lang.org/1.97.1/core/primitive.reference.html\">&amp;'a mut T</a>;</div>"}</script></section></div></main></body></html>

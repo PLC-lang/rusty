@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":["Debug","PartialEq"],"enum":["BuildModel"],"fn":["build_channel","is_debug","is_release"],"macro":[["cfg",1],["matches",1]],"mod":["fmt","rust_2015","rust_2018","rust_2021","rust_2024","v1"],"trait":["Debug","PartialEq"]};

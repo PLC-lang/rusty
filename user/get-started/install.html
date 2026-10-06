@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-6d2cf5b6.js";
+            window.path_to_searchindex_js = "../../searchindex-b0ba0f90.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -249,7 +249,14 @@ echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' &gt;&gt; ~/.zprofile
 <h2 id="verify-the-installation"><a class="header" href="#verify-the-installation">Verify the installation</a></h2>
 <pre><code class="language-bash">plc --version
 </code></pre>
-<p>The command prints the version, the commit date, and the commit hash of the binary.</p>
+<p>The command prints the version, the git branch, the commit hash, the build time, and the Rust toolchain of the binary:</p>
+<pre><code>plc 1.1.0-dev
+branch:master
+commit_hash:f17338dd2ef
+build_time:2026-09-29 17:09:25 +02:00
+build_env:rustc 1.90.0 (1159e78c4 2025-09-14),1.90-x86_64-unknown-linux-gnu
+</code></pre>
+<p><code>plc -V</code> prints the first line only.</p>
 <h2 id="whats-next"><a class="header" href="#whats-next">What’s next</a></h2>
 <p>The compiler is ready. Write your first program in the <a href="hello-world.html">next chapter</a>.</p>
 

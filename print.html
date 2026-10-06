@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-6d2cf5b6.js";
+            window.path_to_searchindex_js = "searchindex-b0ba0f90.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e693153e.js"></script>
@@ -264,7 +264,14 @@ echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' &gt;&gt; ~/.zprofile
 <h2 id="verify-the-installation"><a class="header" href="#verify-the-installation">Verify the installation</a></h2>
 <pre><code class="language-bash">plc --version
 </code></pre>
-<p>The command prints the version, the commit date, and the commit hash of the binary.</p>
+<p>The command prints the version, the git branch, the commit hash, the build time, and the Rust toolchain of the binary:</p>
+<pre><code>plc 1.1.0-dev
+branch:master
+commit_hash:f17338dd2ef
+build_time:2026-09-29 17:09:25 +02:00
+build_env:rustc 1.90.0 (1159e78c4 2025-09-14),1.90-x86_64-unknown-linux-gnu
+</code></pre>
+<p><code>plc -V</code> prints the first line only.</p>
 <h2 id="whats-next"><a class="header" href="#whats-next">What’s next</a></h2>
 <p>The compiler is ready. Write your first program in the <a href="#hello-world">next chapter</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -1848,10 +1855,10 @@ plc check plc.json
 </code></pre>
 <pre><code>String dump of section '.comment':
   [     1]  Linker: Ubuntu LLD 21.1.8
-  [    1b]  plc version 1.1.0-dev (Thu Sep 10 12:08:58 2026 +0200, 6f6e1d7f2db)
-  [    5f]  GCC: (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+  [    1b]  plc version 1.1.0-dev (2026-09-10 10:08:58 +00:00, 6f6e1d7f2db)
+  [    5b]  GCC: (Ubuntu 15.2.0-16ubuntu1) 15.2.0
 </code></pre>
-<p>The version, the date, and the commit are the ones of the compiler that you used, and <code>plc --version</code> prints the same three. A deployed binary can therefore be matched to the compiler that built it. A pipeline that needs identical artifacts across compiler updates suppresses the line with <code>--fno-ident</code>.</p>
+<p>The version, the commit date, and the commit hash are the ones of the compiler that you used, and <code>plc --version</code> prints the same version and commit hash. A deployed binary can therefore be matched to the compiler that built it. A pipeline that needs identical artifacts across compiler updates suppresses the line with <code>--fno-ident</code>.</p>
 <h2 id="whats-next-19"><a class="header" href="#whats-next-19">What’s next</a></h2>
 <p>The compiler produced object files. The <a href="#linking-and-libraries">next chapter</a> joins them with libraries into the final artifact.</p>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -2543,7 +2550,7 @@ END_FUNCTION_BLOCK
 <pre><code>plc [OPTIONS] &lt;input-files&gt;...
 plc [OPTIONS] &lt;input-files&gt;... &lt;SUBCOMMAND&gt;
 </code></pre>
-<p>Most options are global, so they work with a subcommand as well. <code>plc -h</code> prints the same list.</p>
+<p>Most options are global, so they work with a subcommand as well. <code>plc -h</code> prints the same list. <code>plc -V</code> prints the version, and <code>plc --version</code> also prints the git branch, the commit hash, the build time, and the Rust toolchain of the binary.</p>
 <h2 id="subcommands"><a class="header" href="#subcommands">Subcommands</a></h2>
 <div class="table-wrapper">
 <table>

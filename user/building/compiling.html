@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-6d2cf5b6.js";
+            window.path_to_searchindex_js = "../../searchindex-b0ba0f90.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e693153e.js"></script>
@@ -244,10 +244,10 @@ plc check plc.json
 </code></pre>
 <pre><code>String dump of section '.comment':
   [     1]  Linker: Ubuntu LLD 21.1.8
-  [    1b]  plc version 1.1.0-dev (Thu Sep 10 12:08:58 2026 +0200, 6f6e1d7f2db)
-  [    5f]  GCC: (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+  [    1b]  plc version 1.1.0-dev (2026-09-10 10:08:58 +00:00, 6f6e1d7f2db)
+  [    5b]  GCC: (Ubuntu 15.2.0-16ubuntu1) 15.2.0
 </code></pre>
-<p>The version, the date, and the commit are the ones of the compiler that you used, and <code>plc --version</code> prints the same three. A deployed binary can therefore be matched to the compiler that built it. A pipeline that needs identical artifacts across compiler updates suppresses the line with <code>--fno-ident</code>.</p>
+<p>The version, the commit date, and the commit hash are the ones of the compiler that you used, and <code>plc --version</code> prints the same version and commit hash. A deployed binary can therefore be matched to the compiler that built it. A pipeline that needs identical artifacts across compiler updates suppresses the line with <code>--fno-ident</code>.</p>
 <h2 id="whats-next"><a class="header" href="#whats-next">What’s next</a></h2>
 <p>The compiler produced object files. The <a href="linking.html">next chapter</a> joins them with libraries into the final artifact.</p>
 

@@ -1,0 +1,530 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The dependency tree of the project, as output by `cargo tree`. Note that this variable may contain local file system paths for path dependencies, and may therefore contain sensitive information and not be reproducible."><title>CARGO_TREE in plc_driver::build - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_driver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.97.1 (8bab26f4f 2026-07-14)" data-channel="1.97.1" data-search-js="search-fd9372ac.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-fcd733ba.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc constant"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">CARGO_TREE</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../plc_driver/index.html">plc_<wbr>driver</a><span class="version">1.1.0-dev</span></h2></div><div class="sidebar-elems"><div id="rustdoc-modnav"><h2><a href="index.html">In plc_<wbr>driver::<wbr>build</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">plc_driver</a>::<wbr><a href="index.html">build</a></div><h1>Constant <span class="constant">CARGO_<wbr>TREE</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/plc_driver/build/target/debug/build/plc_driver-8e2aa15f3f2d2a04/out/shadow.rs.html#85-612">Source</a> </span></div><pre class="rust item-decl"><code>pub const CARGO_TREE: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a> = r#&quot;
+├── anstream v1.0.0
+│   ├── anstyle v1.0.14
+│   ├── anstyle-parse v1.0.0
+│   │   └── utf8parse v0.2.2
+│   ├── anstyle-query v1.1.5
+│   ├── colorchoice v1.0.5
+│   ├── is_terminal_polyfill v1.70.2
+│   └── utf8parse v0.2.2
+├── anstyle v1.0.14
+├── anyhow v1.0.102
+├── clap v3.2.25
+│   ├── atty v0.2.14
+│   │   └── libc v0.2.186
+│   ├── bitflags v1.3.2
+│   ├── clap_derive v3.2.25 (proc-macro)
+│   │   ├── heck v0.4.1
+│   │   ├── proc-macro-error v1.0.4
+│   │   │   ├── proc-macro-error-attr v1.0.4 (proc-macro)
+│   │   │   │   ├── proc-macro2 v1.0.106
+│   │   │   │   │   └── unicode-ident v1.0.24
+│   │   │   │   └── quote v1.0.45
+│   │   │   │       └── proc-macro2 v1.0.106 (*)
+│   │   │   │   [build-dependencies]
+│   │   │   │   └── version_check v0.9.5
+│   │   │   ├── proc-macro2 v1.0.106 (*)
+│   │   │   ├── quote v1.0.45 (*)
+│   │   │   └── syn v1.0.109
+│   │   │       ├── proc-macro2 v1.0.106 (*)
+│   │   │       ├── quote v1.0.45 (*)
+│   │   │       └── unicode-ident v1.0.24
+│   │   │   [build-dependencies]
+│   │   │   └── version_check v0.9.5
+│   │   ├── proc-macro2 v1.0.106 (*)
+│   │   ├── quote v1.0.45 (*)
+│   │   └── syn v1.0.109 (*)
+│   ├── clap_lex v0.2.4
+│   │   └── os_str_bytes v6.6.1
+│   ├── indexmap v1.9.3
+│   │   └── hashbrown v0.12.3
+│   │   [build-dependencies]
+│   │   └── autocfg v1.5.1
+│   ├── once_cell v1.21.4
+│   ├── strsim v0.10.0
+│   ├── termcolor v1.4.1
+│   └── textwrap v0.16.2
+├── encoding_rs v0.8.35
+│   └── cfg-if v1.0.4
+├── encoding_rs_io v0.1.7
+│   └── encoding_rs v0.8.35 (*)
+├── env_logger v0.11.10
+│   ├── anstream v1.0.0 (*)
+│   ├── anstyle v1.0.14
+│   ├── env_filter v1.0.1
+│   │   ├── log v0.4.32
+│   │   └── regex v1.12.3
+│   │       ├── aho-corasick v1.1.4
+│   │       │   └── memchr v2.8.1
+│   │       ├── memchr v2.8.1
+│   │       ├── regex-automata v0.4.14
+│   │       │   ├── aho-corasick v1.1.4 (*)
+│   │       │   ├── memchr v2.8.1
+│   │       │   └── regex-syntax v0.8.10
+│   │       └── regex-syntax v0.8.10
+│   ├── jiff v0.2.28
+│   └── log v0.4.32
+├── indexmap v2.14.0
+│   ├── equivalent v1.0.2
+│   ├── hashbrown v0.17.1
+│   └── serde_core v1.0.228
+├── itertools v0.13.0
+│   └── either v1.16.0
+├── log v0.4.32
+├── plc-compiler v1.1.0-dev (* path)
+│   ├── anyhow v1.0.102
+│   ├── chrono v0.4.45
+│   │   ├── iana-time-zone v0.1.65
+│   │   └── num-traits v0.2.19
+│   │       [build-dependencies]
+│   │       └── autocfg v1.5.1
+│   ├── clap v3.2.25 (*)
+│   ├── generational-arena v0.2.9
+│   │   ├── cfg-if v1.0.4
+│   │   └── serde v1.0.228
+│   │       ├── serde_core v1.0.228
+│   │       └── serde_derive v1.0.228 (proc-macro)
+│   │           ├── proc-macro2 v1.0.106 (*)
+│   │           ├── quote v1.0.45 (*)
+│   │           └── syn v2.0.117
+│   │               ├── proc-macro2 v1.0.106 (*)
+│   │               ├── quote v1.0.45 (*)
+│   │               └── unicode-ident v1.0.24
+│   ├── indexmap v2.14.0 (*)
+│   ├── inkwell v0.9.0
+│   │   ├── bitflags v2.13.0
+│   │   ├── inkwell_internals v0.14.0 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.106 (*)
+│   │   │   ├── quote v1.0.45 (*)
+│   │   │   └── syn v2.0.117 (*)
+│   │   ├── libc v0.2.186
+│   │   ├── llvm-sys v211.0.1
+│   │   │   └── libc v0.2.186
+│   │   │   [build-dependencies]
+│   │   │   ├── anyhow v1.0.102
+│   │   │   ├── cc v1.2.63
+│   │   │   │   ├── find-msvc-tools v0.1.9
+│   │   │   │   └── shlex v2.0.1
+│   │   │   ├── lazy_static v1.5.0
+│   │   │   ├── regex-lite v0.1.9
+│   │   │   └── semver v1.0.28
+│   │   └── thiserror v2.0.18
+│   │       └── thiserror-impl v2.0.18 (proc-macro)
+│   │           ├── proc-macro2 v1.0.106 (*)
+│   │           ├── quote v1.0.45 (*)
+│   │           └── syn v2.0.117 (*)
+│   ├── itertools v0.13.0 (*)
+│   ├── lazy_static v1.5.0
+│   ├── log v0.4.32
+│   ├── logos v0.12.1
+│   │   └── logos-derive v0.12.1 (proc-macro)
+│   │       ├── beef v0.5.2
+│   │       ├── fnv v1.0.7
+│   │       ├── proc-macro2 v1.0.106 (*)
+│   │       ├── quote v1.0.45 (*)
+│   │       ├── regex-syntax v0.6.29
+│   │       └── syn v1.0.109 (*)
+│   ├── plc_ast v1.1.0-dev (* path)
+│   │   ├── derive_more v1.0.0
+│   │   │   └── derive_more-impl v1.0.0 (proc-macro)
+│   │   │       ├── proc-macro2 v1.0.106 (*)
+│   │   │       ├── quote v1.0.45 (*)
+│   │   │       └── syn v2.0.117 (*)
+│   │   ├── plc_literals v1.1.0-dev (* path)
+│   │   ├── plc_source v1.1.0-dev (* path)
+│   │   │   ├── encoding_rs v0.8.35 (*)
+│   │   │   ├── encoding_rs_io v0.1.7 (*)
+│   │   │   ├── serde v1.0.228 (*)
+│   │   │   └── serde_json v1.0.150
+│   │   │       ├── itoa v1.0.18
+│   │   │       ├── memchr v2.8.1
+│   │   │       ├── serde_core v1.0.228
+│   │   │       └── zmij v1.0.21
+│   │   ├── plc_util v1.1.0-dev (* path)
+│   │   │   └── siphasher v1.0.3
+│   │   ├── rustc-hash v1.1.0
+│   │   ├── serde v1.0.228 (*)
+│   │   └── serde_json v1.0.150 (*)
+│   ├── plc_derive v1.1.0-dev (proc-macro) (* path)
+│   │   ├── quote v1.0.45 (*)
+│   │   └── syn v2.0.117 (*)
+│   ├── plc_diagnostics v1.1.0-dev (* path)
+│   │   ├── anyhow v1.0.102
+│   │   ├── codespan-reporting v0.12.0
+│   │   │   ├── termcolor v1.4.1
+│   │   │   └── unicode-width v0.2.2
+│   │   ├── lazy_static v1.5.0
+│   │   ├── log v0.4.32
+│   │   ├── plc_ast v1.1.0-dev (* path)
+│   │   ├── plc_source v1.1.0-dev (* path)
+│   │   ├── rustc-hash v1.1.0
+│   │   ├── serde v1.0.228 (*)
+│   │   ├── serde_json v1.0.150 (*)
+│   │   └── toml v0.8.23
+│   │       ├── serde v1.0.228 (*)
+│   │       ├── serde_spanned v0.6.9
+│   │       │   └── serde v1.0.228 (*)
+│   │       ├── toml_datetime v0.6.11
+│   │       │   └── serde v1.0.228 (*)
+│   │       └── toml_edit v0.22.27
+│   │           ├── indexmap v2.14.0 (*)
+│   │           ├── serde v1.0.228 (*)
+│   │           ├── serde_spanned v0.6.9 (*)
+│   │           ├── toml_datetime v0.6.11 (*)
+│   │           ├── toml_write v0.1.2
+│   │           └── winnow v0.7.15
+│   ├── plc_index v1.1.0-dev (* path)
+│   │   ├── annotate-snippets v0.12.16
+│   │   │   ├── anstyle v1.0.14
+│   │   │   └── unicode-width v0.2.2
+│   │   ├── encoding_rs v0.8.35 (*)
+│   │   ├── plc_ast v1.1.0-dev (* path)
+│   │   ├── plc_diagnostics v1.1.0-dev (* path)
+│   │   ├── plc_source v1.1.0-dev (* path)
+│   │   ├── rustc-hash v1.1.0
+│   │   ├── serde v1.0.228 (*)
+│   │   └── serde_json v1.0.150 (*)
+│   ├── plc_lexer v1.1.0-dev (* path)
+│   │   ├── logos v0.12.1 (*)
+│   │   ├── plc_ast v1.1.0-dev (* path)
+│   │   ├── plc_diagnostics v1.1.0-dev (* path)
+│   │   └── plc_source v1.1.0-dev (* path)
+│   ├── plc_llvm v1.1.0-dev (* path)
+│   │   └── inkwell v0.9.0 (*)
+│   │   [build-dependencies]
+│   │   ├── cc v1.2.63 (*)
+│   │   └── which v8.0.3
+│   │       └── libc v0.2.186
+│   ├── plc_parser v1.1.0-dev (* path)
+│   │   ├── plc_ast v1.1.0-dev (* path)
+│   │   ├── plc_diagnostics v1.1.0-dev (* path)
+│   │   ├── plc_lexer v1.1.0-dev (* path)
+│   │   ├── plc_literals v1.1.0-dev (* path)
+│   │   └── plc_source v1.1.0-dev (* path)
+│   ├── plc_source v1.1.0-dev (* path)
+│   ├── plc_util v1.1.0-dev (* path)
+│   ├── rustc-hash v1.1.0
+│   ├── serde v1.0.228 (*)
+│   ├── serde_json v1.0.150 (*)
+│   ├── shell-words v1.1.1
+│   ├── tempfile v3.27.0
+│   │   ├── fastrand v2.4.1
+│   │   ├── getrandom v0.4.2
+│   │   │   ├── cfg-if v1.0.4
+│   │   │   └── libc v0.2.186
+│   │   ├── once_cell v1.21.4
+│   │   └── rustix v1.1.4
+│   │       ├── bitflags v2.13.0
+│   │       └── linux-raw-sys v0.12.1
+│   ├── toml v0.8.23 (*)
+│   └── which v8.0.3 (*)
+├── plc_ast v1.1.0-dev (* path)
+├── plc_cfc v1.1.0-dev (* path)
+│   ├── log v0.4.32
+│   ├── plc-compiler v1.1.0-dev (* path)
+│   ├── plc_ast v1.1.0-dev (* path)
+│   ├── plc_diagnostics v1.1.0-dev (* path)
+│   ├── plc_source v1.1.0-dev (* path)
+│   ├── quick-xml v0.38.4
+│   │   ├── memchr v2.8.1
+│   │   └── serde v1.0.228 (*)
+│   └── serde v1.0.228 (*)
+├── plc_diagnostics v1.1.0-dev (* path)
+├── plc_header_generator v1.1.0-dev (* path)
+│   ├── clap v3.2.25 (*)
+│   ├── log v0.4.32
+│   ├── once_cell v1.21.4
+│   ├── plc-compiler v1.1.0-dev (* path)
+│   ├── plc_ast v1.1.0-dev (* path)
+│   ├── plc_diagnostics v1.1.0-dev (* path)
+│   ├── plc_source v1.1.0-dev (* path)
+│   ├── regex v1.12.3 (*)
+│   ├── serde v1.0.228 (*)
+│   ├── serde_json v1.0.150 (*)
+│   └── tera v1.20.1
+│       ├── chrono v0.4.45 (*)
+│       ├── chrono-tz v0.9.0
+│       │   ├── chrono v0.4.45 (*)
+│       │   └── phf v0.11.3
+│       │       └── phf_shared v0.11.3
+│       │           └── siphasher v1.0.3
+│       │   [build-dependencies]
+│       │   └── chrono-tz-build v0.3.0
+│       │       ├── parse-zoneinfo v0.3.1
+│       │       │   └── regex v1.12.3
+│       │       │       ├── regex-automata v0.4.14
+│       │       │       │   └── regex-syntax v0.8.10
+│       │       │       └── regex-syntax v0.8.10
+│       │       ├── phf v0.11.3 (*)
+│       │       └── phf_codegen v0.11.3
+│       │           ├── phf_generator v0.11.3
+│       │           │   ├── phf_shared v0.11.3 (*)
+│       │           │   └── rand v0.8.6
+│       │           │       └── rand_core v0.6.4
+│       │           └── phf_shared v0.11.3 (*)
+│       ├── globwalk v0.9.1
+│       │   ├── bitflags v2.13.0
+│       │   ├── ignore v0.4.26
+│       │   │   ├── crossbeam-deque v0.8.6
+│       │   │   │   ├── crossbeam-epoch v0.9.18
+│       │   │   │   │   └── crossbeam-utils v0.8.21
+│       │   │   │   └── crossbeam-utils v0.8.21
+│       │   │   ├── globset v0.4.18
+│       │   │   │   ├── aho-corasick v1.1.4 (*)
+│       │   │   │   ├── bstr v1.12.1
+│       │   │   │   │   └── memchr v2.8.1
+│       │   │   │   ├── log v0.4.32
+│       │   │   │   ├── regex-automata v0.4.14 (*)
+│       │   │   │   └── regex-syntax v0.8.10
+│       │   │   ├── log v0.4.32
+│       │   │   ├── memchr v2.8.1
+│       │   │   ├── regex-automata v0.4.14 (*)
+│       │   │   ├── same-file v1.0.6
+│       │   │   └── walkdir v2.5.0
+│       │   │       └── same-file v1.0.6
+│       │   └── walkdir v2.5.0 (*)
+│       ├── humansize v2.1.3
+│       │   └── libm v0.2.16
+│       ├── lazy_static v1.5.0
+│       ├── percent-encoding v2.3.2
+│       ├── pest v2.8.6
+│       │   ├── memchr v2.8.1
+│       │   └── ucd-trie v0.1.7
+│       ├── pest_derive v2.8.6 (proc-macro)
+│       │   ├── pest v2.8.6 (*)
+│       │   └── pest_generator v2.8.6
+│       │       ├── pest v2.8.6 (*)
+│       │       ├── pest_meta v2.8.6
+│       │       │   └── pest v2.8.6 (*)
+│       │       │   [build-dependencies]
+│       │       │   └── sha2 v0.10.9
+│       │       │       ├── cfg-if v1.0.4
+│       │       │       ├── cpufeatures v0.2.17
+│       │       │       └── digest v0.10.7
+│       │       │           ├── block-buffer v0.10.4
+│       │       │           │   └── generic-array v0.14.7
+│       │       │           │       └── typenum v1.20.1
+│       │       │           │       [build-dependencies]
+│       │       │           │       └── version_check v0.9.5
+│       │       │           └── crypto-common v0.1.7
+│       │       │               ├── generic-array v0.14.7 (*)
+│       │       │               └── typenum v1.20.1
+│       │       ├── proc-macro2 v1.0.106 (*)
+│       │       ├── quote v1.0.45 (*)
+│       │       └── syn v2.0.117 (*)
+│       ├── rand v0.8.6
+│       │   ├── libc v0.2.186
+│       │   ├── rand_chacha v0.3.1
+│       │   │   ├── ppv-lite86 v0.2.21
+│       │   │   │   └── zerocopy v0.8.50
+│       │   │   └── rand_core v0.6.4
+│       │   │       └── getrandom v0.2.17
+│       │   │           ├── cfg-if v1.0.4
+│       │   │           └── libc v0.2.186
+│       │   └── rand_core v0.6.4 (*)
+│       ├── regex v1.12.3 (*)
+│       ├── serde v1.0.228 (*)
+│       ├── serde_json v1.0.150 (*)
+│       ├── slug v0.1.6
+│       │   └── deunicode v1.6.2
+│       └── unicode-segmentation v1.13.3
+├── plc_index v1.1.0-dev (* path)
+├── plc_llvm v1.1.0-dev (* path)
+├── plc_lowering v1.1.0-dev (* path)
+│   ├── itertools v0.13.0 (*)
+│   ├── log v0.4.32
+│   ├── plc-compiler v1.1.0-dev (* path)
+│   ├── plc_ast v1.1.0-dev (* path)
+│   ├── plc_diagnostics v1.1.0-dev (* path)
+│   └── plc_source v1.1.0-dev (* path)
+├── plc_project v1.1.0-dev (* path)
+│   ├── anyhow v1.0.102
+│   ├── encoding_rs v0.8.35 (*)
+│   ├── encoding_rs_io v0.1.7 (*)
+│   ├── glob v0.3.3
+│   ├── jsonschema v0.46.5
+│   │   ├── ahash v0.8.12
+│   │   │   ├── cfg-if v1.0.4
+│   │   │   ├── getrandom v0.3.4
+│   │   │   │   ├── cfg-if v1.0.4
+│   │   │   │   └── libc v0.2.186
+│   │   │   ├── once_cell v1.21.4
+│   │   │   ├── serde v1.0.228 (*)
+│   │   │   └── zerocopy v0.8.50
+│   │   │   [build-dependencies]
+│   │   │   └── version_check v0.9.5
+│   │   ├── bytecount v0.6.9
+│   │   ├── data-encoding v2.11.0
+│   │   ├── email_address v0.2.9
+│   │   │   └── serde v1.0.228 (*)
+│   │   ├── fancy-regex v0.18.0
+│   │   │   ├── bit-set v0.8.0
+│   │   │   │   └── bit-vec v0.8.0
+│   │   │   ├── regex-automata v0.4.14 (*)
+│   │   │   └── regex-syntax v0.8.10
+│   │   ├── fraction v0.15.4
+│   │   │   ├── lazy_static v1.5.0
+│   │   │   └── num v0.4.3
+│   │   │       ├── num-bigint v0.4.6
+│   │   │       │   ├── num-integer v0.1.46
+│   │   │       │   │   └── num-traits v0.2.19 (*)
+│   │   │       │   └── num-traits v0.2.19 (*)
+│   │   │       ├── num-complex v0.4.6
+│   │   │       │   └── num-traits v0.2.19 (*)
+│   │   │       ├── num-integer v0.1.46 (*)
+│   │   │       ├── num-iter v0.1.45
+│   │   │       │   ├── num-integer v0.1.46 (*)
+│   │   │       │   └── num-traits v0.2.19 (*)
+│   │   │       │   [build-dependencies]
+│   │   │       │   └── autocfg v1.5.1
+│   │   │       ├── num-rational v0.4.2
+│   │   │       │   ├── num-bigint v0.4.6 (*)
+│   │   │       │   ├── num-integer v0.1.46 (*)
+│   │   │       │   └── num-traits v0.2.19 (*)
+│   │   │       └── num-traits v0.2.19 (*)
+│   │   ├── idna v1.1.0
+│   │   │   ├── idna_adapter v1.2.2
+│   │   │   │   ├── icu_normalizer v2.2.0
+│   │   │   │   │   ├── icu_collections v2.2.0
+│   │   │   │   │   │   ├── displaydoc v0.2.6 (proc-macro)
+│   │   │   │   │   │   │   ├── proc-macro2 v1.0.106 (*)
+│   │   │   │   │   │   │   ├── quote v1.0.45 (*)
+│   │   │   │   │   │   │   └── syn v2.0.117 (*)
+│   │   │   │   │   │   ├── potential_utf v0.1.5
+│   │   │   │   │   │   │   └── zerovec v0.11.6
+│   │   │   │   │   │   │       ├── yoke v0.8.3
+│   │   │   │   │   │   │       │   ├── stable_deref_trait v1.2.1
+│   │   │   │   │   │   │       │   ├── yoke-derive v0.8.2 (proc-macro)
+│   │   │   │   │   │   │       │   │   ├── proc-macro2 v1.0.106 (*)
+│   │   │   │   │   │   │       │   │   ├── quote v1.0.45 (*)
+│   │   │   │   │   │   │       │   │   ├── syn v2.0.117 (*)
+│   │   │   │   │   │   │       │   │   └── synstructure v0.13.2
+│   │   │   │   │   │   │       │   │       ├── proc-macro2 v1.0.106 (*)
+│   │   │   │   │   │   │       │   │       ├── quote v1.0.45 (*)
+│   │   │   │   │   │   │       │   │       └── syn v2.0.117 (*)
+│   │   │   │   │   │   │       │   └── zerofrom v0.1.8
+│   │   │   │   │   │   │       │       └── zerofrom-derive v0.1.7 (proc-macro)
+│   │   │   │   │   │   │       │           ├── proc-macro2 v1.0.106 (*)
+│   │   │   │   │   │   │       │           ├── quote v1.0.45 (*)
+│   │   │   │   │   │   │       │           ├── syn v2.0.117 (*)
+│   │   │   │   │   │   │       │           └── synstructure v0.13.2 (*)
+│   │   │   │   │   │   │       ├── zerofrom v0.1.8 (*)
+│   │   │   │   │   │   │       └── zerovec-derive v0.11.3 (proc-macro)
+│   │   │   │   │   │   │           ├── proc-macro2 v1.0.106 (*)
+│   │   │   │   │   │   │           ├── quote v1.0.45 (*)
+│   │   │   │   │   │   │           └── syn v2.0.117 (*)
+│   │   │   │   │   │   ├── utf8_iter v1.0.4
+│   │   │   │   │   │   ├── yoke v0.8.3 (*)
+│   │   │   │   │   │   ├── zerofrom v0.1.8 (*)
+│   │   │   │   │   │   └── zerovec v0.11.6 (*)
+│   │   │   │   │   ├── icu_normalizer_data v2.2.0
+│   │   │   │   │   ├── icu_provider v2.2.0
+│   │   │   │   │   │   ├── displaydoc v0.2.6 (proc-macro) (*)
+│   │   │   │   │   │   ├── icu_locale_core v2.2.0
+│   │   │   │   │   │   │   ├── displaydoc v0.2.6 (proc-macro) (*)
+│   │   │   │   │   │   │   ├── litemap v0.8.2
+│   │   │   │   │   │   │   ├── tinystr v0.8.3
+│   │   │   │   │   │   │   │   ├── displaydoc v0.2.6 (proc-macro) (*)
+│   │   │   │   │   │   │   │   └── zerovec v0.11.6 (*)
+│   │   │   │   │   │   │   ├── writeable v0.6.3
+│   │   │   │   │   │   │   └── zerovec v0.11.6 (*)
+│   │   │   │   │   │   ├── writeable v0.6.3
+│   │   │   │   │   │   ├── yoke v0.8.3 (*)
+│   │   │   │   │   │   ├── zerofrom v0.1.8 (*)
+│   │   │   │   │   │   ├── zerotrie v0.2.4
+│   │   │   │   │   │   │   ├── displaydoc v0.2.6 (proc-macro) (*)
+│   │   │   │   │   │   │   ├── yoke v0.8.3 (*)
+│   │   │   │   │   │   │   └── zerofrom v0.1.8 (*)
+│   │   │   │   │   │   └── zerovec v0.11.6 (*)
+│   │   │   │   │   ├── smallvec v1.15.1
+│   │   │   │   │   └── zerovec v0.11.6 (*)
+│   │   │   │   └── icu_properties v2.2.0
+│   │   │   │       ├── icu_collections v2.2.0 (*)
+│   │   │   │       ├── icu_locale_core v2.2.0 (*)
+│   │   │   │       ├── icu_properties_data v2.2.0
+│   │   │   │       ├── icu_provider v2.2.0 (*)
+│   │   │   │       ├── zerotrie v0.2.4 (*)
+│   │   │   │       └── zerovec v0.11.6 (*)
+│   │   │   ├── smallvec v1.15.1
+│   │   │   └── utf8_iter v1.0.4
+│   │   ├── itoa v1.0.18
+│   │   ├── num-cmp v0.1.0
+│   │   ├── num-traits v0.2.19 (*)
+│   │   ├── percent-encoding v2.3.2
+│   │   ├── referencing v0.46.5
+│   │   │   ├── ahash v0.8.12 (*)
+│   │   │   ├── fluent-uri v0.4.1
+│   │   │   │   ├── borrow-or-share v0.2.4
+│   │   │   │   ├── ref-cast v1.0.25
+│   │   │   │   │   └── ref-cast-impl v1.0.25 (proc-macro)
+│   │   │   │   │       ├── proc-macro2 v1.0.106 (*)
+│   │   │   │   │       ├── quote v1.0.45 (*)
+│   │   │   │   │       └── syn v2.0.117 (*)
+│   │   │   │   └── serde v1.0.228 (*)
+│   │   │   ├── hashbrown v0.16.1
+│   │   │   │   ├── allocator-api2 v0.2.21
+│   │   │   │   ├── equivalent v1.0.2
+│   │   │   │   └── foldhash v0.2.0
+│   │   │   ├── itoa v1.0.18
+│   │   │   ├── micromap v0.3.0
+│   │   │   ├── parking_lot v0.12.5
+│   │   │   │   ├── lock_api v0.4.14
+│   │   │   │   │   └── scopeguard v1.2.0
+│   │   │   │   └── parking_lot_core v0.9.12
+│   │   │   │       ├── cfg-if v1.0.4
+│   │   │   │       ├── libc v0.2.186
+│   │   │   │       └── smallvec v1.15.1
+│   │   │   ├── percent-encoding v2.3.2
+│   │   │   └── serde_json v1.0.150 (*)
+│   │   ├── regex v1.12.3 (*)
+│   │   ├── regex-syntax v0.8.10
+│   │   ├── serde v1.0.228 (*)
+│   │   ├── serde_json v1.0.150 (*)
+│   │   ├── unicode-general-category v1.1.0
+│   │   └── uuid-simd v0.8.0
+│   │       ├── outref v0.5.2
+│   │       └── vsimd v0.8.0
+│   ├── plc-compiler v1.1.0-dev (* path)
+│   ├── plc_diagnostics v1.1.0-dev (* path)
+│   ├── plc_source v1.1.0-dev (* path)
+│   ├── regex v1.12.3 (*)
+│   ├── serde v1.0.228 (*)
+│   └── serde_json v1.0.150 (*)
+├── plc_source v1.1.0-dev (* path)
+├── plc_util v1.1.0-dev (* path)
+├── rayon v1.12.0
+│   ├── either v1.16.0
+│   └── rayon-core v1.13.0
+│       ├── crossbeam-deque v0.8.6 (*)
+│       └── crossbeam-utils v0.8.21
+├── serde v1.0.228 (*)
+├── serde_json v1.0.150 (*)
+├── shadow-rs v2.0.0
+│   ├── const_format v0.2.36
+│   │   ├── const_format_proc_macros v0.2.34 (proc-macro)
+│   │   │   ├── proc-macro2 v1.0.106 (*)
+│   │   │   ├── quote v1.0.45 (*)
+│   │   │   └── unicode-xid v0.2.6
+│   │   └── konst v0.2.20
+│   │       └── konst_macro_rules v0.2.19
+│   └── is_debug v1.1.0
+└── tempfile v3.27.0 (*)
+[build-dependencies]
+└── shadow-rs v2.0.0
+    ├── const_format v0.2.36 (*)
+    ├── is_debug v1.1.0
+    └── jiff v0.2.28
+[dev-dependencies]
+├── insta v1.47.2
+│   ├── console v0.16.3
+│   │   └── libc v0.2.186
+│   ├── once_cell v1.21.4
+│   ├── regex v1.12.3 (*)
+│   ├── similar v2.7.0
+│   └── tempfile v3.27.0 (*)
+└── pretty_assertions v1.4.1
+    ├── diff v0.1.13
+    └── yansi v1.0.1
+&quot;#;</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The dependency tree of the project, as output by <code>cargo tree</code>.
+Note that this variable may contain local file system paths for path dependencies, and may therefore contain sensitive information and not be reproducible.</p>
+</div></details></section></div></main></body></html>
