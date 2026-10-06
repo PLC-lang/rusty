@@ -298,8 +298,8 @@ impl TypeAnnotator<'_> {
             ))
     }
 
+    /// annotates the arguments of a call, the arguments must be resolved already
     pub fn annotate_arguments(&mut self, operator: &AstNode, arguments_node: &AstNode, ctx: &VisitorContext) {
-        self.visit_statement(ctx, arguments_node);
         let arguments = flatten_expression_list(arguments_node);
 
         let pou_name = {
