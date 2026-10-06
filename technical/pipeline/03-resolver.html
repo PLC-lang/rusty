@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-8a3aece6.js";
+            window.path_to_searchindex_js = "../../searchindex-c9ab22fa.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -315,7 +315,7 @@ END_PROGRAM
                             ^^^^^^^   { kind: Variable, qualified_name: "main.sintVar", resulting_type: "SINT", hint: "INT" }
 </code></pre>
 <p>The named argument <code>factor := sintVar</code> has no annotation of its own, only the hint that ties it to parameter 1; its two sides are annotated like any assignment.</p>
-<p>For a function block call, the operator is a variable of the block’s type. Arguments match that block’s parameters, and the call has no result type. Built-ins such as <code>REF</code>, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that a binary expression replaces then drop the argument hints again; see <a href="../internals/08-annotated-ast.html#argument">Annotated AST</a>.</p>
+<p>For a function block call, the operator is a variable of the block’s type. Arguments match that block’s parameters, and the call has no result type. Built-ins such as <code>REF</code>, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that an operator expression replaces then drop the argument hints again; see <a href="../internals/08-annotated-ast.html#argument">Annotated AST</a>.</p>
 <p>Arithmetic with a date or time operand is typed by the table of combinations the standard defines (<code>get_date_time_arithmetic</code> in <code>src/typesystem.rs</code>) and, like a comparison of strings, replaced by the call of the standard library function that carries it out: <code>stamp + cycle</code> becomes <code>ADD_DT_TIME(stamp, cycle)</code>, <code>day1 - day2</code> becomes <code>SUB_DATE_DATE(day1, day2)</code>, and <code>2 * cycle</code> becomes <code>MUL_TIME__LINT(cycle, 2)</code>, the implementation for the kind of number with the duration first. A chain such as <code>stamp + cycle + cycle</code> is replaced from the inside out, each call taking the replaced expression as its argument. A duration combined with a bare integer keeps the duration’s type and stays an integer operation, the integer hinted with that type. A combination the table does not define, or one whose function is not declared, is left as written for the validator.</p>
 <h2 id="literals-and-generated-types"><a class="header" href="#literals-and-generated-types">Literals and generated types</a></h2>
 <p>Integer literals use <code>DINT</code> if they fit 32 bits and <code>LINT</code> otherwise. Real literals use <code>REAL</code> or <code>LREAL</code> by the same size rule. Typed literals use their prefix, as in <code>INT#5</code>. String literals get types sized to their contents: <code>'hello'</code> has type <code>__STRING_5</code>, a <code>STRING[5]</code>, even when it is assigned to a <code>STRING</code> that was declared without a size.</p>

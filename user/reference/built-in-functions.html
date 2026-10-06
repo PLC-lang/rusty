@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-8a3aece6.js";
+            window.path_to_searchindex_js = "../../searchindex-c9ab22fa.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -237,10 +237,11 @@
 <tr><td><code>MUL(...)</code></td><td>Two or more numbers or durations</td><td>The biggest argument type, or the date and time result</td><td>The product</td></tr>
 <tr><td><code>SUB(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 - IN2</code></td></tr>
 <tr><td><code>DIV(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 / IN2</code></td></tr>
+<tr><td><code>MOD(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY_NUM</code>, or two durations of the same type</td><td>The biggest argument type, or the duration type</td><td><code>IN1 MOD IN2</code></td></tr>
 </tbody>
 </table>
 </div>
-<p>With a date or time argument, these four take the combinations of <a href="../language/time.html#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. An argument that is neither a number nor part of a defined combination is rejected (E156).</p>
+<p>With a date or time argument, <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, and <code>DIV</code> take the combinations of <a href="../language/time.html#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. An argument that is neither a number nor part of a defined combination is rejected (E156). <code>MOD</code> takes numbers, or two <code>TIME</code> or two <code>LTIME</code> values: <code>MOD(T#7s, T#3s)</code> is <code>T#1s</code>. It rejects an argument of any other type (E062), and a duration paired with a number or with the other duration type, such as <code>TIME</code> with <code>DINT</code> or with <code>LTIME</code> (E156).</p>
 <h3 id="comparison"><a class="header" href="#comparison">Comparison</a></h3>
 <div class="table-wrapper">
 <table>
@@ -258,6 +259,21 @@
 </table>
 </div>
 <p>A call with more than two arguments compares each neighbouring pair and combines the results with <code>AND</code>, so <code>GT(a, b, c)</code> is <code>(a &gt; b) AND (b &gt; c)</code>.</p>
+<h3 id="bitwise"><a class="header" href="#bitwise">Bitwise</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
+</thead>
+<tbody>
+<tr><td><code>AND(...)</code></td><td>Two or more <code>ANY_BIT</code> or <code>ANY_INT</code></td><td>The biggest argument type</td><td>The arguments combined with <code>AND</code></td></tr>
+<tr><td><code>OR(...)</code></td><td>Two or more <code>ANY_BIT</code> or <code>ANY_INT</code></td><td>The biggest argument type</td><td>The arguments combined with <code>OR</code></td></tr>
+<tr><td><code>XOR(...)</code></td><td>Two or more <code>ANY_BIT</code> or <code>ANY_INT</code></td><td>The biggest argument type</td><td>The arguments combined with <code>XOR</code></td></tr>
+<tr><td><code>NOT(IN)</code></td><td><code>IN: ANY_BIT</code> or <code>ANY_INT</code></td><td>The type of <code>IN</code></td><td><code>NOT IN</code></td></tr>
+</tbody>
+</table>
+</div>
+<p>For a <code>BOOL</code> the result is the logical one, for any other type it is bit by bit, the same as the operator of the same name. An argument that is neither a bit value nor an integer, such as a <code>REAL</code> or a <code>TIME</code>, is rejected (E062).</p>
 <h3 id="bit-shifts"><a class="header" href="#bit-shifts">Bit shifts</a></h3>
 <div class="table-wrapper">
 <table>
@@ -270,6 +286,14 @@
 </tbody>
 </table>
 </div>
+<h2 id="names-that-are-also-operators"><a class="header" href="#names-that-are-also-operators">Names that are also operators</a></h2>
+<p><code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>MOD</code>, and <code>NOT</code> are operator keywords as well as function names. A keyword followed by <code>(</code>, where no operand stands before it, is the function. A space between the keyword and <code>(</code> does not change this:</p>
+<pre><code class="language-iecst">flag := AND(a, b, c);   (* the function, the same as a AND b AND c *)
+flag := a AND (b);      (* the operator, `a` stands before it *)
+rest := MOD(IN1 := total, IN2 := size);
+</code></pre>
+<p><code>NOT(x)</code> with one positional argument stays the operator applied to <code>(x)</code>, with the same result. With a named argument, as in <code>NOT(IN := x)</code>, or with more than one argument, it is the function.</p>
+<p>Because they are keywords, these names are not available for a function of your own. <code>FUNCTION AND</code> is rejected with E007.</p>
 <h2 id="calling-by-name"><a class="header" href="#calling-by-name">Calling by name</a></h2>
 <p>A parameter with a name in the table above accepts <code>name := value</code>, like the parameter of any other function:</p>
 <pre><code class="language-iecst">result := SEL(TRUE, first, second);
@@ -282,7 +306,7 @@ result := SEL(IN1 := second, IN0 := first, G := TRUE);
 </code></pre>
 <p>This is the rule for every call, not only for a built-in. <code>plc explain E132</code> describes it, and <code>plc explain E131</code> describes the one mix the compiler rejects: a positional argument whose parameter a <em>later</em> named argument also names.</p>
 <h2 id="a-variadic-parameter-has-no-name"><a class="header" href="#a-variadic-parameter-has-no-name">A variadic parameter has no name</a></h2>
-<p><code>ADD</code>, <code>MUL</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> take all of their arguments through one variadic parameter, and <code>MUX</code> takes everything after <code>K</code> through one. A variadic parameter has no name to call it by, so these arguments are positional:</p>
+<p><code>ADD</code>, <code>MUL</code>, <code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> take all of their arguments through one variadic parameter, and <code>MUX</code> takes everything after <code>K</code> through one. A variadic parameter has no name to call it by, so these arguments are positional:</p>
 <pre><code class="language-iecst">sum := ADD(a, b, c);          (* correct *)
 value := MUX(K := 1, a, b);   (* correct, K is not variadic *)
 </code></pre>
@@ -294,8 +318,8 @@ error[E048]: Could not resolve reference to IN1
 </code></pre>
 <p><code>SEL</code> looks like <code>MUX</code> but is not variadic, so all three of its parameters have a name.</p>
 <h2 id="how-many-arguments"><a class="header" href="#how-many-arguments">How many arguments</a></h2>
-<p><code>ADD</code>, <code>MUL</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> are extensible: they take two arguments or more.</p>
-<p><code>SUB</code>, <code>DIV</code>, and <code>NE</code> take exactly two, which is the one place where <code>NE</code> behaves unlike the other five comparisons:</p>
+<p><code>ADD</code>, <code>MUL</code>, <code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> are extensible: they take two arguments or more.</p>
+<p><code>SUB</code>, <code>DIV</code>, <code>MOD</code>, and <code>NE</code> take exactly two, which is the one place where <code>NE</code> behaves unlike the other five comparisons:</p>
 <pre><code>error[E032]: this POU takes 2 arguments but 3 arguments were supplied
 </code></pre>
 <p>The rest take the number of parameters their row lists.</p>

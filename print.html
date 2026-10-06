@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-8a3aece6.js";
+            window.path_to_searchindex_js = "searchindex-c9ab22fa.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-645c3480.js"></script>
@@ -968,7 +968,7 @@ n := REAL_TO_DINT(7 ** 11);   (* 1977326720, not 1977326743 *)
 <p><code>=</code>, <code>&lt;&gt;</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, and <code>&gt;=</code> compare two values of the same kind and produce a <code>BOOL</code>. They work on numbers, on enumerations, and on text, where they compare character by character. A comparison of two values that do not belong together, such as a text and a number, is rejected.</p>
 <p>Note that the test for equality is a single <code>=</code>, because <code>:=</code> is the assignment.</p>
 <h2 id="boolean-and-bit-operators"><a class="header" href="#boolean-and-bit-operators">Boolean and bit operators</a></h2>
-<p><code>AND</code>, <code>OR</code>, <code>XOR</code>, and <code>NOT</code> do two jobs. On <code>BOOL</code> values they are the logical operators; on the bit string types they work bit by bit. <code>&amp;</code> is another spelling of <code>AND</code>.</p>
+<p><code>AND</code>, <code>OR</code>, <code>XOR</code>, and <code>NOT</code> do two jobs. On <code>BOOL</code> values they are the logical operators; on the bit string types and on integers they work bit by bit. <code>&amp;</code> is another spelling of <code>AND</code>. Each of them, and <code>MOD</code> as well, also has a function form, such as <code>AND(a, b, c)</code>; see <a href="#names-that-are-also-operators">Built-in Functions</a>.</p>
 <pre><code class="language-iecst">ready := motorOn AND NOT alarm;
 masked := flags AND 16#0F;
 </code></pre>
@@ -2962,10 +2962,11 @@ plc build src/plc.json    # reads the given file
 <tr><td><code>MUL(...)</code></td><td>Two or more numbers or durations</td><td>The biggest argument type, or the date and time result</td><td>The product</td></tr>
 <tr><td><code>SUB(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 - IN2</code></td></tr>
 <tr><td><code>DIV(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 / IN2</code></td></tr>
+<tr><td><code>MOD(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY_NUM</code>, or two durations of the same type</td><td>The biggest argument type, or the duration type</td><td><code>IN1 MOD IN2</code></td></tr>
 </tbody>
 </table>
 </div>
-<p>With a date or time argument, these four take the combinations of <a href="#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. An argument that is neither a number nor part of a defined combination is rejected (E156).</p>
+<p>With a date or time argument, <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, and <code>DIV</code> take the combinations of <a href="#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. An argument that is neither a number nor part of a defined combination is rejected (E156). <code>MOD</code> takes numbers, or two <code>TIME</code> or two <code>LTIME</code> values: <code>MOD(T#7s, T#3s)</code> is <code>T#1s</code>. It rejects an argument of any other type (E062), and a duration paired with a number or with the other duration type, such as <code>TIME</code> with <code>DINT</code> or with <code>LTIME</code> (E156).</p>
 <h3 id="comparison-2"><a class="header" href="#comparison-2">Comparison</a></h3>
 <div class="table-wrapper">
 <table>
@@ -2983,6 +2984,21 @@ plc build src/plc.json    # reads the given file
 </table>
 </div>
 <p>A call with more than two arguments compares each neighbouring pair and combines the results with <code>AND</code>, so <code>GT(a, b, c)</code> is <code>(a &gt; b) AND (b &gt; c)</code>.</p>
+<h3 id="bitwise"><a class="header" href="#bitwise">Bitwise</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
+</thead>
+<tbody>
+<tr><td><code>AND(...)</code></td><td>Two or more <code>ANY_BIT</code> or <code>ANY_INT</code></td><td>The biggest argument type</td><td>The arguments combined with <code>AND</code></td></tr>
+<tr><td><code>OR(...)</code></td><td>Two or more <code>ANY_BIT</code> or <code>ANY_INT</code></td><td>The biggest argument type</td><td>The arguments combined with <code>OR</code></td></tr>
+<tr><td><code>XOR(...)</code></td><td>Two or more <code>ANY_BIT</code> or <code>ANY_INT</code></td><td>The biggest argument type</td><td>The arguments combined with <code>XOR</code></td></tr>
+<tr><td><code>NOT(IN)</code></td><td><code>IN: ANY_BIT</code> or <code>ANY_INT</code></td><td>The type of <code>IN</code></td><td><code>NOT IN</code></td></tr>
+</tbody>
+</table>
+</div>
+<p>For a <code>BOOL</code> the result is the logical one, for any other type it is bit by bit, the same as the operator of the same name. An argument that is neither a bit value nor an integer, such as a <code>REAL</code> or a <code>TIME</code>, is rejected (E062).</p>
 <h3 id="bit-shifts"><a class="header" href="#bit-shifts">Bit shifts</a></h3>
 <div class="table-wrapper">
 <table>
@@ -2995,6 +3011,14 @@ plc build src/plc.json    # reads the given file
 </tbody>
 </table>
 </div>
+<h2 id="names-that-are-also-operators"><a class="header" href="#names-that-are-also-operators">Names that are also operators</a></h2>
+<p><code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>MOD</code>, and <code>NOT</code> are operator keywords as well as function names. A keyword followed by <code>(</code>, where no operand stands before it, is the function. A space between the keyword and <code>(</code> does not change this:</p>
+<pre><code class="language-iecst">flag := AND(a, b, c);   (* the function, the same as a AND b AND c *)
+flag := a AND (b);      (* the operator, `a` stands before it *)
+rest := MOD(IN1 := total, IN2 := size);
+</code></pre>
+<p><code>NOT(x)</code> with one positional argument stays the operator applied to <code>(x)</code>, with the same result. With a named argument, as in <code>NOT(IN := x)</code>, or with more than one argument, it is the function.</p>
+<p>Because they are keywords, these names are not available for a function of your own. <code>FUNCTION AND</code> is rejected with E007.</p>
 <h2 id="calling-by-name"><a class="header" href="#calling-by-name">Calling by name</a></h2>
 <p>A parameter with a name in the table above accepts <code>name := value</code>, like the parameter of any other function:</p>
 <pre><code class="language-iecst">result := SEL(TRUE, first, second);
@@ -3007,7 +3031,7 @@ result := SEL(IN1 := second, IN0 := first, G := TRUE);
 </code></pre>
 <p>This is the rule for every call, not only for a built-in. <code>plc explain E132</code> describes it, and <code>plc explain E131</code> describes the one mix the compiler rejects: a positional argument whose parameter a <em>later</em> named argument also names.</p>
 <h2 id="a-variadic-parameter-has-no-name"><a class="header" href="#a-variadic-parameter-has-no-name">A variadic parameter has no name</a></h2>
-<p><code>ADD</code>, <code>MUL</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> take all of their arguments through one variadic parameter, and <code>MUX</code> takes everything after <code>K</code> through one. A variadic parameter has no name to call it by, so these arguments are positional:</p>
+<p><code>ADD</code>, <code>MUL</code>, <code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> take all of their arguments through one variadic parameter, and <code>MUX</code> takes everything after <code>K</code> through one. A variadic parameter has no name to call it by, so these arguments are positional:</p>
 <pre><code class="language-iecst">sum := ADD(a, b, c);          (* correct *)
 value := MUX(K := 1, a, b);   (* correct, K is not variadic *)
 </code></pre>
@@ -3019,8 +3043,8 @@ error[E048]: Could not resolve reference to IN1
 </code></pre>
 <p><code>SEL</code> looks like <code>MUX</code> but is not variadic, so all three of its parameters have a name.</p>
 <h2 id="how-many-arguments"><a class="header" href="#how-many-arguments">How many arguments</a></h2>
-<p><code>ADD</code>, <code>MUL</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> are extensible: they take two arguments or more.</p>
-<p><code>SUB</code>, <code>DIV</code>, and <code>NE</code> take exactly two, which is the one place where <code>NE</code> behaves unlike the other five comparisons:</p>
+<p><code>ADD</code>, <code>MUL</code>, <code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> are extensible: they take two arguments or more.</p>
+<p><code>SUB</code>, <code>DIV</code>, <code>MOD</code>, and <code>NE</code> take exactly two, which is the one place where <code>NE</code> behaves unlike the other five comparisons:</p>
 <pre><code>error[E032]: this POU takes 2 arguments but 3 arguments were supplied
 </code></pre>
 <p>The rest take the number of parameters their row lists.</p>
@@ -5193,6 +5217,7 @@ END_FUNCTION
 </code></pre>
 <p>Expressions get one function per precedence level instead of one per construct. The chain runs from the loosest binding to the tightest: expression list, range, <code>OR</code>, <code>XOR</code>, <code>AND</code>, equality, comparison, addition, multiplication, exponent, unary, and last the leaf (a literal, a reference, a call, or a parenthesized expression). Each level parses its left operand with a call to the next tighter level, then loops while it sees one of its own operators.</p>
 <p>This is why <code>1 + 2 * scale(bar, 3)</code> becomes an addition whose right side is a multiplication: the addition level hands control down to multiplication, which consumes <code>2 * scale(...)</code> as a whole before it returns. A parenthesized leaf calls back to the top of the chain and closes the recursion.</p>
+<p>The operator keywords <code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>MOD</code>, and <code>NOT</code> also name built-in functions. The leaf is the one place where no operator can stand, so there such a keyword directly followed by <code>(</code> is the name of a call: <code>AND(a, b)</code> is a call, while <code>a AND (b)</code> stays a binary expression. <code>NOT</code> never reaches the leaf, because the unary level consumes it first. That level keeps <code>NOT(a)</code> as the unary operator, and turns the parentheses into the arguments of a call only when they hold an argument list, as in <code>NOT(IN := a)</code> or <code>NOT(a, b)</code>. A POU name may be one of these keywords only in the declarations of the built-ins themselves.</p>
 <p>Every node gets a source location and a unique ID from a counter shared by all files in the run. Later stages use the ID to attach information without changing the node. In <code>foo := bar + 5</code>, child nodes are created before their parents:</p>
 <pre><code>Assignment {                                    // id: 7
     left: ReferenceExpr {                       // id: 2
@@ -5721,7 +5746,7 @@ END_PROGRAM
                             ^^^^^^^   { kind: Variable, qualified_name: "main.sintVar", resulting_type: "SINT", hint: "INT" }
 </code></pre>
 <p>The named argument <code>factor := sintVar</code> has no annotation of its own, only the hint that ties it to parameter 1; its two sides are annotated like any assignment.</p>
-<p>For a function block call, the operator is a variable of the block’s type. Arguments match that block’s parameters, and the call has no result type. Built-ins such as <code>REF</code>, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that a binary expression replaces then drop the argument hints again; see <a href="#argument">Annotated AST</a>.</p>
+<p>For a function block call, the operator is a variable of the block’s type. Arguments match that block’s parameters, and the call has no result type. Built-ins such as <code>REF</code>, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that an operator expression replaces then drop the argument hints again; see <a href="#argument">Annotated AST</a>.</p>
 <p>Arithmetic with a date or time operand is typed by the table of combinations the standard defines (<code>get_date_time_arithmetic</code> in <code>src/typesystem.rs</code>) and, like a comparison of strings, replaced by the call of the standard library function that carries it out: <code>stamp + cycle</code> becomes <code>ADD_DT_TIME(stamp, cycle)</code>, <code>day1 - day2</code> becomes <code>SUB_DATE_DATE(day1, day2)</code>, and <code>2 * cycle</code> becomes <code>MUL_TIME__LINT(cycle, 2)</code>, the implementation for the kind of number with the duration first. A chain such as <code>stamp + cycle + cycle</code> is replaced from the inside out, each call taking the replaced expression as its argument. A duration combined with a bare integer keeps the duration’s type and stays an integer operation, the integer hinted with that type. A combination the table does not define, or one whose function is not declared, is left as written for the validator.</p>
 <h2 id="literals-and-generated-types"><a class="header" href="#literals-and-generated-types">Literals and generated types</a></h2>
 <p>Integer literals use <code>DINT</code> if they fit 32 bits and <code>LINT</code> otherwise. Real literals use <code>REAL</code> or <code>LREAL</code> by the same size rule. Typed literals use their prefix, as in <code>INT#5</code>. String literals get types sized to their contents: <code>'hello'</code> has type <code>__STRING_5</code>, a <code>STRING[5]</code>, even when it is assigned to a <code>STRING</code> that was declared without a size.</p>
@@ -5880,7 +5905,7 @@ END_PROGRAM
     bufferInstance.reset;
                    ^^^^^          E095  annotation: the reference resolves to the action Buffer.reset, but the statement is not a call
 </code></pre>
-<p>Declarations with external or include linkage belong to another compilation and are skipped. Generated nodes with internal locations are trusted. Built-ins use placeholder parameter types, so general argument checks do not always apply. Built-ins such as <code>ADR</code>, <code>REF</code>, and <code>SEL</code> provide their own validation rules.</p>
+<p>Declarations with external or include linkage belong to another compilation and are skipped. Generated nodes with internal locations are trusted. Built-ins use placeholder parameter types, so general argument checks do not always apply. Built-ins such as <code>ADR</code>, <code>REF</code>, and <code>SEL</code> provide their own validation rules. <code>MOD</code>, <code>AND</code>, <code>OR</code>, <code>XOR</code>, and <code>NOT</code> check the natures of their arguments themselves: an argument that is neither a number nor a duration for <code>MOD</code>, or neither a bit value nor an integer for the other four, is E062. <code>MOD</code> reports E156 as well for a duration paired with a number or with a duration of the other type.</p>
 <h2 id="severity-and-reporting"><a class="header" href="#severity-and-reporting">Severity and reporting</a></h2>
 <p>Every diagnostic carries an error code, and the code decides how serious it is. A registry maps each code to a default severity: <code>E048</code> (unresolved reference) is an error, <code>E067</code> (implicit downcast) is a warning, <code>E060</code> (a hint to use direct access) is informational, and a few codes are ignored by default. <code>plc explain E067</code> prints the description behind a code. The defaults can be overridden per project with a JSON file passed as <code>--error-config</code>:</p>
 <pre><code class="language-json">{ "error": ["E067"], "ignore": ["E048"] }
@@ -6561,7 +6586,7 @@ done := trigger;
 <h2 id="order"><a class="header" href="#order">Order</a></h2>
 <p>Each element renders on its own. A whole network is a set of them, and the wires do not say which of them runs first. The user’s priorities do: statements and temporaries are sorted by evaluation priority, and elements without a priority come last, in document order.</p>
 <h2 id="rendering"><a class="header" href="#rendering">Rendering</a></h2>
-<p>With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. Every statement carries a location of a kind that only this participant creates: the <code>globalId</code> of the element instead of a line and column. A diagnostic on such a node is printed as <code>file.cfc: Block 6</code> without a source snippet. The temporaries go into one additional <code>VAR</code> block, and the statement list replaces the empty body the parse step left.</p>
+<p>With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. The name of a callee goes through the expression parser like every other name, except for a built-in named by an operator keyword, such as <code>AND</code> or <code>MOD</code>: the keyword alone is no expression, so the transpiler builds the reference to the callee itself. Every statement carries a location of a kind that only this participant creates: the <code>globalId</code> of the element instead of a line and column. A diagnostic on such a node is printed as <code>file.cfc: Block 6</code> without a source snippet. The temporaries go into one additional <code>VAR</code> block, and the statement list replaces the empty body the parse step left.</p>
 <h2 id="generic-temporaries"><a class="header" href="#generic-temporaries">Generic temporaries</a></h2>
 <p>The rendered body is complete, except where a callee is generic. A temporary takes its output parameter’s declared type, and for a generic function such as <code>myGenAdd&lt;T: ANY_NUM&gt;: T</code> that type is <code>__myGenAdd__T</code>. Codegen needs a concrete type. The compiler’s expression resolver can derive it from the call arguments after transpilation.</p>
 <p>After indexing the new units, the participant runs type inference rounds. Each round annotates the unit and checks generic temporaries whose inputs already have concrete types. It updates their declarations and index entries with the inferred types. A chain of generic calls resolves one step per round:</p>
@@ -10068,7 +10093,7 @@ END_PROGRAM
     pou: String,
 }</code></pre>
 <p><code>Argument</code> is used only as a hint. It connects each argument to a parameter. A positional argument carries the hint on its expression; a named argument carries it on the assignment node.</p>
-<p>The built-ins that a binary expression replaces are the exception. <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, <code>DIV</code>, and the comparisons build that expression from the argument values, so the declared parameter is gone by the time codegen runs. Their annotation function therefore orders the arguments, unwraps every named one to its value, and drops the hint the resolver put on it. A positional argument of such a call carries no hint at that point either, so both forms then take their hint from the binary expression, the same way an operand of a written-out <code>a - b</code> does. <code>src/builtins.rs</code> holds the rule.</p>
+<p>The built-ins that an operator expression replaces are the exception. <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, <code>DIV</code>, <code>MOD</code>, <code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>NOT</code>, and the comparisons build that expression from the argument values, so the declared parameter is gone by the time codegen runs. Their annotation function therefore orders the arguments, unwraps every named one to its value, and drops the hint the resolver put on it. A positional argument of such a call carries no hint at that point either, so both forms then take their hint from the replacement expression, the same way an operand of a written-out <code>a - b</code> does. For <code>NOT</code> that expression is the unary <code>NOT a</code>, for the others it is a binary expression. <code>src/builtins.rs</code> holds the rule.</p>
 <pre><code>    counter(limit := 3, step := 2, count =&gt; i);
             ^^^^^^^^^^                 hint Argument "INT",  position 1, depth 1, pou Base
                         ^^^^^^^^^      hint Argument "DINT", position 1, depth 0, pou Counter
@@ -10094,7 +10119,7 @@ END_PROGRAM
     /// The statement to generate instead of the annotated one
     statement: AstNode,
 }</code></pre>
-<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. A call to an arithmetic or comparison built-in becomes a binary expression over its arguments: <code>ADD(a, b, c)</code> becomes <code>(a + b) + c</code>, and <code>GT(a, b, c)</code> becomes <code>(a &gt; b) AND (b &gt; c)</code>. An arithmetic operator on a combination of date and time operands that the standard defines becomes the call of the standard library function that carries it out, <code>ADD_DT_TIME(stamp, cycle)</code> for <code>stamp + cycle</code>, when that function is declared. The replacement has its own annotations.</p>
+<p><code>ReplacementAst</code> attaches a replacement expression without changing the original node. String equality becomes a <code>STRING_EQUAL</code> call. Other string comparisons combine <code>_EQUAL</code>, <code>_LESS</code>, and <code>_GREATER</code> calls with <code>NOT</code> and <code>OR</code>. A call to an arithmetic, bitwise, or comparison built-in becomes an operator expression over its arguments: <code>ADD(a, b, c)</code> becomes <code>(a + b) + c</code>, <code>GT(a, b, c)</code> becomes <code>(a &gt; b) AND (b &gt; c)</code>, and <code>NOT(IN := a)</code> becomes <code>NOT a</code>. An arithmetic operator on a combination of date and time operands that the standard defines becomes the call of the standard library function that carries it out, <code>ADD_DT_TIME(stamp, cycle)</code> for <code>stamp + cycle</code>, when that function is declared. The replacement has its own annotations.</p>
 <pre><code>    same := text = 'hello';
             ^^^^^^^^^^^^^^    ReplacementAst STRING_EQUAL(text, 'hello'),  hint "BOOL"
             ^^^^              Variable "STRING", main.text,  hint Argument "STRING", position 0, pou STRING_EQUAL
@@ -10146,7 +10171,7 @@ FUNCTION_BLOCK Counter        MethodDeclarations { area: [Concrete Counter.area]
 <tr><td><code>Program</code></td><td>references to programs, classes, actions</td><td>qualified name</td><td>codegen (instance address), validator (E095)</td></tr>
 <tr><td><code>Argument</code> (hint only)</td><td>every call argument</td><td>type, position, depth, declaring POU</td><td>codegen (parameter slot), aggregate-return lowerer, conversion like any hint</td></tr>
 <tr><td><code>Property</code></td><td>property references before lowering</td><td>accessor name</td><td>property lowerer</td></tr>
-<tr><td><code>ReplacementAst</code></td><td>string and other library-compared comparisons, calls of the arithmetic and comparison built-ins, arithmetic on date and time operands</td><td>the replacement statement</td><td>codegen</td></tr>
+<tr><td><code>ReplacementAst</code></td><td>string and other library-compared comparisons, calls of the arithmetic, bitwise, and comparison built-ins, arithmetic on date and time operands</td><td>the replacement statement</td><td>codegen</td></tr>
 <tr><td><code>Label</code></td><td>jump statements from CFC</td><td>label name</td><td>codegen</td></tr>
 <tr><td><code>MethodDeclarations</code></td><td>block, class, and interface declarations (by declaration ID)</td><td>method name to declarations</td><td>validator (E111, E112)</td></tr>
 <tr><td><code>Override</code></td><td>method declarations that override (by declaration ID)</td><td>overridden methods</td><td>validator (E112, E118)</td></tr>

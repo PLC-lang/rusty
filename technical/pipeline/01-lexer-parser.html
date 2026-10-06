@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-8a3aece6.js";
+            window.path_to_searchindex_js = "../../searchindex-c9ab22fa.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -254,6 +254,7 @@ END_FUNCTION
 </code></pre>
 <p>Expressions get one function per precedence level instead of one per construct. The chain runs from the loosest binding to the tightest: expression list, range, <code>OR</code>, <code>XOR</code>, <code>AND</code>, equality, comparison, addition, multiplication, exponent, unary, and last the leaf (a literal, a reference, a call, or a parenthesized expression). Each level parses its left operand with a call to the next tighter level, then loops while it sees one of its own operators.</p>
 <p>This is why <code>1 + 2 * scale(bar, 3)</code> becomes an addition whose right side is a multiplication: the addition level hands control down to multiplication, which consumes <code>2 * scale(...)</code> as a whole before it returns. A parenthesized leaf calls back to the top of the chain and closes the recursion.</p>
+<p>The operator keywords <code>AND</code>, <code>OR</code>, <code>XOR</code>, <code>MOD</code>, and <code>NOT</code> also name built-in functions. The leaf is the one place where no operator can stand, so there such a keyword directly followed by <code>(</code> is the name of a call: <code>AND(a, b)</code> is a call, while <code>a AND (b)</code> stays a binary expression. <code>NOT</code> never reaches the leaf, because the unary level consumes it first. That level keeps <code>NOT(a)</code> as the unary operator, and turns the parentheses into the arguments of a call only when they hold an argument list, as in <code>NOT(IN := a)</code> or <code>NOT(a, b)</code>. A POU name may be one of these keywords only in the declarations of the built-ins themselves.</p>
 <p>Every node gets a source location and a unique ID from a counter shared by all files in the run. Later stages use the ID to attach information without changing the node. In <code>foo := bar + 5</code>, child nodes are created before their parents:</p>
 <pre><code>Assignment {                                    // id: 7
     left: ReferenceExpr {                       // id: 2

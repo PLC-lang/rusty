@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-8a3aece6.js";
+            window.path_to_searchindex_js = "../../searchindex-c9ab22fa.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -200,7 +200,7 @@ n := REAL_TO_DINT(7 ** 11);   (* 1977326720, not 1977326743 *)
 <p><code>=</code>, <code>&lt;&gt;</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, and <code>&gt;=</code> compare two values of the same kind and produce a <code>BOOL</code>. They work on numbers, on enumerations, and on text, where they compare character by character. A comparison of two values that do not belong together, such as a text and a number, is rejected.</p>
 <p>Note that the test for equality is a single <code>=</code>, because <code>:=</code> is the assignment.</p>
 <h2 id="boolean-and-bit-operators"><a class="header" href="#boolean-and-bit-operators">Boolean and bit operators</a></h2>
-<p><code>AND</code>, <code>OR</code>, <code>XOR</code>, and <code>NOT</code> do two jobs. On <code>BOOL</code> values they are the logical operators; on the bit string types they work bit by bit. <code>&amp;</code> is another spelling of <code>AND</code>.</p>
+<p><code>AND</code>, <code>OR</code>, <code>XOR</code>, and <code>NOT</code> do two jobs. On <code>BOOL</code> values they are the logical operators; on the bit string types and on integers they work bit by bit. <code>&amp;</code> is another spelling of <code>AND</code>. Each of them, and <code>MOD</code> as well, also has a function form, such as <code>AND(a, b, c)</code>; see <a href="../reference/built-in-functions.html#names-that-are-also-operators">Built-in Functions</a>.</p>
 <pre><code class="language-iecst">ready := motorOn AND NOT alarm;
 masked := flags AND 16#0F;
 </code></pre>
