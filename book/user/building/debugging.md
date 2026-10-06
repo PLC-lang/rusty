@@ -23,6 +23,8 @@ The four exclude each other, so give one of them. `-g` already covers the global
 
 A debugger stops once per statement, in source order, also when the compiler reorders the machine code of neighbouring statements due to optimizations. For this, the compiler marks the one place per statement where the debugger may stop (`is_stmt` in the line table). A debugger that ignores these marks, such as `gdb` before version 10, can still jump between lines.
 
+A [chart](../language/cfc.md#debugging) has no source lines. Its network gets a debug file of its own, in which the line of an element is its priority.
+
 
 ## Why paths matter
 

@@ -164,12 +164,12 @@ impl CodeSpan {
         }
     }
 
-    /// The 1-based line for debug info; DWARF reserves line 0 for "no location", so an execution
-    /// order shifts by one like a text line does
-    pub fn get_line_plus_one(&self) -> usize {
+    /// The line for debug info: the 1-based text line, or the execution order of a diagram element,
+    /// so that line N of a diagram is execution order N. DWARF reserves line 0 for "no location"
+    pub fn get_debug_line(&self) -> usize {
         match self {
             Self::Range(range) => range.start.line + 1,
-            Self::Block { order, .. } => *order + 1,
+            Self::Block { order, .. } => *order,
             _ => 0,
         }
     }
@@ -316,9 +316,9 @@ impl SourceLocation {
         self.span.get_line_end()
     }
 
-    /// Same as [`get_line`] but adds one to the line number if its of type [`CodeSpan::Range`].
-    pub fn get_line_plus_one(&self) -> usize {
-        self.span.get_line_plus_one()
+    /// The line for debug info, see [`CodeSpan::get_debug_line`]
+    pub fn get_debug_line(&self) -> usize {
+        self.span.get_debug_line()
     }
 
     /// Gets the colmumn representation for a source location

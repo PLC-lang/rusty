@@ -1,0 +1,9 @@
+{
+	"name" : "cfc_zero_order",
+	"files" : [
+		"zero_order.cfc"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
