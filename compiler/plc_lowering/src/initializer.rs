@@ -250,7 +250,17 @@ impl AstVisitor for Initializer {
             .data_type_declaration
             .get_referenced_type()
             .is_some_and(|it| index.get_type_information_or_void(it).is_vla());
-        if !variable_block_type.is_inout() && !is_vla {
+        // a scalar output of a function or method needs no constructor: codegen resets it to the
+        // default of its type, and a constructor call on it would fail the by-ref type check
+        // for alias types
+        let is_scalar_output = variable_block_type.is_output()
+            && !is_stateful
+            && !variable
+                .data_type_declaration
+                .get_referenced_type()
+                .and_then(|it| index.find_effective_type_by_name(it))
+                .is_some_and(|it| it.is_aggregate_type());
+        if !variable_block_type.is_inout() && !is_vla && !is_scalar_output {
             if let Some(constructor) = variable
                 .data_type_declaration
                 .get_referenced_type()
@@ -1639,6 +1649,48 @@ mod tests {
         insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFunction").unwrap()), @"
         intern:
         MyStruct__ctor(localStruct)
+        ");
+    }
+
+    #[test]
+    fn function_and_method_outputs_are_in_stack_constructor() {
+        let src = r#"
+        TYPE MyStruct : STRUCT
+            a : INT := 5;
+        END_STRUCT
+        END_TYPE
+        TYPE MyInt : INT; END_TYPE
+
+        FUNCTION MyFunction
+        VAR_OUTPUT
+            outStruct : MyStruct;
+            outAlias : MyInt;
+            outDefault : INT := 3;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION_BLOCK MyFb
+            METHOD MyMethod
+            VAR_OUTPUT
+                outStruct : MyStruct;
+                outDefault : INT := 3;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#;
+
+        let initializer = parse_and_init(src);
+        // Outputs of a function are stack variables: the struct gets a constructor call, the
+        // default an assignment, and the scalar alias nothing (codegen resets it)
+        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFunction").unwrap()), @"
+        intern:
+        MyStruct__ctor(outStruct)
+        outDefault := 3
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFb.MyMethod").unwrap()), @"
+        intern:
+        MyStruct__ctor(outStruct)
+        outDefault := 3
         ");
     }
 

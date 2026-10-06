@@ -1351,10 +1351,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         };
 
-        // ...check if we can bitcast a reference to their hinted type
+        // ...wrap it into a fat pointer when the parameter is a variable length array
         if let Some(hint) = self.annotations.get_type_hint(argument, self.index) {
             let actual_type = self.annotations.get_type_or_void(argument, self.index);
-            let actual_type_info = self.index.find_elementary_pointer_type(&actual_type.information);
             let target_type_info = self.index.find_elementary_pointer_type(&hint.information);
 
             if target_type_info.is_vla() {
@@ -1369,23 +1368,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.annotations.get(argument)
                 );
             };
-
-            // From https://llvm.org/docs/LangRef.html#bitcast-to-instruction: The ‘bitcast’ instruction takes
-            // a value to cast, which must be a **non-aggregate** first class value, and a type to cast it to,
-            // which must also be a non-aggregate first class type.
-            if !actual_type_info.is_aggregate()
-                && !target_type_info.is_aggregate()
-                && actual_type_info != target_type_info
-            {
-                return Ok(self.llvm.builder.build_bit_cast(
-                    value,
-                    self.llvm_index.get_associated_type(hint.get_name())?,
-                    "",
-                )?);
-            }
         }
 
-        // ...otherwise no bitcasting was needed, thus return the generated element pointer as is
+        // ...otherwise the element pointer is passed as is: with opaque pointers a cast between
+        // pointer types is a no-op, and a cast to the value type is invalid
         Ok(value.into())
     }
 
