@@ -3,6 +3,6 @@ flow (a warning, E143).
 
 Illustrated:
 
-    x --> y (0)
+    x --> y (1)
 
-    LABEL orphan (1)
+    LABEL orphan (2)

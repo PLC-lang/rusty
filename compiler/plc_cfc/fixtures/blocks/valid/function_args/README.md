@@ -6,7 +6,7 @@ one on the variable side only. Verbatim IDE export.
 Illustrated:
 ```
            +-------- myAdd ---------+
-a1 o-----o-| in1              myAdd |-o-----o> b1 (1)
-a2 o-------| in2       myAddDoubled |-------o> b2 (2)
-           +------------------------+ (0)
+a1 o-----o-| in1              myAdd |-o-----o> b1 (2)
+a2 o-------| in2       myAddDoubled |-------o> b2 (3)
+           +------------------------+ (1)
 ```

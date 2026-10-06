@@ -3,8 +3,8 @@ never be taken (a warning, E145); the assignment always runs.
 
 Illustrated:
 
-    (unwired) --> JMP skipAssignment (0)
+    (unwired) --> JMP skipAssignment (1)
 
-    x --> y (1)
+    x --> y (2)
 
-    LABEL skipAssignment (2)
+    LABEL skipAssignment (3)

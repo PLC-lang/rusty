@@ -89,6 +89,8 @@ Expressions get one function per precedence level instead of one per construct. 
 
 This is why `1 + 2 * scale(bar, 3)` becomes an addition whose right side is a multiplication: the addition level hands control down to multiplication, which consumes `2 * scale(...)` as a whole before it returns. A parenthesized leaf calls back to the top of the chain and closes the recursion.
 
+The operator keywords `AND`, `OR`, `XOR`, `MOD`, and `NOT` also name built-in functions. The leaf is the one place where no operator can stand, so there such a keyword directly followed by `(` is the name of a call: `AND(a, b)` is a call, while `a AND (b)` stays a binary expression. `NOT` never reaches the leaf, because the unary level consumes it first. That level keeps `NOT(a)` as the unary operator, and turns the parentheses into the arguments of a call only when they hold an argument list, as in `NOT(IN := a)` or `NOT(a, b)`. A POU name may be one of these keywords only in the declarations of the built-ins themselves.
+
 Every node gets a source location and a unique ID from a counter shared by all files in the run. Later stages use the ID to attach information without changing the node. In `foo := bar + 5`, child nodes are created before their parents:
 
 ```

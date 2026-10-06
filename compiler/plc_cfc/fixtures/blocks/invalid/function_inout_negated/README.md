@@ -9,7 +9,7 @@ therefore see no diagnostic; the end-to-end rejection is pinned by the
 Illustrated:
 ```
              +-------- addInto -------+
-a1 ----------| delta          addInto |--------> b1 (1)
+a1 ----------| delta          addInto |--------> b1 (2)
 acc1 o-----o-| acc                    |
-             +------------------------+ (0)
+             +------------------------+ (1)
 ```

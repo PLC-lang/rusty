@@ -30,11 +30,14 @@ use plc::{
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};
 use plc_index::GlobalContext;
 use project::project::Project;
+use shadow_rs::shadow;
 use source_code::SourceContainer;
 
 pub mod artifacts;
 pub mod cli;
 pub mod pipelines;
+
+shadow!(build);
 
 #[cfg(test)]
 mod tests;

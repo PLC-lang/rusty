@@ -52,6 +52,10 @@ impl From<LogLevel> for LevelFilter {
     group = ArgGroup::new("format"),
     group = ArgGroup::new("relocation-model").args(&["fpic", "fno-pic"]),
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
+    name = "plc",
+    version,
+    long_version = crate::build::CLAP_LONG_VERSION,
+    propagate_version = true,
 )]
 #[clap(subcommand_negates_reqs = true)]
 #[clap(subcommand_precedence_over_arg = true)]
@@ -92,9 +96,6 @@ pub struct CompileParameters {
         help = "Emit lowered AST (Abstract Syntax Tree) as output"
     )]
     pub print_ast_lowered: bool,
-
-    #[clap(long = "version", group = "format", global = true)]
-    pub build_info: bool,
 
     #[clap(
         long = "ir",
@@ -1180,9 +1181,11 @@ mod cli_tests {
 
     #[test]
     fn cli_supports_version() {
-        match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
-            Ok(version) => assert!(version.build_info),
-            _ => panic!("expected the build info flag to be true"),
+        for flag in ["-V", "--version"] {
+            match CompileParameters::parse(vec_of_strings!("input.st", flag)) {
+                Ok(_) => panic!("expected version output, but found OK"),
+                Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayVersion),
+            }
         }
     }
 

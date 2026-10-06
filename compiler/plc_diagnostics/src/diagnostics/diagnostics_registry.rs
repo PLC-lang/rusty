@@ -258,6 +258,7 @@ lazy_static! {
         E155,   Error,      include_str!("./error_codes/E155.md"),  // Duplicate CFC return pin
         E156,   Error,      include_str!("./error_codes/E156.md"),  // Operator not defined for these operand types
         E157,   Warning,    include_str!("./error_codes/E157.md"),  // Bare integer combined with a duration
+        E158,   Error,      include_str!("./error_codes/E158.md"),  // CFC execution order 0
     );
 }
 

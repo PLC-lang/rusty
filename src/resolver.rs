@@ -12,9 +12,9 @@ use std::{fmt::Debug, hash::Hash};
 use plc_ast::{
     ast::{
         self, flatten_expression_list, resolve_argument_slots, Allocation, Assignment, AstFactory, AstId,
-        AstNode, AstStatement, BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration,
-        DirectAccessType, Identifier, Interface, JumpStatement, Operator, Pou, PouType, ReferenceAccess,
-        ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
+        AstNode, AstStatement, BinaryExpression, CallStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, DirectAccessType, Identifier, Interface, JumpStatement, Operator, Pou, PouType,
+        ReferenceAccess, ReferenceExpr, TypeNature, UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::{Array, AstLiteral, StringValue},
@@ -285,7 +285,9 @@ impl TypeAnnotator<'_> {
             &statement.get_location(),
             ctx.id_provider.clone(),
         );
-        self.visit_statement(ctx, &call);
+        // the operands are resolved already, visiting them again repeats the work for every nested operation
+        self.visit_call_operator(&call, ctx);
+        self.annotate_call_statement(&call, ctx);
         self.update_expected_types(self.index.get_type_or_panic(result_type), &call);
         self.annotate(statement, StatementAnnotation::ReplacementAst { statement: call });
         self.update_expected_types(self.index.get_type_or_panic(result_type), statement);
@@ -326,8 +328,8 @@ impl TypeAnnotator<'_> {
             ))
     }
 
+    /// annotates the arguments of a call, the arguments must be resolved already
     pub fn annotate_arguments(&mut self, operator: &AstNode, arguments_node: &AstNode, ctx: &VisitorContext) {
-        self.visit_statement(ctx, arguments_node);
         let arguments = flatten_expression_list(arguments_node);
 
         let pou_name = {
@@ -2739,10 +2741,18 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     fn visit_call_statement(&mut self, statement: &AstNode, ctx: &VisitorContext) {
-        let (operator, parameters_stmt) = if let AstStatement::CallStatement(data, ..) = statement.get_stmt()
+        self.visit_call_operator(statement, ctx);
+        if let AstStatement::CallStatement(CallStatement { operator, parameters: Some(parameters) }) =
+            statement.get_stmt()
         {
-            (data.operator.as_ref(), data.parameters.as_deref())
-        } else {
+            let operator_qualifier = self.get_call_name(operator);
+            self.visit_statement(&ctx.with_lhs(operator_qualifier.as_str()), parameters);
+        }
+        self.annotate_call_statement(statement, ctx);
+    }
+
+    fn visit_call_operator(&mut self, statement: &AstNode, ctx: &VisitorContext) {
+        let AstStatement::CallStatement(CallStatement { operator, .. }) = statement.get_stmt() else {
             unreachable!("Always a call statement");
         };
         // #604 needed for recursive function calls
@@ -2750,13 +2760,18 @@ impl<'i> TypeAnnotator<'i> {
             &ctx.with_resolving_strategy(ResolvingStrategy::call_operator_scopes()),
             operator,
         );
-        let operator_qualifier = self.get_call_name(operator);
-        //Use the context without the is_call =true
-        //TODO why do we start a lhs context here???
-        let ctx = ctx.with_lhs(operator_qualifier.as_str());
-        if let Some(parameters) = parameters_stmt {
-            self.visit_statement(&ctx, parameters);
+    }
+
+    /// annotates a call whose operator and arguments are resolved already
+    fn annotate_call_statement(&mut self, statement: &AstNode, ctx: &VisitorContext) {
+        let (operator, parameters_stmt) = if let AstStatement::CallStatement(data, ..) = statement.get_stmt()
+        {
+            (data.operator.as_ref(), data.parameters.as_deref())
+        } else {
+            unreachable!("Always a call statement");
         };
+        let operator_qualifier = self.get_call_name(operator);
+        let ctx = ctx.with_lhs(operator_qualifier.as_str());
 
         if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {

@@ -85,7 +85,7 @@ impl Transpiler {
                 AstFactory::create_label_statement(name, location, self.ids.next_id())
             }
             Statement::Call { target, arguments, capture, enable, location } => {
-                let operator = self.reference(&target, &location);
+                let operator = self.callee(&target, &location);
 
                 let mut parameters = Vec::new();
                 for argument in arguments {
@@ -167,6 +167,16 @@ impl Transpiler {
 
     fn reference(&mut self, name: &str, location: &SourceLocation) -> AstNode {
         st::parse_expression_at(name, self.ids.clone(), location)
+    }
+
+    // A builtin named by an operator keyword (`AND`, `MOD`, ...) is no ST expression on its own.
+    fn callee(&mut self, name: &str, location: &SourceLocation) -> AstNode {
+        if !st::is_operator_function(name) {
+            return self.reference(name, location);
+        }
+
+        let identifier = AstFactory::create_identifier(name, location, self.ids.next_id());
+        AstFactory::create_member_reference(identifier, None, self.ids.next_id())
     }
 }
 
@@ -1316,6 +1326,43 @@ mod tests {
             END_VAR
                 __out_MUX_1 := MUX(sel, a, b);
                 result := __out_MUX_1;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn operator_functions() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/operator_functions").unwrap(), @r"
+            PROGRAM operator_functions
+            VAR
+                a : BOOL;
+                b : BOOL;
+                c : BOOL;
+                x : DINT;
+                y : DINT;
+                and_result : BOOL;
+                or_result : BOOL;
+                xor_result : BOOL;
+                not_result : BOOL;
+                mod_result : DINT;
+            END_VAR
+            VAR
+                __out_AND_6 : BOOL;
+                __out_OR_8 : BOOL;
+                __out_XOR_10 : BOOL;
+                __out_MOD_12 : DINT;
+                __out_NOT_14 : BOOL;
+            END_VAR
+                __out_AND_6 := AND(a, b, c);
+                __out_OR_8 := OR(a, b);
+                __out_XOR_10 := XOR(a, b);
+                __out_MOD_12 := MOD(IN1 := x, IN2 := y);
+                __out_NOT_14 := NOT(IN := a);
+                and_result := __out_AND_6;
+                or_result := __out_OR_8;
+                xor_result := __out_XOR_10;
+                mod_result := __out_MOD_12;
+                not_result := __out_NOT_14;
             END_PROGRAM
             ");
         }

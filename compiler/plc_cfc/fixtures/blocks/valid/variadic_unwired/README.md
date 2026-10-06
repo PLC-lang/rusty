@@ -8,9 +8,9 @@ dropped and the call passes the two wired inputs: `ADD(x, z)`.
 
 Illustrated:
 ```
-        ADD (0)
+        ADD (1)
       +---------------+
-x --> | IN1       ADD | --> result (1)
+x --> | IN1       ADD | --> result (2)
       |     (unwired) |
 z --> |               |
       +---------------+

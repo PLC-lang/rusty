@@ -5,9 +5,9 @@ how output negation is applied for stateful blocks.
 
 Illustrated:
 ```
-        myAdd (0)
+        myAdd (1)
       +--------------------+
-a --o | in1          myAdd | o--> r (1)
+a --o | in1          myAdd | o--> r (2)
 b --> | in2   myAddDoubled |
       +--------------------+
       (o = negated pin; myAddDoubled unread)

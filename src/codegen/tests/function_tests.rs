@@ -544,6 +544,8 @@ fn function_output_should_be_cast_if_needed() {
       %result = alloca ptr, align [filtered]
       store ptr %2, ptr %result, align [filtered]
       store i16 0, ptr %libFunction, align [filtered]
+      %3 = load ptr, ptr %result, align [filtered]
+      store float 0.000000e+00, ptr %3, align [filtered]
       %libFunction_ret = load i16, ptr %libFunction, align [filtered]
       ret i16 %libFunction_ret
     }

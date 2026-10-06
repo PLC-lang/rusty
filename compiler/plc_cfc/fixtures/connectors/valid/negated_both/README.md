@@ -4,5 +4,5 @@ runtime, `bar := NOT NOT foo`.
 
 Illustrated:
 ```
-foo o--> x    x --o bar (0)
+foo o--> x    x --o bar (1)
 ```

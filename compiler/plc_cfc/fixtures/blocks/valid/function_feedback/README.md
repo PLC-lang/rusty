@@ -5,9 +5,9 @@ self-cycle resolves cleanly with no reordering and no cycle error.
 
 Illustrated:
 ```
-              myAdd (0)
+              myAdd (1)
             +--------------------+
-     .----> | in1          myAdd | --+--> acc (1)
+     .----> | in1          myAdd | --+--> acc (2)
 seed -----> | in2   myAddDoubled |   |
             +--------------------+   |
      '-------------------------------'   [return feeds back into in1]

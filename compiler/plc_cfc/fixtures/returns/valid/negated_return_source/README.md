@@ -4,5 +4,5 @@ return element (the IDE still writes an explicit `inNegated="false"` there).
 
 Illustrated:
 ```
-myCondition o-- RETURN (0)
+myCondition o-- RETURN (1)
 ```

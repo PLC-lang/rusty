@@ -331,7 +331,7 @@ fn parse_pou(
             PouType::Method { .. } => "a method name",
             PouType::Init | PouType::ProjectInit => "a POU name",
         };
-        let (name, name_location) = expect_name_slot(lexer, pou_slot_label)
+        let (name, name_location) = parse_pou_name(lexer, linkage, pou_slot_label)
             .unwrap_or_else(|| ("".to_string(), SourceLocation::undefined()));
 
         let generics = parse_generics(lexer);
@@ -957,6 +957,21 @@ fn expect_name_slot(lexer: &mut ParseSession, slot_label: &'static str) -> Optio
         lexer.location(),
     ));
     None
+}
+
+/// Consumes the name of a POU. A builtin may take the name of an operator keyword, e.g. `FUNCTION AND`,
+/// user code may not.
+fn parse_pou_name(
+    lexer: &mut ParseSession,
+    linkage: LinkageType,
+    slot_label: &'static str,
+) -> Option<(String, SourceLocation)> {
+    if linkage == LinkageType::BuiltIn && lexer.token.classes().contains(&TokenClass::OperatorFunction) {
+        let name = lexer.slice_and_advance();
+        return Some((name, lexer.last_location()));
+    }
+
+    expect_name_slot(lexer, slot_label)
 }
 
 fn parse_implementation(
