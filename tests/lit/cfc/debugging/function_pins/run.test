@@ -27,12 +27,12 @@ CHECK-DAG: ![[#KEY_B2:]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]], atom
 CHECK-DAG: ![[#KEY_B1:]] = !DILocation(line: 3, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
 
 Block `myAdd` (order 1, keyed by the store of its captured return value), sink `b2` (order 2),
-sink `b1` (order 3).
+sink `b1` (order 3). An unoptimized build makes each key store volatile, so the backend keeps it.
 CHECK-DAG: define void @function_pins(ptr %0) !dbg ![[#SCOPE_FUNCTION]]
 CHECK-DAG: call i32 @myAdd({{.*}}), !dbg ![[#LOCATION_MYADD]]
-CHECK-DAG: store i32 %call, ptr %__out_myAdd_1, {{.*}}!dbg ![[#KEY_MYADD]]
-CHECK-DAG: store i32 {{.*}}, ptr %b2, {{.*}}!dbg ![[#KEY_B2]]
-CHECK-DAG: store i32 {{.*}}, ptr %b1, {{.*}}!dbg ![[#KEY_B1]]
+CHECK-DAG: store{{( volatile)?}} i32 %call, ptr %__out_myAdd_1, {{.*}}!dbg ![[#KEY_MYADD]]
+CHECK-DAG: store{{( volatile)?}} i32 {{.*}}, ptr %b2, {{.*}}!dbg ![[#KEY_B2]]
+CHECK-DAG: store{{( volatile)?}} i32 {{.*}}, ptr %b1, {{.*}}!dbg ![[#KEY_B1]]
 
 Declared variables keep their text line; the captured block output sits at its block's order.
 CHECK-DAG: !DIDerivedType(tag: DW_TAG_member, name: "a1", scope: ![[#FILE_DECLARATION]], file: ![[#FILE_DECLARATION]], line: 3,

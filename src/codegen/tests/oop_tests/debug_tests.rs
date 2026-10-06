@@ -258,7 +258,7 @@ fn write_to_parent_variable_qualified_access() {
       %myFb = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       %__fb = getelementptr inbounds nuw %fb2, ptr %myFb, i32 0, i32 0, !dbg !39
       %x = getelementptr inbounds nuw %fb, ptr %__fb, i32 0, i32 1, !dbg !39
-      store i16 1, ptr %x, align [filtered], !dbg !40
+      store volatile i16 1, ptr %x, align [filtered], !dbg !40
       ret void, !dbg !41
     }
 
@@ -796,26 +796,26 @@ fn array_in_parent_generated() {
       %__parent = getelementptr inbounds nuw %child, ptr %tmpVar, i32 0, i32 0, !dbg !54
       %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0, !dbg !54
       %a = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 2, !dbg !54
-      store i16 10, ptr %a, align [filtered], !dbg !55
+      store volatile i16 10, ptr %a, align [filtered], !dbg !55
       %tmpVar1 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 0, !dbg !56
       %__parent2 = getelementptr inbounds nuw %child, ptr %tmpVar1, i32 0, i32 0, !dbg !56
       %__grandparent3 = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0, !dbg !56
       %y = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 1, !dbg !56
       %tmpVar4 = getelementptr inbounds [6 x i16], ptr %y, i32 0, i32 0, !dbg !56
-      store i16 20, ptr %tmpVar4, align [filtered], !dbg !57
+      store volatile i16 20, ptr %tmpVar4, align [filtered], !dbg !57
       %tmpVar5 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 1, !dbg !58
       %__parent6 = getelementptr inbounds nuw %child, ptr %tmpVar5, i32 0, i32 0, !dbg !58
       %b = getelementptr inbounds nuw %parent, ptr %__parent6, i32 0, i32 2, !dbg !58
-      store i16 30, ptr %b, align [filtered], !dbg !59
+      store volatile i16 30, ptr %b, align [filtered], !dbg !59
       %tmpVar7 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 1, !dbg !60
       %__parent8 = getelementptr inbounds nuw %child, ptr %tmpVar7, i32 0, i32 0, !dbg !60
       %x = getelementptr inbounds nuw %parent, ptr %__parent8, i32 0, i32 1, !dbg !60
       %tmpVar9 = getelementptr inbounds [11 x i16], ptr %x, i32 0, i32 1, !dbg !60
-      store i16 40, ptr %tmpVar9, align [filtered], !dbg !61
+      store volatile i16 40, ptr %tmpVar9, align [filtered], !dbg !61
       %tmpVar10 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 2, !dbg !62
       %z = getelementptr inbounds nuw %child, ptr %tmpVar10, i32 0, i32 1, !dbg !62
       %tmpVar11 = getelementptr inbounds [11 x i16], ptr %z, i32 0, i32 2, !dbg !62
-      store i16 50, ptr %tmpVar11, align [filtered], !dbg !63
+      store volatile i16 50, ptr %tmpVar11, align [filtered], !dbg !63
       ret void, !dbg !64
     }
 
@@ -1178,7 +1178,7 @@ fn complex_array_access_generated() {
       %tmpVar9 = mul i32 1, %tmpVar8, !dbg !45
       %tmpVar10 = add i32 %tmpVar9, 0, !dbg !45
       %tmpVar11 = getelementptr inbounds [6 x i16], ptr %y, i32 0, i32 %tmpVar10, !dbg !45
-      store i16 20, ptr %tmpVar11, align [filtered], !dbg !46
+      store volatile i16 20, ptr %tmpVar11, align [filtered], !dbg !46
       ret void, !dbg !47
     }
 
@@ -1722,87 +1722,87 @@ END_FUNCTION
       call void @child__ctor(ptr %child1), !dbg !61
       call void @grandchild__ctor(ptr %grandchild1), !dbg !62
       %a = getelementptr inbounds nuw %parent, ptr %parent1, i32 0, i32 1, !dbg !63
-      store i32 1, ptr %a, align [filtered], !dbg !64
+      store volatile i32 1, ptr %a, align [filtered], !dbg !64
       %__parent = getelementptr inbounds nuw %child, ptr %child1, i32 0, i32 0, !dbg !65
       %a1 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1, !dbg !65
-      store i32 2, ptr %a1, align [filtered], !dbg !66
+      store volatile i32 2, ptr %a1, align [filtered], !dbg !66
       %b = getelementptr inbounds nuw %child, ptr %child1, i32 0, i32 1, !dbg !67
-      store i32 3, ptr %b, align [filtered], !dbg !68
+      store volatile i32 3, ptr %b, align [filtered], !dbg !68
       %__child = getelementptr inbounds nuw %grandchild, ptr %grandchild1, i32 0, i32 0, !dbg !69
       %__parent2 = getelementptr inbounds nuw %child, ptr %__child, i32 0, i32 0, !dbg !69
       %a3 = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 1, !dbg !69
-      store i32 4, ptr %a3, align [filtered], !dbg !70
+      store volatile i32 4, ptr %a3, align [filtered], !dbg !70
       %__child4 = getelementptr inbounds nuw %grandchild, ptr %grandchild1, i32 0, i32 0, !dbg !71
       %b5 = getelementptr inbounds nuw %child, ptr %__child4, i32 0, i32 1, !dbg !71
-      store i32 5, ptr %b5, align [filtered], !dbg !72
+      store volatile i32 5, ptr %b5, align [filtered], !dbg !72
       %c = getelementptr inbounds nuw %grandchild, ptr %grandchild1, i32 0, i32 1, !dbg !73
-      store i32 6, ptr %c, align [filtered], !dbg !74
+      store volatile i32 6, ptr %c, align [filtered], !dbg !74
       %tmpVar = getelementptr inbounds [3 x %parent], ptr %array_of_parent, i32 0, i32 0, !dbg !75
       %a6 = getelementptr inbounds nuw %parent, ptr %tmpVar, i32 0, i32 1, !dbg !75
-      store i32 7, ptr %a6, align [filtered], !dbg !76
+      store volatile i32 7, ptr %a6, align [filtered], !dbg !76
       %tmpVar7 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 0, !dbg !77
       %__parent8 = getelementptr inbounds nuw %child, ptr %tmpVar7, i32 0, i32 0, !dbg !77
       %a9 = getelementptr inbounds nuw %parent, ptr %__parent8, i32 0, i32 1, !dbg !77
-      store i32 8, ptr %a9, align [filtered], !dbg !78
+      store volatile i32 8, ptr %a9, align [filtered], !dbg !78
       %tmpVar10 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 0, !dbg !79
       %b11 = getelementptr inbounds nuw %child, ptr %tmpVar10, i32 0, i32 1, !dbg !79
-      store i32 9, ptr %b11, align [filtered], !dbg !80
+      store volatile i32 9, ptr %b11, align [filtered], !dbg !80
       %tmpVar12 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 0, !dbg !81
       %__child13 = getelementptr inbounds nuw %grandchild, ptr %tmpVar12, i32 0, i32 0, !dbg !81
       %__parent14 = getelementptr inbounds nuw %child, ptr %__child13, i32 0, i32 0, !dbg !81
       %a15 = getelementptr inbounds nuw %parent, ptr %__parent14, i32 0, i32 1, !dbg !81
-      store i32 10, ptr %a15, align [filtered], !dbg !82
+      store volatile i32 10, ptr %a15, align [filtered], !dbg !82
       %tmpVar16 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 0, !dbg !83
       %__child17 = getelementptr inbounds nuw %grandchild, ptr %tmpVar16, i32 0, i32 0, !dbg !83
       %b18 = getelementptr inbounds nuw %child, ptr %__child17, i32 0, i32 1, !dbg !83
-      store i32 11, ptr %b18, align [filtered], !dbg !84
+      store volatile i32 11, ptr %b18, align [filtered], !dbg !84
       %tmpVar19 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 0, !dbg !85
       %c20 = getelementptr inbounds nuw %grandchild, ptr %tmpVar19, i32 0, i32 1, !dbg !85
-      store i32 12, ptr %c20, align [filtered], !dbg !86
+      store volatile i32 12, ptr %c20, align [filtered], !dbg !86
       %tmpVar21 = getelementptr inbounds [3 x %parent], ptr %array_of_parent, i32 0, i32 1, !dbg !87
       %a22 = getelementptr inbounds nuw %parent, ptr %tmpVar21, i32 0, i32 1, !dbg !87
-      store i32 13, ptr %a22, align [filtered], !dbg !88
+      store volatile i32 13, ptr %a22, align [filtered], !dbg !88
       %tmpVar23 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 1, !dbg !89
       %__parent24 = getelementptr inbounds nuw %child, ptr %tmpVar23, i32 0, i32 0, !dbg !89
       %a25 = getelementptr inbounds nuw %parent, ptr %__parent24, i32 0, i32 1, !dbg !89
-      store i32 14, ptr %a25, align [filtered], !dbg !90
+      store volatile i32 14, ptr %a25, align [filtered], !dbg !90
       %tmpVar26 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 1, !dbg !91
       %b27 = getelementptr inbounds nuw %child, ptr %tmpVar26, i32 0, i32 1, !dbg !91
-      store i32 15, ptr %b27, align [filtered], !dbg !92
+      store volatile i32 15, ptr %b27, align [filtered], !dbg !92
       %tmpVar28 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 1, !dbg !93
       %__child29 = getelementptr inbounds nuw %grandchild, ptr %tmpVar28, i32 0, i32 0, !dbg !93
       %__parent30 = getelementptr inbounds nuw %child, ptr %__child29, i32 0, i32 0, !dbg !93
       %a31 = getelementptr inbounds nuw %parent, ptr %__parent30, i32 0, i32 1, !dbg !93
-      store i32 16, ptr %a31, align [filtered], !dbg !94
+      store volatile i32 16, ptr %a31, align [filtered], !dbg !94
       %tmpVar32 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 1, !dbg !95
       %__child33 = getelementptr inbounds nuw %grandchild, ptr %tmpVar32, i32 0, i32 0, !dbg !95
       %b34 = getelementptr inbounds nuw %child, ptr %__child33, i32 0, i32 1, !dbg !95
-      store i32 17, ptr %b34, align [filtered], !dbg !96
+      store volatile i32 17, ptr %b34, align [filtered], !dbg !96
       %tmpVar35 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 1, !dbg !97
       %c36 = getelementptr inbounds nuw %grandchild, ptr %tmpVar35, i32 0, i32 1, !dbg !97
-      store i32 18, ptr %c36, align [filtered], !dbg !98
+      store volatile i32 18, ptr %c36, align [filtered], !dbg !98
       %tmpVar37 = getelementptr inbounds [3 x %parent], ptr %array_of_parent, i32 0, i32 2, !dbg !99
       %a38 = getelementptr inbounds nuw %parent, ptr %tmpVar37, i32 0, i32 1, !dbg !99
-      store i32 19, ptr %a38, align [filtered], !dbg !100
+      store volatile i32 19, ptr %a38, align [filtered], !dbg !100
       %tmpVar39 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 2, !dbg !101
       %__parent40 = getelementptr inbounds nuw %child, ptr %tmpVar39, i32 0, i32 0, !dbg !101
       %a41 = getelementptr inbounds nuw %parent, ptr %__parent40, i32 0, i32 1, !dbg !101
-      store i32 20, ptr %a41, align [filtered], !dbg !102
+      store volatile i32 20, ptr %a41, align [filtered], !dbg !102
       %tmpVar42 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 2, !dbg !103
       %b43 = getelementptr inbounds nuw %child, ptr %tmpVar42, i32 0, i32 1, !dbg !103
-      store i32 21, ptr %b43, align [filtered], !dbg !104
+      store volatile i32 21, ptr %b43, align [filtered], !dbg !104
       %tmpVar44 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 2, !dbg !105
       %__child45 = getelementptr inbounds nuw %grandchild, ptr %tmpVar44, i32 0, i32 0, !dbg !105
       %__parent46 = getelementptr inbounds nuw %child, ptr %__child45, i32 0, i32 0, !dbg !105
       %a47 = getelementptr inbounds nuw %parent, ptr %__parent46, i32 0, i32 1, !dbg !105
-      store i32 22, ptr %a47, align [filtered], !dbg !106
+      store volatile i32 22, ptr %a47, align [filtered], !dbg !106
       %tmpVar48 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 2, !dbg !107
       %__child49 = getelementptr inbounds nuw %grandchild, ptr %tmpVar48, i32 0, i32 0, !dbg !107
       %b50 = getelementptr inbounds nuw %child, ptr %__child49, i32 0, i32 1, !dbg !107
-      store i32 23, ptr %b50, align [filtered], !dbg !108
+      store volatile i32 23, ptr %b50, align [filtered], !dbg !108
       %tmpVar51 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 2, !dbg !109
       %c52 = getelementptr inbounds nuw %grandchild, ptr %tmpVar51, i32 0, i32 1, !dbg !109
-      store i32 24, ptr %c52, align [filtered], !dbg !110
+      store volatile i32 24, ptr %c52, align [filtered], !dbg !110
       %main_ret = load i32, ptr %main, align [filtered], !dbg !111
       ret i32 %main_ret, !dbg !112
     }

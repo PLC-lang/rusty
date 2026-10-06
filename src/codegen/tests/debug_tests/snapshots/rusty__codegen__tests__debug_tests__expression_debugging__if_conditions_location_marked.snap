@@ -15,23 +15,23 @@ entry:
   br i1 true, label %condition_body, label %else, !dbg !11
 
 condition_body:                                   ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !12
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !12
   br label %continue, !dbg !13
 
 else:                                             ; preds = %entry
   br i1 false, label %condition_body3, label %else1, !dbg !14
 
 continue:                                         ; preds = %continue2, %condition_body
-  store i32 1, ptr %myFunc, align [filtered], !dbg !15
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !15
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !16
   ret i32 %myFunc_ret, !dbg !17
 
 condition_body3:                                  ; preds = %else
-  store i32 1, ptr %myFunc, align [filtered], !dbg !18
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !18
   br label %continue2, !dbg !19
 
 else1:                                            ; preds = %else
-  store i32 1, ptr %myFunc, align [filtered], !dbg !20
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !20
   br label %continue2, !dbg !21
 
 continue2:                                        ; preds = %else1, %condition_body3
