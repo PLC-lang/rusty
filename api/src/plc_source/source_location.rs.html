@@ -164,12 +164,12 @@
 <a href=#164 id=164 data-nosnippet>164</a>        }
 <a href=#165 id=165 data-nosnippet>165</a>    }
 <a href=#166 id=166 data-nosnippet>166</a>
-<a href=#167 id=167 data-nosnippet>167</a>    <span class="doccomment">/// The 1-based line for debug info; DWARF reserves line 0 for "no location", so an execution
-<a href=#168 id=168 data-nosnippet>168</a>    /// order shifts by one like a text line does
-<a href=#169 id=169 data-nosnippet>169</a>    </span><span class="kw">pub fn </span>get_line_plus_one(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+<a href=#167 id=167 data-nosnippet>167</a>    <span class="doccomment">/// The line for debug info: the 1-based text line, or the execution order of a diagram element,
+<a href=#168 id=168 data-nosnippet>168</a>    /// so that line N of a diagram is execution order N. DWARF reserves line 0 for "no location"
+<a href=#169 id=169 data-nosnippet>169</a>    </span><span class="kw">pub fn </span>get_debug_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
 <a href=#170 id=170 data-nosnippet>170</a>        <span class="kw">match </span><span class="self">self </span>{
 <a href=#171 id=171 data-nosnippet>171</a>            <span class="self">Self</span>::Range(range) =&gt; range.start.line + <span class="number">1</span>,
-<a href=#172 id=172 data-nosnippet>172</a>            <span class="self">Self</span>::Block { order, .. } =&gt; <span class="kw-2">*</span>order + <span class="number">1</span>,
+<a href=#172 id=172 data-nosnippet>172</a>            <span class="self">Self</span>::Block { order, .. } =&gt; <span class="kw-2">*</span>order,
 <a href=#173 id=173 data-nosnippet>173</a>            <span class="kw">_ </span>=&gt; <span class="number">0</span>,
 <a href=#174 id=174 data-nosnippet>174</a>        }
 <a href=#175 id=175 data-nosnippet>175</a>    }
@@ -316,9 +316,9 @@
 <a href=#316 id=316 data-nosnippet>316</a>        <span class="self">self</span>.span.get_line_end()
 <a href=#317 id=317 data-nosnippet>317</a>    }
 <a href=#318 id=318 data-nosnippet>318</a>
-<a href=#319 id=319 data-nosnippet>319</a>    <span class="doccomment">/// Same as [`get_line`] but adds one to the line number if its of type [`CodeSpan::Range`].
-<a href=#320 id=320 data-nosnippet>320</a>    </span><span class="kw">pub fn </span>get_line_plus_one(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-<a href=#321 id=321 data-nosnippet>321</a>        <span class="self">self</span>.span.get_line_plus_one()
+<a href=#319 id=319 data-nosnippet>319</a>    <span class="doccomment">/// The line for debug info, see [`CodeSpan::get_debug_line`]
+<a href=#320 id=320 data-nosnippet>320</a>    </span><span class="kw">pub fn </span>get_debug_line(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+<a href=#321 id=321 data-nosnippet>321</a>        <span class="self">self</span>.span.get_debug_line()
 <a href=#322 id=322 data-nosnippet>322</a>    }
 <a href=#323 id=323 data-nosnippet>323</a>
 <a href=#324 id=324 data-nosnippet>324</a>    <span class="doccomment">/// Gets the colmumn representation for a source location

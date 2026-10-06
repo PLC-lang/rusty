@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-b0ba0f90.js";
+            window.path_to_searchindex_js = "../../searchindex-8a3aece6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e693153e.js"></script>
+        <script src="../../toc-645c3480.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -286,12 +286,13 @@ result := SEL(IN1 := second, IN0 := first, G := TRUE);
 <pre><code class="language-iecst">sum := ADD(a, b, c);          (* correct *)
 value := MUX(K := 1, a, b);   (* correct, K is not variadic *)
 </code></pre>
-<p>A name for such an argument is rejected:</p>
-<pre><code>error[E048]: Could not resolve reference to args
-error[E089]: Invalid call parameters
+<p>A name for such an argument is rejected, also <code>IN1</code>, which the standard uses for the first input:</p>
+<pre><code class="language-iecst">sum := ADD(IN1 := a, b);      (* error *)
+</code></pre>
+<pre><code>error[E089]: Invalid call parameters
+error[E048]: Could not resolve reference to IN1
 </code></pre>
 <p><code>SEL</code> looks like <code>MUX</code> but is not variadic, so all three of its parameters have a name.</p>
-<p>The <a href="standard-library.html">standard library</a> overloads <code>ADD</code> and <code>MUL</code> with a named first parameter <code>IN1</code> and a variadic rest. With the library linked, <code>ADD(IN1 := a, b)</code> is a valid call as well, and every argument after the first stays positional.</p>
 <h2 id="how-many-arguments"><a class="header" href="#how-many-arguments">How many arguments</a></h2>
 <p><code>ADD</code>, <code>MUL</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> are extensible: they take two arguments or more.</p>
 <p><code>SUB</code>, <code>DIV</code>, and <code>NE</code> take exactly two, which is the one place where <code>NE</code> behaves unlike the other five comparisons:</p>

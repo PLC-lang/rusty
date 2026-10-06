@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-b0ba0f90.js";
+            window.path_to_searchindex_js = "../../searchindex-8a3aece6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e693153e.js"></script>
+        <script src="../../toc-645c3480.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -214,11 +214,11 @@
 <p>A small bubble on a pin negates the value that passes it.</p>
 <h2 id="execution-order"><a class="header" href="#execution-order">Execution order</a></h2>
 <p>The wires say where a value goes, not when. The order of the statements is the order of the <strong>evaluation priority</strong> that you give the elements in the tool. It is not the order of the wires and not the position on the sheet:</p>
-<pre><code>        Add (0)             Scale (1)
- a --&gt; | in1   out | --&gt; | in    out | --&gt; result (2)
+<pre><code>        Add (1)             Scale (2)
+ a --&gt; | in1   out | --&gt; | in    out | --&gt; result (3)
  b --&gt; | in2       |
 </code></pre>
-<p>The numbers in parentheses are the priorities. An element without a priority runs after every element that has one, in the order in which the file stores it.</p>
+<p>The numbers in parentheses are the priorities. They start at 1; the tool never writes a 0, so an element with priority 0 is rejected (E158). An element without a priority runs after every element that has one, in the order in which the file stores it.</p>
 <p>This matters when two blocks write the same variable, or when one block reads a value that another one produces: the priority decides what happens first. Give a priority to every element that becomes a statement: an output, a block, a jump, a label, and a return.</p>
 <h2 id="calls"><a class="header" href="#calls">Calls</a></h2>
 <p>What a block call does with the values on its pins depends on what the block calls.</p>
@@ -231,6 +231,9 @@
 <p>An output element can carry a storage mode, which you set in the tool. Without one, the output writes the value on its wire every time it runs. With <code>Set</code>, the wire is a condition instead: when it is true, the variable becomes <code>TRUE</code>, and when it is false, nothing is written and the variable keeps its value. <code>Reset</code> writes <code>FALSE</code> under the same condition. Two outputs on one variable, one with each mode, build a latch.</p>
 <p>Both modes store a <code>BOOL</code>, so the variable of such an output must be a <code>BOOL</code>. A numeric variable behind a <code>Set</code> or <code>Reset</code> output is rejected with the same error that <code>count := TRUE</code> gets in text, reported at the output element. The <a href="basic-types.html#bool">basic types</a> chapter explains why a <code>BOOL</code> is not a number.</p>
 <p><code>Reference</code> writes no value at all. The output becomes a <a href="pointers.html#references">reference</a> that is bound to the variable on its wire, so a later read of the output sees the value that variable holds at that time. A negation bubble on such an output is rejected.</p>
+<h2 id="debugging"><a class="header" href="#debugging">Debugging</a></h2>
+<p>A debugger knows files and lines, and a chart has neither. With debug information (<code>-g</code>), the compiler gives the network of each chart a debug file of its own, named after the source file and the POU: the network of <code>Mixer</code> in <code>mixer.cfc</code> is <code>mixer.cfc.Mixer</code>. In that file, the line of an element is its priority. A breakpoint on line 2 of <code>mixer.cfc.Mixer</code> stops at the element with priority 2, and a debugger that stops at line 2 is at that element. The declaration keeps its text lines in <code>mixer.cfc</code>.</p>
+<p>A debugger stops once per element. An element without a priority has no line, so a debugger cannot stop at it.</p>
 <h2 id="what-the-compiler-reports"><a class="header" href="#what-the-compiler-reports">What the compiler reports</a></h2>
 <p>The compiler checks the drawing before it turns the network into statements. A chart has no lines and columns, so a diagnostic names the element instead:</p>
 <pre><code>error[E083]: Unsupported CFC expression: `foo + 1`

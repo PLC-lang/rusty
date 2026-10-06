@@ -37,10 +37,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-b0ba0f90.js";
+            window.path_to_searchindex_js = "searchindex-8a3aece6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-e693153e.js"></script>
+        <script src="toc-645c3480.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1759,11 +1759,11 @@ END_VAR
 <p>A small bubble on a pin negates the value that passes it.</p>
 <h2 id="execution-order"><a class="header" href="#execution-order">Execution order</a></h2>
 <p>The wires say where a value goes, not when. The order of the statements is the order of the <strong>evaluation priority</strong> that you give the elements in the tool. It is not the order of the wires and not the position on the sheet:</p>
-<pre><code>        Add (0)             Scale (1)
- a --&gt; | in1   out | --&gt; | in    out | --&gt; result (2)
+<pre><code>        Add (1)             Scale (2)
+ a --&gt; | in1   out | --&gt; | in    out | --&gt; result (3)
  b --&gt; | in2       |
 </code></pre>
-<p>The numbers in parentheses are the priorities. An element without a priority runs after every element that has one, in the order in which the file stores it.</p>
+<p>The numbers in parentheses are the priorities. They start at 1; the tool never writes a 0, so an element with priority 0 is rejected (E158). An element without a priority runs after every element that has one, in the order in which the file stores it.</p>
 <p>This matters when two blocks write the same variable, or when one block reads a value that another one produces: the priority decides what happens first. Give a priority to every element that becomes a statement: an output, a block, a jump, a label, and a return.</p>
 <h2 id="calls"><a class="header" href="#calls">Calls</a></h2>
 <p>What a block call does with the values on its pins depends on what the block calls.</p>
@@ -1776,6 +1776,9 @@ END_VAR
 <p>An output element can carry a storage mode, which you set in the tool. Without one, the output writes the value on its wire every time it runs. With <code>Set</code>, the wire is a condition instead: when it is true, the variable becomes <code>TRUE</code>, and when it is false, nothing is written and the variable keeps its value. <code>Reset</code> writes <code>FALSE</code> under the same condition. Two outputs on one variable, one with each mode, build a latch.</p>
 <p>Both modes store a <code>BOOL</code>, so the variable of such an output must be a <code>BOOL</code>. A numeric variable behind a <code>Set</code> or <code>Reset</code> output is rejected with the same error that <code>count := TRUE</code> gets in text, reported at the output element. The <a href="#bool">basic types</a> chapter explains why a <code>BOOL</code> is not a number.</p>
 <p><code>Reference</code> writes no value at all. The output becomes a <a href="#references">reference</a> that is bound to the variable on its wire, so a later read of the output sees the value that variable holds at that time. A negation bubble on such an output is rejected.</p>
+<h2 id="debugging"><a class="header" href="#debugging">Debugging</a></h2>
+<p>A debugger knows files and lines, and a chart has neither. With debug information (<code>-g</code>), the compiler gives the network of each chart a debug file of its own, named after the source file and the POU: the network of <code>Mixer</code> in <code>mixer.cfc</code> is <code>mixer.cfc.Mixer</code>. In that file, the line of an element is its priority. A breakpoint on line 2 of <code>mixer.cfc.Mixer</code> stops at the element with priority 2, and a debugger that stops at line 2 is at that element. The declaration keeps its text lines in <code>mixer.cfc</code>.</p>
+<p>A debugger stops once per element. An element without a priority has no line, so a debugger cannot stop at it.</p>
 <h2 id="what-the-compiler-reports"><a class="header" href="#what-the-compiler-reports">What the compiler reports</a></h2>
 <p>The compiler checks the drawing before it turns the network into statements. A chart has no lines and columns, so a diagnostic names the element instead:</p>
 <pre><code>error[E083]: Unsupported CFC expression: `foo + 1`
@@ -2003,6 +2006,7 @@ error: Compilation aborted due to critical errors
 <p>The four exclude each other, so give one of them. <code>-g</code> already covers the global variables, and the version it writes is DWARF 5. Use a fixed version when the debugger or the runtime on the target accepts one version only.</p>
 <h2 id="stepping"><a class="header" href="#stepping">Stepping</a></h2>
 <p>A debugger stops once per statement, in source order, also when the compiler reorders the machine code of neighbouring statements due to optimizations. For this, the compiler marks the one place per statement where the debugger may stop (<code>is_stmt</code> in the line table). A debugger that ignores these marks, such as <code>gdb</code> before version 10, can still jump between lines.</p>
+<p>A <a href="#debugging">chart</a> has no source lines. Its network gets a debug file of its own, in which the line of an element is its priority.</p>
 <h2 id="why-paths-matter"><a class="header" href="#why-paths-matter">Why paths matter</a></h2>
 <p>The debug information stores the path of every source file. For local work this is fine. For a shipped binary and for remote debugging you usually want two properties:</p>
 <ul>
@@ -2832,7 +2836,7 @@ plc build src/plc.json    # reads the given file
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="standard-library"><a class="header" href="#standard-library">Standard Library</a></h1>
 <p><code>iec61131std</code> provides the functions and function blocks of IEC 61131-3. This page says what is in it and which file declares each family. For the signature of a single function, read that file.</p>
-<p>A few names appear here and in <a href="#built-in-functions">Built-in Functions</a>: <code>ABS</code>, <code>ADD</code>, and <code>MUL</code> are built into the compiler, and the library declares them again to widen what a call accepts.</p>
+<p>One name appears here and in <a href="#built-in-functions">Built-in Functions</a>: <code>ABS</code> is built into the compiler, and the library declares it again to widen what a call accepts.</p>
 <h2 id="using-it"><a class="header" href="#using-it">Using it</a></h2>
 <p>A release installs the library and its declarations:</p>
 <div class="table-wrapper">
@@ -2861,7 +2865,7 @@ plc build src/plc.json    # reads the given file
 <tr><th>Family</th><th>Declared in</th><th>Contains</th></tr>
 </thead>
 <tbody>
-<tr><td>Arithmetic</td><td><code>arithmetic_functions.st</code></td><td><code>SQRT</code>, <code>LN</code>, <code>LOG</code>, <code>EXP</code>, <code>SIN</code>, <code>COS</code>, <code>TAN</code>, <code>ASIN</code>, <code>ACOS</code>, <code>ATAN</code>, <code>ATAN2</code>, <code>EXPT</code>, the variadic <code>ADD</code> and <code>MUL</code>, and the constants <code>PI_REAL</code>, <code>FRAC_PI_2_REAL</code>, <code>FRAC_PI_4_REAL</code>, <code>E_REAL</code>, <code>INF_REAL</code>, and <code>NAN_REAL</code>, each also in an <code>LREAL</code> form such as <code>PI_LREAL</code></td></tr>
+<tr><td>Arithmetic</td><td><code>arithmetic_functions.st</code></td><td><code>SQRT</code>, <code>LN</code>, <code>LOG</code>, <code>EXP</code>, <code>SIN</code>, <code>COS</code>, <code>TAN</code>, <code>ASIN</code>, <code>ACOS</code>, <code>ATAN</code>, <code>ATAN2</code>, <code>EXPT</code>, and the constants <code>PI_REAL</code>, <code>FRAC_PI_2_REAL</code>, <code>FRAC_PI_4_REAL</code>, <code>E_REAL</code>, <code>INF_REAL</code>, and <code>NAN_REAL</code>, each also in an <code>LREAL</code> form such as <code>PI_LREAL</code></td></tr>
 <tr><td>Numerical</td><td><code>numerical_functions.st</code></td><td><code>ABS</code></td></tr>
 <tr><td>Selectors</td><td><code>selectors.st</code></td><td><code>MAX</code>, <code>MIN</code>, <code>LIMIT</code></td></tr>
 <tr><td>Bit shifts</td><td><code>bit_shift_functions.st</code></td><td><code>ROL</code>, <code>ROR</code></td></tr>
@@ -3007,12 +3011,13 @@ result := SEL(IN1 := second, IN0 := first, G := TRUE);
 <pre><code class="language-iecst">sum := ADD(a, b, c);          (* correct *)
 value := MUX(K := 1, a, b);   (* correct, K is not variadic *)
 </code></pre>
-<p>A name for such an argument is rejected:</p>
-<pre><code>error[E048]: Could not resolve reference to args
-error[E089]: Invalid call parameters
+<p>A name for such an argument is rejected, also <code>IN1</code>, which the standard uses for the first input:</p>
+<pre><code class="language-iecst">sum := ADD(IN1 := a, b);      (* error *)
+</code></pre>
+<pre><code>error[E089]: Invalid call parameters
+error[E048]: Could not resolve reference to IN1
 </code></pre>
 <p><code>SEL</code> looks like <code>MUX</code> but is not variadic, so all three of its parameters have a name.</p>
-<p>The <a href="#standard-library">standard library</a> overloads <code>ADD</code> and <code>MUL</code> with a named first parameter <code>IN1</code> and a variadic rest. With the library linked, <code>ADD(IN1 := a, b)</code> is a valid call as well, and every argument after the first stays positional.</p>
 <h2 id="how-many-arguments"><a class="header" href="#how-many-arguments">How many arguments</a></h2>
 <p><code>ADD</code>, <code>MUL</code>, <code>GT</code>, <code>GE</code>, <code>EQ</code>, <code>LE</code>, and <code>LT</code> are extensible: they take two arguments or more.</p>
 <p><code>SUB</code>, <code>DIV</code>, and <code>NE</code> take exactly two, which is the one place where <code>NE</code> behaves unlike the other five comparisons:</p>
@@ -4987,6 +4992,26 @@ END_PROGRAM
 <pre><code class="language-iecst">    cycle := cycle + T#5ms;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cfc-execution-order-0"><a class="header" href="#cfc-execution-order-0">CFC execution order 0</a></h1>
+<p>An element in a CFC network has the execution order 0. The IDE numbers the
+execution orders of a network from 1, so it never exports an order of 0. An
+element with order 0 means the project file was changed outside of the IDE or
+is corrupted.</p>
+<pre><code>foo --&gt; bar (0)    rejected
+foo --&gt; baz (1)
+</code></pre>
+<p>The debugger shows the elements of a diagram by their execution order: element
+1 is line 1 of the diagram, element 2 is line 2. Line 0 means “no source line”,
+so a debugger could never stop on an element with order 0. Open the network in
+the IDE and save it again, so that every element gets a valid order.</p>
+<h2 id="technical-details-1"><a class="header" href="#technical-details-1">Technical details</a></h2>
+<p>In the exported CFC file, the execution order is the <code>priorityInNetwork</code>
+attribute of the element’s <code>EvaluationPriority</code>. The element is rejected when
+the attribute is 0:</p>
+<pre><code class="language-xml">&lt;EvaluationPriority priorityInNetwork="0"/&gt;    &lt;!-- rejected --&gt;
+&lt;EvaluationPriority priorityInNetwork="1"/&gt;    &lt;!-- the first valid order --&gt;
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="overview"><a class="header" href="#overview">Overview</a></h1>
 <p>RuSTy compiles IEC 61131-3 Structured Text into machine code, with LLVM as its back end. This book explains how the compiler works, from source text to linked binary.</p>
 <p>The compiler is a pipeline of stages. Each stage takes the result of the previous one and adds to it.</p>
@@ -6295,10 +6320,10 @@ END_PROGRAM
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="cfc"><a class="header" href="#cfc">CFC</a></h1>
 <p>A Continuous Function Chart (CFC) stores a POU body as a diagram. Its XML file contains a Structured Text declaration and a network of elements, numbered pins, and wires. The network</p>
-<pre><code>          myAdd (0)
+<pre><code>          myAdd (1)
         +--------------------+
-in1 --&gt; | in1          myAdd | --&gt; function_call (1)
-in2 --&gt; | in2   myAddDoubled | --&gt; doubledOut (2)
+in1 --&gt; | in1          myAdd | --&gt; function_call (2)
+in2 --&gt; | in2   myAddDoubled | --&gt; doubledOut (3)
         +--------------------+
 </code></pre>
 <p>calls <code>myAdd</code> with the function’s two inputs and routes its return value to the function’s result and its output <code>myAddDoubled</code> to the output <code>doubledOut</code>. The numbers in parentheses are the evaluation priorities the user assigned. Trimmed to what matters, the document reads:</p>
@@ -6392,44 +6417,44 @@ END_FUNCTION
 <p>The rest of this section takes one element kind at a time. Each example shows the network the user drew, then the statements the transpiler renders from it. A number in parentheses is the evaluation priority of the element, a bubble <code>o--&gt;</code> is a negation, and <code>[name |S]</code> is a sink with a storage mode.</p>
 <h3 id="data-source"><a class="header" href="#data-source">Data source</a></h3>
 <p>A data source supplies a variable or literal through its output pin. It produces no statement by itself. Each consumer follows the wire independently, so a source connected to two sinks produces two assignments:</p>
-<pre><code>foo --+--&gt; bar (0)
-      '--&gt; baz (1)
+<pre><code>foo --+--&gt; bar (1)
+      '--&gt; baz (2)
 </code></pre>
 <pre><code class="language-iecst">bar := foo;
 baz := foo;
 </code></pre>
 <p>A literal source works in the same way. The identifier goes through the compiler’s expression parser, so <code>5</code> becomes a literal node and <code>foo</code> becomes a reference node:</p>
-<pre><code>5 --&gt; foo (0)
+<pre><code>5 --&gt; foo (1)
 </code></pre>
 <pre><code class="language-iecst">foo := 5;
 </code></pre>
 <p>The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as <code>in1 + 1</code> is rejected (E083), because a diagram models arithmetic as blocks. Parentheses are looked through, so <code>(in1)</code> is a reference. A source may also negate its value with a unary minus, as in <code>-in1</code> or <code>-(in1)</code>, which the parser gives as a unary expression; a sink may not, because <code>-in1</code> is no assignment target. The condition of a return or a jump is the exception and accepts any expression.</p>
 <p>A negation bubble on the pin wraps the value in a <code>NOT</code>:</p>
-<pre><code>foo o--&gt; bar (0)
+<pre><code>foo o--&gt; bar (1)
 </code></pre>
 <pre><code class="language-iecst">bar := NOT foo;
 </code></pre>
 <h3 id="data-sink"><a class="header" href="#data-sink">Data sink</a></h3>
 <p>A data sink is a write. It traces its input back to a producer and assigns the value to its own identifier. A source wired to a sink is therefore one assignment:</p>
-<pre><code>foo --&gt; bar (0)
+<pre><code>foo --&gt; bar (1)
 </code></pre>
 <pre><code class="language-iecst">bar := foo;
 </code></pre>
 <p>The result of a CFC function is written in the same way, by a sink whose identifier is the name of the function. A sink that the user left unwired renders nothing and is not reported.</p>
 <p>A storage mode turns the sink from an assignment into a latch. In <code>Set</code> mode the traced value is no longer the value stored: it is the guard, and the value stored is <code>TRUE</code>. Nothing is written while the guard is false, so a variable that was set once keeps its value:</p>
-<pre><code>a --&gt; [b |S] (0)
+<pre><code>a --&gt; [b |S] (1)
 </code></pre>
 <pre><code class="language-iecst">IF a THEN b := TRUE; END_IF
 </code></pre>
 <p><code>Reset</code> mode is the counterpart and stores <code>FALSE</code> under the same guard. The rendered assignment is validated like any other, so a sink with either mode on a variable that is not a <code>BOOL</code> is an invalid assignment (E037), reported at the sink. <code>Reference</code> mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:</p>
-<pre><code>a --&gt; [b |REF] (0)
+<pre><code>a --&gt; [b |REF] (1)
 </code></pre>
 <pre><code class="language-iecst">b REF= a;
 </code></pre>
 <p>A negation bubble has no meaning on a reference assignment and is rejected (E154).</p>
 <h3 id="block"><a class="header" href="#block">Block</a></h3>
 <p>A block is a call. Its <code>typeName</code> names the callee, its input pins are the parameters, and its output pins are the outputs of the callee. A callee with state keeps its outputs in its own instance, so the network needs nothing more than the call and a read of the member:</p>
-<pre><code>localIn --&gt; in [inst : counter] out (0) --&gt; localOut (1)
+<pre><code>localIn --&gt; in [inst : counter] out (1) --&gt; localOut (2)
 </code></pre>
 <pre><code class="language-iecst">inst(in := localIn);
 localOut := inst.out;
@@ -6438,8 +6463,8 @@ localOut := inst.out;
 <h3 id="connector-and-continuation"><a class="header" href="#connector-and-continuation">Connector and continuation</a></h3>
 <p>A connector ends a wire and names it. Each continuation with that name resumes the wire. Neither produces a statement; the resolver follows the connection to its source. One connector can feed several continuations:</p>
 <pre><code>foo --&gt; x&gt;
-&gt;x --&gt; bar (0)
-&gt;x --&gt; baz (1)
+&gt;x --&gt; bar (1)
+&gt;x --&gt; baz (2)
 </code></pre>
 <pre><code class="language-iecst">bar := foo;
 baz := foo;
@@ -6448,7 +6473,7 @@ baz := foo;
 <pre><code>foo --&gt; a&gt;
 &gt;a --&gt; b&gt;
 &gt;b --&gt; c&gt;
-&gt;c --&gt; bar (0)
+&gt;c --&gt; bar (1)
 </code></pre>
 <pre><code class="language-iecst">bar := foo;
 </code></pre>
@@ -6459,25 +6484,25 @@ baz := foo;
 <p>A label that two connectors claim is E081, and a continuation whose label no connector defines is E082.</p>
 <h3 id="return"><a class="header" href="#return">Return</a></h3>
 <p>A return leaves the POU early. It is always conditional: the traced value becomes the guard. The return carries no value, because the result of a function is written by the sink named after the function.</p>
-<pre><code>myCondition --&gt; RETURN (0)
+<pre><code>myCondition --&gt; RETURN (1)
 </code></pre>
 <pre><code class="language-iecst">IF myCondition THEN RETURN; END_IF
 </code></pre>
 <p>A return without a wired condition could never fire. It is dropped and reported (E085).</p>
 <h3 id="jump-and-label"><a class="header" href="#jump-and-label">Jump and label</a></h3>
 <p>A jump is a conditional <code>GOTO</code>, and a label is its target. The two are separate elements with no wire between them; the jump names its target as text, and the survey matches the names. Both render directly, in priority order like every other element, so the priorities of the user decide whether a jump goes forward or backward:</p>
-<pre><code>myCondition --&gt; JMP skipAssignment (0)
-x --&gt; y (1)
-LABEL skipAssignment (2)
+<pre><code>myCondition --&gt; JMP skipAssignment (1)
+x --&gt; y (2)
+LABEL skipAssignment (3)
 </code></pre>
 <pre><code class="language-iecst">IF myCondition THEN GOTO skipAssignment;
 y := x;
 LABEL: skipAssignment
 </code></pre>
 <p>A jump without a wired condition is kept instead of dropped, with a <code>FALSE</code> guard, so the label it targets stays the target of a valid statement. A warning says that the jump can never be taken (E145):</p>
-<pre><code>(unwired) --&gt; JMP skipAssignment (0)
-x --&gt; y (1)
-LABEL skipAssignment (2)
+<pre><code>(unwired) --&gt; JMP skipAssignment (1)
+x --&gt; y (2)
+LABEL skipAssignment (3)
 </code></pre>
 <pre><code class="language-iecst">IF FALSE THEN GOTO skipAssignment;
 y := x;
@@ -6488,17 +6513,17 @@ LABEL: skipAssignment
 <p>An unconnected element is a box that the user placed and never wired. It renders nothing, and the warning it produces (E084) is its only result, once per box. The rest of the network is unaffected:</p>
 <pre><code>foo          (unconnected)
 bar          (unconnected)
-foo --&gt; bar (0)
+foo --&gt; bar (1)
 </code></pre>
 <pre><code class="language-iecst">bar := foo;
 </code></pre>
 <h2 id="blocks"><a class="header" href="#blocks">Blocks</a></h2>
 <p>The index decides how a block is rendered. A callee that is a function and has no instance name is stateless: its outputs exist only during the call. Every output that a consumer reads is therefore captured into a temporary named <code>__out_&lt;pin&gt;_&lt;globalId&gt;</code>, declared in a <code>VAR</code> block of the POU with the type the callee declares for that output. The return pin carries no parameter name, so it contributes the name of the callee (<code>__out_myAdd_1</code> below); it is captured by an assignment of the call, every other output with <code>=&gt;</code>. A fan-out then calls once and reads twice:</p>
-<pre><code>        myAdd (0)
+<pre><code>        myAdd (1)
       +--------------------+
-a --&gt; | in1          myAdd | --+--&gt; x (1)
+a --&gt; | in1          myAdd | --+--&gt; x (2)
 b --&gt; | in2   myAddDoubled |   |
-      +--------------------+   '--&gt; y (2)
+      +--------------------+   '--&gt; y (3)
       (myAddDoubled unread)
 </code></pre>
 <pre><code class="language-iecst">__out_myAdd_1 := myAdd(in1 := a, in2 := b, myAddDoubled =&gt; );
@@ -6507,17 +6532,17 @@ y := __out_myAdd_1;
 </code></pre>
 <p>An unwired function input is passed as an empty argument, <code>in2 := </code>, to use the callee’s default. An unread output uses an empty <code>=&gt;</code>, as with <code>myAddDoubled</code> above. Variadic calls such as <code>ADD</code> receive positional values in pin order and omit unwired pins. Feedback from the block’s own output reads the previous temporary value because capture follows the call.</p>
 <p>A callee with state, a function block instance or a program, keeps its outputs in the instance, so no temporaries are necessary: the call passes the wired inputs only, and a consumer of an output reads the member. The <a href="#block">Block</a> example above shows the plain case. An action is called through its owner, and its outputs are the members of the owner, not of the action:</p>
-<pre><code>localIn --&gt; in [inst : counter.increment] out (0) --&gt; localOut (1)
+<pre><code>localIn --&gt; in [inst : counter.increment] out (1) --&gt; localOut (2)
 </code></pre>
 <pre><code class="language-iecst">inst.increment(in := localIn);
 localOut := inst.out;
 </code></pre>
 <p>A program is read in the same way through the name of its one instance, <code>counter.out</code>. Two programs wired in a cycle are legal for the same reason: each one reads the member of the other from the previous evaluation, and the priorities decide which one runs first.</p>
 <p>Execution control adds <code>EN</code> and <code>ENO</code> pins. <code>EN</code> becomes an <code>IF</code> around the call and its output capture; a skipped call leaves temporaries unchanged. <code>ENO</code> refers to the <code>EN</code> source rather than a result of the callee. Thus <code>done := trigger</code> reads the same source as the guard. A chain of these pins produces a sequence of <code>IF trigger</code> guards:</p>
-<pre><code>                  myAdd (0)
+<pre><code>                  myAdd (1)
             +--------------------+
-trigger --&gt; | EN             ENO | --&gt; done (2)
-      a --&gt; | in1          myAdd | --&gt; sum (1)
+trigger --&gt; | EN             ENO | --&gt; done (3)
+      a --&gt; | in1          myAdd | --&gt; sum (2)
       b --&gt; | in2   myAddDoubled |
             +--------------------+
             (myAddDoubled unread)
@@ -6548,6 +6573,7 @@ __out_myGenAdd_5 := myGenAdd(a := __out_myGenAdd_1, b := c);   (* c : DINT     -
 <p>The participant is registered first and runs at <code>post_index</code>, so the <code>pre_index</code> participants have already processed the interface-only unit the parse step produced. The transpiled unit that replaces it is a fresh parse of the declaration plus the rendered body; from the re-index on, every later participant sees the CFC POU as ordinary declarations and statements. Calls of CFC POUs from Structured Text resolve against the parse step’s unit already, because the declaration is complete before the body exists.</p>
 <p>The generic lowerer, at <code>post_annotate</code>, replaces the generic calls in the rendered body by calls of concrete implementations. It relies on the inference rounds having replaced every generic temporary type first; the concrete declarations are what let the annotator type those calls.</p>
 <p>The transpiler does not generate loops. Its <code>IF</code> guards are the shape parsed text produces, so the later participants treat them like any other. Its jumps, its labels, and its conditional <code>RETURN</code> have no Structured Text syntax at all; they exist for this participant, and codegen has a branch for each.</p>
+<p>The debug info of the diagram comes from codegen. It scopes the rendered statements to a lexical block bound to a debug file of their own, <code>&lt;file&gt;.cfc.&lt;diagram&gt;</code>, and places each element at its evaluation priority as the line, without an offset: the tool reads line N of that file as priority N. A priority of 0 would be line 0, which DWARF reserves for “no line”, so the participant rejects it (E158).</p>
 <h2 id="validation-2"><a class="header" href="#validation-2">Validation</a></h2>
 <p>The participant checks the diagram before pins and wires disappear from the AST. This lets diagnostics name the user’s elements instead of generated temporaries:</p>
 <div class="table-wrapper">
@@ -6573,6 +6599,7 @@ __out_myGenAdd_5 := myGenAdd(a := __out_myGenAdd_1, b := c);   (* c : DINT     -
 <tr><td>E153</td><td>an <code>ENO</code> chain that loops</td></tr>
 <tr><td>E154</td><td>a negation bubble on a reference assignment</td></tr>
 <tr><td>E155</td><td>a block with two unnamed return pins</td></tr>
+<tr><td>E158</td><td>an element with evaluation priority 0</td></tr>
 </tbody>
 </table>
 </div>

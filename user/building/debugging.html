@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-b0ba0f90.js";
+            window.path_to_searchindex_js = "../../searchindex-8a3aece6.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e693153e.js"></script>
+        <script src="../../toc-645c3480.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -202,6 +202,7 @@
 <p>The four exclude each other, so give one of them. <code>-g</code> already covers the global variables, and the version it writes is DWARF 5. Use a fixed version when the debugger or the runtime on the target accepts one version only.</p>
 <h2 id="stepping"><a class="header" href="#stepping">Stepping</a></h2>
 <p>A debugger stops once per statement, in source order, also when the compiler reorders the machine code of neighbouring statements due to optimizations. For this, the compiler marks the one place per statement where the debugger may stop (<code>is_stmt</code> in the line table). A debugger that ignores these marks, such as <code>gdb</code> before version 10, can still jump between lines.</p>
+<p>A <a href="../language/cfc.html#debugging">chart</a> has no source lines. Its network gets a debug file of its own, in which the line of an element is its priority.</p>
 <h2 id="why-paths-matter"><a class="header" href="#why-paths-matter">Why paths matter</a></h2>
 <p>The debug information stores the path of every source file. For local work this is fine. For a shipped binary and for remote debugging you usually want two properties:</p>
 <ul>
