@@ -1320,14 +1320,15 @@ fn validate_by_ref_argument_type<T: AnnotationMap>(
             context.index.get_effective_type_or_void_by_name(param.get_type_name())
         };
 
-    // Reference arguments are transparent: compare their target type.
+    // Reference arguments are transparent: compare their target type. An auto-deref variable is
+    // annotated with the raw name of its target type, so resolve aliases as for any other variable.
     let arg_type = context.annotations.get_type_or_void(arg, context.index);
     let arg_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
         arg_type.get_type_information()
     {
         context.index.get_effective_type_or_void_by_name(inner_type_name)
     } else {
-        arg_type
+        context.index.find_effective_type(arg_type).unwrap_or(arg_type)
     };
 
     if arg_type.get_type_information().is_pointer() {
