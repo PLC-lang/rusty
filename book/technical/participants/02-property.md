@@ -37,7 +37,7 @@ flowchart LR
     style post_annotate fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
 ```
 
-At `pre_index`, the participant converts accessor blocks into method declarations and bodies. The index registers these methods, and the resolver can find them.
+At `pre_index`, the participant converts accessor blocks into method declarations and bodies with the linkage of their POU. The accessors of an included or `{external}` POU are therefore only declared, like its other methods. The index registers these methods, and the resolver can find them.
 
 At `post_annotate`, it reads property annotations. Each annotation names the getter or setter required by the access. The lowerer inserts the call and reruns annotation. It keeps the index because the declarations have not changed.
 

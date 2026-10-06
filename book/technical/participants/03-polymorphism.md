@@ -335,6 +335,8 @@ Each itable struct includes `__upcast_<Ancestor>` pointer fields for every prope
 
 The function pointer types reference the original interface method (for example `IA.foo`), which already exists in the index as a registered implementation without a body. This avoids separate forward declarations. Inherited methods are included: `__itable_IB` contains both `foo` (from `IA`) and `bar` (from `IB`), with inherited methods first. In the diamond above, the methods of the ancestors (`IA.foo`, `IB.bar`, `IC.baz`) come before the own methods of `ID` (`ID.qux`).
 
+The unit that declares the interface owns its itable struct and defines its constructor. An interface from an include file only declares the constructor, even when no POU of the library implements it, because the object built from the library defines it. In a unit of the project, the constructor is also only declared when every implementor in the unit is `{external}`, unless `--generate-external-constructors` is set.
+
 Then, the compiler generates global instances for every (interface, POU) combination, sorted by name. Each `__upcast` field is initialized to the ancestor instance for the same POU:
 
 ```diff
@@ -405,7 +407,7 @@ The compiler replaces every interface type reference with `__FATPOINTER`. This h
 +FUNCTION producer: __FATPOINTER
 ```
 
-The `__FATPOINTER` struct is generated on demand: it is added to the first compilation unit of the project only when at least one interface is used as a type. If no code uses interface types, no fat pointer struct is emitted. A function that returns `__FATPOINTER` returns an aggregate, so the aggregate-return lowerer later turns its return into a `VAR_IN_OUT` parameter like for any struct.
+The `__FATPOINTER` struct is generated on demand: it is added to the first compilation unit of the project only when at least one interface is used as a type. If no code uses interface types, no fat pointer struct is emitted. Every compilation that uses interfaces adds its own copy, so the struct has built-in linkage: no object defines a constructor for it, and none is called. A function that returns `__FATPOINTER` returns an aggregate, so the aggregate-return lowerer later turns its return into a `VAR_IN_OUT` parameter like for any struct.
 
 #### Dispatch transformations
 
@@ -655,7 +657,7 @@ id=2
 
 At `pre_index`, the [property lowerer](02-property.md) creates `__get_x` and `__set_x` methods. By the time the tables are generated they are ordinary methods, so they receive vtable and itable slots, and property accesses through pointers and interfaces dispatch dynamically.
 
-This participant creates the `__vtable` member but never fills it. The [init participant](06-init.md), registered later and running at `post_annotate` too, does the storing: the constructor of every class and function block ends with `self.__vtable := ADR(__vtable_FbA_instance)`. For a derived type the constructor of the base runs first and stores the table of the base, then the derived constructor overwrites the same member through the embedded base: `self.__FbA.__vtable := ADR(__vtable_FbB_instance)`. The member initializers of the vtable structs and the initializers of the itable instances become constructors too, and `__FATPOINTER` gets one like any struct. All of them run from the global constructors before the program starts.
+This participant creates the `__vtable` member but never fills it. The [init participant](06-init.md), registered later and running at `post_annotate` too, does the storing: the constructor of every class and function block ends with `self.__vtable := ADR(__vtable_FbA_instance)`. For a derived type the constructor of the base runs first and stores the table of the base, then the derived constructor overwrites the same member through the embedded base: `self.__FbA.__vtable := ADR(__vtable_FbB_instance)`. The member initializers of the vtable structs and the initializers of the itable instances become constructors too. `__FATPOINTER` is built-in and gets none. All of them run from the global constructors before the program starts.
 
 The [inheritance lowerer](10-inheritance.md), also later, resolves the members the rewrite introduced. An access follows the declared type, so a pointer declared as `POINTER TO FbB` gives `refInstanceB^.__vtable`, and because `FbB` has no member of that name it becomes `refInstanceB^.__FbA.__vtable`. The re-annotation at the end of this participant finds the inherited member; the inheritance lowerer spells out the path.
 
