@@ -5,9 +5,9 @@ running `b`.
 
 Illustrated:
 ```
-              a : counter (0)            b : counter (1)
+              a : counter (1)            b : counter (2)
             +-----------------+        +-----------------+
      t1 --> | EN              | t2 --> | EN              |
-   seed --> | in          out | --in-> |             out | --> result (2)
+   seed --> | in          out | --in-> |             out | --> result (3)
             +-----------------+        +-----------------+
 ```

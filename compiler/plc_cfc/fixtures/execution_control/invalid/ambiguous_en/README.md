@@ -5,11 +5,11 @@ guess; the compiler panics until the format defines the disambiguation.
 
 Illustrated:
 ```
-              inst : counter (0)
+              inst : counter (1)
             +-------------------+
-trigger --> | EN            ENO | --> done (2)
+trigger --> | EN            ENO | --> done (3)
         ?-- | EN                |
-localIn --> | in            out | --> localOut (1)
+localIn --> | in            out | --> localOut (2)
             +-------------------+
             (two EN pins: the guard and the callee's own parameter)
 ```

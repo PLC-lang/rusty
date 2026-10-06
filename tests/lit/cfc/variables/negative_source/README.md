@@ -7,6 +7,6 @@ Illustrated:
 ```
 -t_inc   --> IN1 [DIV] --> quotient (0, 1)
 rc       --> IN2
--(t_inc) --> negated (2)
--5       --> literal (3)
+-(t_inc) --> negated (3)
+-5       --> literal (4)
 ```

@@ -5,7 +5,7 @@ must still receive every parameter.
 
 Illustrated:
 ```
-        myAdd (0)
+        myAdd (1)
       +--------------------+
 a --> | in1          myAdd |
 b --> | in2   myAddDoubled |

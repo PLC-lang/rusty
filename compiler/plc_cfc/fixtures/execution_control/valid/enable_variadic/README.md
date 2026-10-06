@@ -4,10 +4,10 @@ captured call like any other.
 
 Illustrated:
 ```
-              ADD (0)
+              ADD (1)
             +----------+
 trigger --> | EN       |
-      x --> |      ADD | --> r (1)
+      x --> |      ADD | --> r (2)
       y --> |          |
             +----------+
 ```

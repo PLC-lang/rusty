@@ -4,5 +4,5 @@ an "unsupported CFC expression" error (E083).
 
 Illustrated:
 ```
-MAX(foo, bar) --> result (0)    (call — rejected)
+MAX(foo, bar) --> result (1)    (call — rejected)
 ```

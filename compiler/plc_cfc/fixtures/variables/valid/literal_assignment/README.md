@@ -3,5 +3,5 @@ identifier is a numeric literal rather than a variable reference.
 
 Illustrated:
 ```
-5 --> foo (0)
+5 --> foo (1)
 ```

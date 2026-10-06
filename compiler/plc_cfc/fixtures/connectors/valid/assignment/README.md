@@ -4,4 +4,4 @@ a direct wire.
 Illustrated:
 
     foo --> x>
-    >x --> bar (0)
+    >x --> bar (1)

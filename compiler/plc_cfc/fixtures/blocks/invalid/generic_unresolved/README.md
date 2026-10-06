@@ -7,9 +7,9 @@ generic and reports it instead of silently picking a type.
 
 Illustrated:
 ```
-          myGenAdd (0)
+          myGenAdd (1)
         +-----------------+
-   .--> | a      myGenAdd | --+--> acc (1)
+   .--> | a      myGenAdd | --+--> acc (2)
    +--> | b               |   |
    |    +-----------------+   |
    '--------------------------'   [return feeds back into a and b]

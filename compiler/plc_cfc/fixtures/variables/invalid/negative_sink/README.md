@@ -4,5 +4,5 @@ assignment target, and `-bar` is none, so this is rejected with an
 
 Illustrated:
 ```
-foo --> -bar (0)    (negated sink, rejected)
+foo --> -bar (1)    (negated sink, rejected)
 ```

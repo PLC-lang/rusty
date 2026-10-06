@@ -4,10 +4,10 @@ input there is no sensible default.
 
 Illustrated:
 ```
-              inst : counter (0)
+              inst : counter (1)
             +-------------------+
         ?-- | EN                |
-localIn --> | in            out | --> localOut (1)
+localIn --> | in            out | --> localOut (2)
             +-------------------+
             (EN has no incoming connection)
 ```
