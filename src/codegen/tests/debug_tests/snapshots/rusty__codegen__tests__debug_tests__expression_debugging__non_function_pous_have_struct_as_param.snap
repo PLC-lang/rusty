@@ -18,7 +18,7 @@ entry:
   %x = getelementptr inbounds nuw %myProg, ptr %0, i32 0, i32 0
   %load_x = load i32, ptr %x, align [filtered], !dbg !16
   %tmpVar = add i32 %load_x, 2, !dbg !16
-  store i32 %tmpVar, ptr %x, align [filtered], !dbg !17
+  store volatile i32 %tmpVar, ptr %x, align [filtered], !dbg !17
   ret void, !dbg !18
 }
 
@@ -30,7 +30,7 @@ entry:
   %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
   %load_x = load i32, ptr %x, align [filtered], !dbg !26
   %tmpVar = add i32 %load_x, 2, !dbg !26
-  store i32 %tmpVar, ptr %x, align [filtered], !dbg !27
+  store volatile i32 %tmpVar, ptr %x, align [filtered], !dbg !27
   ret void, !dbg !28
 }
 

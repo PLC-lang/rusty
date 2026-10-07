@@ -142,7 +142,7 @@ fn ref_assignment_statement_have_location() {
       store i32 0, ptr %a, align [filtered]
         #dbg_declare(ptr %b, !11, !DIExpression(), !14)
       store ptr null, ptr %b, align [filtered]
-      store ptr %a, ptr %b, align [filtered], !dbg !15
+      store volatile ptr %a, ptr %b, align [filtered], !dbg !15
       ret void, !dbg !16
     }
 
@@ -201,7 +201,7 @@ fn function_with_ctor_triggering_local_still_has_debug_info() {
       store ptr null, ptr %b, align [filtered]
         #dbg_declare(ptr %myFunc, !13, !DIExpression(), !14)
       store i32 0, ptr %myFunc, align [filtered]
-      store i32 1, ptr %myFunc, align [filtered], !dbg !15
+      store volatile i32 1, ptr %myFunc, align [filtered], !dbg !15
       %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !16
       ret i32 %myFunc_ret, !dbg !17
     }
@@ -260,7 +260,7 @@ fn function_with_value_initialized_local_still_has_debug_info() {
         #dbg_declare(ptr %myFunc, !11, !DIExpression(), !12)
       store i32 0, ptr %myFunc, align [filtered]
       %load_a = load i32, ptr %a, align [filtered], !dbg !13
-      store i32 %load_a, ptr %myFunc, align [filtered], !dbg !14
+      store volatile i32 %load_a, ptr %myFunc, align [filtered], !dbg !14
       %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !15
       ret i32 %myFunc_ret, !dbg !16
     }
@@ -322,7 +322,7 @@ fn function_with_struct_local_still_has_debug_info() {
       store i32 0, ptr %myFunc, align [filtered]
       %x = getelementptr inbounds nuw %S, ptr %s, i32 0, i32 0, !dbg !16
       %load_x = load i32, ptr %x, align [filtered], !dbg !16
-      store i32 %load_x, ptr %myFunc, align [filtered], !dbg !17
+      store volatile i32 %load_x, ptr %myFunc, align [filtered], !dbg !17
       %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
       ret i32 %myFunc_ret, !dbg !19
     }
@@ -389,7 +389,7 @@ fn function_with_initialized_array_local_still_has_debug_info() {
       store i32 0, ptr %myFunc, align [filtered]
       %tmpVar = getelementptr inbounds [3 x i32], ptr %arr, i32 0, i32 0, !dbg !16
       %load_tmpVar = load i32, ptr %tmpVar, align [filtered], !dbg !16
-      store i32 %load_tmpVar, ptr %myFunc, align [filtered], !dbg !17
+      store volatile i32 %load_tmpVar, ptr %myFunc, align [filtered], !dbg !17
       %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
       ret i32 %myFunc_ret, !dbg !19
     }
@@ -460,7 +460,7 @@ fn function_with_reference_to_initializer_still_has_debug_info() {
       store i32 0, ptr %myFunc, align [filtered]
       %deref = load ptr, ptr %b, align [filtered], !dbg !17
       %load_b = load i32, ptr %deref, align [filtered], !dbg !17
-      store i32 %load_b, ptr %myFunc, align [filtered], !dbg !18
+      store volatile i32 %load_b, ptr %myFunc, align [filtered], !dbg !18
       %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !19
       ret i32 %myFunc_ret, !dbg !20
     }

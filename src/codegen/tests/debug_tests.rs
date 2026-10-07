@@ -560,7 +560,7 @@ fn switch_case_debug_info() {
       %0 = sext i16 %load_x1 to i32, !dbg !24
       %tmpVar = add i32 %0, 1, !dbg !24
       %1 = trunc i32 %tmpVar to i16, !dbg !24
-      store i16 %1, ptr %x1, align [filtered], !dbg !25
+      store volatile i16 %1, ptr %x1, align [filtered], !dbg !25
       %load_x13 = load i16, ptr %x1, align [filtered], !dbg !26
       switch i16 %load_x13, label %else [
         i16 1, label %case
@@ -569,21 +569,21 @@ fn switch_case_debug_info() {
       ], !dbg !27
 
     case:                                             ; preds = %continue1
-      store i16 1, ptr %x2, align [filtered], !dbg !28
+      store volatile i16 1, ptr %x2, align [filtered], !dbg !28
       br label %continue2, !dbg !29
 
     case4:                                            ; preds = %continue1
-      store i16 2, ptr %x2, align [filtered], !dbg !30
+      store volatile i16 2, ptr %x2, align [filtered], !dbg !30
       br label %continue2, !dbg !31
 
     case5:                                            ; preds = %continue1
-      store i16 3, ptr %x2, align [filtered], !dbg !32
+      store volatile i16 3, ptr %x2, align [filtered], !dbg !32
       br label %continue2, !dbg !33
 
     else:                                             ; preds = %continue1
-      store i16 0, ptr %x1, align [filtered], !dbg !34
-      store i16 1, ptr %x2, align [filtered], !dbg !35
-      store i16 2, ptr %x3, align [filtered], !dbg !36
+      store volatile i16 0, ptr %x1, align [filtered], !dbg !34
+      store volatile i16 1, ptr %x2, align [filtered], !dbg !35
+      store volatile i16 2, ptr %x3, align [filtered], !dbg !36
       br label %continue2, !dbg !37
 
     continue2:                                        ; preds = %else, %case5, %case4, %case
@@ -815,7 +815,7 @@ fn action_with_var_temp() {
       %x = alloca i32, align [filtered]
         #dbg_declare(ptr %x, !24, !DIExpression(), !25)
       store i32 0, ptr %x, align [filtered]
-      store i32 0, ptr %x, align [filtered], !dbg !26
+      store volatile i32 0, ptr %x, align [filtered], !dbg !26
       ret void, !dbg !27
     }
 
@@ -840,7 +840,7 @@ fn action_with_var_temp() {
       store i32 0, ptr %x, align [filtered]
       %load_x = load i32, ptr %x, align [filtered], !dbg !31
       %tmpVar = add i32 %load_x, 1, !dbg !31
-      store i32 %tmpVar, ptr %x, align [filtered], !dbg !34
+      store volatile i32 %tmpVar, ptr %x, align [filtered], !dbg !34
       ret void, !dbg !35
     }
 
@@ -982,11 +982,11 @@ END_FUNCTION
       call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] %s2, i32 80, i1 false), !dbg !51
       %b3 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 3, !dbg !52
       %load_b = load i8, ptr %b3, align [filtered], !dbg !52
-      store i8 %load_b, ptr %b, align [filtered], !dbg !53
+      store volatile i8 %load_b, ptr %b, align [filtered], !dbg !53
       %inner4 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !54
       %b5 = getelementptr inbounds nuw %inner, ptr %inner4, i32 0, i32 1, !dbg !54
       %load_b6 = load i8, ptr %b5, align [filtered], !dbg !54
-      store i8 %load_b6, ptr %b, align [filtered], !dbg !55
+      store volatile i8 %load_b6, ptr %b, align [filtered], !dbg !55
       %arr7 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !56
       call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] %arr7, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !57
       %inner8 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !58
@@ -994,11 +994,11 @@ END_FUNCTION
       call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] %arr9, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !59
       %i10 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 6, !dbg !60
       %load_i = load i16, ptr %i10, align [filtered], !dbg !60
-      store i16 %load_i, ptr %i, align [filtered], !dbg !61
+      store volatile i16 %load_i, ptr %i, align [filtered], !dbg !61
       %inner11 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !62
       %i12 = getelementptr inbounds nuw %inner, ptr %inner11, i32 0, i32 4, !dbg !62
       %load_i13 = load i16, ptr %i12, align [filtered], !dbg !62
-      store i16 %load_i13, ptr %i, align [filtered], !dbg !63
+      store volatile i16 %load_i13, ptr %i, align [filtered], !dbg !63
       %tmpVar = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 0, !dbg !64
       %arr14 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !64
       %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], ptr %arr14, i32 0, i32 0, !dbg !64
@@ -2117,9 +2117,9 @@ fn range_datatype_debug() {
         #dbg_declare(ptr %main, !12, !DIExpression(), !13)
       store i32 0, ptr %main, align [filtered]
       call void @RangeType__ctor(ptr %r), !dbg !14
-      store i32 50, ptr %r, align [filtered], !dbg !15
+      store volatile i32 50, ptr %r, align [filtered], !dbg !15
       %load_r = load i32, ptr %r, align [filtered], !dbg !16
-      store i32 %load_r, ptr %main, align [filtered], !dbg !17
+      store volatile i32 %load_r, ptr %main, align [filtered], !dbg !17
       %main_ret = load i32, ptr %main, align [filtered], !dbg !18
       ret i32 %main_ret, !dbg !19
     }
@@ -2197,9 +2197,9 @@ fn range_datatype_reference_expr_bounds_debug() {
         #dbg_declare(ptr %main, !16, !DIExpression(), !17)
       store i32 0, ptr %main, align [filtered]
       call void @RangeType__ctor(ptr %r), !dbg !18
-      store i32 50, ptr %r, align [filtered], !dbg !19
+      store volatile i32 50, ptr %r, align [filtered], !dbg !19
       %load_r = load i32, ptr %r, align [filtered], !dbg !20
-      store i32 %load_r, ptr %main, align [filtered], !dbg !21
+      store volatile i32 %load_r, ptr %main, align [filtered], !dbg !21
       %main_ret = load i32, ptr %main, align [filtered], !dbg !22
       ret i32 %main_ret, !dbg !23
     }

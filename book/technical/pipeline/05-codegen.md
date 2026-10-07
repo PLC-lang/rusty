@@ -408,6 +408,8 @@ For an object file, LLVM runs its optimization passes at the chosen `-O` level a
 
 > [!NOTE]
 > `-Onone` is not free of optimization: the backend still runs at level `Less`, for example for stack coloring, and can interleave the instructions of neighbouring statements. So that a debugger still stops once per statement, in source order, the debug builder marks the last side effect of each statement (a store, a call, or a branch) with LLVM's Key Instructions metadata, and LLVM sets `is_stmt` only there.
+>
+> The backend at `Less` also deletes and merges stores, for example a store that the next statement overwrites before any load. A statement whose instructions are all gone has no `is_stmt` row left, so a debugger cannot stop on it, and the key instruction cannot help. At `-Onone`, the debug builder therefore also makes a key instruction `volatile` when it is a store at a source line. The backend keeps a volatile store and its order, so every statement that ends in a store keeps its row; calls keep theirs anyway, and branches are not covered. Only these stores lose their optimizations, and a value the next statement needs is loaded again instead of reused from a register.
 
 
 ## Where it lives
