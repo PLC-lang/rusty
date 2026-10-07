@@ -1343,7 +1343,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 ExpressionValue::RValue(value) => {
                     // Passed a literal or an expression to a byref parameter? Store the value generated
                     // above, generating the argument again would repeat its side effects
-                    let value = self.cast_to_type_hint(argument, value)?;
+                    let value =
+                        if self.index.get_effective_type_or_void_by_name(type_name).is_type_erased_any() {
+                            value
+                        } else {
+                            self.cast_to_type_hint(argument, value)?
+                        };
                     let argument = self.llvm.builder.build_alloca(value.get_type(), "")?;
                     self.llvm.builder.build_store(argument, value)?;
                     argument

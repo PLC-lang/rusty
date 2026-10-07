@@ -9,7 +9,7 @@ use crate::{
     index::{
         ArgumentType, HardwareBinding, Index, MemberInfo, PouIndexEntry, VariableIndexEntry, VariableType,
     },
-    typesystem::{self, DataTypeInformation, StructSource, VarArgs, VOID_TYPE},
+    typesystem::{self, DataTypeInformation, StructSource, VarArgs, ANY_TYPE, VOID_TYPE},
 };
 
 /// indexer for a single POU
@@ -219,7 +219,14 @@ impl<'i> PouIndexer<'i> {
                 }
 
                 let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
-                let block_type = get_declaration_type_for(block, &pou.kind);
+                let block_type = match get_declaration_type_for(block, &pou.kind) {
+                    ArgumentType::ByVal(VariableType::Input)
+                        if var_type_name.eq_ignore_ascii_case(ANY_TYPE) =>
+                    {
+                        ArgumentType::ByRef(VariableType::Input)
+                    }
+                    block_type => block_type,
+                };
                 let type_name = if block_type.is_by_ref() {
                     let type_safe = match self.index.find_effective_type_by_name(var_type_name) {
                         Some(value) => value.is_type_safe_pointer(),

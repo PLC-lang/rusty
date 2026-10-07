@@ -93,6 +93,7 @@ pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
 pub const VOID_TYPE: &str = "VOID";
 pub const VOID_INTERNAL_NAME: &str = "__VOID";
+pub const ANY_TYPE: &str = "ANY";
 pub const __VLA_TYPE: &str = "__VLA";
 
 #[cfg(test)]
@@ -185,6 +186,10 @@ impl DataType {
 
     pub fn is_vla(&self) -> bool {
         self.get_type_information().is_vla()
+    }
+
+    pub fn is_type_erased_any(&self) -> bool {
+        self.name.eq_ignore_ascii_case(ANY_TYPE)
     }
 
     pub fn is_pointer(&self) -> bool {
@@ -1026,6 +1031,14 @@ pub fn get_builtin_types() -> Vec<DataType> {
     vec![
         DataType {
             name: VOID_INTERNAL_NAME.into(),
+            initial_value: None,
+            information: DataTypeInformation::Void,
+            nature: TypeNature::Any,
+            location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
+        },
+        DataType {
+            name: ANY_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,
