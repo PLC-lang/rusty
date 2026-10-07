@@ -104,12 +104,12 @@ An attribute in braces changes how the compiler treats a declaration. Three of t
 {namespace := 'Common'}
 
 {external}
-TYPE ServoDev : STRUCT
+TYPE Servo : STRUCT
     Position: LREAL;
 END_STRUCT END_TYPE
 ```
 
-The name stays out of the way while you write code. A file that uses `ServoDev` writes `ServoDev`, not `Common\ServoDev`, and the compiler resolves the name as it resolves every other name. The compiler records the namespace for the file, but it does not change the compiled output. An attribute without a quoted name, such as `{namespace}`, is rejected (E024).
+The name stays out of the way while you write code. A file that uses `Servo` writes `Servo`, not `Common\Servo`, and the compiler resolves the name as it resolves every other name. The compiler records the namespace for the file, but it does not change the compiled output. An attribute without a quoted name, such as `{namespace}`, is rejected (E024).
 
 > [!NOTE]
 > A backslash in a type reference is a parse error. The namespace is an attribute, never part of a name that you write.
