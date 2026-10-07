@@ -335,7 +335,7 @@ Each itable struct includes `__upcast_<Ancestor>` pointer fields for every prope
 
 The function pointer types reference the original interface method (for example `IA.foo`), which already exists in the index as a registered implementation without a body. This avoids separate forward declarations. Inherited methods are included: `__itable_IB` contains both `foo` (from `IA`) and `bar` (from `IB`), with inherited methods first. In the diamond above, the methods of the ancestors (`IA.foo`, `IB.bar`, `IC.baz`) come before the own methods of `ID` (`ID.qux`).
 
-The unit that declares the interface owns its itable struct and defines its constructor. An interface from an include file only declares the constructor, even when no POU of the library implements it, because the object built from the library defines it. In a unit of the project, the constructor is also only declared when every implementor in the unit is `{external}`, unless `--generate-external-constructors` is set.
+The unit that declares the interface owns its itable struct and defines its constructor. An interface from an include file only declares the constructor, even when no POU of the library implements it, because the object built from the library defines it. In a unit of the project, the constructor is also only declared when the unit has at least one implementor and all of its implementors are `{external}`, unless `--generate-external-constructors` is set. A unit of the project that declares the interface without implementing it defines the constructor.
 
 Then, the compiler generates global instances for every (interface, POU) combination, sorted by name. Each `__upcast` field is initialized to the ancestor instance for the same POU:
 
