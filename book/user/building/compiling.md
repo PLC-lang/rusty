@@ -67,7 +67,7 @@ TYPE ServoDev : STRUCT
 END_STRUCT END_TYPE
 ```
 
-A type in another file that refers to `ServoDev` then exports as `Common\ServoDev`, and an array exports as `ARRAY[0..9] OF Common\LogEntry`. Sysmac Studio resolves the member against the library and keeps it. Without the attribute the export says `ServoDev`, Sysmac Studio finds no such type in the global namespace, and it discards the member when you import the file.
+A type in another file that refers to `ServoDev` then exports as `Common\ServoDev`, and an array exports as `ARRAY[0..9] OF Common\ServoDev`. Sysmac Studio resolves the member against the library and keeps it. Without the attribute the export says `ServoDev`, Sysmac Studio finds no such type in the global namespace, and it discards the member when you import the file.
 
 Declarations that the namespaced file owns go into a `<NamespaceDecl>` element inside `<GlobalNamespace>`:
 
