@@ -287,5 +287,4 @@ CompilationUnit {
         "test.st",
     ),
     linkage: Internal,
-    namespace: None,
 }

@@ -438,7 +438,6 @@ fn generate_to_string_internal<T: SourceContainer>(
         cli::CompileParameters::parse(&["plc", "--ir", "--single-module", "-O", "none", "--fno-ident"])
             .map_err(|e| Diagnostic::new(e.to_string()))?;
     params.generate_debug = debug;
-
     let mut pipeline = BuildPipeline {
         context,
         project,

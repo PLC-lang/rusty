@@ -96,13 +96,11 @@ impl AstVisitorMut for RetainLowerer {
                 })
                 .unwrap_or_else(|| {
                     let retain_block = plc_ast::ast::VariableBlock {
-                        variables: std::mem::take(&mut self.context.retain_variables),
+                        variables: self.context.retain_variables.drain(..).collect(),
                         kind: plc_ast::ast::VariableBlockType::Global,
                         constant: false,
                         retain: true,
                         linkage: plc_ast::ast::LinkageType::Internal,
-                        network_publish: plc_ast::ast::NetworkPublish::DoNotPublish,
-                        address_pragmas: vec![],
                         location: SourceLocation::internal(),
                         access: AccessModifier::Public,
                     };

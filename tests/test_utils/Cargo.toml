@@ -9,7 +9,7 @@ driver = { path = "../../compiler/plc_driver/", package = "plc_driver" }
 project = { path = "../../compiler/plc_project/", package = "plc_project", features = [
     "integration",
 ] }
-plc_lowering = { path = "../../compiler/plc_lowering" }
+plc_lowering = { path = "../../compiler/plc_lowering"}
 plc = { path = "../..", package = "plc-compiler" }
 plc_source = { path = "../../compiler/plc_source" }
 plc_ast = { path = "../../compiler/plc_ast" }

@@ -26,15 +26,6 @@ pub enum Token {
     #[token("{sized}")]
     PropertySized,
 
-    #[regex(r"\{network_publish[^}]*\}")]
-    PropertyNetworkPublish,
-
-    #[regex(r"\{namespace[^}]*\}")]
-    PropertyNamespace,
-
-    #[regex(r"\{at\s*:=[^}]*\}")]
-    PropertyAt,
-
     #[token("PROGRAM", ignore(case))]
     KeywordProgram,
 

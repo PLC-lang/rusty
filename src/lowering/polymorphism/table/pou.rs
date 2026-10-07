@@ -69,7 +69,7 @@
 use plc_ast::{
     ast::{
         AccessModifier, AstFactory, AstNode, CompilationUnit, DataType, DataTypeDeclaration, LinkageType,
-        NetworkPublish, Pou, PouType, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        Pou, PouType, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -155,8 +155,6 @@ impl VirtualTableGenerator {
                 access: AccessModifier::Protected,
                 constant: false,
                 retain: false,
-                network_publish: NetworkPublish::DoNotPublish,
-                address_pragmas: vec![],
                 location: location.clone(),
             },
         );
@@ -210,18 +208,12 @@ impl VirtualTableGenerator {
             members.push(member);
         }
 
-        let linkage = if super::is_internal_instance(pou.linkage, self.generate_external_constructors) {
-            LinkageType::Internal
-        } else {
-            pou.linkage
-        };
-
         UserTypeDeclaration {
             data_type: DataType::StructType { name: Some(helper::get_vtable_name(pou)), variables: members },
             initializer: None,
             location: location.clone(),
             scope: None,
-            linkage,
+            linkage: pou.linkage,
         }
     }
 

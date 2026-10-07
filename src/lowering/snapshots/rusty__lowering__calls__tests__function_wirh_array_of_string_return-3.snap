@@ -215,5 +215,4 @@ CompilationUnit {
         "<internal>",
     ),
     linkage: Internal,
-    namespace: None,
 }
