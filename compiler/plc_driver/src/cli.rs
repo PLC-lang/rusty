@@ -14,7 +14,7 @@ use std::{
 };
 
 use plc::output::{FormatOption, RelocationPreference};
-use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
+use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads};
 use plc_util::path::normalize_lexical_path;
 
 pub type ParameterError = clap::Error;
@@ -53,6 +53,10 @@ impl From<LogLevel> for LevelFilter {
     group = ArgGroup::new("format"),
     group = ArgGroup::new("relocation-model").args(&["fpic", "fno-pic"]),
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
+    name = "plc",
+    version,
+    long_version = crate::build::CLAP_LONG_VERSION,
+    propagate_version = true,
 )]
 #[clap(subcommand_negates_reqs = true)]
 #[clap(subcommand_precedence_over_arg = true)]
@@ -101,9 +105,6 @@ pub struct CompileParameters {
         help = "Emit lowered AST (Abstract Syntax Tree) as output"
     )]
     pub print_ast_lowered: bool,
-
-    #[clap(long = "version", group = "format", global = true)]
-    pub build_info: bool,
 
     #[clap(
         long = "ir",
@@ -262,20 +263,6 @@ pub struct CompileParameters {
     pub hwmap_file: Option<Option<String>>,
 
     #[clap(
-        name = "got-layout-file",
-        long,
-        global = true,
-        help = "Obtain information about the current custom GOT layout from the given file if it exists.
-    Save information about the generated custom GOT layout to the given file.
-    Format is detected by extension.
-    Supported formats : json, toml",
-        default_value = DEFAULT_GOT_LAYOUT_FILE,
-        parse(try_from_str = validate_config),
-        requires = "online-change"
-    ) ]
-    pub got_layout_file: String,
-
-    #[clap(
         name = "optimization",
         long,
         short = 'O',
@@ -429,13 +416,6 @@ pub struct CompileParameters {
 
     #[clap(name = "check", long, help = "Check only, do not generate any output", global = true)]
     pub check_only: bool,
-
-    #[clap(
-        long,
-        help = "Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime",
-        global = true
-    )]
-    pub online_change: bool,
 
     #[clap(name = "generate-headers", long, help = "Generate headers only, do not compile.", global = true)]
     pub generate_headers_only: bool,
@@ -768,11 +748,6 @@ impl CompileParameters {
         let format = get_config_format(&path)
             .ok_or_else(|| format!("Cannot identify --hwmap-file format from path: {path}"))?;
         Ok(Some((path, format)))
-    }
-
-    pub fn got_layout_format(&self) -> ConfigFormat {
-        // It is safe to unwrap here, since the provided argument to `--got-online-change` has been checked with `validate_config`
-        get_config_format(&self.got_layout_file).unwrap()
     }
 
     /// Returns the location where intermediate build artifacts are written.
@@ -1221,9 +1196,11 @@ mod cli_tests {
 
     #[test]
     fn cli_supports_version() {
-        match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
-            Ok(version) => assert!(version.build_info),
-            _ => panic!("expected the build info flag to be true"),
+        for flag in ["-V", "--version"] {
+            match CompileParameters::parse(vec_of_strings!("input.st", flag)) {
+                Ok(_) => panic!("expected version output, but found OK"),
+                Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayVersion),
+            }
         }
     }
 

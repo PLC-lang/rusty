@@ -9,9 +9,9 @@ concrete type in `get_bigger_type` — it must never promote the pair to REAL).
 
 Illustrated:
 ```
-          ADD (0)
+          ADD (1)
         +----------------+
-   .--> | IN1        ADD | --+--> acc (1)
+   .--> | IN1        ADD | --+--> acc (2)
 seed--> |                |   |
         +----------------+   |
    '-------------------------'

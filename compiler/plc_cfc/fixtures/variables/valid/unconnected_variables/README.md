@@ -6,5 +6,5 @@ Illustrated:
 ```
 foo          (unconnected — ignored, warns)
 bar          (unconnected — ignored, warns)
-foo --> bar (0)
+foo --> bar (1)
 ```

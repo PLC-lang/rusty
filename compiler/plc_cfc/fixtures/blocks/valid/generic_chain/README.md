@@ -8,9 +8,9 @@ one link per round.
 
 Illustrated:
 ```
-        myGenAdd #1 (0)          myGenAdd #5 (1)
+        myGenAdd #1 (1)          myGenAdd #5 (2)
       +-----------------+      +-----------------+
-a --> | a      myGenAdd | ---> | a      myGenAdd | --> result (2)
+a --> | a      myGenAdd | ---> | a      myGenAdd | --> result (3)
 b --> | b               | c -> | b               |
       +-----------------+      +-----------------+
 ```

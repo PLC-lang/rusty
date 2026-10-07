@@ -17,6 +17,10 @@ entry:
   store ptr %0, ptr %out1, align [filtered]
   %out2 = alloca ptr, align [filtered]
   store ptr %1, ptr %out2, align [filtered]
+  %2 = load ptr, ptr %out1, align [filtered]
+  store i32 0, ptr %2, align [filtered]
+  %3 = load ptr, ptr %out2, align [filtered]
+  store i32 0, ptr %3, align [filtered]
   ret void
 }
 
@@ -24,6 +28,7 @@ define void @main(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %1 = alloca i32, align [filtered]
+  store i32 0, ptr %1, align [filtered]
   call void @foo(ptr %x, ptr %1)
   ret void
 }

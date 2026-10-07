@@ -34,7 +34,7 @@ What: one or two sentences on what the network does and why it exists.
 
 Illustrated:
 ​```
-foo --+--> bar (0)
-      +--> baz (1)
+foo --+--> bar (1)
+      +--> baz (2)
 ​```
 ```

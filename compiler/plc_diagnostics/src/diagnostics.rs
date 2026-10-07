@@ -535,6 +535,17 @@ impl Diagnostic {
         .with_error_code("E149")
         .with_location(location)
     }
+
+    pub fn invalid_execution_order<T>(location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(
+            "Element has an execution order of 0, which is invalid; execution orders start at 1, the project may be corrupted",
+        )
+        .with_error_code("E158")
+        .with_location(location)
+    }
 }
 
 #[cfg(test)]

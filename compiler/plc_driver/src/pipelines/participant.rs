@@ -9,7 +9,7 @@ use std::{
     env, fs,
     path::{Path, PathBuf},
     rc::Rc,
-    sync::{Arc, Mutex, RwLock},
+    sync::{Arc, RwLock},
 };
 
 use ast::{ast::CompilationUnit, provider::IdProvider};
@@ -17,7 +17,7 @@ use plc::{
     codegen::GeneratedModule,
     lowering::{calls::AggregateTypeLowerer, generics::GenericLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
-    ConfigFormat, OnlineChange, Target,
+    Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
@@ -28,7 +28,7 @@ use plc_lowering::{
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
-use crate::CompileOptions;
+use crate::{artifacts, CompileOptions};
 
 use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, ParsedProject};
 
@@ -108,8 +108,9 @@ pub struct CodegenParticipant<T: SourceContainer> {
     pub compile_options: crate::CompileOptions,
     pub link_options: crate::LinkOptions,
     pub target: Target,
-    pub got_layout: Mutex<HashMap<String, u64>>,
     pub compile_dirs: HashMap<Target, PathBuf>,
+    /// Canonical root of the project, resolved once before the first unit is generated.
+    pub root: PathBuf,
     pub objects: Arc<RwLock<GeneratedProject>>,
     pub libraries: Vec<LibraryInformation<T>>,
 }
@@ -121,30 +122,37 @@ impl<T: SourceContainer> CodegenParticipant<T> {
             let tempdir = tempfile::tempdir().expect("Could not create tempdir");
             tempdir.keep()
         });
-        if let Some(name) = self.target.try_get_name() {
-            let dir = compile_directory.join(name);
-            fs::create_dir_all(&dir)?;
-            self.compile_dirs.insert(self.target.clone(), dir);
-        } else {
-            self.compile_dirs.insert(self.target.clone(), compile_directory);
-        }
+        let dir = self.target.append_to(&compile_directory);
+        fs::create_dir_all(&dir)?;
+        self.compile_dirs.insert(self.target.clone(), dir);
         Ok(())
     }
-    pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
-        let path = Path::new(location);
-        if !path.is_file() {
-            // Assume if the file doesn't exist that there is no existing GOT layout yet. write_got_layout will handle
-            // creating our file when we want to.
-            return Ok(HashMap::new());
-        }
 
-        let s = fs::read_to_string(location)
-            .map_err(|_| Diagnostic::new("GOT layout could not be read from file"))?;
-        match format {
-            ConfigFormat::JSON => serde_json::from_str(&s)
-                .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from JSON")),
-            ConfigFormat::TOML => toml::de::from_str(&s)
-                .map_err(|_| Diagnostic::new("Could not deserialize GOT layout from TOML")),
+    /// Resolves the root that the keys of the units inside the project are relative to.
+    /// The unit locations are canonical, so the root has to be canonical as well for the
+    /// comparison in `unit_key` to hold.
+    fn resolve_root(&mut self) -> Result<(), Diagnostic> {
+        let root = match self.compile_options.root.clone() {
+            Some(root) => root,
+            None => env::current_dir()?,
+        };
+        self.root = fs::canonicalize(&root).unwrap_or(root);
+        Ok(())
+    }
+
+    /// Identifies a compiled unit for the naming of its artifact. Units inside the project
+    /// are identified by their path relative to the project, so that the name of the
+    /// artifact does not change with the location of the project.
+    fn unit_key(&self, unit_location: &Path) -> Result<PathBuf, Diagnostic> {
+        let unit_location = if unit_location.exists() {
+            fs::canonicalize(unit_location)?
+        } else {
+            unit_location.to_path_buf()
+        };
+
+        match unit_location.strip_prefix(&self.root) {
+            Ok(relative) => Ok(relative.to_path_buf()),
+            Err(_) => Ok(unit_location),
         }
     }
 }
@@ -152,14 +160,7 @@ impl<T: SourceContainer> CodegenParticipant<T> {
 impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
     fn pre_generate(&mut self, _annotated_project: &AnnotatedProject) -> Result<(), Diagnostic> {
         self.ensure_compile_dirs()?;
-
-        let got_layout =
-            if let OnlineChange::Enabled { file_name, format } = &self.compile_options.online_change {
-                Self::read_got_layout(file_name, *format)?
-            } else {
-                HashMap::default()
-            };
-        self.got_layout = Mutex::new(got_layout);
+        self.resolve_root()?;
         Ok(())
     }
 
@@ -169,29 +170,14 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
         _annotated_project: &AnnotatedProject,
         _compile_options: &CompileOptions,
     ) -> Result<(), Diagnostic> {
-        let current_dir = env::current_dir()?;
-        let current_dir = self.compile_options.root.as_deref().unwrap_or(&current_dir);
-        let unit_location = module.get_unit_location();
-        let unit_location =
-            if unit_location.exists() { fs::canonicalize(unit_location)? } else { unit_location.into() };
-        let output_name = if unit_location.starts_with(current_dir) {
-            unit_location.strip_prefix(current_dir).map_err(|it| {
-                Diagnostic::new(format!("Could not strip prefix for {}", current_dir.to_string_lossy()))
-                    .with_internal_error(it.into())
-            })?
-        } else if unit_location.has_root() {
-            let root = unit_location.ancestors().last().expect("Should exist?");
-            unit_location.strip_prefix(root).expect("The root directory should exist")
-        } else {
-            unit_location.as_path()
+        let unit_key = self.unit_key(module.get_unit_location())?;
+        let extension = match self.compile_options.output_format {
+            FormatOption::IR => "ll",
+            FormatOption::Bitcode => "bc",
+            FormatOption::XML => "xml",
+            _ => "o",
         };
-
-        let output_name = match self.compile_options.output_format {
-            FormatOption::IR => format!("{}.ll", output_name.to_string_lossy()),
-            FormatOption::Bitcode => format!("{}.bc", output_name.to_string_lossy()),
-            FormatOption::XML => format!("{}.xml", output_name.to_string_lossy()),
-            _ => format!("{}.o", output_name.to_string_lossy()),
-        };
+        let output_name = artifacts::file_name(&unit_key, extension);
 
         let target = &self.target;
         let compile_directory = self.compile_dirs.get(target).expect("Required dir");

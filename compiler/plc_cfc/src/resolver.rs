@@ -3,7 +3,7 @@
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
-use plc_ast::ast::{AstFactory, AstNode, AstStatement};
+use plc_ast::ast::{AstFactory, AstNode, AstStatement, Operator, UnaryExpression};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
@@ -125,7 +125,7 @@ impl<'index> Resolver<'index> {
                     // The traced source becomes the sink's assigned value,
                     // negated once more by the sink's own inversion bubble.
                     Trace::Reached(source) => {
-                        let sink = self.expression(object, &location);
+                        let sink = self.expression(object, &location, is_supported);
                         let source = self.value(&source, &location);
                         let source = self.negate_if(source, &location, object.in_negated());
 
@@ -387,6 +387,12 @@ impl<'index> Resolver<'index> {
         let mut targets = HashSet::new();
 
         for object in network.elements() {
+            // Orders start at 1; line 0 of the diagram's debug file would be no line at all.
+            if object.priority() == Some(0) {
+                let location = self.location(object);
+                self.diagnostics.push(Diagnostic::invalid_execution_order(location));
+            }
+
             // Register every output pin an incoming wire could reference.
             if let Some(out) = &object.connection_out {
                 by_pin.insert(out.id, object);
@@ -454,11 +460,17 @@ impl<'index> Resolver<'index> {
         Survey { by_pin, block_output, connector_by_label, labels, targets }
     }
 
-    fn expression(&mut self, object: &FbdObject, location: &SourceLocation) -> AstNode {
+    fn expression(
+        &mut self,
+        object: &FbdObject,
+        location: &SourceLocation,
+        is_supported: fn(&AstNode) -> bool,
+    ) -> AstNode {
         let node = self.parse(object, location);
 
-        // A variable element may only hold a literal or a reference; anything
-        // else (a call, arithmetic) must be modeled as a block element instead.
+        // A variable element may only hold a literal or a reference, which a
+        // source may negate; anything else (a call, arithmetic) must be
+        // modeled as a block element instead.
         if !is_supported(&node) {
             let text = object.identifier().unwrap_or_default();
             self.diagnostics.push(Diagnostic::unsupported_cfc_expression(text, location.clone()));
@@ -473,7 +485,7 @@ impl<'index> Resolver<'index> {
     fn value(&mut self, source: &Source, location: &SourceLocation) -> AstNode {
         match source {
             Source::Variable { object, negated } => {
-                let node = self.expression(object, location);
+                let node = self.expression(object, location, is_supported_source);
                 let node = self.negate_if(node, location, object.out_negated());
                 self.negate_if(node, location, *negated)
             }
@@ -653,6 +665,17 @@ fn trace<'model>(start: Option<usize>, survey: &Survey<'model>) -> Trace<'model>
 // Sees through parentheses, e.g. `(foo)` or `((5))`.
 fn is_supported(node: &AstNode) -> bool {
     matches!(node.get_stmt_peeled(), AstStatement::Literal(_) | AstStatement::ReferenceExpr(_))
+}
+
+// A source may also negate its value, e.g. `-foo` or `-(5)`; a sink may not,
+// because `-foo` is no assignment target.
+fn is_supported_source(node: &AstNode) -> bool {
+    match node.get_stmt_peeled() {
+        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
+            is_supported(value)
+        }
+        _ => is_supported(node),
+    }
 }
 
 // Classification, naming, and call-target helpers for block elements.
@@ -909,6 +932,15 @@ mod tests {
         }
 
         #[test]
+        fn negative_source() {
+            insta::assert_snapshot!(resolve_project("variables/valid/negative_source"), @r"
+            a := -foo
+            b := -(foo)
+            c := (-foo)
+            ");
+        }
+
+        #[test]
         fn indexed_assignment() {
             insta::assert_snapshot!(resolve_project("variables/valid/indexed_assignment"), @"values[1] := source");
         }
@@ -1073,7 +1105,7 @@ mod tests {
             LABEL skipAssignment");
             insta::assert_snapshot!(diagnostics("jumps/valid/disconnected_jump"), @r"
             warning[E145]: Jump element is not connected to a condition and can never be taken
-             = disconnected_jump.cfc, diagram disconnected_jump, execution order 0
+             = disconnected_jump.cfc, diagram disconnected_jump, execution order 1
             ");
         }
 
@@ -1084,7 +1116,7 @@ mod tests {
             LABEL orphan");
             insta::assert_snapshot!(diagnostics("jumps/valid/unused_label"), @r"
             warning[E143]: Label `orphan` is not referenced by any jump
-             = unused_label.cfc, diagram unused_label, execution order 1
+             = unused_label.cfc, diagram unused_label, execution order 2
             ");
         }
 
@@ -1342,7 +1374,7 @@ mod tests {
         fn call_expression() {
             insta::assert_snapshot!(diagnostics("variables/invalid/call_expression"), @r"
             error[E083]: Unsupported CFC expression: `MAX(foo, bar)`
-             = call_expression.cfc, diagram call_expression, execution order 0
+             = call_expression.cfc, diagram call_expression, execution order 1
             ");
         }
 
@@ -1350,7 +1382,23 @@ mod tests {
         fn binary_expression() {
             insta::assert_snapshot!(diagnostics("variables/invalid/binary_expression"), @r"
             error[E083]: Unsupported CFC expression: `foo + 1`
-             = binary_expression.cfc, diagram binary_expression, execution order 0
+             = binary_expression.cfc, diagram binary_expression, execution order 1
+            ");
+        }
+
+        #[test]
+        fn negative_sink() {
+            insta::assert_snapshot!(diagnostics("variables/invalid/negative_sink"), @r"
+            error[E083]: Unsupported CFC expression: `-bar`
+             = negative_sink.cfc, diagram negative_sink, execution order 1
+            ");
+        }
+
+        #[test]
+        fn zero_order() {
+            insta::assert_snapshot!(diagnostics("variables/invalid/zero_order"), @r"
+            error[E158]: Element has an execution order of 0, which is invalid; execution orders start at 1, the project may be corrupted
+             = zero_order.cfc, diagram zero_order, execution order 0
             ");
         }
 
@@ -1379,7 +1427,7 @@ mod tests {
             insta::assert_snapshot!(resolve_project("returns/invalid/disconnected_return"), @"RETURN myCondition");
             insta::assert_snapshot!(transpile_project("returns/invalid/disconnected_return").unwrap_err(), @r"
             error[E085]: Return element is not connected to a condition
-             = disconnected_return.cfc, diagram disconnected_return, execution order 1
+             = disconnected_return.cfc, diagram disconnected_return, execution order 2
             ");
         }
 
@@ -1387,7 +1435,7 @@ mod tests {
         fn undefined_jump_target() {
             insta::assert_snapshot!(transpile_project("jumps/invalid/undefined_jump_target").unwrap_err(), @r"
             error[E142]: Jump refers to undefined label `missing`
-             = undefined_jump_target.cfc, diagram undefined_jump_target, execution order 0
+             = undefined_jump_target.cfc, diagram undefined_jump_target, execution order 1
             ");
         }
 
@@ -1395,7 +1443,7 @@ mod tests {
         fn duplicate_label() {
             insta::assert_snapshot!(transpile_project("jumps/invalid/duplicate_label").unwrap_err(), @r"
             error[E144]: Label `dup` is already defined
-             = duplicate_label.cfc, diagram duplicate_label, execution order 2
+             = duplicate_label.cfc, diagram duplicate_label, execution order 3
             ");
         }
 
@@ -1403,7 +1451,7 @@ mod tests {
         fn unknown_type() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/unknown_type").unwrap_err(), @r"
             error[E146]: Block `counter` refers to an undeclared POU
-             = unknown_type.cfc, diagram unknown_type, execution order 0
+             = unknown_type.cfc, diagram unknown_type, execution order 1
             ");
         }
 
@@ -1411,7 +1459,7 @@ mod tests {
         fn generic_unresolved() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/generic_unresolved").unwrap_err(), @r"
             error[E149]: Cannot determine a type for generic block `myGenAdd`: no input decides its type
-             = generic_unresolved.cfc, diagram generic_unresolved, execution order 0
+             = generic_unresolved.cfc, diagram generic_unresolved, execution order 1
             ");
         }
 
@@ -1419,7 +1467,7 @@ mod tests {
         fn generic_unbound_feedback() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/generic_unbound_feedback").unwrap_err(), @r"
             error[E149]: Cannot determine a type for generic block `myGenScale`: no input decides its type
-             = generic_unbound_feedback.cfc, diagram generic_unbound_feedback, execution order 0
+             = generic_unbound_feedback.cfc, diagram generic_unbound_feedback, execution order 1
             ");
         }
 
@@ -1427,7 +1475,7 @@ mod tests {
         fn unwired_en() {
             insta::assert_snapshot!(transpile_project("execution_control/invalid/unwired_en").unwrap_err(), @r"
             error[E152]: Block `counter` has an unconnected EN pin
-             = unwired_en.cfc, diagram unwired_en, execution order 0, pin 0
+             = unwired_en.cfc, diagram unwired_en, execution order 1, pin 0
             ");
         }
 
@@ -1435,10 +1483,10 @@ mod tests {
         fn eno_cycle() {
             insta::assert_snapshot!(transpile_project("execution_control/invalid/eno_cycle").unwrap_err(), @r"
             error[E153]: EN pin of block `counter` resolves through an ENO cycle
-             = eno_cycle.cfc, diagram eno_cycle, execution order 0
+             = eno_cycle.cfc, diagram eno_cycle, execution order 1
 
             error[E153]: EN pin of block `counter` resolves through an ENO cycle
-             = eno_cycle.cfc, diagram eno_cycle, execution order 1
+             = eno_cycle.cfc, diagram eno_cycle, execution order 2
             ");
         }
 
@@ -1459,7 +1507,7 @@ mod tests {
         fn function_stale_output() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_stale_output").unwrap_err(), @r"
             error[E147]: Output `oldDoubled` is not declared by `myAdd`
-             = function_stale_output.cfc, diagram function_stale_output, execution order 0
+             = function_stale_output.cfc, diagram function_stale_output, execution order 1
             ");
         }
 
@@ -1467,7 +1515,7 @@ mod tests {
         fn function_duplicate_return() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_duplicate_return").unwrap_err(), @r"
             error[E155]: Block `myAdd` has more than one return pin
-             = function_duplicate_return.cfc, diagram function_duplicate_return, execution order 0
+             = function_duplicate_return.cfc, diagram function_duplicate_return, execution order 1
             ");
         }
 
@@ -1475,10 +1523,10 @@ mod tests {
         fn storage_reference_negated() {
             insta::assert_snapshot!(transpile_project("variables/invalid/storage_reference_negated").unwrap_err(), @r"
             error[E154]: Reference assignment to `b` cannot be negated
-             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 0
+             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 1
 
             error[E154]: Reference assignment to `b` cannot be negated
-             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 1
+             = storage_reference_negated.cfc, diagram storage_reference_negated, execution order 2
             ");
         }
     }

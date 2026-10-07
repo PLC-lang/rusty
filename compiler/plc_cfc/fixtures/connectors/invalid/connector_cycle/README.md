@@ -6,5 +6,5 @@ Illustrated:
 ```
         +-------------------+
         v                   |
-    >x> --> bar (0)     x< -+   (continuation feeds both the sink and its own connector)
+    >x> --> bar (1)     x< -+   (continuation feeds both the sink and its own connector)
 ```

@@ -7,7 +7,7 @@ plc [OPTIONS] <input-files>...
 plc [OPTIONS] <input-files>... <SUBCOMMAND>
 ```
 
-Most options are global, so they work with a subcommand as well. `plc -h` prints the same list.
+Most options are global, so they work with a subcommand as well. `plc -h` prints the same list. `plc -V` prints the version, and `plc --version` also prints the git branch, the commit hash, the build time, and the Rust toolchain of the binary.
 
 
 ## Subcommands
@@ -118,8 +118,6 @@ The default name comes from the first argument as it was written, so a glob patt
 | `--hwmap-file[=<file>]` | Write the map of hardware-bound variables. The `=` is required |
 | `--generate-external-constructors` | Also write constructors for `{external}` units |
 | `--constructors-only` | Write the generated constructors and no bodies |
-| `--online-change` | Emit the type information that a runtime needs to exchange code while it runs |
-| `--got-layout-file <file>` | Read and write the table layout that an online change keeps stable |
 
 
 ## Deprecated

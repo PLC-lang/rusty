@@ -1643,6 +1643,128 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
     suffix.map(|suffix| format!("{type_name}_{suffix}")) // TODO: Naming convention (see plc_util/src/convention.rs)
 }
 
+/// How a binary arithmetic expression with a date or time operand is carried out
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DateTimeArithmetic {
+    /// A call to the named standard library function; `swap_operands` moves a leading number
+    /// behind the duration for the commutative `ANY_NUM * TIME`
+    Call { function: String, result_type: &'static str, swap_operands: bool },
+    /// The plain integer operation on the stored values; `bare_number` marks a duration combined
+    /// with an integer that carries no unit
+    Plain { result_type: &'static str, bare_number: bool },
+}
+
+impl DateTimeArithmetic {
+    pub fn result_type(&self) -> &'static str {
+        match self {
+            DateTimeArithmetic::Call { result_type, .. } | DateTimeArithmetic::Plain { result_type, .. } => {
+                result_type
+            }
+        }
+    }
+}
+
+// (left, operator, right, function, result) for the additions and subtractions IEC 61131-3 defines
+const DATE_TIME_FUNCTIONS: &[(&str, Operator, &str, &str, &str)] = &[
+    (TIME_TYPE, Operator::Plus, TIME_TYPE, "ADD_TIME", TIME_TYPE),
+    (TIME_OF_DAY_TYPE, Operator::Plus, TIME_TYPE, "ADD_TOD_TIME", TIME_OF_DAY_TYPE),
+    (DATE_AND_TIME_TYPE, Operator::Plus, TIME_TYPE, "ADD_DT_TIME", DATE_AND_TIME_TYPE),
+    (TIME_TYPE, Operator::Minus, TIME_TYPE, "SUB_TIME", TIME_TYPE),
+    (DATE_TYPE, Operator::Minus, DATE_TYPE, "SUB_DATE_DATE", TIME_TYPE),
+    (TIME_OF_DAY_TYPE, Operator::Minus, TIME_TYPE, "SUB_TOD_TIME", TIME_OF_DAY_TYPE),
+    (TIME_OF_DAY_TYPE, Operator::Minus, TIME_OF_DAY_TYPE, "SUB_TOD_TOD", TIME_TYPE),
+    (DATE_AND_TIME_TYPE, Operator::Minus, TIME_TYPE, "SUB_DT_TIME", DATE_AND_TIME_TYPE),
+    (DATE_AND_TIME_TYPE, Operator::Minus, DATE_AND_TIME_TYPE, "SUB_DT_DT", TIME_TYPE),
+    (LONG_TIME_TYPE, Operator::Plus, LONG_TIME_TYPE, "ADD_LTIME", LONG_TIME_TYPE),
+    (LONG_TIME_OF_DAY_TYPE, Operator::Plus, LONG_TIME_TYPE, "ADD_LTOD_LTIME", LONG_TIME_OF_DAY_TYPE),
+    (LONG_DATE_AND_TIME_TYPE, Operator::Plus, LONG_TIME_TYPE, "ADD_LDT_LTIME", LONG_DATE_AND_TIME_TYPE),
+    (LONG_TIME_TYPE, Operator::Minus, LONG_TIME_TYPE, "SUB_LTIME", LONG_TIME_TYPE),
+    (LONG_DATE_TYPE, Operator::Minus, LONG_DATE_TYPE, "SUB_LDATE_LDATE", LONG_TIME_TYPE),
+    (LONG_TIME_OF_DAY_TYPE, Operator::Minus, LONG_TIME_TYPE, "SUB_LTOD_LTIME", LONG_TIME_OF_DAY_TYPE),
+    (LONG_TIME_OF_DAY_TYPE, Operator::Minus, LONG_TIME_OF_DAY_TYPE, "SUB_LTOD_LTOD", LONG_TIME_TYPE),
+    (LONG_DATE_AND_TIME_TYPE, Operator::Minus, LONG_TIME_TYPE, "SUB_LDT_LTIME", LONG_DATE_AND_TIME_TYPE),
+    (LONG_DATE_AND_TIME_TYPE, Operator::Minus, LONG_DATE_AND_TIME_TYPE, "SUB_LDT_LDT", LONG_TIME_TYPE),
+];
+
+/// Looks up how `left <operator> right` is carried out when at least one operand is a date or
+/// time type. Returns `None` for a combination the standard does not define.
+pub fn get_date_time_arithmetic(
+    index: &Index,
+    left: &DataType,
+    operator: &Operator,
+    right: &DataType,
+) -> Option<DateTimeArithmetic> {
+    let left_name = index.get_intrinsic_type_by_name(left.get_name()).get_name();
+    let right_name = index.get_intrinsic_type_by_name(right.get_name()).get_name();
+
+    // the pairs with a standard function of their own
+    let defined = DATE_TIME_FUNCTIONS
+        .iter()
+        .find(|(l, op, r, ..)| *l == left_name && op == operator && *r == right_name);
+    if let Some((.., function, result_type)) = defined {
+        return Some(DateTimeArithmetic::Call {
+            function: function.to_string(),
+            result_type,
+            swap_operands: false,
+        });
+    }
+
+    // a duration scaled by a number calls the implementation for the number's kind, the number is
+    // widened to that parameter
+    let scaling = |duration: &str| match duration {
+        TIME_TYPE => Some(("MUL_TIME", "DIV_TIME", TIME_TYPE)),
+        LONG_TIME_TYPE => Some(("MUL_LTIME", "DIV_LTIME", LONG_TIME_TYPE)),
+        _ => None,
+    };
+    let factor_kind =
+        |number: &DataType| match index.get_intrinsic_type_information(number.get_type_information()) {
+            DataTypeInformation::Float { size: 32, .. } => "REAL",
+            DataTypeInformation::Float { .. } => "LREAL",
+            DataTypeInformation::Integer { signed: false, .. } => "ULINT",
+            _ => "LINT",
+        };
+    let left_is_number = left.has_nature(TypeNature::Num, index);
+    let right_is_number = right.has_nature(TypeNature::Num, index);
+    let call = |function: &str, kind: &str, result_type, swap_operands| {
+        Some(DateTimeArithmetic::Call { function: format!("{function}__{kind}"), result_type, swap_operands })
+    };
+    match operator {
+        Operator::Multiplication if right_is_number => {
+            if let Some((mul, _, result_type)) = scaling(left_name) {
+                return call(mul, factor_kind(right), result_type, false);
+            }
+        }
+        Operator::Multiplication if left_is_number => {
+            if let Some((mul, _, result_type)) = scaling(right_name) {
+                return call(mul, factor_kind(left), result_type, true);
+            }
+        }
+        Operator::Division if right_is_number => {
+            if let Some((_, div, result_type)) = scaling(left_name) {
+                return call(div, factor_kind(right), result_type, false);
+            }
+        }
+        _ => {}
+    }
+
+    // a duration and an integer without a unit
+    let bare_number = |duration: &str| {
+        let result_type = match duration {
+            TIME_TYPE => TIME_TYPE,
+            LONG_TIME_TYPE => LONG_TIME_TYPE,
+            _ => return None,
+        };
+        Some(DateTimeArithmetic::Plain { result_type, bare_number: true })
+    };
+    let left_is_int = left.has_nature(TypeNature::Int, index);
+    let right_is_int = right.has_nature(TypeNature::Int, index);
+    match operator {
+        Operator::Plus | Operator::Minus if right_is_int => bare_number(left_name),
+        Operator::Plus if left_is_int => bare_number(right_name),
+        _ => None,
+    }
+}
+
 pub fn get_literal_actual_signed_type_name(lit: &AstLiteral, signed: bool) -> Option<&str> {
     // Returns a range with the min and max value of the given type
     macro_rules! is_covered_by {

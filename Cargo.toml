@@ -25,7 +25,6 @@ plc_parser = { path = "./compiler/plc_parser", version = "1.1.0-dev" }
 plc_util = { path = "./compiler/plc_util", version = "1.1.0-dev" }
 plc_diagnostics = { path = "./compiler/plc_diagnostics", version = "1.1.0-dev" }
 plc_index = { path = "./compiler/plc_index", version = "1.1.0-dev" }
-section_mangler = { path = "./compiler/section_mangler", version = "1.1.0-dev" }
 plc_llvm = { path = "./compiler/plc_llvm", version = "1.1.0-dev" }
 plc_xmlgen = { path = "./compiler/plc_xmlgen", version = "1.1.0-dev" }
 logos.workspace = true
@@ -35,7 +34,6 @@ generational-arena = { version = "0.2.8", features = ["serde"] }
 shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive", version = "1.1.0-dev" }
 which.workspace = true
-siphasher = "1"
 log.workspace = true
 inkwell.workspace = true
 chrono.workspace = true
@@ -70,7 +68,6 @@ path = "src/lib.rs"
 
 [workspace]
 members = [
-    "xtask",
     "errorcode_book_generator",
     "libs/stdlib",
     "compiler/plc_driver",
@@ -85,7 +82,6 @@ members = [
     "compiler/plc_xmlgen",
     "compiler/plc_derive",
     "compiler/plc_index",
-    "compiler/section_mangler",
     "compiler/plc_lowering",
     "compiler/plc_llvm",
     "compiler/plc_header_generator",
@@ -117,3 +113,4 @@ regex = "1"
 glob = "0.3"
 cc = "1.0"
 which = "8.0"
+siphasher = "1"

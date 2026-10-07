@@ -4,5 +4,5 @@ the diagram one-to-one.
 
 Illustrated:
 ```
-foo o--o bar (0)
+foo o--o bar (1)
 ```

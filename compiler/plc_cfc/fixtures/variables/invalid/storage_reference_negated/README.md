@@ -4,6 +4,6 @@ no negation, so each row is rejected with E154 instead of transpiling to a
 
 Illustrated:
 ```
-a o-> [b |REF] (0)
-a --o [b |REF] (1)
+a o-> [b |REF] (1)
+a --o [b |REF] (2)
 ```

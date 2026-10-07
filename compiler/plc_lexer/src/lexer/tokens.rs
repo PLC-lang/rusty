@@ -497,6 +497,12 @@ impl Token {
 
             Token::KeywordString | Token::KeywordWideString => &[BuiltinDatatype],
 
+            Token::OperatorAnd
+            | Token::OperatorOr
+            | Token::OperatorXor
+            | Token::OperatorModulo
+            | Token::OperatorNot => &[OperatorFunction],
+
             _ => &[],
         }
     }
@@ -510,4 +516,6 @@ pub enum TokenClass {
     ControlFlowJump,
     /// Built-in datatype keyword.
     BuiltinDatatype,
+    /// Operator keyword that also names a builtin function, e.g. `AND` in `AND(a, b)`.
+    OperatorFunction,
 }

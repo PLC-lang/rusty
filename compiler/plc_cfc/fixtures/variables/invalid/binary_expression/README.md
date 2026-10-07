@@ -4,5 +4,5 @@ this is rejected with an "unsupported CFC expression" error (E083).
 
 Illustrated:
 ```
-foo + 1 --> bar (0)    (expression — rejected)
+foo + 1 --> bar (1)    (expression — rejected)
 ```

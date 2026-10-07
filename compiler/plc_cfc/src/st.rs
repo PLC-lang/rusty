@@ -1,6 +1,6 @@
 //! Parses embedded structured-text fragments with the main compiler's parser.
 
-use plc::lexer;
+use plc::lexer::{self, Token, TokenClass};
 use plc::parser::{self, expressions_parser};
 use plc_ast::ast::{AstNode, CompilationUnit, LinkageType};
 use plc_ast::provider::IdProvider;
@@ -15,6 +15,12 @@ pub fn parse_expression(text: &str, ids: IdProvider) -> AstNode {
     let mut session = lexer::lex_with_ids(text, ids, factory);
 
     expressions_parser::parse_expression(&mut session)
+}
+
+// Whether `text` is a single operator keyword that names a builtin function, e.g. `AND`.
+pub fn is_operator_function(text: &str) -> bool {
+    let session = lexer::lex_with_ids(text, IdProvider::default(), SourceLocationFactory::internal(text));
+    session.token.classes().contains(&TokenClass::OperatorFunction) && session.peek() == Token::End
 }
 
 // A parsed expression relocated to where the network places it, so

@@ -84,6 +84,19 @@ VAR_GLOBAL CONSTANT
 END_VAR
 ```
 
+An initial value follows the same rules as an assignment in the body. Its type must fit the type of the variable, and a value that does not fit is rejected at the declaration, with the error that the same assignment gets in the body. A narrowing warns in the same way. The rule holds for every declaration, also for a member of a struct and for every element of an array list:
+
+```iecst
+VAR
+    name: STRING := 3;                          (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING' *)
+    count: DINT := TRUE;                        (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
+    half: INT := 1.5;                           (* warning[E067]: Implicit downcast from 'REAL' to 'INT'. *)
+    levels: ARRAY[0..1] OF REAL := [1, TRUE];   (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'REAL' *)
+END_VAR
+```
+
+The [basic types](basic-types.md#conversion-between-types) chapter lists which conversions are silent, which warn, and which are rejected.
+
 A variable without an initial value is not undefined. It gets the initial value of its type if the type has one, and zero otherwise: `0` for numbers, `FALSE` for `BOOL`, the empty string for text, and the same rule for every element of an array and every member of a struct.
 
 An array takes a list, a struct takes its members by name:

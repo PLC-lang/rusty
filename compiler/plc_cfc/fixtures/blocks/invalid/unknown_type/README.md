@@ -4,5 +4,5 @@ classified and is rejected (E146).
 
 Illustrated:
 ```
-countIn --> in [counter?] out (0) --> countOut (1)
+countIn --> in [counter?] out (1) --> countOut (2)
 ```

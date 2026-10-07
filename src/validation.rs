@@ -14,7 +14,7 @@ use crate::{
         FxIndexSet, Index, PouIndexEntry,
     },
     resolver::AnnotationMap,
-    typesystem::DataType,
+    typesystem::{DataType, DataTypeInformation},
 };
 
 use self::{
@@ -136,6 +136,11 @@ impl<'a> Validator<'a> {
     }
 
     pub fn get_type_name_or_slice(&self, dt: &DataType) -> String {
+        // the location of a generic parameter is the POU that declares it, not a type name
+        if let DataTypeInformation::Generic { generic_symbol, .. } = dt.get_type_information() {
+            return generic_symbol.clone();
+        }
+
         if dt.is_internal() {
             return dt.get_type_information().get_inner_name().to_string();
         }

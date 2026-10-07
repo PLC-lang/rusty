@@ -4,9 +4,9 @@ generated.
 
 Illustrated:
 ```
-              inst : counter (0)
+              inst : counter (1)
             +-------------------+
 trigger --> | EN                |
-localIn --> | in            out | --> localOut (1)
+localIn --> | in            out | --> localOut (2)
             +-------------------+
 ```

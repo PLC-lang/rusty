@@ -3,10 +3,10 @@
 A Continuous Function Chart (CFC) stores a POU body as a diagram. Its XML file contains a Structured Text declaration and a network of elements, numbered pins, and wires. The network
 
 ```
-          myAdd (0)
+          myAdd (1)
         +--------------------+
-in1 --> | in1          myAdd | --> function_call (1)
-in2 --> | in2   myAddDoubled | --> doubledOut (2)
+in1 --> | in1          myAdd | --> function_call (2)
+in2 --> | in2   myAddDoubled | --> doubledOut (3)
         +--------------------+
 ```
 
@@ -118,8 +118,8 @@ The rest of this section takes one element kind at a time. Each example shows th
 A data source supplies a variable or literal through its output pin. It produces no statement by itself. Each consumer follows the wire independently, so a source connected to two sinks produces two assignments:
 
 ```
-foo --+--> bar (0)
-      '--> baz (1)
+foo --+--> bar (1)
+      '--> baz (2)
 ```
 
 ```iecst
@@ -130,19 +130,19 @@ baz := foo;
 A literal source works in the same way. The identifier goes through the compiler's expression parser, so `5` becomes a literal node and `foo` becomes a reference node:
 
 ```
-5 --> foo (0)
+5 --> foo (1)
 ```
 
 ```iecst
 foo := 5;
 ```
 
-The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as `in1 + 1` is rejected (E083), because a diagram models arithmetic as blocks. The condition of a return or a jump is the exception and accepts any expression.
+The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as `in1 + 1` is rejected (E083), because a diagram models arithmetic as blocks. Parentheses are looked through, so `(in1)` is a reference. A source may also negate its value with a unary minus, as in `-in1` or `-(in1)`, which the parser gives as a unary expression; a sink may not, because `-in1` is no assignment target. The condition of a return or a jump is the exception and accepts any expression.
 
 A negation bubble on the pin wraps the value in a `NOT`:
 
 ```
-foo o--> bar (0)
+foo o--> bar (1)
 ```
 
 ```iecst
@@ -154,7 +154,7 @@ bar := NOT foo;
 A data sink is a write. It traces its input back to a producer and assigns the value to its own identifier. A source wired to a sink is therefore one assignment:
 
 ```
-foo --> bar (0)
+foo --> bar (1)
 ```
 
 ```iecst
@@ -166,17 +166,17 @@ The result of a CFC function is written in the same way, by a sink whose identif
 A storage mode turns the sink from an assignment into a latch. In `Set` mode the traced value is no longer the value stored: it is the guard, and the value stored is `TRUE`. Nothing is written while the guard is false, so a variable that was set once keeps its value:
 
 ```
-a --> [b |S] (0)
+a --> [b |S] (1)
 ```
 
 ```iecst
 IF a THEN b := TRUE; END_IF
 ```
 
-`Reset` mode is the counterpart and stores `FALSE` under the same guard. `Reference` mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:
+`Reset` mode is the counterpart and stores `FALSE` under the same guard. The rendered assignment is validated like any other, so a sink with either mode on a variable that is not a `BOOL` is an invalid assignment (E037), reported at the sink. `Reference` mode stores no value at all; it stores the address, so later reads of the sink see whatever the source holds at that time:
 
 ```
-a --> [b |REF] (0)
+a --> [b |REF] (1)
 ```
 
 ```iecst
@@ -190,7 +190,7 @@ A negation bubble has no meaning on a reference assignment and is rejected (E154
 A block is a call. Its `typeName` names the callee, its input pins are the parameters, and its output pins are the outputs of the callee. A callee with state keeps its outputs in its own instance, so the network needs nothing more than the call and a read of the member:
 
 ```
-localIn --> in [inst : counter] out (0) --> localOut (1)
+localIn --> in [inst : counter] out (1) --> localOut (2)
 ```
 
 ```iecst
@@ -206,8 +206,8 @@ A connector ends a wire and names it. Each continuation with that name resumes t
 
 ```
 foo --> x>
->x --> bar (0)
->x --> baz (1)
+>x --> bar (1)
+>x --> baz (2)
 ```
 
 ```iecst
@@ -221,7 +221,7 @@ A pair can feed another pair. The trace follows the chain, with a cycle guard, u
 foo --> a>
 >a --> b>
 >b --> c>
->c --> bar (0)
+>c --> bar (1)
 ```
 
 ```iecst
@@ -242,7 +242,7 @@ A label that two connectors claim is E081, and a continuation whose label no con
 A return leaves the POU early. It is always conditional: the traced value becomes the guard. The return carries no value, because the result of a function is written by the sink named after the function.
 
 ```
-myCondition --> RETURN (0)
+myCondition --> RETURN (1)
 ```
 
 ```iecst
@@ -256,9 +256,9 @@ A return without a wired condition could never fire. It is dropped and reported 
 A jump is a conditional `GOTO`, and a label is its target. The two are separate elements with no wire between them; the jump names its target as text, and the survey matches the names. Both render directly, in priority order like every other element, so the priorities of the user decide whether a jump goes forward or backward:
 
 ```
-myCondition --> JMP skipAssignment (0)
-x --> y (1)
-LABEL skipAssignment (2)
+myCondition --> JMP skipAssignment (1)
+x --> y (2)
+LABEL skipAssignment (3)
 ```
 
 ```iecst
@@ -270,9 +270,9 @@ LABEL: skipAssignment
 A jump without a wired condition is kept instead of dropped, with a `FALSE` guard, so the label it targets stays the target of a valid statement. A warning says that the jump can never be taken (E145):
 
 ```
-(unwired) --> JMP skipAssignment (0)
-x --> y (1)
-LABEL skipAssignment (2)
+(unwired) --> JMP skipAssignment (1)
+x --> y (2)
+LABEL skipAssignment (3)
 ```
 
 ```iecst
@@ -290,7 +290,7 @@ An unconnected element is a box that the user placed and never wired. It renders
 ```
 foo          (unconnected)
 bar          (unconnected)
-foo --> bar (0)
+foo --> bar (1)
 ```
 
 ```iecst
@@ -303,11 +303,11 @@ bar := foo;
 The index decides how a block is rendered. A callee that is a function and has no instance name is stateless: its outputs exist only during the call. Every output that a consumer reads is therefore captured into a temporary named `__out_<pin>_<globalId>`, declared in a `VAR` block of the POU with the type the callee declares for that output. The return pin carries no parameter name, so it contributes the name of the callee (`__out_myAdd_1` below); it is captured by an assignment of the call, every other output with `=>`. A fan-out then calls once and reads twice:
 
 ```
-        myAdd (0)
+        myAdd (1)
       +--------------------+
-a --> | in1          myAdd | --+--> x (1)
+a --> | in1          myAdd | --+--> x (2)
 b --> | in2   myAddDoubled |   |
-      +--------------------+   '--> y (2)
+      +--------------------+   '--> y (3)
       (myAddDoubled unread)
 ```
 
@@ -322,7 +322,7 @@ An unwired function input is passed as an empty argument, `in2 := `, to use the 
 A callee with state, a function block instance or a program, keeps its outputs in the instance, so no temporaries are necessary: the call passes the wired inputs only, and a consumer of an output reads the member. The [Block](#block) example above shows the plain case. An action is called through its owner, and its outputs are the members of the owner, not of the action:
 
 ```
-localIn --> in [inst : counter.increment] out (0) --> localOut (1)
+localIn --> in [inst : counter.increment] out (1) --> localOut (2)
 ```
 
 ```iecst
@@ -335,10 +335,10 @@ A program is read in the same way through the name of its one instance, `counter
 Execution control adds `EN` and `ENO` pins. `EN` becomes an `IF` around the call and its output capture; a skipped call leaves temporaries unchanged. `ENO` refers to the `EN` source rather than a result of the callee. Thus `done := trigger` reads the same source as the guard. A chain of these pins produces a sequence of `IF trigger` guards:
 
 ```
-                  myAdd (0)
+                  myAdd (1)
             +--------------------+
-trigger --> | EN             ENO | --> done (2)
-      a --> | in1          myAdd | --> sum (1)
+trigger --> | EN             ENO | --> done (3)
+      a --> | in1          myAdd | --> sum (2)
       b --> | in2   myAddDoubled |
             +--------------------+
             (myAddDoubled unread)
@@ -365,7 +365,7 @@ Each element renders on its own. A whole network is a set of them, and the wires
 
 ## Rendering
 
-With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. Every statement carries a location of a kind that only this participant creates: the `globalId` of the element instead of a line and column. A diagnostic on such a node is printed as `file.cfc: Block 6` without a source snippet. The temporaries go into one additional `VAR` block, and the statement list replaces the empty body the parse step left.
+With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. The name of a callee goes through the expression parser like every other name, except for a built-in named by an operator keyword, such as `AND` or `MOD`: the keyword alone is no expression, so the transpiler builds the reference to the callee itself. Every statement carries a location of a kind that only this participant creates: the `globalId` of the element instead of a line and column. A diagnostic on such a node is printed as `file.cfc: Block 6` without a source snippet. The temporaries go into one additional `VAR` block, and the statement list replaces the empty body the parse step left.
 
 
 ## Generic temporaries
@@ -390,6 +390,8 @@ The generic lowerer, at `post_annotate`, replaces the generic calls in the rende
 
 The transpiler does not generate loops. Its `IF` guards are the shape parsed text produces, so the later participants treat them like any other. Its jumps, its labels, and its conditional `RETURN` have no Structured Text syntax at all; they exist for this participant, and codegen has a branch for each.
 
+The debug info of the diagram comes from codegen. It scopes the rendered statements to a lexical block bound to a debug file of their own, `<file>.cfc.<diagram>`, and places each element at its evaluation priority as the line, without an offset: the tool reads line N of that file as priority N. A priority of 0 would be line 0, which DWARF reserves for "no line", so the participant rejects it (E158).
+
 
 ## Validation
 
@@ -399,7 +401,7 @@ The participant checks the diagram before pins and wires disappear from the AST.
 |---|---|
 | E081 | a connector label claimed twice |
 | E082 | a continuation with no connector |
-| E083 | an expression where only a name or a literal is allowed |
+| E083 | an expression where only a name or a literal (negated, for a source) is allowed |
 | E084 | an element that is placed but not wired |
 | E085 | a return without a condition |
 | E086 | a connector without an input |
@@ -414,5 +416,6 @@ The participant checks the diagram before pins and wires disappear from the AST.
 | E153 | an `ENO` chain that loops |
 | E154 | a negation bubble on a reference assignment |
 | E155 | a block with two unnamed return pins |
+| E158 | an element with evaluation priority 0 |
 
 Everything about the rendered statements themselves (unknown variables, type mismatches, wrong argument counts) is left to the validation stage, which reports it at the block location of the element too.

@@ -49,6 +49,7 @@ mod correctness {
     }
 }
 mod integration {
+    mod build_artifacts;
     mod build_description_tests;
     mod command_line_compile;
     mod external_files;

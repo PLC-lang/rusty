@@ -5,7 +5,7 @@ each sink.
 
 Illustrated:
 ```
-a1 o--> b1 (0)
-a2 --o> b2 (1)
-a3 o-o> b3 (2)
+a1 o--> b1 (1)
+a2 --o> b2 (2)
+a3 o-o> b3 (3)
 ```

@@ -20,6 +20,8 @@ n := REAL_TO_DINT(2 ** 10);   (* 1024 *)
 n := REAL_TO_DINT(7 ** 11);   (* 1977326720, not 1977326743 *)
 ```
 
+On the date and time types the operators follow rules of their own, which the [time and date](time.md) chapter lists; those operations call the standard library as well.
+
 
 ## Comparison
 
@@ -30,7 +32,7 @@ Note that the test for equality is a single `=`, because `:=` is the assignment.
 
 ## Boolean and bit operators
 
-`AND`, `OR`, `XOR`, and `NOT` do two jobs. On `BOOL` values they are the logical operators; on the bit string types they work bit by bit. `&` is another spelling of `AND`.
+`AND`, `OR`, `XOR`, and `NOT` do two jobs. On `BOOL` values they are the logical operators; on the bit string types and on integers they work bit by bit. `&` is another spelling of `AND`. Each of them, and `MOD` as well, also has a function form, such as `AND(a, b, c)`; see [Built-in Functions](../reference/built-in-functions.md#names-that-are-also-operators).
 
 ```iecst
 ready := motorOn AND NOT alarm;

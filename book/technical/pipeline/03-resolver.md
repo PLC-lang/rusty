@@ -165,7 +165,7 @@ END_PROGRAM
 
 the resolver visits the call before the assignment target. It identifies `scale` as a function returning `DINT`, then resolves the arguments. `i` refers to `main.i`. In `factor := sintVar`, the value refers to `main.sintVar`, but `factor` names the callee's parameter `scale.factor`. That parameter has type `INT`, so `sintVar` gets the hint `INT`.
 
-Then the arguments are matched to the parameters of `scale`. A positional argument takes the parameter at its place, a named argument the parameter with its name. `i` is matched to parameter 0 and hinted `DINT`, `factor := sintVar` to parameter 1 and hinted `INT`. These hints also record the parameter position, which codegen uses to place the values. The call as a whole takes the return type of the function, a `DINT` value, and the rest is the ordinary assignment: the target `i` is `main.i`, and the call gets the hint `DINT`.
+Then the arguments are matched to the parameters of `scale`. A named argument takes the parameter with its name. A positional argument takes the first parameter that no name claims, counted in declaration order, which for a call without names is the parameter at its place. `i` is matched to parameter 0 and hinted `DINT`, `factor := sintVar` to parameter 1 and hinted `INT`. These hints also record the parameter position, which codegen uses to place the values. The call as a whole takes the return type of the function, a `DINT` value, and the rest is the ordinary assignment: the target `i` is `main.i`, and the call gets the hint `DINT`.
 
 Visualized:
 
@@ -182,7 +182,9 @@ Visualized:
 
 The named argument `factor := sintVar` has no annotation of its own, only the hint that ties it to parameter 1; its two sides are annotated like any assignment.
 
-For a function block call, the operator is a variable of the block's type. Arguments match that block's parameters, and the call has no result type. Built-ins such as `REF`, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments.
+For a function block call, the operator is a variable of the block's type. Arguments match that block's parameters, and the call has no result type. Built-ins such as `REF`, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that an operator expression replaces then drop the argument hints again; see [Annotated AST](../internals/08-annotated-ast.md#argument).
+
+Arithmetic with a date or time operand is typed by the table of combinations the standard defines (`get_date_time_arithmetic` in `src/typesystem.rs`) and, like a comparison of strings, replaced by the call of the standard library function that carries it out: `stamp + cycle` becomes `ADD_DT_TIME(stamp, cycle)`, `day1 - day2` becomes `SUB_DATE_DATE(day1, day2)`, and `2 * cycle` becomes `MUL_TIME__LINT(cycle, 2)`, the implementation for the kind of number with the duration first. A chain such as `stamp + cycle + cycle` is replaced from the inside out, each call taking the replaced expression as its argument. A duration combined with a bare integer keeps the duration's type and stays an integer operation, the integer hinted with that type. A combination the table does not define, or one whose function is not declared, is left as written for the validator.
 
 
 ## Literals and generated types

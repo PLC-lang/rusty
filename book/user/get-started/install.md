@@ -114,7 +114,17 @@ This writes the static and the shared library into `output/lib`, and the declara
 plc --version
 ```
 
-The command prints the version, the commit date, and the commit hash of the binary.
+The command prints the version, the git branch, the commit hash, the build time, and the Rust toolchain of the binary:
+
+```
+plc 1.1.0-dev
+branch:master
+commit_hash:f17338dd2ef
+build_time:2026-09-29 17:09:25 +02:00
+build_env:rustc 1.90.0 (1159e78c4 2025-09-14),1.90-x86_64-unknown-linux-gnu
+```
+
+`plc -V` prints the first line only.
 
 
 ## What's next
