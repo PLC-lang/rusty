@@ -56,7 +56,7 @@ In a project file, the key `compile_type` does the same. Use `Static`, `Object`,
 
 ## Library namespaces in the Omron XML
 
-Sysmac Studio keeps library types in a namespace and refers to them with a backslash, as in `Common\ServoDev`. `--xml-omron` writes that qualified form when the file that declares the type carries the [`{namespace}` attribute](../language/source-files.md#library-namespaces).
+Sysmac Studio keeps library types in a namespace and refers to them with a backslash, as in `Common\ServoDev`. `--xml-omron` writes that qualified form when the file that declares the type carries the `{namespace}` attribute.
 
 ```iecst
 {namespace := 'Common'}
