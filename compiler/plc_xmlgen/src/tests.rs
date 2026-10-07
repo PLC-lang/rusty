@@ -920,13 +920,13 @@ mod xml_gen_tests {
         let mut library = make_unit("common.st").with_namespace(Some(String::from("Common")));
 
         library.user_types.push(make_user_type(DataType::StructType {
-            name: Some(String::from("ServoDev")),
+            name: Some(String::from("Servo")),
             variables: vec![make_variable("Position", "LREAL")],
         }));
 
         let namespaces = build_namespace_map(&[&library]);
 
-        assert_eq!(namespaces.get("ServoDev").map(String::as_str), Some("Common"));
+        assert_eq!(namespaces.get("Servo").map(String::as_str), Some("Common"));
     }
 
     #[test]
@@ -949,7 +949,7 @@ mod xml_gen_tests {
         let mut library = make_unit("common.st").with_namespace(Some(String::from("Common")));
 
         library.user_types.push(make_user_type(DataType::StructType {
-            name: Some(String::from("ServoDev")),
+            name: Some(String::from("Servo")),
             variables: vec![make_variable("Position", "LREAL")],
         }));
 
@@ -957,7 +957,7 @@ mod xml_gen_tests {
 
         unit.user_types.push(make_user_type(DataType::StructType {
             name: Some(String::from("TransferArmMod")),
-            variables: vec![make_variable("RotationalServo", "ServoDev")],
+            variables: vec![make_variable("RotationalServo", "Servo")],
         }));
 
         let namespaces = build_namespace_map(&[&library, &unit]);
@@ -966,7 +966,7 @@ mod xml_gen_tests {
         let result = generate_custom_types(&params, &unit, None, &type_names, &namespaces, &mut template);
         assert!(result.is_ok());
 
-        assert_eq!(find_type_name(&template, "TransferArmMod", "RotationalServo"), "Common\\ServoDev");
+        assert_eq!(find_type_name(&template, "TransferArmMod", "RotationalServo"), "Common\\Servo");
     }
 
     #[test]
@@ -996,7 +996,7 @@ mod xml_gen_tests {
         let mut library = make_unit("common.st").with_namespace(Some(String::from("Common")));
 
         library.user_types.push(make_user_type(DataType::StructType {
-            name: Some(String::from("ServoDev")),
+            name: Some(String::from("Servo")),
             variables: vec![make_variable("Position", "LREAL")],
         }));
 
@@ -1017,7 +1017,7 @@ mod xml_gen_tests {
             .find(|a| a.name == NAMESPACE_DECL && a.attributes.get("name").unwrap() == "Common")
             .unwrap();
 
-        assert!(namespace_root.children.iter().any(|a| a.attributes.get("name").unwrap() == "ServoDev"));
+        assert!(namespace_root.children.iter().any(|a| a.attributes.get("name").unwrap() == "Servo"));
     }
 
     #[test]

@@ -103,13 +103,14 @@ The comment that stands immediately above a POU becomes its `<Documentation>` in
 
 ```iecst
 (*
-    Does stuff.
+    Does Stuff.
 *)
-FUNCTION_BLOCK FunctionBlock1```
+FUNCTION_BLOCK FunctionBlock1
+```
 
 ```xml
 <FunctionBlock name="FunctionBlock1">
-  <Documentation xsi:type="SimpleText"><![CDATA[documentation goes here]]></Documentation>
+  <Documentation xsi:type="SimpleText"><![CDATA[Does Stuff.]]></Documentation>
   <AddData>
     ...
 ```

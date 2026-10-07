@@ -767,7 +767,7 @@ fn retain_block_in_function_block() {
 fn namespace_pragma_is_parsed() {
     let src = r#"
     {namespace := 'Common'}
-    TYPE ServoDev : STRUCT Position : LREAL; END_STRUCT END_TYPE
+    TYPE Servo : STRUCT Position : LREAL; END_STRUCT END_TYPE
     "#;
 
     let (result, diagnostics) = parse(src);
@@ -778,7 +778,7 @@ fn namespace_pragma_is_parsed() {
 
 #[test]
 fn unit_without_namespace_pragma_has_no_namespace() {
-    let src = "TYPE ServoDev : STRUCT Position : LREAL; END_STRUCT END_TYPE";
+    let src = "TYPE Servo : STRUCT Position : LREAL; END_STRUCT END_TYPE";
 
     let (result, _) = parse(src);
 
@@ -789,7 +789,7 @@ fn unit_without_namespace_pragma_has_no_namespace() {
 fn namespace_pragma_without_a_name_is_reported() {
     let src = r#"
     {namespace}
-    TYPE ServoDev : STRUCT Position : LREAL; END_STRUCT END_TYPE
+    TYPE Servo : STRUCT Position : LREAL; END_STRUCT END_TYPE
     "#;
 
     let (result, diagnostics) = parse(src);
