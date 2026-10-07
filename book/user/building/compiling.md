@@ -74,7 +74,7 @@ Declarations that the namespaced file owns go into a `<NamespaceDecl>` element i
 ```xml
 <Types>
   <GlobalNamespace>
-    <DataTypeDecl name="TransferArmMod">
+    <DataTypeDecl name="Module1">
       <UserDefinedTypeSpec xsi:type="StructTypeSpec">
         <Member name="RotationalServo">
           <Type>
@@ -103,14 +103,13 @@ The comment that stands immediately above a POU becomes its `<Documentation>` in
 
 ```iecst
 (*
-    Moves the transfer arm to the upper, middle or lower position
+    Does stuff.
 *)
-FUNCTION_BLOCK TransferArmLiftSubSequence
-```
+FUNCTION_BLOCK FunctionBlock1```
 
 ```xml
-<FunctionBlock name="TransferArmLiftSubSequence">
-  <Documentation xsi:type="SimpleText"><![CDATA[Moves the transfer arm to the upper, middle or lower position]]></Documentation>
+<FunctionBlock name="FunctionBlock1">
+  <Documentation xsi:type="SimpleText"><![CDATA[documentation goes here]]></Documentation>
   <AddData>
     ...
 ```
@@ -121,10 +120,9 @@ A variable takes its comment the same way, which fills the comment column of the
 
 ```iecst
 VAR_GLOBAL
-    DO_CameraCapture: BOOL;                 // Camera capture output
-    DI_PlateEjectCylinderRetracted: BOOL;   (* Eject cylinder retracted limit *)
-    (* Extends the plate eject cylinder *)
-    DO_PlateEjectCylinderExtend: BOOL;
+    SomeBool1: BOOL;                 // inline comment here
+    (* Block Comment here *)
+    SomeBool2: BOOL;
 END_VAR
 ```
 
