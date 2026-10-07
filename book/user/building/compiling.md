@@ -56,18 +56,18 @@ In a project file, the key `compile_type` does the same. Use `Static`, `Object`,
 
 ## Library namespaces in the Omron XML
 
-Sysmac Studio keeps library types in a namespace and refers to them with a backslash, as in `Common\ServoDev`. `--xml-omron` writes that qualified form when the file that declares the type carries the `{namespace}` attribute.
+Sysmac Studio keeps library types in a namespace and refers to them with a backslash, as in `Common\Servo`. `--xml-omron` writes that qualified form when the file that declares the type carries the `{namespace}` attribute.
 
 ```iecst
 {namespace := 'Common'}
 
 {external}
-TYPE ServoDev : STRUCT
+TYPE Servo : STRUCT
     Position: LREAL;
 END_STRUCT END_TYPE
 ```
 
-A type in another file that refers to `ServoDev` then exports as `Common\ServoDev`, and an array exports as `ARRAY[0..9] OF Common\ServoDev`. Sysmac Studio resolves the member against the library and keeps it. Without the attribute the export says `ServoDev`, Sysmac Studio finds no such type in the global namespace, and it discards the member when you import the file.
+A type in another file that refers to `Servo` then exports as `Common\Servo`, and an array exports as `ARRAY[0..9] OF Common\Servo`. Sysmac Studio resolves the member against the library and keeps it. Without the attribute the export says `Servo`, Sysmac Studio finds no such type in the global namespace, and it discards the member when you import the file.
 
 Declarations that the namespaced file owns go into a `<NamespaceDecl>` element inside `<GlobalNamespace>`:
 
@@ -78,13 +78,13 @@ Declarations that the namespaced file owns go into a `<NamespaceDecl>` element i
       <UserDefinedTypeSpec xsi:type="StructTypeSpec">
         <Member name="RotationalServo">
           <Type>
-            <TypeName><![CDATA[Common\ServoDev]]></TypeName>
+            <TypeName><![CDATA[Common\Servo]]></TypeName>
           </Type>
         </Member>
       </UserDefinedTypeSpec>
     </DataTypeDecl>
     <NamespaceDecl name="Common">
-      <DataTypeDecl name="ServoDev">
+      <DataTypeDecl name="Servo">
         ...
       </DataTypeDecl>
     </NamespaceDecl>
