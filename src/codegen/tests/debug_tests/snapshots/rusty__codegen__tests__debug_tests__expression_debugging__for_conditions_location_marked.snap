@@ -16,7 +16,7 @@ entry:
   store i8 0, ptr %__ran_once_0, align [filtered], !dbg !11
   %__is_incrementing_0 = alloca i8, align [filtered]
   store i8 0, ptr %__is_incrementing_0, align [filtered], !dbg !12
-  store i32 1, ptr %myFunc, align [filtered], !dbg !13
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !13
   store i8 1, ptr %__is_incrementing_0, align [filtered], !dbg !14
   br label %while_body, !dbg !15
 
@@ -32,7 +32,7 @@ continue:                                         ; preds = %condition_body11, %
 condition_body:                                   ; preds = %while_body
   %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !19
   %tmpVar = add i32 %load_myFunc, 2, !dbg !19
-  store i32 %tmpVar, ptr %myFunc, align [filtered], !dbg !20
+  store volatile i32 %tmpVar, ptr %myFunc, align [filtered], !dbg !20
   br label %continue1, !dbg !21
 
 continue1:                                        ; preds = %condition_body, %while_body
@@ -56,7 +56,7 @@ else:                                             ; preds = %continue1
   br i1 %5, label %condition_body11, label %continue8, !dbg !24
 
 continue2:                                        ; preds = %continue8, %continue4
-  store i32 1, ptr %myFunc, align [filtered], !dbg !25
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !25
   br label %while_body, !dbg !26
 
 condition_body7:                                  ; preds = %condition_body3

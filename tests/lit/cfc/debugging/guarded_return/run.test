@@ -10,13 +10,14 @@ at line = order, so a debugger reads line N as order N.
 
 Guard load, branch and return are one element (order 1); the store is the sink (order 2).
 The instructions are matched inside the function, so no other function's instructions can bind.
+An unoptimized build makes the key store of the sink volatile, so the backend keeps it.
 CHECK-LABEL: define void @guarded_return(ptr %0) !dbg ![[#SCOPE_FUNCTION:]]
 CHECK:       %load_guard = load i8, ptr %guard, {{.*}}!dbg ![[#LOCATION_RETURN:]]
 CHECK:       br i1 %{{[0-9]+}}, label %then_block, label %else_block, !dbg ![[#KEY_GUARD:]]
 CHECK:       then_block:
 CHECK-NEXT:  ret void, !dbg ![[#KEY_RETURN:]]
 CHECK:       else_block:
-CHECK-NEXT:  store i32 42, ptr %result, {{.*}}!dbg ![[#KEY_RESULT:]]
+CHECK-NEXT:  store{{( volatile)?}} i32 42, ptr %result, {{.*}}!dbg ![[#KEY_RESULT:]]
 
 Debug file per area: declaration text vs. diagram `guarded_return`.
 CHECK-DAG: ![[#FILE_DECLARATION:]] = !DIFile(filename: "guarded_return.cfc", directory:

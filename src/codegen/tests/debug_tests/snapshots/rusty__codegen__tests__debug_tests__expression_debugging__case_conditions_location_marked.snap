@@ -19,19 +19,19 @@ entry:
   ], !dbg !12
 
 case:                                             ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !13
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !13
   br label %continue, !dbg !14
 
 case1:                                            ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !15
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !15
   br label %continue, !dbg !16
 
 else:                                             ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !17
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !17
   br label %continue, !dbg !18
 
 continue:                                         ; preds = %else, %case1, %case
-  store i32 1, ptr %myFunc, align [filtered], !dbg !19
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !19
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !20
   ret i32 %myFunc_ret, !dbg !21
 }
