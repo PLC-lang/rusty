@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-9d74174c.js";
+            window.path_to_searchindex_js = "../../searchindex-3d8ff075.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -225,7 +225,7 @@ plc "src/**/*.st"                # everything below src
 <h2 id="optimization"><a class="header" href="#optimization">Optimization</a></h2>
 <pre><code class="language-bash">plc main.st -O aggressive
 </code></pre>
-<p>The four levels are <code>none</code>, <code>less</code>, <code>default</code>, and <code>aggressive</code>, and they are the levels of LLVM from <code>-O0</code> to <code>-O3</code>. The default is <code>default</code>. Use <code>none</code> while you debug, because the generated code then follows the source closely. The level changes the machine code only. The text that <code>--ir</code> writes is the same at every level.</p>
+<p>The four levels are <code>none</code>, <code>less</code>, <code>default</code>, and <code>aggressive</code>, and they are the levels of LLVM from <code>-O0</code> to <code>-O3</code>. The default is <code>default</code>. Use <code>none</code> while you debug, because the generated code then follows the source closely. The level changes the machine code only. The text that <code>--ir</code> writes is the same at every level, with one exception: with <code>-g</code> and <code>none</code>, the write that completes a statement is <code>volatile</code>, so that a debugger keeps a stop on it (see <a href="debugging.html#stepping">debug information</a>).</p>
 <h2 id="check-without-producing-anything"><a class="header" href="#check-without-producing-anything">Check without producing anything</a></h2>
 <pre><code class="language-bash">plc --check "src/**/*.st"
 plc check plc.json

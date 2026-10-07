@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-9d74174c.js";
+            window.path_to_searchindex_js = "../../searchindex-3d8ff075.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -497,6 +497,7 @@ entry:
 <blockquote class="blockquote-tag blockquote-tag-note">
 <p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
 <p><code>-Onone</code> is not free of optimization: the backend still runs at level <code>Less</code>, for example for stack coloring, and can interleave the instructions of neighbouring statements. So that a debugger still stops once per statement, in source order, the debug builder marks the last side effect of each statement (a store, a call, or a branch) with LLVM’s Key Instructions metadata, and LLVM sets <code>is_stmt</code> only there.</p>
+<p>The backend at <code>Less</code> also deletes and merges stores, for example a store that the next statement overwrites before any load. A statement whose instructions are all gone has no <code>is_stmt</code> row left, so a debugger cannot stop on it, and the key instruction cannot help. At <code>-Onone</code>, the debug builder therefore also makes a key instruction <code>volatile</code> when it is a store at a source line. The backend keeps a volatile store and its order, so every statement that ends in a store keeps its row; calls keep theirs anyway, and branches are not covered. Only these stores lose their optimizations, and a value the next statement needs is loaded again instead of reused from a register.</p>
 </blockquote>
 <h2 id="where-it-lives"><a class="header" href="#where-it-lives">Where it lives</a></h2>
 <div class="table-wrapper">
