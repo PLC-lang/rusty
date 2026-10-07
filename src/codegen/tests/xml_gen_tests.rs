@@ -62,3 +62,61 @@ END_PROGRAM
     let _ = std::fs::remove_file(&output_path);
     let _ = std::fs::remove_file(&st_path);
 }
+
+#[test]
+fn union_types_are_generated_as_overlapping_struct_type_specs() {
+    let src = r"
+TYPE Overlay : UNION
+    Low : BYTE;
+    WORDVal : WORD;
+END_UNION
+END_TYPE
+
+TYPE Sequential : STRUCT
+    WORDVal : WORD;
+END_STRUCT
+END_TYPE
+";
+
+    let temp_dir = std::env::temp_dir();
+    let st_path = temp_dir.join("test_union_types_source.st");
+    std::fs::write(&st_path, src).unwrap();
+
+    let source = SourceCode { source: String::from(src), path: Some(st_path.clone()) };
+    let file_name = source.get_location_str();
+
+    let (unit, diagnostics) = parser::parse(
+        lexer::lex_with_ids(
+            &source.source,
+            IdProvider::default(),
+            SourceLocationFactory::for_source(&source),
+        ),
+        LinkageType::Internal,
+        file_name,
+    );
+    assert!(diagnostics.is_empty(), "unexpected parse diagnostics: {diagnostics:?}");
+
+    let mut params = GenerationParameters::new();
+    params.output_xml_omron = true;
+
+    let output_path = temp_dir.join("test_union_types_output.xml");
+    let units = vec![&unit];
+    let result =
+        parse_project_into_nodetree(&params, &units, OMRON_SCHEMA, &output_path, get_omron_template());
+    assert!(result.is_ok());
+
+    let contents = std::fs::read_to_string(&output_path).unwrap();
+    let compact = contents.lines().map(|line| line.trim()).collect::<Vec<&str>>().join("");
+
+    assert!(compact.contains(
+        r#"<DataTypeDecl name="Overlay"><UserDefinedTypeSpec overlap="true" xsi:type="StructTypeSpec"><Member name="Low">"#
+    ));
+    assert!(compact
+        .contains(r#"<Member name="WORDVal"><Type><TypeName><![CDATA[WORD]]></TypeName></Type></Member>"#));
+    assert!(compact.contains(
+        r#"<DataTypeDecl name="Sequential"><UserDefinedTypeSpec xsi:type="StructTypeSpec"><Member"#
+    ));
+
+    let _ = std::fs::remove_file(&output_path);
+    let _ = std::fs::remove_file(&st_path);
+}

@@ -560,6 +560,10 @@ pub(crate) fn generate_custom_types(
 
                 let mut spec_node = SUserDefinedTypeSpec::new().attribute_str("xsi:type", STRUCT_TYPE_SPEC);
 
+                if current_usertype.is_union {
+                    spec_node = spec_node.attribute_str("overlap", "true");
+                }
+
                 for current_variable in variables {
                     let typename = match resolve_type_name(
                         &current_variable.data_type_declaration,

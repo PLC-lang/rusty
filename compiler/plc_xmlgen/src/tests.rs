@@ -155,6 +155,7 @@ mod xml_gen_tests {
 
         // Create a struct user type
         unit.user_types.push(UserTypeDeclaration {
+            is_union: false,
             data_type: DataType::StructType {
                 name: Some(String::from("MyStruct")),
                 variables: vec![make_variable("field1", "DINT")],
@@ -247,6 +248,7 @@ mod xml_gen_tests {
 
         // Add a StructType
         unit.user_types.push(UserTypeDeclaration {
+            is_union: false,
             data_type: DataType::StructType {
                 name: Some(String::from("Motor")),
                 variables: vec![make_variable("speed", "INT"), make_variable("running", "BOOL")],
@@ -269,6 +271,7 @@ mod xml_gen_tests {
         );
 
         unit.user_types.push(UserTypeDeclaration {
+            is_union: false,
             data_type: DataType::EnumType {
                 name: Some(String::from("Color")),
                 numeric_type: String::from("INT"),
@@ -787,6 +790,7 @@ mod xml_gen_tests {
 
     fn make_user_type(data_type: DataType) -> UserTypeDeclaration {
         UserTypeDeclaration {
+            is_union: false,
             data_type,
             initializer: None,
             location: make_source_location(),
@@ -1301,6 +1305,7 @@ mod xml_gen_tests {
         let mut unit = make_unit("pointers.st");
 
         unit.user_types.push(UserTypeDeclaration {
+            is_union: false,
             data_type: DataType::PointerType {
                 name: Some(String::from("ExternalPtr")),
                 referenced_type: Box::new(make_reference("INT")),
@@ -1322,6 +1327,7 @@ mod xml_gen_tests {
         let mut unit = make_unit("pointers.st");
 
         unit.user_types.push(UserTypeDeclaration {
+            is_union: false,
             data_type: DataType::PointerType {
                 name: Some(String::from("__auto_deref")),
                 referenced_type: Box::new(make_reference("INT")),
