@@ -16,7 +16,6 @@ use crate::{
 };
 use plc_ast::ast::AstStatement;
 
-use inkwell::targets::TargetData;
 use inkwell::types::{AnyType, AnyTypeEnum, BasicTypeEnum};
 use inkwell::{
     values::{BasicValue, BasicValueEnum},
@@ -44,7 +43,6 @@ pub struct DataTypeGenerator<'ink, 'b> {
     index: &'b Index,
     annotations: &'b AstAnnotations,
     types_index: LlvmTypedIndex<'ink>,
-    target_data: &'b TargetData,
 }
 
 /// generates the llvm-type for the given data-type and registers it at the index
@@ -60,7 +58,6 @@ pub fn generate_data_types<'ink>(
     dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
-    target_data: &TargetData,
 ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut types = vec![];
     let mut pou_types = vec![];
@@ -85,14 +82,8 @@ pub fn generate_data_types<'ink>(
         }
     }
 
-    let mut generator = DataTypeGenerator {
-        llvm,
-        debug,
-        index,
-        annotations,
-        types_index: LlvmTypedIndex::default(),
-        target_data,
-    };
+    let mut generator =
+        DataTypeGenerator { llvm, debug, index, annotations, types_index: LlvmTypedIndex::default() };
 
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
@@ -216,40 +207,15 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
 
             let struct_type = match source {
                 StructSource::Pou(..) => self.types_index.get_associated_pou_type(data_type.get_name()),
-                StructSource::OriginalDeclaration | StructSource::Union | StructSource::Internal(_) => {
+                StructSource::OriginalDeclaration | StructSource::Internal(_) => {
                     self.types_index.get_associated_type(data_type.get_name())
                 }
             }
             .map(BasicTypeEnum::into_struct_type)?;
 
-            if *source == StructSource::Union {
-                struct_type.set_body(self.union_body(&members).as_slice(), false);
-            } else {
-                struct_type.set_body(members.as_slice(), false);
-            }
+            struct_type.set_body(members.as_slice(), false);
         }
         Ok(())
-    }
-
-    fn union_body(&self, members: &[BasicTypeEnum<'ink>]) -> Vec<BasicTypeEnum<'ink>> {
-        let Some(aligned) = members
-            .iter()
-            .copied()
-            .max_by_key(|it| (self.target_data.get_abi_alignment(it), self.target_data.get_abi_size(it)))
-        else {
-            return vec![];
-        };
-
-        let alignment = u64::from(self.target_data.get_abi_alignment(&aligned));
-        let largest = members.iter().map(|it| self.target_data.get_abi_size(it)).max().unwrap_or_default();
-        let size = largest.div_ceil(alignment) * alignment;
-        let padding = size - self.target_data.get_abi_size(&aligned);
-
-        if padding == 0 {
-            vec![aligned]
-        } else {
-            vec![aligned, self.llvm.context.i8_type().array_type(padding as u32).into()]
-        }
     }
 
     /// Creates an llvm type to be associated with the given data type.
@@ -263,7 +229,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                     .types_index
                     .get_associated_pou_type(data_type.get_name())
                     .map(|res| res.as_any_type_enum()),
-                StructSource::OriginalDeclaration | StructSource::Union => self
+                StructSource::OriginalDeclaration => self
                     .types_index
                     .get_associated_type(data_type.get_name())
                     .map(|res| res.as_any_type_enum()),
@@ -369,16 +335,12 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
 
                 let struct_type = match source {
                     StructSource::Pou(..) => self.types_index.get_associated_pou_type(data_type.get_name()),
-                    StructSource::OriginalDeclaration | StructSource::Union => {
+                    StructSource::OriginalDeclaration => {
                         self.types_index.get_associated_type(data_type.get_name())
                     }
                     StructSource::Internal(_) => self.types_index.get_associated_type(data_type.get_name()),
                 }?
                 .into_struct_type();
-
-                if *source == StructSource::Union {
-                    return Ok(Some(struct_type.const_zero().as_basic_value_enum()));
-                }
 
                 // If any member is a large array (> 1M elements) with no explicit initializer,
                 // use zeroinitializer for the whole struct instead of const_named_struct.

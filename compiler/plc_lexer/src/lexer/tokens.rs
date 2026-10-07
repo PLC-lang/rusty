@@ -180,13 +180,6 @@ pub enum Token {
     #[token("ENDSTRUCT", ignore(case))]
     KeywordEndStruct,
 
-    #[token("UNION", ignore(case))]
-    KeywordUnion,
-
-    #[token("END_UNION", ignore(case))]
-    #[token("ENDUNION", ignore(case))]
-    KeywordEndUnion,
-
     #[token("ACTIONS", ignore(case))]
     KeywordActions,
 

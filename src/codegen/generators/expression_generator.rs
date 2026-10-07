@@ -1792,15 +1792,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let qualifier_type = self.annotations.get_type(qualifier_node, self.index).unwrap();
                     let container_name = qualifier_type.get_name();
 
-                    if self
-                        .index
-                        .get_effective_type_or_void_by_name(container_name)
-                        .get_type_information()
-                        .is_union()
-                    {
-                        return Ok(qualifier);
-                    }
-
                     // For POUs (programs, function blocks, classes), use get_struct_member_index
                     // to compute the correct GEP index. This properly handles POUs with
                     // VAR_TEMP/VAR_EXTERNAL variables which are not part of the struct
@@ -2626,7 +2617,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     /// generates a struct literal value with the given value assignments (ExpressionList)
     fn generate_literal_struct(&self, assignments: &AstNode) -> Result<ExpressionValue<'ink>, CodegenError> {
-        let DataTypeInformation::Struct { name: struct_name, members, source } =
+        let DataTypeInformation::Struct { name: struct_name, members, .. } =
             self.get_type_hint_info_for(assignments)?
         else {
             return Err(Diagnostic::codegen_error(
@@ -2635,13 +2626,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             )
             .into());
         };
-        if *source == crate::typesystem::StructSource::Union {
-            return Err(Diagnostic::codegen_error(
-                format!("Literal initializers are not supported for UNION {struct_name}"),
-                assignments,
-            )
-            .into());
-        }
         let member_assignments = self.collect_struct_literal_assignments(assignments)?;
         let struct_type = self.llvm_index.get_associated_type(struct_name)?.into_struct_type();
 

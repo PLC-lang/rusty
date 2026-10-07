@@ -40,7 +40,6 @@ fn simple_struct_type_can_be_parsed() {
     let expected_ast = format!(
         "{:#?}",
         &UserTypeDeclaration {
-            is_union: false,
             data_type: DataType::StructType {
                 name: Some("SampleStruct".to_string(),),
                 variables: vec!(
@@ -424,78 +423,6 @@ fn multi_dimensional_variable_length_arrays_can_be_parsed() {
 
     let var = &parse_result.global_vars[0].variables[1];
     assert_debug_snapshot!(var);
-}
-
-#[test]
-fn simple_union_type_can_be_parsed() {
-    let (result, diagnostics) = parse(
-        r#"
-        TYPE SampleUnion :
-            UNION
-                Bits : ARRAY[0..31] OF BOOL;
-                Value : DWORD;
-            END_UNION
-        END_TYPE
-        "#,
-    );
-
-    assert!(diagnostics.is_empty());
-    let user_type = &result.user_types[0];
-    assert!(user_type.is_union);
-    let DataType::StructType { name, variables } = &user_type.data_type else {
-        panic!("expected a struct type, got {:?}", user_type.data_type);
-    };
-    assert_eq!(name.as_deref(), Some("SampleUnion"));
-    assert_eq!(variables.iter().map(|it| it.get_name()).collect::<Vec<_>>(), vec!["Bits", "Value"]);
-}
-
-#[test]
-fn struct_type_is_not_flagged_as_union() {
-    let (result, ..) = parse(
-        r#"
-        TYPE SampleStruct :
-            STRUCT
-                Value : DWORD;
-            END_STRUCT
-        END_TYPE
-        "#,
-    );
-
-    assert!(!result.user_types[0].is_union);
-}
-
-#[test]
-fn optional_semicolon_at_end_of_endunion_keyword_is_consumed() {
-    let (_, diagnostics) = parse(
-        r#"
-        TYPE Overlay : UNION
-            x : DINT;
-            y : REAL;
-        END_UNION; END_TYPE
-        "#,
-    );
-
-    assert!(diagnostics.is_empty())
-}
-
-#[test]
-fn inline_union_declaration_is_reported() {
-    let (_, diagnostics) = parse(
-        r#"
-        VAR_GLOBAL
-            x : UNION
-                a : DINT;
-                b : REAL;
-            END_UNION;
-        END_VAR
-        "#,
-    );
-
-    assert_eq!(diagnostics.len(), 1);
-    assert_eq!(
-        diagnostics[0].get_message(),
-        "Inline UNION declarations are not supported, declare the union as a named TYPE"
-    );
 }
 
 #[test]

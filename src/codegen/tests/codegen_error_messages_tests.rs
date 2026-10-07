@@ -356,28 +356,3 @@ fn assigning_to_rvalue() {
 
     filtered_assert_snapshot!(msg)
 }
-
-#[test]
-fn union_literal_initializer_should_be_reported() {
-    let result = codegen_without_unwrap(
-        "
-        TYPE Overlay : UNION
-            a : DINT;
-            b : REAL;
-        END_UNION
-        END_TYPE
-
-        PROGRAM prg
-            VAR
-                x : Overlay;
-            END_VAR
-            x := (a := 1);
-        END_PROGRAM
-        ",
-    );
-    if let Err(msg) = result {
-        filtered_assert_snapshot!(msg)
-    } else {
-        panic!("expected code-gen error but got none")
-    }
-}

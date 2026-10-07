@@ -1,9 +1,0 @@
----
-source: src/codegen/tests/codegen_error_messages_tests.rs
-expression: msg
----
-error[E071]: Literal initializers are not supported for UNION Overlay
-   ┌─ <internal>:12:19
-   │
-12 │             x := (a := 1);
-   │                   ^^^^^^ Literal initializers are not supported for UNION Overlay

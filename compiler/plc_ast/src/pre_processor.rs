@@ -90,7 +90,6 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                         data_type.set_name(type_name);
                         add_nested_datatypes(name, &mut data_type, &mut new_types, &location, dt.linkage);
                         let data_type = UserTypeDeclaration {
-                            is_union: false,
                             data_type: *data_type,
                             initializer: None,
                             location,
@@ -454,7 +453,6 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
 
         //Generate a type for the generic
         let data_type = UserTypeDeclaration {
-            is_union: false,
             data_type: DataType::GenericType {
                 name: new_name.clone(),
                 generic_symbol: binding.name.clone(),
@@ -503,7 +501,6 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                 data_type.set_name(type_name);
                 add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location, linkage);
                 let data_type = UserTypeDeclaration {
-                    is_union: false,
                     data_type: *data_type,
                     initializer: None,
                     location,
@@ -564,7 +561,6 @@ fn process_property(
                     linkage,
                 );
                 user_types.push(UserTypeDeclaration {
-                    is_union: false,
                     data_type: *data_type,
                     initializer: None,
                     location,
@@ -624,7 +620,6 @@ fn rewrite_inline_data_type(
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location, linkage);
         data_type.set_name(new_type_name);
         types.push(UserTypeDeclaration {
-            is_union: false,
             data_type: *data_type,
             initializer: None,
             location,
@@ -655,7 +650,6 @@ fn add_nested_datatypes(
         data_type.set_name(new_type_name.clone());
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &inner_location, linkage);
         types.push(UserTypeDeclaration {
-            is_union: false,
             data_type: *data_type,
             initializer: None,
             location: location.clone(),

@@ -127,7 +127,6 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordFunctionBlock
             | Token::KeywordEndFunctionBlock
             | Token::KeywordEndStruct
-            | Token::KeywordEndUnion
             | Token::KeywordEndAction
             | Token::KeywordEndActions
             | Token::KeywordEndIf

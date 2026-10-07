@@ -61,11 +61,7 @@ impl AstVisitor for UserTypeIndexer<'_, '_> {
             DataType::StructType { name: Some(name), variables } => self.index_struct_type(
                 name,
                 variables,
-                if self.user_type.is_union && self.user_type.data_type.get_name() == Some(name.as_str()) {
-                    StructSource::Union
-                } else {
-                    StructSource::OriginalDeclaration
-                },
+                StructSource::OriginalDeclaration,
                 self.user_type.linkage,
             ),
             DataType::EnumType { name: Some(name), numeric_type, elements } => {

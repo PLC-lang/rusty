@@ -562,21 +562,6 @@ fn struct_enum_datatype() {
 }
 
 #[test]
-fn union_datatype() {
-    let mut lexer = lex(r"TYPE UNION END_UNION ENDUNION END_TYPE");
-
-    assert_eq!(lexer.token, KeywordType);
-    lexer.advance();
-    assert_eq!(lexer.token, KeywordUnion);
-    lexer.advance();
-    assert_eq!(lexer.token, KeywordEndUnion);
-    lexer.advance();
-    assert_eq!(lexer.token, KeywordEndUnion);
-    lexer.advance();
-    assert_eq!(lexer.token, KeywordEndType);
-}
-
-#[test]
 fn array_parsing() {
     let mut lexer = lex(r"ARRAY OF x[5]");
 

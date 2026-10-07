@@ -407,7 +407,6 @@ impl TypeSize {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StructSource {
     OriginalDeclaration,
-    Union,
     Pou(PouType),
     Internal(InternalType),
 }
@@ -590,10 +589,6 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::Array { .. })
     }
 
-    pub fn is_union(&self) -> bool {
-        matches!(self, DataTypeInformation::Struct { source: StructSource::Union, .. })
-    }
-
     pub fn is_vla(&self) -> bool {
         matches!(
             self,
@@ -768,15 +763,6 @@ impl DataTypeInformation {
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
                 .map(Bytes::new)
                 .unwrap()),
-            DataTypeInformation::Struct { members, source: StructSource::Union, .. } => members
-                .iter()
-                .map(|it| it.get_type_name())
-                .try_fold(MemoryLocation::new(0), |prev, it| {
-                    let type_info: &DataTypeInformation = index.get_type_information_or_void(it);
-                    let size = type_info.get_size_recursive(index, seen)?.value();
-                    Ok(MemoryLocation::new(prev.value().max(size)))
-                })
-                .map(Into::into),
             DataTypeInformation::Struct { members, .. } => members
                 .iter()
                 .map(|it| it.get_type_name())
