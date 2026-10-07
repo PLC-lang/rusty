@@ -93,7 +93,7 @@ There is no block scope. A variable belongs to its POU, not to the `IF` or the `
 
 ## Attributes
 
-An attribute in braces changes how the compiler treats a declaration. Three of them matter for everyday code. `{external}` stands before a POU and says that the implementation is elsewhere, which is how you [call C](../interop/calling-c.md). `{ref}` stands after `VAR_INPUT`, the only block that accepts it, and passes the whole block by reference. `{sized}` stands before a variadic type and gives the callee a count and an array.
+An attribute in braces changes how the compiler treats a declaration. Three of them matter for everyday code. `{external}` stands before a POU and says that the implementation is elsewhere, which is how you [call C](../interop/calling-c.md). `{ref}` stands after `VAR_INPUT`, the only block that accepts it, and passes the whole block by reference. `{sized}` stands before a variadic type and gives the callee a count and an array. `{namespace}` marks a file as a library, as [library namespaces](#library-namespaces) describes.
 
 
 ## Library namespaces
