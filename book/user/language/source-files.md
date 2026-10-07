@@ -109,7 +109,7 @@ TYPE ServoDev : STRUCT
 END_STRUCT END_TYPE
 ```
 
-The name stays out of the way while you write code. A file that uses `ServoDev` writes `ServoDev`, not `Common\ServoDev`, and the compiler resolves the name as it resolves every other name. The attribute changes the [Omron XML output](../building/compiling.md#library-namespaces-in-the-omron-xml) only.
+The name stays out of the way while you write code. A file that uses `ServoDev` writes `ServoDev`, not `Common\ServoDev`, and the compiler resolves the name as it resolves every other name. The compiler records the namespace for the file, but it does not change the compiled output. An attribute without a quoted name, such as `{namespace}`, is rejected (E024).
 
 > [!NOTE]
 > A backslash in a type reference is a parse error. The namespace is an attribute, never part of a name that you write.
