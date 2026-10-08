@@ -1214,27 +1214,18 @@ mod tests {
             implementations.iter().find(|i| i.name == "main").expect("main implementation should exist");
 
         let ref_eq_call_func_statement = &main_implementation.statements;
-        assert_snapshot!(AstSerializer::format_nodes(ref_eq_call_func_statement), @"
+        assert_snapshot!(AstSerializer::format_nodes(ref_eq_call_func_statement), @r"
         __main_refVal__ctor(refVal);
         __main__referenceFunc_return_val_1__ctor(__referenceFunc_return_val_1);
         tmpVal := 0;
         refVal REF= tmpVal;
         alloca __ran_once_0: BOOL;
         alloca __is_incrementing_0: BOOL;
-        alloca __is_last_0: BOOL;
         i := 1;
         __is_incrementing_0 := TRUE;
         WHILE TRUE DO
             IF __ran_once_0 THEN
-                IF __is_incrementing_0 THEN
-                    __is_last_0 := i >= 5 AND 1 > 0
-                ELSE
-                    __is_last_0 := i < 5 - 1
-                END_IF
                 i := i + 1
-                IF __is_last_0 THEN
-                    EXIT;
-                END_IF
             END_IF
             __ran_once_0 := TRUE
             IF __is_incrementing_0 THEN

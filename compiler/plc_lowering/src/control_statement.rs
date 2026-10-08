@@ -328,25 +328,16 @@ mod tests {
             END_PROGRAM
             "#;
 
-        assert_snapshot!(serialize(source), @"
+        assert_snapshot!(serialize(source), @r"
         val := 5
         cVar := ''
         alloca __ran_once_0: BOOL
         alloca __is_incrementing_0: BOOL
-        alloca __is_last_0: BOOL
         i := 0
         __is_incrementing_0 := TRUE
         WHILE TRUE DO
             IF __ran_once_0 THEN
-                IF __is_incrementing_0 THEN
-                    __is_last_0 := i >= 10 AND 1 > 0
-                ELSE
-                    __is_last_0 := i < 10 - 1
-                END_IF
                 i := i + 1
-                IF __is_last_0 THEN
-                    EXIT;
-                END_IF
             END_IF
             __ran_once_0 := TRUE
             IF __is_incrementing_0 THEN

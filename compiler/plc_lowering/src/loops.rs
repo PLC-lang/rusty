@@ -79,32 +79,21 @@
 //! END_FOR
 //! ```
 //!
-//! is lowered to a canonical `WHILE TRUE` loop with three synthetic temporaries:
+//! is lowered to a canonical `WHILE TRUE` loop with two synthetic temporaries:
 //!
 //! - `__ran_once_N` tracks whether the first iteration has already happened
 //! - `__is_incrementing_N` remembers whether the step is positive
-//! - `__is_last_N` remembers whether the step leaves the range of the loop
 //!
 //! ```st
 //! alloca __ran_once_N : BOOL;
 //! alloca __is_incrementing_N : BOOL;
-//! alloca __is_last_N : BOOL;
 //!
 //! <ctrl> := <init>;
 //! __is_incrementing_N := <step> > 0;
 //!
 //! WHILE TRUE DO
 //!     IF __ran_once_N THEN
-//!         IF __is_incrementing_N THEN
-//!             __is_last_N := <ctrl> >= <final> AND <step> > 0;
-//!         ELSE
-//!             __is_last_N := <ctrl> < <final> - <step>;
-//!         END_IF
-//!
 //!         <ctrl> := <ctrl> + <step>;
-//!         IF __is_last_N THEN
-//!             EXIT;
-//!         END_IF
 //!     END_IF
 //!     __ran_once_N := TRUE;
 //!
@@ -125,16 +114,9 @@
 //! If `BY` is omitted, the step defaults to `1`. The step and end expressions remain part of the lowered tree
 //! and are therefore evaluated where needed by later passes, matching the compiler's current semantics.
 //!
-//! The step can wrap the counter at the bounds of its type, e.g. an unsigned counter of
-//! `FOR i := 3 TO 0 BY -1` goes from `0` to its maximum value. The bound checks after the step then do not
-//! see that the loop is done, so `__is_last_N` detects the last iteration before the step. For a negative
-//! step this also covers a final bound that the step jumps over, because `<final> - <step>` is near the
-//! final bound, where the wrap occurs.
-//!
 //! ## Generated temporaries
 //!
-//! Compiler-generated names such as `__ran_once_N`, `__is_incrementing_N` and `__is_last_N` are unique per
-//! desugared loop.
+//! Compiler-generated names such as `__ran_once_N` and `__is_incrementing_N` are unique per desugared loop.
 //! They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.
 
 use std::{
@@ -324,59 +306,13 @@ impl AstVisitorMut for ForDesugarer {
             helper::create_alloca(&mut self.ids, "BOOL", format!("__ran_once_{num}"));
         let (is_incrementing_alloca, is_incrementing_ref) =
             helper::create_alloca(&mut self.ids, "BOOL", format!("__is_incrementing_{num}"));
-        let (is_last_alloca, is_last_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("__is_last_{num}"));
 
         // Normalize the step expression so omitted `BY` becomes a literal `1`.
         let has_explicit_step = by_step.is_some();
         let step = by_step.unwrap_or_else(|| helper::create_literal_integer(&mut self.ids, 1));
         let zero = helper::create_literal_integer(&mut self.ids, 0);
 
-        // Detect the last iteration before the step, which can wrap the counter at the bounds of its type.
-        let is_last_incrementing = helper::create_internal_assignment(
-            is_last_ref.clone(),
-            helper::create_internal_binary_expression(
-                helper::create_internal_binary_expression(
-                    counter.clone(),
-                    Operator::GreaterOrEqual,
-                    end.clone(),
-                    &mut self.ids,
-                ),
-                Operator::And,
-                helper::create_internal_binary_expression(
-                    step.clone(),
-                    Operator::Greater,
-                    zero.clone(),
-                    &mut self.ids,
-                ),
-                &mut self.ids,
-            ),
-            &mut self.ids,
-        );
-        let is_last_decrementing = helper::create_internal_assignment(
-            is_last_ref.clone(),
-            helper::create_internal_binary_expression(
-                counter.clone(),
-                Operator::Less,
-                helper::create_internal_binary_expression(
-                    end.clone(),
-                    Operator::Minus,
-                    step.clone(),
-                    &mut self.ids,
-                ),
-                &mut self.ids,
-            ),
-            &mut self.ids,
-        );
-        let is_last_assignment = helper::create_if_then_else(
-            self.ids.clone(),
-            is_incrementing_ref.clone(),
-            vec![is_last_incrementing],
-            vec![is_last_decrementing],
-            SourceLocation::internal(),
-        );
-
-        // Increment the counter at the top of every iteration after the first one, then exit after the last.
+        // Increment the counter at the top of every iteration after the first one.
         let increment_assignment = helper::create_internal_assignment(
             counter.clone(),
             helper::create_internal_binary_expression(
@@ -390,11 +326,7 @@ impl AstVisitorMut for ForDesugarer {
         let increment_guard = helper::create_if_then(
             self.ids.clone(),
             ran_once_ref.clone(),
-            vec![
-                is_last_assignment,
-                increment_assignment,
-                helper::create_if_then_exit(self.ids.clone(), is_last_ref),
-            ],
+            vec![increment_assignment],
             SourceLocation::internal(),
         );
 
@@ -450,7 +382,6 @@ impl AstVisitorMut for ForDesugarer {
         self.replacement = Some(vec![
             ran_once_alloca,
             is_incrementing_alloca,
-            is_last_alloca,
             AstFactory::create_assignment(counter, start, self.ids.next_id()),
             is_incrementing_assignment,
             helper::create_while_true_loop(&mut self.ids, body),
@@ -930,23 +861,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := 0
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= 10 AND 1 > 0
-                    ELSE
-                        __is_last_0 := i < 10 - 1
-                    END_IF
                     i := i + 1
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -978,23 +900,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := a
             __is_incrementing_0 := step > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= max AND step > 0
-                    ELSE
-                        __is_last_0 := i < max - step
-                    END_IF
                     i := i + step
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -1027,23 +940,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := 1
             __is_incrementing_0 := 0 > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= 3 AND 0 > 0
-                    ELSE
-                        __is_last_0 := i < 3 - 0
-                    END_IF
                     i := i + 0
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -1075,23 +979,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := 5
             __is_incrementing_0 := 2 > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= 1 AND 2 > 0
-                    ELSE
-                        __is_last_0 := i < 1 - 2
-                    END_IF
                     i := i + 2
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -1123,23 +1018,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := 1
             __is_incrementing_0 := -1 > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= 5 AND -1 > 0
-                    ELSE
-                        __is_last_0 := i < 5 - -1
-                    END_IF
                     i := i + -1
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -1171,23 +1057,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := 4
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= 4 AND 1 > 0
-                    ELSE
-                        __is_last_0 := i < 4 - 1
-                    END_IF
                     i := i + 1
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -1218,23 +1095,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := 0
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= max AND 1 > 0
-                    ELSE
-                        __is_last_0 := i < max - 1
-                    END_IF
                     i := i + 1
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -1265,23 +1133,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := 0
             __is_incrementing_0 := step > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= 10 AND step > 0
-                    ELSE
-                        __is_last_0 := i < 10 - step
-                    END_IF
                     i := i + step
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -1315,23 +1174,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := a
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= b AND 1 > 0
-                    ELSE
-                        __is_last_0 := i < b - 1
-                    END_IF
                     i := i + 1
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -1366,23 +1216,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
-            alloca __is_last_0: BOOL
             i := a
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
-                    IF __is_incrementing_0 THEN
-                        __is_last_0 := i >= b AND 1 > 0
-                    ELSE
-                        __is_last_0 := i < b - 1
-                    END_IF
                     i := i + 1
-                    IF __is_last_0 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
                 IF __is_incrementing_0 THEN
@@ -1416,23 +1257,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_1: BOOL
             alloca __is_incrementing_1: BOOL
-            alloca __is_last_1: BOOL
             i := start
             __is_incrementing_1 := outer_step > 0
             WHILE TRUE DO
                 IF __ran_once_1 THEN
-                    IF __is_incrementing_1 THEN
-                        __is_last_1 := i >= finish AND outer_step > 0
-                    ELSE
-                        __is_last_1 := i < finish - outer_step
-                    END_IF
                     i := i + outer_step
-                    IF __is_last_1 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_1 := TRUE
                 IF __is_incrementing_1 THEN
@@ -1446,20 +1278,11 @@ mod tests {
                 END_IF
                 alloca __ran_once_0: BOOL
                 alloca __is_incrementing_0: BOOL
-                alloca __is_last_0: BOOL
                 j := 10
                 __is_incrementing_0 := inner_step > 0
                 WHILE TRUE DO
                     IF __ran_once_0 THEN
-                        IF __is_incrementing_0 THEN
-                            __is_last_0 := j >= 0 AND inner_step > 0
-                        ELSE
-                            __is_last_0 := j < 0 - inner_step
-                        END_IF
                         j := j + inner_step
-                        IF __is_last_0 THEN
-                            EXIT;
-                        END_IF
                     END_IF
                     __ran_once_0 := TRUE
                     IF __is_incrementing_0 THEN
@@ -1494,23 +1317,14 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca __ran_once_1: BOOL
             alloca __is_incrementing_1: BOOL
-            alloca __is_last_1: BOOL
             i := a
             __is_incrementing_1 := c > 0
             WHILE TRUE DO
                 IF __ran_once_1 THEN
-                    IF __is_incrementing_1 THEN
-                        __is_last_1 := i >= b AND c > 0
-                    ELSE
-                        __is_last_1 := i < b - c
-                    END_IF
                     i := i + c
-                    IF __is_last_1 THEN
-                        EXIT;
-                    END_IF
                 END_IF
                 __ran_once_1 := TRUE
                 IF __is_incrementing_1 THEN
@@ -1524,20 +1338,11 @@ mod tests {
                 END_IF
                 alloca __ran_once_0: BOOL
                 alloca __is_incrementing_0: BOOL
-                alloca __is_last_0: BOOL
                 j := 0
                 __is_incrementing_0 := TRUE
                 WHILE TRUE DO
                     IF __ran_once_0 THEN
-                        IF __is_incrementing_0 THEN
-                            __is_last_0 := j >= 2 AND 1 > 0
-                        ELSE
-                            __is_last_0 := j < 2 - 1
-                        END_IF
                         j := j + 1
-                        IF __is_last_0 THEN
-                            EXIT;
-                        END_IF
                     END_IF
                     __ran_once_0 := TRUE
                     IF __is_incrementing_0 THEN
