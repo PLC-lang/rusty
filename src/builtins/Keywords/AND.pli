@@ -1,0 +1,6 @@
+(* Returns the bitwise AND of all inputs *)
+FUNCTION AND<T: ANY> : T
+VAR_INPUT
+    IN : {sized} T...;
+END_VAR
+END_FUNCTION
