@@ -10,7 +10,7 @@ VAR
 END_VAR
 
 a := SIZEOF(arr);
-b := SIZEOF(in := arr);
+b := SIZEOF(IN := arr);
 // CHECK: SIZEOF=10 10
 printf('SIZEOF=%d %d$N', a, b);
 END_FUNCTION
