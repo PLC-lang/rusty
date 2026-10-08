@@ -48,9 +48,9 @@ entry:
   %tmpVar3 = icmp ne i32 %3, %load_var_udint
   %load_var_uint = load i16, ptr %var_uint, align [filtered]
   %4 = zext i16 %load_var_uint to i32
-  %tmpVar4 = icmp sle i32 %4, 40
+  %tmpVar4 = icmp ule i32 %4, 40
   %load_var_ulint = load i64, ptr %var_ulint, align [filtered]
-  %tmpVar5 = icmp sge i64 10, %load_var_ulint
+  %tmpVar5 = icmp uge i64 10, %load_var_ulint
   %load_var_sint6 = load i8, ptr %var_sint, align [filtered]
   %5 = sext i8 %load_var_sint6 to i32
   %load_var_usint7 = load i8, ptr %var_usint, align [filtered]
@@ -63,7 +63,7 @@ entry:
   %load_var_dint12 = load i32, ptr %var_dint, align [filtered]
   %8 = sext i32 %load_var_dint12 to i64
   %load_var_ulint13 = load i64, ptr %var_ulint, align [filtered]
-  %tmpVar14 = icmp sge i64 %8, %load_var_ulint13
+  %tmpVar14 = icmp uge i64 %8, %load_var_ulint13
   %load_var_lint15 = load i64, ptr %var_lint, align [filtered]
   %load_a = load i16, ptr %a, align [filtered]
   %9 = sext i16 %load_a to i64
