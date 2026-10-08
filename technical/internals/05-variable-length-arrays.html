@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-3d8ff075.js";
+            window.path_to_searchindex_js = "../../searchindex-4a055b22.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -260,7 +260,7 @@ __fill_grid                        Struct, nature __VLA, source VariableLengthAr
 <pre><code>    total := sum(small);
                  ^^^^^            { kind: Variable, qualified_name: "main.small",       resulting_type: "__main_small",  hint: Argument { resulting_type: "__auto_pointer_to___sum_values", position: 0 } }
 </code></pre>
-<p><code>LOWER_BOUND</code> and <code>UPPER_BOUND</code> are built-in generic functions, declared as <code>FUNCTION LOWER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt;: DINT</code>. Their annotation, validation, and codegen each order the arguments by the parameter names <code>arr</code> and <code>dim</code> first, so a named call such as <code>LOWER_BOUND(dim := 1, arr := values)</code> reaches them in declaration order. The argument for <code>arr</code> is hinted with its own VLA type when it is one, and with the reserved placeholder type <code>__VLA</code> when it is not, so that the argument fails the type check with a readable name. The argument for <code>dim</code> keeps its integer type, and the call is a <code>DINT</code> value.</p>
+<p><code>LOWER_BOUND</code> and <code>UPPER_BOUND</code> are built-in generic functions, declared as <code>FUNCTION LOWER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt;: DINT</code>. Their annotation, validation, and codegen each order the arguments by the parameter names <code>ARR</code> and <code>DIM</code> first, so a named call such as <code>LOWER_BOUND(DIM := 1, ARR := values)</code> reaches them in declaration order. The argument for <code>ARR</code> is hinted with its own VLA type when it is one, and with the reserved placeholder type <code>__VLA</code> when it is not, so that the argument fails the type check with a readable name. The argument for <code>DIM</code> keeps its integer type, and the call is a <code>DINT</code> value.</p>
 <h2 id="lowering"><a class="header" href="#lowering">Lowering</a></h2>
 <p>No participant rewrites VLAs. The <a href="../participants/01-loop-desugar.html">loop desugarer</a> turns the <code>FOR</code> of the example into a <code>WHILE TRUE</code> loop, which is why the IR below reads the lower bound once in front of the loop and the upper bound again on every iteration.</p>
 <h2 id="codegen"><a class="header" href="#codegen">Codegen</a></h2>

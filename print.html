@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-3d8ff075.js";
+            window.path_to_searchindex_js = "searchindex-4a055b22.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-645c3480.js"></script>
@@ -2920,10 +2920,10 @@ plc build src/plc.json    # reads the given file
 <tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
 </thead>
 <tbody>
-<tr><td><code>ADR(in)</code></td><td><code>in: ANY</code></td><td><code>LWORD</code></td><td>The address of a variable, as a number</td></tr>
-<tr><td><code>REF(in)</code></td><td><code>in: ANY</code></td><td><code>REF_TO</code> the type of <code>in</code></td><td>A reference to a variable</td></tr>
-<tr><td><code>SIZEOF(in)</code></td><td><code>in: ANY</code></td><td><code>ULINT</code></td><td>The size of the argument’s type, in bytes</td></tr>
-<tr><td><code>MOVE(in)</code></td><td><code>in: ANY</code></td><td>The type of <code>in</code></td><td>The value of <code>in</code></td></tr>
+<tr><td><code>ADR(IN)</code></td><td><code>IN: ANY</code></td><td><code>LWORD</code></td><td>The address of a variable, as a number</td></tr>
+<tr><td><code>REF(IN)</code></td><td><code>IN: ANY</code></td><td><code>REF_TO</code> the type of <code>IN</code></td><td>A reference to a variable</td></tr>
+<tr><td><code>SIZEOF(IN)</code></td><td><code>IN: ANY</code></td><td><code>ULINT</code></td><td>The size of the argument’s type, in bytes</td></tr>
+<tr><td><code>MOVE(IN)</code></td><td><code>IN: ANY</code></td><td>The type of <code>IN</code></td><td>The value of <code>IN</code></td></tr>
 </tbody>
 </table>
 </div>
@@ -2946,12 +2946,12 @@ plc build src/plc.json    # reads the given file
 <tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
 </thead>
 <tbody>
-<tr><td><code>LOWER_BOUND(arr, dim)</code></td><td><code>arr: ARRAY[*]</code>, <code>dim: ANY_INT</code></td><td><code>DINT</code></td><td>The first index of dimension <code>dim</code></td></tr>
-<tr><td><code>UPPER_BOUND(arr, dim)</code></td><td><code>arr: ARRAY[*]</code>, <code>dim: ANY_INT</code></td><td><code>DINT</code></td><td>The last index of dimension <code>dim</code></td></tr>
+<tr><td><code>LOWER_BOUND(ARR, DIM)</code></td><td><code>ARR: ARRAY[*]</code>, <code>DIM: ANY_INT</code></td><td><code>DINT</code></td><td>The first index of dimension <code>DIM</code></td></tr>
+<tr><td><code>UPPER_BOUND(ARR, DIM)</code></td><td><code>ARR: ARRAY[*]</code>, <code>DIM: ANY_INT</code></td><td><code>DINT</code></td><td>The last index of dimension <code>DIM</code></td></tr>
 </tbody>
 </table>
 </div>
-<p><code>arr</code> takes an array of any size only, not an array of a fixed size. <a href="#arrays-of-any-size">Functions</a> shows both in a loop.</p>
+<p><code>ARR</code> takes an array of any size only, not an array of a fixed size. <a href="#arrays-of-any-size">Functions</a> shows both in a loop.</p>
 <h3 id="arithmetic-1"><a class="header" href="#arithmetic-1">Arithmetic</a></h3>
 <div class="table-wrapper">
 <table>
@@ -3008,8 +3008,8 @@ plc build src/plc.json    # reads the given file
 <tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
 </thead>
 <tbody>
-<tr><td><code>SHL(IN, n)</code></td><td><code>IN: ANY</code>, <code>n: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted left by <code>n</code> bits</td></tr>
-<tr><td><code>SHR(IN, n)</code></td><td><code>IN: ANY</code>, <code>n: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted right by <code>n</code> bits</td></tr>
+<tr><td><code>SHL(IN, N)</code></td><td><code>IN: ANY</code>, <code>N: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted left by <code>N</code> bits</td></tr>
+<tr><td><code>SHR(IN, N)</code></td><td><code>IN: ANY</code>, <code>N: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted right by <code>N</code> bits</td></tr>
 </tbody>
 </table>
 </div>
@@ -9359,7 +9359,7 @@ __fill_grid                        Struct, nature __VLA, source VariableLengthAr
 <pre><code>    total := sum(small);
                  ^^^^^            { kind: Variable, qualified_name: "main.small",       resulting_type: "__main_small",  hint: Argument { resulting_type: "__auto_pointer_to___sum_values", position: 0 } }
 </code></pre>
-<p><code>LOWER_BOUND</code> and <code>UPPER_BOUND</code> are built-in generic functions, declared as <code>FUNCTION LOWER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt;: DINT</code>. Their annotation, validation, and codegen each order the arguments by the parameter names <code>arr</code> and <code>dim</code> first, so a named call such as <code>LOWER_BOUND(dim := 1, arr := values)</code> reaches them in declaration order. The argument for <code>arr</code> is hinted with its own VLA type when it is one, and with the reserved placeholder type <code>__VLA</code> when it is not, so that the argument fails the type check with a readable name. The argument for <code>dim</code> keeps its integer type, and the call is a <code>DINT</code> value.</p>
+<p><code>LOWER_BOUND</code> and <code>UPPER_BOUND</code> are built-in generic functions, declared as <code>FUNCTION LOWER_BOUND&lt;U: __ANY_VLA, T: ANY_INT&gt;: DINT</code>. Their annotation, validation, and codegen each order the arguments by the parameter names <code>ARR</code> and <code>DIM</code> first, so a named call such as <code>LOWER_BOUND(DIM := 1, ARR := values)</code> reaches them in declaration order. The argument for <code>ARR</code> is hinted with its own VLA type when it is one, and with the reserved placeholder type <code>__VLA</code> when it is not, so that the argument fails the type check with a readable name. The argument for <code>DIM</code> keeps its integer type, and the call is a <code>DINT</code> value.</p>
 <h2 id="lowering-5"><a class="header" href="#lowering-5">Lowering</a></h2>
 <p>No participant rewrites VLAs. The <a href="#loop-desugar">loop desugarer</a> turns the <code>FOR</code> of the example into a <code>WHILE TRUE</code> loop, which is why the IR below reads the lower bound once in front of the loop and the upper bound again on every iteration.</p>
 <h2 id="codegen-6"><a class="header" href="#codegen-6">Codegen</a></h2>

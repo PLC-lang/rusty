@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-3d8ff075.js";
+            window.path_to_searchindex_js = "../../searchindex-4a055b22.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -193,10 +193,10 @@
 <tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
 </thead>
 <tbody>
-<tr><td><code>ADR(in)</code></td><td><code>in: ANY</code></td><td><code>LWORD</code></td><td>The address of a variable, as a number</td></tr>
-<tr><td><code>REF(in)</code></td><td><code>in: ANY</code></td><td><code>REF_TO</code> the type of <code>in</code></td><td>A reference to a variable</td></tr>
-<tr><td><code>SIZEOF(in)</code></td><td><code>in: ANY</code></td><td><code>ULINT</code></td><td>The size of the argument’s type, in bytes</td></tr>
-<tr><td><code>MOVE(in)</code></td><td><code>in: ANY</code></td><td>The type of <code>in</code></td><td>The value of <code>in</code></td></tr>
+<tr><td><code>ADR(IN)</code></td><td><code>IN: ANY</code></td><td><code>LWORD</code></td><td>The address of a variable, as a number</td></tr>
+<tr><td><code>REF(IN)</code></td><td><code>IN: ANY</code></td><td><code>REF_TO</code> the type of <code>IN</code></td><td>A reference to a variable</td></tr>
+<tr><td><code>SIZEOF(IN)</code></td><td><code>IN: ANY</code></td><td><code>ULINT</code></td><td>The size of the argument’s type, in bytes</td></tr>
+<tr><td><code>MOVE(IN)</code></td><td><code>IN: ANY</code></td><td>The type of <code>IN</code></td><td>The value of <code>IN</code></td></tr>
 </tbody>
 </table>
 </div>
@@ -219,12 +219,12 @@
 <tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
 </thead>
 <tbody>
-<tr><td><code>LOWER_BOUND(arr, dim)</code></td><td><code>arr: ARRAY[*]</code>, <code>dim: ANY_INT</code></td><td><code>DINT</code></td><td>The first index of dimension <code>dim</code></td></tr>
-<tr><td><code>UPPER_BOUND(arr, dim)</code></td><td><code>arr: ARRAY[*]</code>, <code>dim: ANY_INT</code></td><td><code>DINT</code></td><td>The last index of dimension <code>dim</code></td></tr>
+<tr><td><code>LOWER_BOUND(ARR, DIM)</code></td><td><code>ARR: ARRAY[*]</code>, <code>DIM: ANY_INT</code></td><td><code>DINT</code></td><td>The first index of dimension <code>DIM</code></td></tr>
+<tr><td><code>UPPER_BOUND(ARR, DIM)</code></td><td><code>ARR: ARRAY[*]</code>, <code>DIM: ANY_INT</code></td><td><code>DINT</code></td><td>The last index of dimension <code>DIM</code></td></tr>
 </tbody>
 </table>
 </div>
-<p><code>arr</code> takes an array of any size only, not an array of a fixed size. <a href="../language/functions.html#arrays-of-any-size">Functions</a> shows both in a loop.</p>
+<p><code>ARR</code> takes an array of any size only, not an array of a fixed size. <a href="../language/functions.html#arrays-of-any-size">Functions</a> shows both in a loop.</p>
 <h3 id="arithmetic"><a class="header" href="#arithmetic">Arithmetic</a></h3>
 <div class="table-wrapper">
 <table>
@@ -281,8 +281,8 @@
 <tr><th>Call</th><th>Parameters</th><th>Result</th><th>Gives</th></tr>
 </thead>
 <tbody>
-<tr><td><code>SHL(IN, n)</code></td><td><code>IN: ANY</code>, <code>n: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted left by <code>n</code> bits</td></tr>
-<tr><td><code>SHR(IN, n)</code></td><td><code>IN: ANY</code>, <code>n: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted right by <code>n</code> bits</td></tr>
+<tr><td><code>SHL(IN, N)</code></td><td><code>IN: ANY</code>, <code>N: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted left by <code>N</code> bits</td></tr>
+<tr><td><code>SHR(IN, N)</code></td><td><code>IN: ANY</code>, <code>N: UDINT</code></td><td>The type of <code>IN</code></td><td><code>IN</code> shifted right by <code>N</code> bits</td></tr>
 </tbody>
 </table>
 </div>
