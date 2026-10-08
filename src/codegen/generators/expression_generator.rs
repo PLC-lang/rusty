@@ -29,7 +29,7 @@ use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
-        llvm_typesystem::cast_if_needed,
+        llvm_typesystem::{cast_if_needed, get_llvm_int_type},
         CodegenError,
     },
     index::{
@@ -388,14 +388,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return self.generate_bool_binary_expression(operator, left, right);
         }
         if ltype.is_int() && rtype.is_int() {
-            let is_signed = ltype.is_signed_int() || rtype.is_signed_int();
+            let left_value = self.generate_expression(left)?;
+            let right_value = self.generate_expression(right)?;
 
-            self.create_llvm_int_binary_expression(
+            if matches!(
                 operator,
-                self.generate_expression(left)?,
-                self.generate_expression(right)?,
-                Some(is_signed),
-            )
+                Operator::Less | Operator::Greater | Operator::LessOrEqual | Operator::GreaterOrEqual
+            ) {
+                return self.generate_int_ordering_comparison(operator, left, left_value, right, right_value);
+            }
+
+            let is_signed = ltype.is_signed_int() || rtype.is_signed_int();
+            self.create_llvm_int_binary_expression(operator, left_value, right_value, Some(is_signed))
         } else if ltype.is_float() && rtype.is_float() {
             self.create_llvm_float_binary_expression(
                 operator,
@@ -409,6 +413,69 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.create_llvm_binary_expression_for_pointer(operator, left, ltype, right, rtype, expression)
         } else {
             self.create_llvm_generic_binary_expression(left, right, expression)
+        }
+    }
+
+    /// generates an ordering comparison (<, >, <=, >=) of two integers that compares their values
+    ///
+    /// A negative value needs a signed predicate and a value with the highest bit set needs an unsigned
+    /// one. If the operands need both (e.g. `ULINT#16#FFFFFFFFFFFFFFFF > -1`), they are extended to twice
+    /// their width and compared as signed values.
+    fn generate_int_ordering_comparison(
+        &self,
+        operator: &Operator,
+        left: &AstNode,
+        left_value: BasicValueEnum<'ink>,
+        right: &AstNode,
+        right_value: BasicValueEnum<'ink>,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
+        let (left_value, right_value) = (left_value.into_int_value(), right_value.into_int_value());
+        let width = left_value.get_type().get_bit_width().max(right_value.get_type().get_bit_width());
+        let (left_negative, left_highest_bit) = self.get_int_value_range(left, width);
+        let (right_negative, right_highest_bit) = self.get_int_value_range(right, width);
+
+        // Without both kinds of values one predicate fits all values
+        let has_negative = left_negative || right_negative;
+        let has_highest_bit = left_highest_bit || right_highest_bit;
+        if !(has_negative && has_highest_bit) {
+            return self.create_llvm_int_binary_expression(
+                operator,
+                left_value.into(),
+                right_value.into(),
+                Some(!has_highest_bit),
+            );
+        }
+
+        // Otherwise compare the extended values
+        let wide_type = get_llvm_int_type(self.llvm.context, width * 2, "comparison");
+        let extend = |value: IntValue<'ink>, negative: bool| -> Result<BasicValueEnum<'ink>, CodegenError> {
+            Ok(if negative {
+                self.llvm.builder.build_int_s_extend(value, wide_type, "")?
+            } else {
+                self.llvm.builder.build_int_z_extend(value, wide_type, "")?
+            }
+            .as_basic_value_enum())
+        };
+
+        self.create_llvm_int_binary_expression(
+            operator,
+            extend(left_value, left_negative)?,
+            extend(right_value, right_negative)?,
+            Some(true),
+        )
+    }
+
+    /// returns whether `expression` can be negative and whether it can have the highest of `width` bits
+    /// set while being positive
+    fn get_int_value_range(&self, expression: &AstNode, width: u32) -> (bool, bool) {
+        if let Some(value) = expression.get_literal_integer_value() {
+            return (value < 0, value >= 1 << (width - 1));
+        }
+
+        let data_type = self.annotations.get_type_or_void(expression, self.index);
+        match self.index.get_intrinsic_type_by_name(data_type.get_name()).get_type_information() {
+            DataTypeInformation::Integer { signed: false, size, .. } => (false, *size >= width),
+            _ => (true, false),
         }
     }
 
