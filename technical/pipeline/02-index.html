@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-4a055b22.js";
+            window.path_to_searchindex_js = "../../searchindex-4dedd213.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -329,7 +329,7 @@ END_FUNCTION_BLOCK
 <p>The <a href="../internals/README.html">Internals</a> chapters show how each language construct uses these records.</p>
 <h2 id="merging"><a class="header" href="#merging">Merging</a></h2>
 <p>Units are indexed concurrently, one table each, and the tables are merged in unit order into one global index. Merging appends: a name declared in two files ends with two entries under one key, which validation later reports as a duplicate. Constant expressions are copied into the global constant store, receive new IDs, and the entries that hold an ID are updated.</p>
-<p>Two more tables are merged in after the user’s units. The built-in types, <code>BOOL</code>, <code>INT</code>, <code>DINT</code>, <code>REAL</code>, <code>STRING</code>, <code>TIME</code>, and the rest, are constructed directly. The built-in functions, <code>ADR</code>, <code>SIZEOF</code>, <code>MUX</code>, <code>SEL</code>, the generic arithmetic and comparison functions, and the array bound functions, are Structured Text declarations embedded in the compiler. They are parsed, pre-processed, and indexed like any other unit, and merged last. A user function named <code>add</code> therefore shares a key with the built-in <code>ADD</code> and is a duplicate symbol.</p>
+<p>Two more tables are merged in after the user’s units. The built-in types, <code>BOOL</code>, <code>INT</code>, <code>DINT</code>, <code>REAL</code>, <code>STRING</code>, <code>TIME</code>, and the rest, are constructed directly. The built-in functions, <code>ADR</code>, <code>SIZEOF</code>, <code>MUX</code>, <code>SEL</code>, the generic arithmetic and comparison functions, and the array bound functions, are Structured Text declarations embedded in the compiler. Each one is a file in <code>src/builtins/</code> that the compiler includes at build time, so tools such as an IDE can read the same declarations from the sources. They are parsed, pre-processed, and indexed like any other unit, and merged last. A user function named <code>add</code> therefore shares a key with the built-in <code>ADD</code> and is a duplicate symbol.</p>
 <p>Visualized for two files, showing only the POU map:</p>
 <pre><code>a.st      pous: { scale }
 b.st      pous: { main, buffer }
@@ -398,7 +398,7 @@ END_VAR
 <tr><td>Index</td><td><code>src/index.rs</code>, <code>src/index/</code></td></tr>
 <tr><td>Constant evaluation</td><td><code>src/resolver/</code></td></tr>
 <tr><td>Types</td><td><code>src/typesystem.rs</code></td></tr>
-<tr><td>Built-ins</td><td><code>src/builtins.rs</code></td></tr>
+<tr><td>Built-ins</td><td><code>src/builtins.rs</code>, declarations in <code>src/builtins/</code></td></tr>
 </tbody>
 </table>
 </div>
