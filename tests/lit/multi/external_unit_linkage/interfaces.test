@@ -1,0 +1,10 @@
+RUN: %PLC -c --fpic %S/interfaces_lib_a.st -o %t.a.o
+RUN: %PLC -c --fpic %S/interfaces_lib_b.st -o %t.b.o
+RUN: %COMPILE -i %S/interfaces_lib_a.st -i %S/interfaces_lib_b.st %S/interfaces_main.st %t.a.o %t.b.o && %RUN | %CHECK %s
+
+Two independent units that use interfaces are compiled to separate objects and
+linked into one program. The symbols generated for the interface fat pointer
+type must not be defined more than once.
+
+CHECK: 1
+CHECK: 2

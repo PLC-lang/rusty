@@ -1,0 +1,13 @@
+RUN: mkdir -p %t.d
+RUN: %PLC --constructors-only --relocatable --fpic %S/properties_c_lib.pli -o %t.d/ctors.o
+RUN: cc -shared -fPIC %S/properties_c_lib.c %t.d/ctors.o -o %t.d/libfbext.so
+RUN: %COMPILE -i %S/properties_c_lib.pli %S/properties_c_main.st -L%t.d -lfbext
+RUN: LD_LIBRARY_PATH=%STDLIBDIR:%t.d %T/%basename_t.out | %CHECK %s
+
+FbExt is a library FB: properties_c_lib.c implements its bodies and property
+accessors, and --constructors-only generates its constructors. The program
+includes properties_c_lib.pli and must call the library accessors, not define
+its own.
+
+CHECK: 42
+CHECK: 42
