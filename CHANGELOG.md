@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.7](https://github.com/PLC-lang/rusty/releases/tag/v1.0.7) - 2026-10-08
+
+### Fixed
+
+- Carry out date and time operators through the standard library (1.0.x) (#1944)
+- **codegen**: Initialize function outputs and omitted arguments (1.0.x) (#1959)
+- **resolver**: Resolve call arguments once (1.0.x) (#1961)
 ## [1.0.6](https://github.com/PLC-lang/rusty/releases/tag/v1.0.6) - 2026-10-01
 
 ### Fixed
