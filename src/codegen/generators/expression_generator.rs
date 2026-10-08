@@ -2299,20 +2299,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.llvm.builder.build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, "tmpVar")?
             }
 
-            Operator::Less => {
-                self.llvm.builder.build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, "tmpVar")?
-            }
-
-            Operator::Greater => {
-                self.llvm.builder.build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, "tmpVar")?
-            }
-
-            Operator::LessOrEqual => {
-                self.llvm.builder.build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, "tmpVar")?
-            }
-
-            Operator::GreaterOrEqual => {
-                self.llvm.builder.build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar")?
+            Operator::Less | Operator::Greater | Operator::LessOrEqual | Operator::GreaterOrEqual => {
+                // Without sign information the operands are compared as signed values
+                let predicate = get_int_ordering_predicate(operator, is_signed.unwrap_or(true));
+                self.llvm.builder.build_int_compare(predicate, int_lvalue, int_rvalue, "tmpVar")?
             }
             Operator::Xor => self.llvm.builder.build_xor(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::And => self.llvm.builder.build_and(int_lvalue, int_rvalue, "tmpVar")?,
@@ -3686,6 +3676,21 @@ fn int_value_multiply_accumulate<'ink>(
         llvm.builder.build_store(accum, curr)?;
     }
     Ok(llvm.builder.build_load(i32_type, accum, "accessor")?.into_int_value())
+}
+
+/// Returns the integer predicate for the ordering comparison `operator` (<, >, <=, >=)
+fn get_int_ordering_predicate(operator: &Operator, is_signed: bool) -> IntPredicate {
+    match (operator, is_signed) {
+        (Operator::Less, true) => IntPredicate::SLT,
+        (Operator::Less, false) => IntPredicate::ULT,
+        (Operator::Greater, true) => IntPredicate::SGT,
+        (Operator::Greater, false) => IntPredicate::UGT,
+        (Operator::LessOrEqual, true) => IntPredicate::SLE,
+        (Operator::LessOrEqual, false) => IntPredicate::ULE,
+        (Operator::GreaterOrEqual, true) => IntPredicate::SGE,
+        (Operator::GreaterOrEqual, false) => IntPredicate::UGE,
+        _ => unreachable!("'{operator}' is no ordering comparison"),
+    }
 }
 
 // XXX: Could be problematic with https://github.com/PLC-lang/rusty/issues/668
