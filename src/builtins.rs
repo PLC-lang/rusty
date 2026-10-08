@@ -50,7 +50,7 @@ lazy_static! {
                 {constant}
                 FUNCTION ADR<U: ANY> : LWORD
                 VAR_INPUT
-                    in : U;
+                    IN : U;
                 END_VAR
                 END_FUNCTION
             ",
@@ -99,7 +99,7 @@ lazy_static! {
                 {constant}
                 FUNCTION REF<U: ANY> : REF_TO U
                 VAR_INPUT
-                    in : U;
+                    IN : U;
                 END_VAR
                 END_FUNCTION
                 ",
@@ -160,7 +160,7 @@ lazy_static! {
                 decl: "FUNCTION MUX<U: ANY> : U
                 VAR_INPUT
                     K : DINT;
-                    args : {sized} U...;
+                    IN : {sized} U...;
                 END_VAR
                 END_FUNCTION
                 ",
@@ -270,7 +270,7 @@ lazy_static! {
             BuiltIn {
                 decl : "FUNCTION MOVE<U: ANY> : U
                 VAR_INPUT
-                    in : U;
+                    IN : U;
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
@@ -291,7 +291,7 @@ lazy_static! {
             BuiltIn {
                 decl : "FUNCTION SIZEOF<U: ANY> : ULINT
                 VAR_INPUT
-                    in : U;
+                    IN : U;
                 END_VAR
                 END_FUNCTION",
                 annotation: None,
@@ -327,10 +327,10 @@ lazy_static! {
             BuiltIn {
                 decl: "FUNCTION LOWER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
                 VAR_IN_OUT
-                    arr : U;
+                    ARR : U;
                 END_VAR
                 VAR_INPUT
-                    dim : T;
+                    DIM : T;
                 END_VAR
                 END_FUNCTION",
                 annotation: Some(|annotator, _, _, parameters, _| {
@@ -350,10 +350,10 @@ lazy_static! {
             BuiltIn {
                 decl: "FUNCTION UPPER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
                 VAR_IN_OUT
-                    arr : U;
+                    ARR : U;
                 END_VAR
                 VAR_INPUT
-                    dim : T;
+                    DIM : T;
                 END_VAR
                 END_FUNCTION",
                 annotation: Some(|annotator, _, _, parameters, _| {
@@ -374,7 +374,7 @@ lazy_static! {
             BuiltIn {
                 decl: "FUNCTION ADD<T: ANY> : T
                     VAR_INPUT
-                        args: {sized} T...;
+                        IN : {sized} T...;
                     END_VAR
                     END_FUNCTION
                 ",
@@ -400,7 +400,7 @@ lazy_static! {
             BuiltIn {
                 decl: "FUNCTION MUL<T: ANY> : T
                 VAR_INPUT
-                    args: {sized} T...;
+                    IN : {sized} T...;
                 END_VAR
                 END_FUNCTION
                 ",
@@ -592,7 +592,7 @@ lazy_static! {
             BuiltIn {
                 decl: "FUNCTION AND<T: ANY> : T
                 VAR_INPUT
-                    args : {sized} T...;
+                    IN : {sized} T...;
                 END_VAR
                 END_FUNCTION
                 ",
@@ -618,7 +618,7 @@ lazy_static! {
             BuiltIn {
                 decl: "FUNCTION OR<T: ANY> : T
                 VAR_INPUT
-                    args : {sized} T...;
+                    IN : {sized} T...;
                 END_VAR
                 END_FUNCTION
                 ",
@@ -644,7 +644,7 @@ lazy_static! {
             BuiltIn {
                 decl: "FUNCTION XOR<T: ANY> : T
                 VAR_INPUT
-                    args : {sized} T...;
+                    IN : {sized} T...;
                 END_VAR
                 END_FUNCTION
                 ",
@@ -842,7 +842,7 @@ lazy_static! {
                 FUNCTION SHL<T: ANY> : T
                 VAR_INPUT
                     IN : T;
-                    n : UDINT;
+                    N : UDINT;
                 END_VAR
                 END_FUNCTION
             ",
@@ -854,7 +854,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let ordered = order_arguments(params, &["IN", "n"]);
+                    let ordered = order_arguments(params, &["IN", "N"]);
                     let [actual_in, actual_n] = [0, 1].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     let left = generator.generate_expression(actual_in)?.into_int_value();
@@ -873,7 +873,7 @@ lazy_static! {
                 FUNCTION SHR<T: ANY> : T
                 VAR_INPUT
                     IN : T;
-                    n : UDINT;
+                    N : UDINT;
                 END_VAR
                 END_FUNCTION
             ",
@@ -885,7 +885,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let ordered = order_arguments(params, &["IN", "n"]);
+                    let ordered = order_arguments(params, &["IN", "N"]);
                     let [actual_in, actual_n] = [0, 1].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     let left = generator.generate_expression(actual_in)?.into_int_value();
@@ -1369,7 +1369,7 @@ fn annotate_variable_length_array_bound_function(
     let Some(parameters) = parameters else {
         return;
     };
-    let params = order_arguments(&ast::flatten_expression_list(parameters), &["arr", "dim"]);
+    let params = order_arguments(&ast::flatten_expression_list(parameters), &["ARR", "DIM"]);
     let vla = params.first().expect("must exist; covered by validation");
     let vla_param = extract_actual_parameter(vla);
     // if the VLA parameter is a VLA struct, annotate it as such
@@ -1410,7 +1410,7 @@ fn validate_variable_length_array_bound_function(
         return;
     };
 
-    let params = order_arguments(&ast::flatten_expression_list(parameters), &["arr", "dim"]);
+    let params = order_arguments(&ast::flatten_expression_list(parameters), &["ARR", "DIM"]);
 
     if let [vla, dim] = params.as_slice() {
         let [actual_vla, actual_idx] = [*vla, *dim].map(extract_actual_parameter);
@@ -1531,7 +1531,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
 
-    if let [vla, dim] = order_arguments(params, &["arr", "dim"]).as_slice() {
+    if let [vla, dim] = order_arguments(params, &["ARR", "DIM"]).as_slice() {
         let [actual_vla, actual_dim] = [*vla, *dim].map(extract_actual_parameter);
 
         let data_type_information =
