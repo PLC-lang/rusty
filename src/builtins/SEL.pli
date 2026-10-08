@@ -1,0 +1,7 @@
+FUNCTION SEL<U: ANY> : U
+VAR_INPUT
+    G   : BOOL;
+    IN0 : U;
+    IN1 : U;
+END_VAR
+END_FUNCTION

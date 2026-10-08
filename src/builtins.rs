@@ -46,14 +46,7 @@ lazy_static! {
         (
             "ADR",
             BuiltIn {
-                decl: "
-                {constant}
-                FUNCTION ADR<U: ANY> : LWORD
-                VAR_INPUT
-                    IN : U;
-                END_VAR
-                END_FUNCTION
-            ",
+                decl: include_str!("builtins/ADR.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, annotations, _| {
                     validate_argument_count(validator, operator, &parameters, 1);
@@ -95,14 +88,7 @@ lazy_static! {
         (
             "REF",
             BuiltIn {
-                decl: "
-                {constant}
-                FUNCTION REF<U: ANY> : REF_TO U
-                VAR_INPUT
-                    IN : U;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/REF.pli"),
                 annotation: Some(|annotator, _, operator, parameters, _| {
                     // invalid amount of parameters is checked during validation
                     let Some(params) = parameters else { return; };
@@ -157,13 +143,7 @@ lazy_static! {
         (
             "MUX",
             BuiltIn {
-                decl: "FUNCTION MUX<U: ANY> : U
-                VAR_INPUT
-                    K : DINT;
-                    IN : {sized} U...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/MUX.pli"),
                 annotation : None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -214,14 +194,7 @@ lazy_static! {
         (
             "SEL",
             BuiltIn {
-                decl: "FUNCTION SEL<U: ANY> : U
-                VAR_INPUT
-                    G   : BOOL;
-                    IN0 : U;
-                    IN1 : U;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/SEL.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, _, _| {
                     validate_argument_count(validator, operator, &parameters, 3);
@@ -268,11 +241,7 @@ lazy_static! {
         (
             "MOVE",
             BuiltIn {
-                decl : "FUNCTION MOVE<U: ANY> : U
-                VAR_INPUT
-                    IN : U;
-                END_VAR
-                END_FUNCTION",
+                decl: include_str!("builtins/MOVE.pli"),
                 annotation: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -289,11 +258,7 @@ lazy_static! {
         (
             "SIZEOF",
             BuiltIn {
-                decl : "FUNCTION SIZEOF<U: ANY> : ULINT
-                VAR_INPUT
-                    IN : U;
-                END_VAR
-                END_FUNCTION",
+                decl: include_str!("builtins/SIZEOF.pli"),
                 annotation: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -325,14 +290,7 @@ lazy_static! {
         (
             "LOWER_BOUND",
             BuiltIn {
-                decl: "FUNCTION LOWER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
-                VAR_IN_OUT
-                    ARR : U;
-                END_VAR
-                VAR_INPUT
-                    DIM : T;
-                END_VAR
-                END_FUNCTION",
+                decl: include_str!("builtins/LOWER_BOUND.pli"),
                 annotation: Some(|annotator, _, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
@@ -348,14 +306,7 @@ lazy_static! {
         (
             "UPPER_BOUND",
             BuiltIn {
-                decl: "FUNCTION UPPER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
-                VAR_IN_OUT
-                    ARR : U;
-                END_VAR
-                VAR_INPUT
-                    DIM : T;
-                END_VAR
-                END_FUNCTION",
+                decl: include_str!("builtins/UPPER_BOUND.pli"),
                 annotation: Some(|annotator, _, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
@@ -372,12 +323,7 @@ lazy_static! {
         (
             "ADD",
             BuiltIn {
-                decl: "FUNCTION ADD<T: ANY> : T
-                    VAR_INPUT
-                        IN : {sized} T...;
-                    END_VAR
-                    END_FUNCTION
-                ",
+                decl: include_str!("builtins/ADD.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -398,12 +344,7 @@ lazy_static! {
         (
             "MUL",
             BuiltIn {
-                decl: "FUNCTION MUL<T: ANY> : T
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/MUL.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -424,13 +365,7 @@ lazy_static! {
         (
             "SUB",
             BuiltIn {
-                decl: "FUNCTION SUB<T1: ANY, T2: ANY> : T1
-                VAR_INPUT
-                    IN1 : T1;
-                    IN2 : T2;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/SUB.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -450,13 +385,7 @@ lazy_static! {
         (
             "DIV",
             BuiltIn {
-                decl: "FUNCTION DIV<T1: ANY, T2: ANY> : T1
-                VAR_INPUT
-                    IN1 : T1;
-                    IN2 : T2;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/DIV.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -478,12 +407,7 @@ lazy_static! {
         (
             "ABS",
             BuiltIn {
-                decl: "FUNCTION ABS<T: ANY_NUM> : T
-                VAR_INPUT
-                    IN : T;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/ABS.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_argument_count(validator, operator, &parameters, 1);
@@ -560,13 +484,7 @@ lazy_static! {
         (
             "MOD",
             BuiltIn {
-                decl: "FUNCTION MOD<T1: ANY, T2: ANY> : T1
-                VAR_INPUT
-                    IN1 : T1;
-                    IN2 : T2;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Keywords/MOD.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -590,12 +508,7 @@ lazy_static! {
         (
             "AND",
             BuiltIn {
-                decl: "FUNCTION AND<T: ANY> : T
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Keywords/AND.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -616,12 +529,7 @@ lazy_static! {
         (
             "OR",
             BuiltIn {
-                decl: "FUNCTION OR<T: ANY> : T
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Keywords/OR.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -642,12 +550,7 @@ lazy_static! {
         (
             "XOR",
             BuiltIn {
-                decl: "FUNCTION XOR<T: ANY> : T
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Keywords/XOR.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -668,12 +571,7 @@ lazy_static! {
         (
             "NOT",
             BuiltIn {
-                decl: "FUNCTION NOT<T: ANY> : T
-                VAR_INPUT
-                    IN : T;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Keywords/NOT.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -693,12 +591,7 @@ lazy_static! {
         (
             "GT",
             BuiltIn {
-                decl: "FUNCTION GT<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/GT.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -717,12 +610,7 @@ lazy_static! {
         (
             "GE",
             BuiltIn {
-                decl: "FUNCTION GE<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/GE.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -741,12 +629,7 @@ lazy_static! {
         (
             "EQ",
             BuiltIn {
-                decl: "FUNCTION EQ<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/EQ.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -765,12 +648,7 @@ lazy_static! {
         (
             "LE",
             BuiltIn {
-                decl: "FUNCTION LE<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/LE.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -789,12 +667,7 @@ lazy_static! {
         (
             "LT",
             BuiltIn {
-                decl: "FUNCTION LT<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/LT.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -813,13 +686,7 @@ lazy_static! {
         (
             "NE",
             BuiltIn {
-                decl: "FUNCTION NE<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN1 : T;
-                    IN2 : T;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/NE.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -838,14 +705,7 @@ lazy_static! {
         (
             "SHL",
             BuiltIn {
-                decl: "
-                FUNCTION SHL<T: ANY> : T
-                VAR_INPUT
-                    IN : T;
-                    N : UDINT;
-                END_VAR
-                END_FUNCTION
-            ",
+                decl: include_str!("builtins/SHL.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_argument_count(validator, operator, &parameters, 2);
@@ -869,14 +729,7 @@ lazy_static! {
         (
             "SHR",
             BuiltIn {
-                decl: "
-                FUNCTION SHR<T: ANY> : T
-                VAR_INPUT
-                    IN : T;
-                    N : UDINT;
-                END_VAR
-                END_FUNCTION
-            ",
+                decl: include_str!("builtins/SHR.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_argument_count(validator, operator, &parameters, 2);
