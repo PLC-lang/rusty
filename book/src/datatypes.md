@@ -34,6 +34,11 @@ Examples:
 - `i1 : DINT := 8#52;` - declares and initializes a 32bit signed integer with value 42.
 - `i1 : DINT := 16#2A;` - declares and initializes a 32bit signed integer with value 42.
 
+In a binary expression, an integer literal usually has the type `DINT` (or `LINT` if it is too large for `DINT`).
+If the other operand is a `UDINT`, `ULINT`, `DWORD` or `LWORD` and the literal fits into that type, the literal
+takes the type of the other operand. The operation then stays unsigned, e.g. `a / 2` and `a MOD 7` with
+`a : UDINT` are an unsigned division and an unsigned remainder.
+
 ## Strings
 
 ### Overview
