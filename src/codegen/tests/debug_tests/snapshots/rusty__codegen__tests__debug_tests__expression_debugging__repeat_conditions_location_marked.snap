@@ -14,7 +14,7 @@ entry:
   store i32 0, ptr %myFunc, align [filtered]
   %__ran_once_0 = alloca i8, align [filtered]
   store i8 0, ptr %__ran_once_0, align [filtered], !dbg !11
-  br label %while_body, !dbg !11
+  br label %while_body, !dbg !12
 
 while_body:                                       ; preds = %continue1, %entry
   %load___ran_once_0 = load i8, ptr %__ran_once_0, align [filtered], !dbg !11
@@ -22,20 +22,20 @@ while_body:                                       ; preds = %continue1, %entry
   br i1 %0, label %condition_body, label %continue1, !dbg !11
 
 continue:                                         ; preds = %condition_body3
-  store i32 1, ptr %myFunc, align [filtered], !dbg !12
-  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !13
-  ret i32 %myFunc_ret, !dbg !13
+  store i32 1, ptr %myFunc, align [filtered], !dbg !13
+  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !14
+  ret i32 %myFunc_ret, !dbg !14
 
 condition_body:                                   ; preds = %while_body
-  %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !14
-  %tmpVar = icmp sgt i32 %load_myFunc, 10, !dbg !14
-  %1 = zext i1 %tmpVar to i8, !dbg !14
-  %2 = icmp ne i8 %1, 0, !dbg !14
-  br i1 %2, label %condition_body3, label %continue2, !dbg !14
+  %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !15
+  %tmpVar = icmp sgt i32 %load_myFunc, 10, !dbg !15
+  %1 = zext i1 %tmpVar to i8, !dbg !15
+  %2 = icmp ne i8 %1, 0, !dbg !15
+  br i1 %2, label %condition_body3, label %continue2, !dbg !15
 
 continue1:                                        ; preds = %continue2, %while_body
   store i8 1, ptr %__ran_once_0, align [filtered], !dbg !11
-  store i32 1, ptr %myFunc, align [filtered], !dbg !15
+  store i32 1, ptr %myFunc, align [filtered], !dbg !16
   br label %while_body, !dbg !11
 
 condition_body3:                                  ; preds = %condition_body
@@ -63,7 +63,8 @@ continue2:                                        ; preds = %buffer_block, %cond
 !9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !10 = !DILocation(line: 2, column: 17, scope: !4)
 !11 = !DILocation(line: 0, scope: !4)
-!12 = !DILocation(line: 6, column: 12, scope: !4)
-!13 = !DILocation(line: 7, column: 8, scope: !4)
-!14 = !DILocation(line: 5, column: 18, scope: !4)
-!15 = !DILocation(line: 4, column: 16, scope: !4)
+!12 = !DILocation(line: 3, column: 12, scope: !4)
+!13 = !DILocation(line: 6, column: 12, scope: !4)
+!14 = !DILocation(line: 7, column: 8, scope: !4)
+!15 = !DILocation(line: 5, column: 18, scope: !4)
+!16 = !DILocation(line: 4, column: 16, scope: !4)

@@ -561,7 +561,7 @@ fn switch_case_debug_info() {
       %tmpVar = add i32 %0, 1, !dbg !22
       %1 = trunc i32 %tmpVar to i16, !dbg !22
       store i16 %1, ptr %x1, align [filtered], !dbg !22
-      %load_x13 = load i16, ptr %x1, align [filtered], !dbg !22
+      %load_x13 = load i16, ptr %x1, align [filtered], !dbg !23
       switch i16 %load_x13, label %else [
         i16 1, label %case
         i16 2, label %case4

@@ -21,6 +21,8 @@ entry:
   %inout1 = alloca ptr, align [filtered]
   store ptr %2, ptr %inout1, align [filtered]
   store i32 0, ptr %foo, align [filtered]
+  %3 = load ptr, ptr %output1, align [filtered]
+  store i32 0, ptr %3, align [filtered]
   %foo_ret = load i32, ptr %foo, align [filtered]
   ret i32 %foo_ret
 }
@@ -32,6 +34,7 @@ entry:
   %var3 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
   %load_var1 = load i32, ptr %var1, align [filtered]
   %1 = alloca i32, align [filtered]
+  store i32 0, ptr %1, align [filtered]
   %call = call i32 @foo(i32 %load_var1, ptr %var2, ptr %1)
   ret void
 }

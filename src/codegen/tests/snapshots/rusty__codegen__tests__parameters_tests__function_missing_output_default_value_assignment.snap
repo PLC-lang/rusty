@@ -21,6 +21,8 @@ entry:
   %inout1 = alloca ptr, align [filtered]
   store ptr %2, ptr %inout1, align [filtered]
   store i32 0, ptr %foo, align [filtered]
+  %3 = load ptr, ptr %output1, align [filtered]
+  store i32 3, ptr %3, align [filtered]
   %foo_ret = load i32, ptr %foo, align [filtered]
   ret i32 %foo_ret
 }

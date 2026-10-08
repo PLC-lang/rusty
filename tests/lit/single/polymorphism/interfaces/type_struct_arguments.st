@@ -187,7 +187,7 @@ FUNCTION main
     // CHECK: FbA::input, in = (id=201, name=input, fp=[201, 202, 203, 204, 205])
     reference.input(localInputUser);
 
-    // CHECK-NEXT: FbA::output, out = (id=301, name=output_clean, fp=[301, 302, 303, 304, 305])
+    // CHECK-NEXT: FbA::output, out = (id=0, name=, fp=[0, 0, 0, 0, 0])
     // CHECK-NEXT: main::output = (id=900, name=output_dirty, fp=[901, 902, 903, 904, 905])
     // CHECK-NEXT: main::output = (id=301, name=output_clean, fp=[301, 302, 303, 304, 305])
     reference.output(localOutputUser);
@@ -236,7 +236,7 @@ FUNCTION main
     );
 
     // CHECK-NEXT: FbA::in_out_and_inout, in = (id=201, name=input, fp=[201, 202, 203, 204, 205])
-    // CHECK-NEXT: FbA::in_out_and_inout, out = (id=301, name=output_clean, fp=[301, 302, 303, 304, 305])
+    // CHECK-NEXT: FbA::in_out_and_inout, out = (id=0, name=, fp=[0, 0, 0, 0, 0])
     // CHECK-NEXT: FbA::in_out_and_inout, inout = (id=401, name=inout_clean, fp=[401, 402, 403, 404, 405])
     // CHECK-NEXT: main::out_after_mix = (id=700, name=out_dirty, fp=[701, 702, 703, 704, 705])
     // CHECK-NEXT: main::inout_after_mix = (id=600, name=inout_dirty_2, fp=[601, 602, 603, 604, 605])
