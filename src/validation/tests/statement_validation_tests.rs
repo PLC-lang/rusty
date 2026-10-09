@@ -3668,3 +3668,168 @@ fn or_else_with_bool_operands_is_ok() {
 
     assert_snapshot!(diagnostics, @"");
 }
+
+#[test]
+fn function_block_type_call_reports_missing_instance() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fn_with_one_parameter
+            VAR_INPUT
+                in_one : DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            fn_with_one_parameter(1);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E159]: `fn_with_one_parameter` is a FUNCTION_BLOCK. Declare an instance and call that instance
+      ┌─ <internal>:9:13
+      │
+    9 │             fn_with_one_parameter(1);
+      │             ^^^^^^^^^^^^^^^^^^^^^ `fn_with_one_parameter` is a FUNCTION_BLOCK. Declare an instance and call that instance
+    ");
+}
+
+#[test]
+fn function_block_instance_call_has_no_new_diagnostic() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fn_with_one_parameter
+            VAR_INPUT
+                in_one : DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            VAR
+                inst : fn_with_one_parameter;
+            END_VAR
+            inst(1);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn function_call_is_unchanged_by_missing_instance_diagnostic() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION scale_value : DINT
+            VAR_INPUT
+                x : DINT;
+            END_VAR
+            scale_value := x;
+        END_FUNCTION
+
+        FUNCTION main : DINT
+            main := scale_value(1);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn unresolved_call_stays_unresolved_reference() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+            does_not_exist(1);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E048]: Could not resolve reference to does_not_exist
+      ┌─ <internal>:3:13
+      │
+    3 │             does_not_exist(1);
+      │             ^^^^^^^^^^^^^^ Could not resolve reference to does_not_exist
+    ");
+}
+
+#[test]
+fn other_pou_calls_are_not_reported_as_missing_function_block_instance() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD m : DINT
+                m := 1;
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        CLASS cls
+        END_CLASS
+
+        PROGRAM prg
+        END_PROGRAM
+
+        ACTIONS
+            ACTION act
+            END_ACTION
+        END_ACTIONS
+
+        FUNCTION main : DINT
+            VAR
+                inst : fb;
+            END_VAR
+            inst.m();
+            prg();
+            prg.act();
+            cls();
+            m();
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E048]: Could not resolve reference to m
+       ┌─ <internal>:27:13
+       │
+    27 │             m();
+       │             ^ Could not resolve reference to m
+    ");
+}
+
+#[test]
+fn shadowed_function_block_name_is_not_reported_as_missing_instance() {
+    // The local `fb` hides the FUNCTION_BLOCK type. The call resolves to that
+    // variable, so it must not be diagnosed as a missing instance.
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            VAR_INPUT
+                in_one : DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        VAR_GLOBAL
+            also_fb : DINT;
+        END_VAR
+
+        FUNCTION main : DINT
+            VAR
+                fb : DINT;
+            END_VAR
+            fb(1);
+            also_fb(1);
+        END_FUNCTION
+
+        FUNCTION same_name_instance : DINT
+            VAR
+                fb : fb;
+            END_VAR
+            fb(1);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"");
+}
