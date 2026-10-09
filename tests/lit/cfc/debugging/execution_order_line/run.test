@@ -1,0 +1,24 @@
+RUN: %COMPILE_IR %S/execution_order_line.cfc | %CHECK_IR %s
+
+The diagram, with execution orders in parentheses:
+
+a --+--> b (1)
+    +--> c (2)
+
+A debugger reads line N of the diagram's debug file as execution order N, so each
+ordered element must get its execution order as its line, with no offset.
+
+The stores are matched inside the function, so no other function's instructions can bind.
+An unoptimized build makes each key store volatile, so the backend keeps it.
+CHECK-LABEL: define void @execution_order_line(ptr %0) !dbg ![[#SCOPE_FUNCTION:]]
+CHECK:       store{{( volatile)?}} i16 %{{.*}}, ptr %b, {{.*}}!dbg ![[#KEY_B:]]
+CHECK:       store{{( volatile)?}} i16 %{{.*}}, ptr %c, {{.*}}!dbg ![[#KEY_C:]]
+
+The diagram statements are scoped to a lexical block bound to the diagram's own file.
+CHECK-DAG: ![[#FILE_DIAGRAM:]] = !DIFile(filename: "{{.*}}execution_order_line.cfc.execution_order_line", directory:
+CHECK-DAG: ![[#SCOPE_DIAGRAM:]] = distinct !DILexicalBlock(scope: ![[#SCOPE_FUNCTION]], file: ![[#FILE_DIAGRAM]])
+
+Each store is the key instruction of its element, the only place a debugger stops:
+order 1 at line 1, order 2 at line 2.
+CHECK-DAG: ![[#KEY_B]] = !DILocation(line: 1, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)
+CHECK-DAG: ![[#KEY_C]] = !DILocation(line: 2, scope: ![[#SCOPE_DIAGRAM]], atomGroup: [[#]], atomRank: 1)

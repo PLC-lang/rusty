@@ -8,9 +8,9 @@ after the concrete one must not override it.
 
 Illustrated:
 ```
-            myGenAdd (0)
+            myGenAdd (1)
           +-----------------+
-seed ---> | a      myGenAdd | --+--> acc (1)
+seed ---> | a      myGenAdd | --+--> acc (2)
    .----> | b               |   |
    |      +-----------------+   |
    '----------------------------'   [return feeds back into b]

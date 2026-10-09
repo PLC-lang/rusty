@@ -6,4 +6,4 @@ Illustrated:
     foo --> a>
     >a --> b>
     >b --> c>
-    >c --> bar (0)
+    >c --> bar (1)

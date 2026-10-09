@@ -4,7 +4,7 @@ takes the jump and `y` keeps its prior value (`y = 7`).
 
 Illustrated:
 ```
-cond --> JMP skip (0)
-x --> y (1)
-LABEL skip (2)
+cond --> JMP skip (1)
+x --> y (2)
+LABEL skip (3)
 ```

@@ -41,12 +41,12 @@ A small bubble on a pin negates the value that passes it.
 The wires say where a value goes, not when. The order of the statements is the order of the **evaluation priority** that you give the elements in the tool. It is not the order of the wires and not the position on the sheet:
 
 ```
-        Add (0)             Scale (1)
- a --> | in1   out | --> | in    out | --> result (2)
+        Add (1)             Scale (2)
+ a --> | in1   out | --> | in    out | --> result (3)
  b --> | in2       |
 ```
 
-The numbers in parentheses are the priorities. An element without a priority runs after every element that has one, in the order in which the file stores it.
+The numbers in parentheses are the priorities. They start at 1; the tool never writes a 0, so an element with priority 0 is rejected (E158). An element without a priority runs after every element that has one, in the order in which the file stores it.
 
 This matters when two blocks write the same variable, or when one block reads a value that another one produces: the priority decides what happens first. Give a priority to every element that becomes a statement: an output, a block, a jump, a label, and a return.
 
@@ -74,6 +74,13 @@ An output element can carry a storage mode, which you set in the tool. Without o
 Both modes store a `BOOL`, so the variable of such an output must be a `BOOL`. A numeric variable behind a `Set` or `Reset` output is rejected with the same error that `count := TRUE` gets in text, reported at the output element. The [basic types](basic-types.md#bool) chapter explains why a `BOOL` is not a number.
 
 `Reference` writes no value at all. The output becomes a [reference](pointers.md#references) that is bound to the variable on its wire, so a later read of the output sees the value that variable holds at that time. A negation bubble on such an output is rejected.
+
+
+## Debugging
+
+A debugger knows files and lines, and a chart has neither. With debug information (`-g`), the compiler gives the network of each chart a debug file of its own, named after the source file and the POU: the network of `Mixer` in `mixer.cfc` is `mixer.cfc.Mixer`. In that file, the line of an element is its priority. A breakpoint on line 2 of `mixer.cfc.Mixer` stops at the element with priority 2, and a debugger that stops at line 2 is at that element. The declaration keeps its text lines in `mixer.cfc`.
+
+A debugger stops once per element. An element without a priority has no line, so a debugger cannot stop at it.
 
 
 ## What the compiler reports

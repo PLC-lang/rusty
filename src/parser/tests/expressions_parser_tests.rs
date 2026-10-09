@@ -2528,3 +2528,51 @@ fn unary_plus_expression_test() {
     }
     "#);
 }
+
+#[test]
+fn operator_keyword_followed_by_parens_is_a_call() {
+    let src = "
+        PROGRAM prg
+            a := AND(b, c);
+            a := b AND (c);
+            a := MOD(IN1 := b, IN2 := c);
+            a := b MOD (c);
+            a := NOT(b);
+            a := NOT(IN := b);
+            a := NOT(b, c);
+            a := NOT(b) AND c;
+        END_PROGRAM
+        ";
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @"");
+
+    let shapes: Vec<String> = unit.implementations[0]
+        .statements
+        .iter()
+        .map(|statement| {
+            let AstStatement::Assignment(Assignment { right, .. }) = statement.get_stmt() else {
+                unreachable!("every statement is an assignment")
+            };
+
+            match right.get_stmt() {
+                AstStatement::CallStatement(call) => {
+                    format!("call {}", call.operator.get_flat_reference_name().unwrap_or_default())
+                }
+                AstStatement::BinaryExpression(binary) => format!("binary {}", binary.operator),
+                AstStatement::UnaryExpression(unary) => format!("unary {}", unary.operator),
+                other => format!("{other:?}"),
+            }
+        })
+        .collect();
+
+    assert_snapshot!(shapes.join("\n"), @r"
+    call AND
+    binary AND
+    call MOD
+    binary MOD
+    unary NOT
+    call NOT
+    call NOT
+    binary AND
+    ");
+}

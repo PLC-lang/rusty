@@ -14,13 +14,13 @@ VAR
 END_VAR
 
 a := SHR(x, 2);
-b := SHR(IN := x, n := 2);
-c := SHR(n := 2, IN := x);
+b := SHR(IN := x, N := 2);
+c := SHR(N := 2, IN := x);
 // CHECK: SHR=2 2 2
 printf('SHR=%d %d %d$N', a, b, c);
 
 // named argument before the positional one, IN is filled by x
-a := SHR(n := 2, x);
+a := SHR(N := 2, x);
 // CHECK: SHR-named-first=2
 printf('SHR-named-first=%d$N', a);
 END_FUNCTION

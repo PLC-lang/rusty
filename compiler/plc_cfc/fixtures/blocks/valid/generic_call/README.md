@@ -7,9 +7,9 @@ the callee's unresolved generic return type.
 
 Illustrated:
 ```
-          myGenAdd (0)
+          myGenAdd (1)
         +-----------------+
-in1 --> | a      myGenAdd | --> generic_call (1)
+in1 --> | a      myGenAdd | --> generic_call (2)
 in2 --> | b               |
         +-----------------+
 ```

@@ -23,6 +23,10 @@ The four exclude each other, so give one of them. `-g` already covers the global
 
 A debugger stops once per statement, in source order, also when the compiler reorders the machine code of neighbouring statements due to optimizations. For this, the compiler marks the one place per statement where the debugger may stop (`is_stmt` in the line table). A debugger that ignores these marks, such as `gdb` before version 10, can still jump between lines.
 
+With `-O none`, the machine code is still optimized a little, for example to reuse stack memory. That optimization may drop a write that a later statement overwrites before anything reads it, and the statement would then have no stop. So with `-g` and `-O none`, the compiler marks the write that completes each statement as `volatile`, which the optimization must keep, in source order. Every assignment, and every element of a chart that writes a value, keeps its stop, and at each stop the statements before it have written their results. This costs some speed, because the code reads such a value from memory again instead of keeping it in a register. A start value is not such a write: before the first assignment of a variable, a debugger can still show a value that the variable never had.
+
+A [chart](../language/cfc.md#debugging) has no source lines. Its network gets a debug file of its own, in which the line of an element is its priority.
+
 
 ## Why paths matter
 

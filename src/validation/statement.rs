@@ -1070,7 +1070,7 @@ fn visit_binary_expression<T: AnnotationMap>(
             // check for the = operator
             validate_binary_expression(validator, statement, &Operator::Equal, left, right, context);
         }
-        Operator::Division => {
+        Operator::Division | Operator::Modulo => {
             validate_binary_expression(validator, statement, operator, left, right, context);
             validate_zero_diviser(validator, context.annotations, context.index, right, &statement.location);
         }
@@ -1344,14 +1344,15 @@ fn validate_by_ref_argument_type<T: AnnotationMap>(
             context.index.get_effective_type_or_void_by_name(param.get_type_name())
         };
 
-    // Reference arguments are transparent: compare their target type.
+    // Reference arguments are transparent: compare their target type. An auto-deref variable is
+    // annotated with the raw name of its target type, so resolve aliases as for any other variable.
     let arg_type = context.annotations.get_type_or_void(arg, context.index);
     let arg_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
         arg_type.get_type_information()
     {
         context.index.get_effective_type_or_void_by_name(inner_type_name)
     } else {
-        arg_type
+        context.index.find_effective_type(arg_type).unwrap_or(arg_type)
     };
 
     if arg_type.get_type_information().is_pointer() {
@@ -2905,7 +2906,8 @@ pub fn validate_zero_diviser(
 pub(crate) mod helper {
     use std::ops::Range;
 
-    use plc_ast::ast::{AstNode, DirectAccessType};
+    use plc_ast::ast::{AstNode, AstStatement, DirectAccessType};
+    use plc_ast::literals::{AstLiteral, Time};
 
     use crate::index::VariableIndexEntry;
     use crate::resolver::AnnotationMap;
@@ -2979,7 +2981,7 @@ pub(crate) mod helper {
         index: &Index,
     ) -> bool {
         let right = right.get_node_peeled();
-        if right.is_zero() {
+        if is_zero_literal(right) {
             return true;
         }
 
@@ -2990,7 +2992,7 @@ pub(crate) mod helper {
                         if let Some(constant_statement) =
                             index.get_const_expressions().maybe_get_constant_statement(&element.initial_value)
                         {
-                            return constant_statement.is_zero();
+                            return is_zero_literal(constant_statement);
                         }
                     }
                 }
@@ -2998,5 +3000,11 @@ pub(crate) mod helper {
         }
 
         false
+    }
+
+    /// Returns true if the node is a number or a duration literal of value zero
+    fn is_zero_literal(node: &AstNode) -> bool {
+        node.is_zero()
+            || matches!(node.get_stmt(), AstStatement::Literal(AstLiteral::Time(Time { nanos: 0, .. })))
     }
 }

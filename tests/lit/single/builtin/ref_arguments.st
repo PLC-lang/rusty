@@ -11,7 +11,7 @@ VAR
 END_VAR
 
 ptr_a := REF(i);
-ptr_b := REF(in := i);
+ptr_b := REF(IN := i);
 p := ptr_a = ptr_b;
 // CHECK: REF=1
 printf('REF=%d$N', p);

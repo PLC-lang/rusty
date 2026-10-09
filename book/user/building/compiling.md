@@ -59,7 +59,7 @@ In a project file, the key `compile_type` does the same. Use `Static`, `Object`,
 plc main.st -O aggressive
 ```
 
-The four levels are `none`, `less`, `default`, and `aggressive`, and they are the levels of LLVM from `-O0` to `-O3`. The default is `default`. Use `none` while you debug, because the generated code then follows the source closely. The level changes the machine code only. The text that `--ir` writes is the same at every level.
+The four levels are `none`, `less`, `default`, and `aggressive`, and they are the levels of LLVM from `-O0` to `-O3`. The default is `default`. Use `none` while you debug, because the generated code then follows the source closely. The level changes the machine code only. The text that `--ir` writes is the same at every level, with one exception: with `-g` and `none`, the write that completes a statement is `volatile`, so that a debugger keeps a stop on it (see [debug information](debugging.md#stepping)).
 
 
 ## Check without producing anything
@@ -99,11 +99,11 @@ readelf -p .comment app
 ```
 String dump of section '.comment':
   [     1]  Linker: Ubuntu LLD 21.1.8
-  [    1b]  plc version 1.1.0-dev (Thu Sep 10 12:08:58 2026 +0200, 6f6e1d7f2db)
-  [    5f]  GCC: (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+  [    1b]  plc version 1.1.0-dev (2026-09-10 10:08:58 +00:00, 6f6e1d7f2db)
+  [    5b]  GCC: (Ubuntu 15.2.0-16ubuntu1) 15.2.0
 ```
 
-The version, the date, and the commit are the ones of the compiler that you used, and `plc --version` prints the same three. A deployed binary can therefore be matched to the compiler that built it. A pipeline that needs identical artifacts across compiler updates suppresses the line with `--fno-ident`.
+The version, the commit date, and the commit hash are the ones of the compiler that you used, and `plc --version` prints the same version and commit hash. A deployed binary can therefore be matched to the compiler that built it. A pipeline that needs identical artifacts across compiler updates suppresses the line with `--fno-ident`.
 
 
 ## What's next

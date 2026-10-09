@@ -1,0 +1,23 @@
+REQUIRES: system-linux
+RUN: %PLC --debug -Onone -c -o %t.x86_64.o %S/overwritten_sink.cfc
+RUN: readelf -W --debug-dump=decodedline %t.x86_64.o | %CHECK_IR %s
+RUN: %PLC --target aarch64-linux-gnu --debug -Onone -c -o %t.aarch64.o %S/overwritten_sink.cfc
+RUN: readelf -W --debug-dump=decodedline %t.aarch64.o | %CHECK_IR %s
+RUN: %PLC --target armv7-linux-gnueabihf --debug -Onone -c -o %t.armv7.o %S/overwritten_sink.cfc
+RUN: readelf -W --debug-dump=decodedline %t.armv7.o | %CHECK_IR %s
+
+The diagram, with execution orders in parentheses:
+
+-x1 --> ADD (1) --> x2 (2)
+ x2 -->
+ x1 --> SUB (3) --> x2 (4)
+ x2 -->
+
+`x1` and `x2` are locals with start values, so the backend computes ADD and SUB ahead of time,
+and the write of order 2 is overwritten by order 4 before anything reads it. An unoptimized
+build makes each key store volatile, so every element keeps a row with the `is_stmt` flag (x)
+in the diagram's debug file, at line = execution order, on every target.
+CHECK-DAG: {{^}}overwritten_sink.cfc.overwritten_sink{{ +}}1{{ +}}{{[0-9a-fx]+}}{{.*}} x{{$}}
+CHECK-DAG: {{^}}overwritten_sink.cfc.overwritten_sink{{ +}}2{{ +}}{{[0-9a-fx]+}}{{.*}} x{{$}}
+CHECK-DAG: {{^}}overwritten_sink.cfc.overwritten_sink{{ +}}3{{ +}}{{[0-9a-fx]+}}{{.*}} x{{$}}
+CHECK-DAG: {{^}}overwritten_sink.cfc.overwritten_sink{{ +}}4{{ +}}{{[0-9a-fx]+}}{{.*}} x{{$}}

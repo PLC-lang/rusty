@@ -4,6 +4,6 @@ routed value fans out into two sinks. `main` checks both received it
 
 Illustrated:
 ```
-foo --> x    x --> bar (0)
-             x --> baz (1)
+foo --> x    x --> bar (1)
+             x --> baz (2)
 ```

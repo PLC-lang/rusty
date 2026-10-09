@@ -14,11 +14,11 @@ error[E037]: Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
 11 │             LOWER_BOUND(duration, 1);
    │                         ^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
 
-error[E031]: Expected a reference for parameter arr because their type is InOut
+error[E031]: Expected a reference for parameter ARR because their type is InOut
    ┌─ <internal>:12:25
    │
 12 │             LOWER_BOUND('i am a string', 1);
-   │                         ^^^^^^^^^^^^^^^ Expected a reference for parameter arr because their type is InOut
+   │                         ^^^^^^^^^^^^^^^ Expected a reference for parameter ARR because their type is InOut
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:12:25
@@ -38,11 +38,11 @@ error[E037]: Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
 15 │             UPPER_BOUND(duration, 1);
    │                         ^^^^^^^^ Invalid assignment: cannot assign 'TIME' to 'VARIABLE LENGTH ARRAY'
 
-error[E031]: Expected a reference for parameter arr because their type is InOut
+error[E031]: Expected a reference for parameter ARR because their type is InOut
    ┌─ <internal>:16:25
    │
 16 │             UPPER_BOUND('i am a string', 1);
-   │                         ^^^^^^^^^^^^^^^ Expected a reference for parameter arr because their type is InOut
+   │                         ^^^^^^^^^^^^^^^ Expected a reference for parameter ARR because their type is InOut
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:16:25

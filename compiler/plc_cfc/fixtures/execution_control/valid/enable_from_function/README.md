@@ -4,10 +4,10 @@ EN wire alone must force the temporary into existence.
 
 Illustrated:
 ```
-      isNonZero (0)              safeDiv (1)
+      isNonZero (1)              safeDiv (2)
     +--------------+          +------------------+
 b ->| val isNonZero| --EN --> | EN               |
-    +--------------+     a -> | dividend safeDiv | --> result (2)
+    +--------------+     a -> | dividend safeDiv | --> result (3)
                          b -> | divisor          |
                               +------------------+
 ```

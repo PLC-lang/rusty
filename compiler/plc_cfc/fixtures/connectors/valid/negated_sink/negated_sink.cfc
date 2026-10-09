@@ -22,7 +22,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="bar" globalId="3">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="0"/>
+                            <EvaluationPriority priorityInNetwork="1"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
                             <bmx:Negation inNegated="true"/>

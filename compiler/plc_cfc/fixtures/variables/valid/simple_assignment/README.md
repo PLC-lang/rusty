@@ -3,5 +3,5 @@ What: A single source-to-sink connection assigning one variable to another,
 
 Illustrated:
 ```
-foo --> bar (0)
+foo --> bar (1)
 ```

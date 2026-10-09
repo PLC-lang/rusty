@@ -19,7 +19,7 @@ entry:
   %load_x = load i16, ptr %deref, align [filtered], !dbg !16
   %1 = sext i16 %load_x to i32, !dbg !16
   %tmpVar = add i32 %1, 2, !dbg !16
-  store i32 %tmpVar, ptr %myFunc, align [filtered], !dbg !17
+  store volatile i32 %tmpVar, ptr %myFunc, align [filtered], !dbg !17
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
   ret i32 %myFunc_ret, !dbg !19
 }

@@ -26,7 +26,7 @@ END_VAR  </bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="b1" globalId="12">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="0"/>
+                            <EvaluationPriority priorityInNetwork="1"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="220" y="-70"/>
@@ -46,7 +46,7 @@ END_VAR  </bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="b2" globalId="16">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="1"/>
+                            <EvaluationPriority priorityInNetwork="2"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
                             <bmx:Negation inNegated="true"/>
@@ -74,7 +74,7 @@ END_VAR  </bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="b3" globalId="20">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="2"/>
+                            <EvaluationPriority priorityInNetwork="3"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
                             <bmx:Negation inNegated="true"/>
@@ -93,7 +93,7 @@ END_VAR  </bmx:TextDeclaration>
                             <bmx:Negation inNegated="false"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="3"/>
+                            <EvaluationPriority priorityInNetwork="4"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="220" y="90"/>
@@ -118,7 +118,7 @@ END_VAR  </bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="bmx:CfcLabel" label="jmp1" globalId="32">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="4"/>
+                            <EvaluationPriority priorityInNetwork="5"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="340" y="90"/>
@@ -137,7 +137,7 @@ END_VAR  </bmx:TextDeclaration>
                             <bmx:Negation inNegated="true"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="5"/>
+                            <EvaluationPriority priorityInNetwork="6"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="220" y="120"/>
@@ -150,7 +150,7 @@ END_VAR  </bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="bmx:CfcLabel" label="jmp2" globalId="39">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="6"/>
+                            <EvaluationPriority priorityInNetwork="7"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="340" y="120"/>
@@ -174,7 +174,7 @@ END_VAR  </bmx:TextDeclaration>
                             <bmx:Negation inNegated="true"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="7"/>
+                            <EvaluationPriority priorityInNetwork="8"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="220" y="150"/>
@@ -187,7 +187,7 @@ END_VAR  </bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="bmx:CfcLabel" label="jmp3" globalId="43">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="8"/>
+                            <EvaluationPriority priorityInNetwork="9"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="340" y="150"/>
@@ -211,7 +211,7 @@ END_VAR  </bmx:TextDeclaration>
                             <bmx:Negation inNegated="false"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="9"/>
+                            <EvaluationPriority priorityInNetwork="10"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="230" y="250"/>
@@ -234,7 +234,7 @@ END_VAR  </bmx:TextDeclaration>
                             <bmx:Negation inNegated="true"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="10"/>
+                            <EvaluationPriority priorityInNetwork="11"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="230" y="280"/>
@@ -262,7 +262,7 @@ END_VAR  </bmx:TextDeclaration>
                             <bmx:Negation inNegated="true"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="11"/>
+                            <EvaluationPriority priorityInNetwork="12"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="230" y="310"/>
@@ -322,7 +322,7 @@ END_VAR  </bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="b10" globalId="63">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="12"/>
+                            <EvaluationPriority priorityInNetwork="13"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="570" y="410"/>
@@ -357,7 +357,7 @@ END_VAR  </bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="b11" globalId="70">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="13"/>
+                            <EvaluationPriority priorityInNetwork="14"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
                             <bmx:Negation inNegated="true"/>
@@ -400,7 +400,7 @@ END_VAR  </bmx:TextDeclaration>
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="b12" globalId="76">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="14"/>
+                            <EvaluationPriority priorityInNetwork="15"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
                             <bmx:Negation inNegated="true"/>

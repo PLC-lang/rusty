@@ -4,10 +4,10 @@ because ENO mirrors the post-negation EN value, the ENO consumer also reads
 
 Illustrated:
 ```
-              inst : counter (0)
+              inst : counter (1)
             +-------------------+
-trigger --o | EN            ENO | --> done (2)
-localIn --> | in            out | --> localOut (1)
+trigger --o | EN            ENO | --> done (3)
+localIn --> | in            out | --> localOut (2)
             +-------------------+
             (o marks the inversion bubble on EN)
 ```

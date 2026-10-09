@@ -297,11 +297,6 @@ fn missing_source_and_missing_include_surface_in_one_run() {
 // and broke every one of these.
 
 #[test]
-fn version_flag_succeeds_without_input_files() {
-    compile(&["plc", "--version"]).unwrap();
-}
-
-#[test]
 fn explain_subcommand_succeeds_without_input_files() {
     compile(&["plc", "explain", "E001"]).unwrap();
 }

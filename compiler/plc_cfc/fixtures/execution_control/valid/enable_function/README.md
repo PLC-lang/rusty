@@ -5,10 +5,10 @@ sink and resolves transparently to `trigger`.
 
 Illustrated:
 ```
-                  myAdd (0)
+                  myAdd (1)
             +--------------------+
-trigger --> | EN             ENO | --> done (2)
-      a --> | in1          myAdd | --> sum (1)
+trigger --> | EN             ENO | --> done (3)
+      a --> | in1          myAdd | --> sum (2)
       b --> | in2   myAddDoubled |
             +--------------------+
             (myAddDoubled unread)

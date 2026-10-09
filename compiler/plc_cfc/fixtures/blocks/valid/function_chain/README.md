@@ -5,9 +5,9 @@ stateless function stay distinct.
 
 Illustrated:
 ```
-          myAdd #1 (0)                myAdd #10 (1)
+          myAdd #1 (1)                myAdd #10 (2)
         +--------------------+      +--------------------+
-seed -->| in1          myAdd |----->| in1          myAdd |--> result (2)
+seed -->| in1          myAdd |----->| in1          myAdd |--> result (3)
    k -->| in2   myAddDoubled |  k -->| in2   myAddDoubled |
         +--------------------+      +--------------------+
 ```

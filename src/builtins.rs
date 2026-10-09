@@ -46,14 +46,7 @@ lazy_static! {
         (
             "ADR",
             BuiltIn {
-                decl: "
-                {constant}
-                FUNCTION ADR<U: ANY> : LWORD
-                VAR_INPUT
-                    in : U;
-                END_VAR
-                END_FUNCTION
-            ",
+                decl: include_str!("builtins/ADR.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, annotations, _| {
                     validate_argument_count(validator, operator, &parameters, 1);
@@ -95,14 +88,7 @@ lazy_static! {
         (
             "REF",
             BuiltIn {
-                decl: "
-                {constant}
-                FUNCTION REF<U: ANY> : REF_TO U
-                VAR_INPUT
-                    in : U;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/REF.pli"),
                 annotation: Some(|annotator, _, operator, parameters, _| {
                     // invalid amount of parameters is checked during validation
                     let Some(params) = parameters else { return; };
@@ -157,13 +143,7 @@ lazy_static! {
         (
             "MUX",
             BuiltIn {
-                decl: "FUNCTION MUX<U: ANY> : U
-                VAR_INPUT
-                    K : DINT;
-                    args : {sized} U...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/MUX.pli"),
                 annotation : None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -214,14 +194,7 @@ lazy_static! {
         (
             "SEL",
             BuiltIn {
-                decl: "FUNCTION SEL<U: ANY> : U
-                VAR_INPUT
-                    G   : BOOL;
-                    IN0 : U;
-                    IN1 : U;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/SEL.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, _, _| {
                     validate_argument_count(validator, operator, &parameters, 3);
@@ -268,11 +241,7 @@ lazy_static! {
         (
             "MOVE",
             BuiltIn {
-                decl : "FUNCTION MOVE<U: ANY> : U
-                VAR_INPUT
-                    in : U;
-                END_VAR
-                END_FUNCTION",
+                decl: include_str!("builtins/MOVE.pli"),
                 annotation: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -289,11 +258,7 @@ lazy_static! {
         (
             "SIZEOF",
             BuiltIn {
-                decl : "FUNCTION SIZEOF<U: ANY> : ULINT
-                VAR_INPUT
-                    in : U;
-                END_VAR
-                END_FUNCTION",
+                decl: include_str!("builtins/SIZEOF.pli"),
                 annotation: None,
                 validation: None,
                 generic_name_resolver: no_generic_name_resolver,
@@ -325,14 +290,7 @@ lazy_static! {
         (
             "LOWER_BOUND",
             BuiltIn {
-                decl: "FUNCTION LOWER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
-                VAR_IN_OUT
-                    arr : U;
-                END_VAR
-                VAR_INPUT
-                    dim : T;
-                END_VAR
-                END_FUNCTION",
+                decl: include_str!("builtins/LOWER_BOUND.pli"),
                 annotation: Some(|annotator, _, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
@@ -348,14 +306,7 @@ lazy_static! {
         (
             "UPPER_BOUND",
             BuiltIn {
-                decl: "FUNCTION UPPER_BOUND<U: __ANY_VLA, T: ANY_INT> : DINT
-                VAR_IN_OUT
-                    arr : U;
-                END_VAR
-                VAR_INPUT
-                    dim : T;
-                END_VAR
-                END_FUNCTION",
+                decl: include_str!("builtins/UPPER_BOUND.pli"),
                 annotation: Some(|annotator, _, _, parameters, _| {
                     annotate_variable_length_array_bound_function(annotator, parameters);
                 }),
@@ -372,18 +323,13 @@ lazy_static! {
         (
             "ADD",
             BuiltIn {
-                decl: "FUNCTION ADD<T: ANY> : T
-                    VAR_INPUT
-                        args: {sized} T...;
-                    END_VAR
-                    END_FUNCTION
-                ",
+                decl: include_str!("builtins/ADD.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
                     };
 
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus, None)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus, None, &[TypeNature::Num])
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Plus, None);
@@ -398,18 +344,13 @@ lazy_static! {
         (
             "MUL",
             BuiltIn {
-                decl: "FUNCTION MUL<T: ANY> : T
-                VAR_INPUT
-                    args: {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/MUL.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
                     };
 
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication, None)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication, None, &[TypeNature::Num])
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Multiplication, None);
@@ -424,18 +365,12 @@ lazy_static! {
         (
             "SUB",
             BuiltIn {
-                decl: "FUNCTION SUB<T1: ANY, T2: ANY> : T1
-                VAR_INPUT
-                    IN1 : T1;
-                    IN2 : T2;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/SUB.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus, Some(&["IN1", "IN2"]))
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus, Some(&["IN1", "IN2"]), &[TypeNature::Num])
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Minus, Some(&["IN1", "IN2"]));
@@ -450,18 +385,12 @@ lazy_static! {
         (
             "DIV",
             BuiltIn {
-                decl: "FUNCTION DIV<T1: ANY, T2: ANY> : T1
-                VAR_INPUT
-                    IN1 : T1;
-                    IN2 : T2;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/DIV.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division, Some(&["IN1", "IN2"]))
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division, Some(&["IN1", "IN2"]), &[TypeNature::Num])
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     let named_parameters: Option<&[&str]> = Some(&["IN1", "IN2"]);
@@ -478,12 +407,7 @@ lazy_static! {
         (
             "ABS",
             BuiltIn {
-                decl: "FUNCTION ABS<T: ANY_NUM> : T
-                VAR_INPUT
-                    IN : T;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/ABS.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_argument_count(validator, operator, &parameters, 1);
@@ -557,16 +481,117 @@ lazy_static! {
                 }
             }
         ),
-        // TODO: MOD and AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean ) - FIXME: these are all keywords and therefore conflicting
+        (
+            "MOD",
+            BuiltIn {
+                decl: include_str!("builtins/Keywords/MOD.pli"),
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Modulo, Some(&["IN1", "IN2"]), MODULO_NATURES)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, MODULO_NATURES);
+                    validate_duration_modulo(validator, parameters, annotations, index);
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Modulo);
+                    validate_divisor(validator, parameters, annotations, index, Some(&["IN1", "IN2"]));
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("MOD is not generated as a function call");
+                }
+            }
+        ),
+        // Bitwise functions, like their operators they accept bit and integer values
+        (
+            "AND",
+            BuiltIn {
+                decl: include_str!("builtins/Keywords/AND.pli"),
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::And, None, BITWISE_NATURES)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::And)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("AND is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "OR",
+            BuiltIn {
+                decl: include_str!("builtins/Keywords/OR.pli"),
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Or, None, BITWISE_NATURES)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Or)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("OR is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "XOR",
+            BuiltIn {
+                decl: include_str!("builtins/Keywords/XOR.pli"),
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Xor, None, BITWISE_NATURES)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
+                    validate_types(validator, &parameters, annotations, index);
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Xor)
+                }),
+                generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("XOR is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "NOT",
+            BuiltIn {
+                decl: include_str!("builtins/Keywords/NOT.pli"),
+                annotation: Some(|annotator, statement, operator, parameters, ctx| {
+                    let Some(params) = parameters else {
+                        return;
+                    };
+                    annotate_not_function(annotator, statement, operator, params, ctx)
+                }),
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_count(validator, operator, &parameters, 1);
+                    validate_argument_natures(validator, &parameters, annotations, index, BITWISE_NATURES);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |_, _, _| {
+                    unreachable!("NOT is not generated as a function call");
+                }
+            }
+        ),
         (
             "GT",
             BuiltIn {
-                decl: "FUNCTION GT<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/GT.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -585,12 +610,7 @@ lazy_static! {
         (
             "GE",
             BuiltIn {
-                decl: "FUNCTION GE<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/GE.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -609,12 +629,7 @@ lazy_static! {
         (
             "EQ",
             BuiltIn {
-                decl: "FUNCTION EQ<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/EQ.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -633,12 +648,7 @@ lazy_static! {
         (
             "LE",
             BuiltIn {
-                decl: "FUNCTION LE<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/LE.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -657,12 +667,7 @@ lazy_static! {
         (
             "LT",
             BuiltIn {
-                decl: "FUNCTION LT<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN : {sized} T...;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/LT.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -681,13 +686,7 @@ lazy_static! {
         (
             "NE",
             BuiltIn {
-                decl: "FUNCTION NE<T: ANY_ELEMENTARY> : BOOL
-                VAR_INPUT
-                    IN1 : T;
-                    IN2 : T;
-                END_VAR
-                END_FUNCTION
-                ",
+                decl: include_str!("builtins/Comparison/NE.pli"),
                 annotation: Some(|annotator, statement, operator, parameters, ctx| {
                     let Some(params) = parameters else {
                         return;
@@ -706,14 +705,7 @@ lazy_static! {
         (
             "SHL",
             BuiltIn {
-                decl: "
-                FUNCTION SHL<T: ANY> : T
-                VAR_INPUT
-                    IN : T;
-                    n : UDINT;
-                END_VAR
-                END_FUNCTION
-            ",
+                decl: include_str!("builtins/SHL.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_argument_count(validator, operator, &parameters, 2);
@@ -722,7 +714,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let ordered = order_arguments(params, &["IN", "n"]);
+                    let ordered = order_arguments(params, &["IN", "N"]);
                     let [actual_in, actual_n] = [0, 1].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     let left = generator.generate_expression(actual_in)?.into_int_value();
@@ -737,14 +729,7 @@ lazy_static! {
         (
             "SHR",
             BuiltIn {
-                decl: "
-                FUNCTION SHR<T: ANY> : T
-                VAR_INPUT
-                    IN : T;
-                    n : UDINT;
-                END_VAR
-                END_FUNCTION
-            ",
+                decl: include_str!("builtins/SHR.pli"),
                 annotation: None,
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_argument_count(validator, operator, &parameters, 2);
@@ -753,7 +738,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
                     // Handle named arguments by extracting actual parameters
-                    let ordered = order_arguments(params, &["IN", "n"]);
+                    let ordered = order_arguments(params, &["IN", "N"]);
                     let [actual_in, actual_n] = [0, 1].map(|slot| extract_actual_parameter(ordered[slot]));
 
                     let left = generator.generate_expression(actual_in)?.into_int_value();
@@ -772,6 +757,12 @@ lazy_static! {
     ]);
 }
 
+/// The natures the bitwise operators `AND`, `OR`, `XOR` and `NOT` accept
+const BITWISE_NATURES: &[TypeNature] = &[TypeNature::Bit, TypeNature::Int];
+
+/// The natures `MOD` accepts: numbers, and a duration together with a duration of the same type
+const MODULO_NATURES: &[TypeNature] = &[TypeNature::Num, TypeNature::Duration];
+
 fn validate_types(
     validator: &mut Validator,
     parameters: &Option<&AstNode>,
@@ -789,6 +780,82 @@ fn validate_types(
             validate_type_compatibility(validator, annotations, index, left, right);
         }
     }
+}
+
+/// Reports every argument of MOD, AND, OR, XOR, or NOT whose type has none of the natures the operator accepts
+fn validate_argument_natures(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    natures: &[TypeNature],
+) {
+    let Some(params) = parameters else { return };
+
+    for argument in flatten_expression_list(params).into_iter().map(extract_actual_parameter) {
+        let data_type = annotations.get_type_or_void(argument, index);
+        let is_accepted = !data_type.is_void() && natures.iter().any(|it| data_type.has_nature(*it, index));
+        // an unresolved reference is reported on its own, an empty or output argument is not
+        let is_unresolved = data_type.is_void()
+            && annotations.get(argument).is_none()
+            && !argument.is_empty_statement()
+            && !argument.is_output_assignment();
+        if is_accepted || is_unresolved {
+            continue;
+        }
+
+        let natures = natures.iter().map(ToString::to_string).collect::<Vec<_>>().join(" or ");
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Invalid type nature for generic argument. {} is no {natures}",
+                data_type.get_name()
+            ))
+            .with_error_code("E062")
+            .with_location(argument),
+        );
+    }
+}
+
+/// Reports a MOD call that combines a duration with a value of another type, such as `TIME` with `DINT`
+/// or with `LTIME`. MOD is defined on two `TIME` or two `LTIME` values only.
+fn validate_duration_modulo(
+    validator: &mut Validator,
+    parameters: Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else { return };
+    let arguments = arithmetic_arguments(params, Some(&["IN1", "IN2"]));
+    let [left, right] = arguments.as_slice() else { return };
+
+    let intrinsic_type = |argument: &AstNode| {
+        index.get_intrinsic_type_by_name(annotations.get_type_or_void(argument, index).get_name())
+    };
+    let (left_type, right_type) = (intrinsic_type(left), intrinsic_type(right));
+    let is_duration = |data_type: &DataType| data_type.has_nature(TypeNature::Duration, index);
+    let is_accepted =
+        |data_type: &DataType| is_duration(data_type) || data_type.has_nature(TypeNature::Num, index);
+
+    // an argument of another nature is reported on its own, a pair of numbers or equal durations is defined
+    if left_type.is_void()
+        || right_type.is_void()
+        || !is_accepted(left_type)
+        || !is_accepted(right_type)
+        || !(is_duration(left_type) || is_duration(right_type))
+        || left_type.get_name() == right_type.get_name()
+    {
+        return;
+    }
+
+    validator.push_diagnostic(
+        Diagnostic::new(format!(
+            "Operator `MOD` is not defined for `{}` and `{}`",
+            left_type.get_name(),
+            right_type.get_name()
+        ))
+        .with_error_code("E156")
+        .with_location(span_in_source_order(&arguments)),
+    );
 }
 
 /// Validates the arguments of ADD, SUB, MUL, and DIV. Numeric arguments must be compatible with
@@ -845,8 +912,8 @@ fn arithmetic_arguments<'a>(parameters: &'a AstNode, named_parameters: Option<&[
     order_call_arguments(parameters, named_parameters).into_iter().map(extract_actual_parameter).collect()
 }
 
-/// Reports a literal or constant zero passed as the divisor of DIV, its second argument in parameter
-/// order, as the `/` operator does
+/// Reports a literal or constant zero passed as the divisor of DIV or MOD, its second argument in
+/// parameter order, as the `/` operator does
 fn validate_divisor(
     validator: &mut Validator,
     parameters: Option<&AstNode>,
@@ -889,7 +956,7 @@ fn validate_builtin_symbol_parameter_count(
     let count = flatten_expression_list(params).len();
     match operation {
         // non-extensible operators
-        Operator::Minus | Operator::Division | Operator::NotEqual => {
+        Operator::Minus | Operator::Division | Operator::Modulo | Operator::NotEqual => {
             if count != 2 {
                 validator.push_diagnostic(Diagnostic::invalid_argument_count(2, count, operator));
             }
@@ -1014,6 +1081,14 @@ fn annotate_comparison_function(
     annotator.update_expected_types(annotator.index.get_type_or_panic(typesystem::BOOL_TYPE), statement);
 }
 
+/// Returns true if the argument value has one of the given natures. An argument without a type, such as
+/// an unresolved reference, has none.
+fn has_any_nature(annotator: &TypeAnnotator, argument: &AstNode, natures: &[TypeNature]) -> bool {
+    let data_type = annotator.annotation_map.get_type_or_void(argument, annotator.index);
+    !data_type.is_void() && natures.iter().any(|nature| data_type.has_nature(*nature, annotator.index))
+}
+
+#[allow(clippy::too_many_arguments)]
 fn annotate_arithmetic_function(
     annotator: &mut TypeAnnotator,
     statement: &AstNode,
@@ -1022,10 +1097,13 @@ fn annotate_arithmetic_function(
     ctx: VisitorContext,
     operation: Operator,
     option_named_parameters: Option<&[&str]>,
+    natures: &[TypeNature],
 ) {
     let params = order_call_arguments(parameters, option_named_parameters);
     let params_extracted: Vec<&AstNode> = params.iter().map(|it| extract_actual_parameter(it)).collect();
 
+    let accepts_date_or_time =
+        matches!(operation, Operator::Plus | Operator::Minus | Operator::Multiplication | Operator::Division);
     let is_date_or_time = |annotator: &TypeAnnotator, param: &AstNode| {
         let data_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
         annotator
@@ -1034,34 +1112,13 @@ fn annotate_arithmetic_function(
             .get_type_information()
             .is_date_or_time_type()
     };
-    let is_number = |annotator: &TypeAnnotator, param: &AstNode| {
-        annotator
-            .annotation_map
-            .get_type_or_void(param, annotator.index)
-            .has_nature(TypeNature::Num, annotator.index)
+    let is_accepted = |annotator: &TypeAnnotator, param: &AstNode| {
+        has_any_nature(annotator, param, natures)
+            || (accepts_date_or_time && is_date_or_time(annotator, param))
     };
-    if params_extracted.iter().any(|param| !is_number(annotator, param) && !is_date_or_time(annotator, param))
-    {
-        // an argument no arithmetic is defined for: the validator reports the call, every argument
-        // keeps its own type instead of the generic parameter's, and the call takes the first one
-        for param in &params_extracted {
-            let type_name =
-                annotator.annotation_map.get_type_or_void(param, annotator.index).get_name().to_owned();
-            annotator.annotation_map.annotate_type_hint(param, StatementAnnotation::value(type_name));
-        }
-        let function = annotator.annotation_map.get(operator).cloned();
-        if let (
-            Some(first),
-            Some(StatementAnnotation::Function { qualified_name, generic_name, call_name, .. }),
-        ) = (params_extracted.first(), function)
-        {
-            let return_type =
-                annotator.annotation_map.get_type_or_void(first, annotator.index).get_name().to_owned();
-            annotator.annotate(
-                operator,
-                StatementAnnotation::Function { qualified_name, return_type, generic_name, call_name },
-            );
-        }
+    // a call without arguments, e.g. `ADD(0(1))`, is reported during validation
+    if params_extracted.is_empty() || params_extracted.iter().any(|param| !is_accepted(annotator, param)) {
+        annotate_unaccepted_arguments(annotator, operator, &params_extracted);
         return;
     }
     let involves_date_or_time = params_extracted.iter().any(|param| is_date_or_time(annotator, param));
@@ -1097,6 +1154,67 @@ fn annotate_arithmetic_function(
     annotator.update_expected_types(annotator.index.get_type_or_panic(&result_type), statement);
 }
 
+/// Annotates a call with an argument the operator is not defined for: the validator reports the call,
+/// every argument keeps its own type instead of the generic parameter's, and the call takes the first one
+fn annotate_unaccepted_arguments(annotator: &mut TypeAnnotator, operator: &AstNode, arguments: &[&AstNode]) {
+    for argument in arguments {
+        let type_name =
+            annotator.annotation_map.get_type_or_void(argument, annotator.index).get_name().to_owned();
+        annotator.annotation_map.annotate_type_hint(argument, StatementAnnotation::value(type_name));
+    }
+    let function = annotator.annotation_map.get(operator).cloned();
+    if let (
+        Some(first),
+        Some(StatementAnnotation::Function { qualified_name, generic_name, call_name, .. }),
+    ) = (arguments.first(), function)
+    {
+        let return_type =
+            annotator.annotation_map.get_type_or_void(first, annotator.index).get_name().to_owned();
+        annotator.annotate(
+            operator,
+            StatementAnnotation::Function { qualified_name, return_type, generic_name, call_name },
+        );
+    }
+}
+
+// replaces `NOT(x)` with the unary expression `NOT x`
+fn annotate_not_function(
+    annotator: &mut TypeAnnotator,
+    statement: &AstNode,
+    operator: &AstNode,
+    parameters: &AstNode,
+    ctx: VisitorContext,
+) {
+    let params = order_call_arguments(parameters, Some(&["IN"]));
+    let params_extracted: Vec<&AstNode> = params.iter().map(|it| extract_actual_parameter(it)).collect();
+
+    // a wrong argument count is reported during validation
+    let [value] = params_extracted.as_slice() else {
+        annotator.annotate_arguments(operator, parameters, &ctx);
+        return;
+    };
+
+    if !has_any_nature(annotator, value, BITWISE_NATURES) {
+        annotate_unaccepted_arguments(annotator, operator, &params_extracted);
+        return;
+    }
+
+    let type_name = annotator.annotation_map.get_type_or_void(value, annotator.index).get_name().to_owned();
+    hint_named_arguments(annotator, &params, &type_name);
+
+    let mut ctx = ctx;
+    let new_statement = AstFactory::create_not_expression(
+        (*value).clone(),
+        statement.get_location(),
+        ctx.id_provider.next_id(),
+    );
+
+    annotator.visit_statement(&ctx, &new_statement);
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&type_name), &new_statement);
+    annotator.annotate(statement, StatementAnnotation::ReplacementAst { statement: new_statement });
+    annotator.update_expected_types(annotator.index.get_type_or_panic(&type_name), statement);
+}
+
 fn annotate_variable_length_array_bound_function(
     annotator: &mut TypeAnnotator,
     parameters: Option<&AstNode>,
@@ -1104,7 +1222,7 @@ fn annotate_variable_length_array_bound_function(
     let Some(parameters) = parameters else {
         return;
     };
-    let params = order_arguments(&ast::flatten_expression_list(parameters), &["arr", "dim"]);
+    let params = order_arguments(&ast::flatten_expression_list(parameters), &["ARR", "DIM"]);
     let vla = params.first().expect("must exist; covered by validation");
     let vla_param = extract_actual_parameter(vla);
     // if the VLA parameter is a VLA struct, annotate it as such
@@ -1145,7 +1263,7 @@ fn validate_variable_length_array_bound_function(
         return;
     };
 
-    let params = order_arguments(&ast::flatten_expression_list(parameters), &["arr", "dim"]);
+    let params = order_arguments(&ast::flatten_expression_list(parameters), &["ARR", "DIM"]);
 
     if let [vla, dim] = params.as_slice() {
         let [actual_vla, actual_idx] = [*vla, *dim].map(extract_actual_parameter);
@@ -1266,7 +1384,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
 
-    if let [vla, dim] = order_arguments(params, &["arr", "dim"]).as_slice() {
+    if let [vla, dim] = order_arguments(params, &["ARR", "DIM"]).as_slice() {
         let [actual_vla, actual_dim] = [*vla, *dim].map(extract_actual_parameter);
 
         let data_type_information =

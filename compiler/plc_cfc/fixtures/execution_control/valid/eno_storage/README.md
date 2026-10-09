@@ -4,9 +4,9 @@ with Set storage mode. The transparent ENO source becomes the latch guard, so
 
 Illustrated:
 ```
-              inst : counter (0)
+              inst : counter (1)
             +-------------------+
-trigger --> | EN            ENO | --S--> latch (1)
+trigger --> | EN            ENO | --S--> latch (2)
 localIn --> | in            out |
             +-------------------+
             (out unread; S marks the Set storage mode)

@@ -18,7 +18,7 @@ while_body:                                       ; preds = %buffer_block2, %ent
   br i1 false, label %condition_body, label %continue1, !dbg !12
 
 continue:                                         ; preds = %continue1, %condition_body
-  store i32 1, ptr %myFunc, align [filtered], !dbg !13
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !13
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !14
   ret i32 %myFunc_ret, !dbg !15
 

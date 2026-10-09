@@ -19,7 +19,7 @@
                 <ppx:FbdObject xsi:type="ppx:Block" typeName="myAdd" globalId="1">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="0"/>
+                            <EvaluationPriority priorityInNetwork="1"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="600" y="370"/>
@@ -69,7 +69,7 @@
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="myAddCfc" globalId="8">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="1"/>
+                            <EvaluationPriority priorityInNetwork="2"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="770" y="390"/>
@@ -82,7 +82,7 @@
                 <ppx:FbdObject xsi:type="ppx:DataSink" identifier="myAddDoubledCfc" globalId="9">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <EvaluationPriority priorityInNetwork="2"/>
+                            <EvaluationPriority priorityInNetwork="3"/>
                         </ppx:Data>
                     </ppx:AddData>
                     <ppx:RelPosition x="770" y="410"/>

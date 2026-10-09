@@ -1,5 +1,6 @@
 use std::env;
 
+use clap::ErrorKind;
 use plc_driver::cli::CompileParameters;
 
 fn main() {
@@ -7,7 +8,11 @@ fn main() {
 
     // Parse CLI first to extract log level, then initialize the logger.
     // If parsing fails, initialize default logger so the error prints cleanly.
-    let log_filter = CompileParameters::parse(&args).ok().and_then(|p| p.log_level_filter());
+    let log_filter = match CompileParameters::parse(&args) {
+        Ok(params) => params.log_level_filter(),
+        Err(err) if matches!(err.kind(), ErrorKind::DisplayHelp | ErrorKind::DisplayVersion) => err.exit(),
+        Err(_) => None,
+    };
 
     let mut builder = env_logger::Builder::from_default_env();
     if let Some(filter) = log_filter {

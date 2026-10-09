@@ -13,10 +13,10 @@ The parameter names in the second column are the names a call can use.
 
 | Call | Parameters | Result | Gives |
 |---|---|---|---|
-| `ADR(in)` | `in: ANY` | `LWORD` | The address of a variable, as a number |
-| `REF(in)` | `in: ANY` | `REF_TO` the type of `in` | A reference to a variable |
-| `SIZEOF(in)` | `in: ANY` | `ULINT` | The size of the argument's type, in bytes |
-| `MOVE(in)` | `in: ANY` | The type of `in` | The value of `in` |
+| `ADR(IN)` | `IN: ANY` | `LWORD` | The address of a variable, as a number |
+| `REF(IN)` | `IN: ANY` | `REF_TO` the type of `IN` | A reference to a variable |
+| `SIZEOF(IN)` | `IN: ANY` | `ULINT` | The size of the argument's type, in bytes |
+| `MOVE(IN)` | `IN: ANY` | The type of `IN` | The value of `IN` |
 
 ### Selection
 
@@ -29,10 +29,10 @@ The parameter names in the second column are the names a call can use.
 
 | Call | Parameters | Result | Gives |
 |---|---|---|---|
-| `LOWER_BOUND(arr, dim)` | `arr: ARRAY[*]`, `dim: ANY_INT` | `DINT` | The first index of dimension `dim` |
-| `UPPER_BOUND(arr, dim)` | `arr: ARRAY[*]`, `dim: ANY_INT` | `DINT` | The last index of dimension `dim` |
+| `LOWER_BOUND(ARR, DIM)` | `ARR: ARRAY[*]`, `DIM: ANY_INT` | `DINT` | The first index of dimension `DIM` |
+| `UPPER_BOUND(ARR, DIM)` | `ARR: ARRAY[*]`, `DIM: ANY_INT` | `DINT` | The last index of dimension `DIM` |
 
-`arr` takes an array of any size only, not an array of a fixed size. [Functions](../language/functions.md#arrays-of-any-size) shows both in a loop.
+`ARR` takes an array of any size only, not an array of a fixed size. [Functions](../language/functions.md#arrays-of-any-size) shows both in a loop.
 
 ### Arithmetic
 
@@ -43,8 +43,9 @@ The parameter names in the second column are the names a call can use.
 | `MUL(...)` | Two or more numbers or durations | The biggest argument type, or the date and time result | The product |
 | `SUB(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type, or the date and time result | `IN1 - IN2` |
 | `DIV(IN1, IN2)` | `IN1` and `IN2: ANY` | The biggest argument type, or the date and time result | `IN1 / IN2` |
+| `MOD(IN1, IN2)` | `IN1` and `IN2: ANY_NUM`, or two durations of the same type | The biggest argument type, or the duration type | `IN1 MOD IN2` |
 
-With a date or time argument, these four take the combinations of [Time and Date](../language/time.md#calculating), folded from the left, and the result has the type that table gives: `ADD(stamp, T#1s, T#2s)` is `stamp + T#1s + T#2s`, a `DATE_AND_TIME`, and `SUB(day1, day2)` is a `TIME`. The compiler carries these operations out with the standard library, such as `ADD_DT_TIME`, so such a call needs `iec61131std` linked. An argument that is neither a number nor part of a defined combination is rejected (E156).
+With a date or time argument, `ADD`, `MUL`, `SUB`, and `DIV` take the combinations of [Time and Date](../language/time.md#calculating), folded from the left, and the result has the type that table gives: `ADD(stamp, T#1s, T#2s)` is `stamp + T#1s + T#2s`, a `DATE_AND_TIME`, and `SUB(day1, day2)` is a `TIME`. The compiler carries these operations out with the standard library, such as `ADD_DT_TIME`, so such a call needs `iec61131std` linked. An argument that is neither a number nor part of a defined combination is rejected (E156). `MOD` takes numbers, or two `TIME` or two `LTIME` values: `MOD(T#7s, T#3s)` is `T#1s`. It rejects an argument of any other type (E062), and a duration paired with a number or with the other duration type, such as `TIME` with `DINT` or with `LTIME` (E156).
 
 ### Comparison
 
@@ -59,12 +60,38 @@ With a date or time argument, these four take the combinations of [Time and Date
 
 A call with more than two arguments compares each neighbouring pair and combines the results with `AND`, so `GT(a, b, c)` is `(a > b) AND (b > c)`.
 
+### Bitwise
+
+| Call | Parameters | Result | Gives |
+|---|---|---|---|
+| `AND(...)` | Two or more `ANY_BIT` or `ANY_INT` | The biggest argument type | The arguments combined with `AND` |
+| `OR(...)` | Two or more `ANY_BIT` or `ANY_INT` | The biggest argument type | The arguments combined with `OR` |
+| `XOR(...)` | Two or more `ANY_BIT` or `ANY_INT` | The biggest argument type | The arguments combined with `XOR` |
+| `NOT(IN)` | `IN: ANY_BIT` or `ANY_INT` | The type of `IN` | `NOT IN` |
+
+For a `BOOL` the result is the logical one, for any other type it is bit by bit, the same as the operator of the same name. An argument that is neither a bit value nor an integer, such as a `REAL` or a `TIME`, is rejected (E062).
+
 ### Bit shifts
 
 | Call | Parameters | Result | Gives |
 |---|---|---|---|
-| `SHL(IN, n)` | `IN: ANY`, `n: UDINT` | The type of `IN` | `IN` shifted left by `n` bits |
-| `SHR(IN, n)` | `IN: ANY`, `n: UDINT` | The type of `IN` | `IN` shifted right by `n` bits |
+| `SHL(IN, N)` | `IN: ANY`, `N: UDINT` | The type of `IN` | `IN` shifted left by `N` bits |
+| `SHR(IN, N)` | `IN: ANY`, `N: UDINT` | The type of `IN` | `IN` shifted right by `N` bits |
+
+
+## Names that are also operators
+
+`AND`, `OR`, `XOR`, `MOD`, and `NOT` are operator keywords as well as function names. A keyword followed by `(`, where no operand stands before it, is the function. A space between the keyword and `(` does not change this:
+
+```iecst
+flag := AND(a, b, c);   (* the function, the same as a AND b AND c *)
+flag := a AND (b);      (* the operator, `a` stands before it *)
+rest := MOD(IN1 := total, IN2 := size);
+```
+
+`NOT(x)` with one positional argument stays the operator applied to `(x)`, with the same result. With a named argument, as in `NOT(IN := x)`, or with more than one argument, it is the function.
+
+Because they are keywords, these names are not available for a function of your own. `FUNCTION AND` is rejected with E007.
 
 
 ## Calling by name
@@ -90,30 +117,32 @@ This is the rule for every call, not only for a built-in. `plc explain E132` des
 
 ## A variadic parameter has no name
 
-`ADD`, `MUL`, `GT`, `GE`, `EQ`, `LE`, and `LT` take all of their arguments through one variadic parameter, and `MUX` takes everything after `K` through one. A variadic parameter has no name to call it by, so these arguments are positional:
+`ADD`, `MUL`, `AND`, `OR`, `XOR`, `GT`, `GE`, `EQ`, `LE`, and `LT` take all of their arguments through one variadic parameter, and `MUX` takes everything after `K` through one. A variadic parameter has no name to call it by, so these arguments are positional:
 
 ```iecst
 sum := ADD(a, b, c);          (* correct *)
 value := MUX(K := 1, a, b);   (* correct, K is not variadic *)
 ```
 
-A name for such an argument is rejected:
+A name for such an argument is rejected, also `IN1`, which the standard uses for the first input:
+
+```iecst
+sum := ADD(IN1 := a, b);      (* error *)
+```
 
 ```
-error[E048]: Could not resolve reference to args
 error[E089]: Invalid call parameters
+error[E048]: Could not resolve reference to IN1
 ```
 
 `SEL` looks like `MUX` but is not variadic, so all three of its parameters have a name.
 
-The [standard library](standard-library.md) overloads `ADD` and `MUL` with a named first parameter `IN1` and a variadic rest. With the library linked, `ADD(IN1 := a, b)` is a valid call as well, and every argument after the first stays positional.
-
 
 ## How many arguments
 
-`ADD`, `MUL`, `GT`, `GE`, `EQ`, `LE`, and `LT` are extensible: they take two arguments or more.
+`ADD`, `MUL`, `AND`, `OR`, `XOR`, `GT`, `GE`, `EQ`, `LE`, and `LT` are extensible: they take two arguments or more.
 
-`SUB`, `DIV`, and `NE` take exactly two, which is the one place where `NE` behaves unlike the other five comparisons:
+`SUB`, `DIV`, `MOD`, and `NE` take exactly two, which is the one place where `NE` behaves unlike the other five comparisons:
 
 ```
 error[E032]: this POU takes 2 arguments but 3 arguments were supplied

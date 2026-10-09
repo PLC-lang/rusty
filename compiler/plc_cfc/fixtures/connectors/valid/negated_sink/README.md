@@ -4,5 +4,5 @@ themselves can not be negated, only the nodes wired to them.
 
 Illustrated:
 ```
-foo --> x    x --o bar (0)
+foo --> x    x --o bar (1)
 ```

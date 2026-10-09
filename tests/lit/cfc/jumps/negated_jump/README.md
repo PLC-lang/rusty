@@ -4,7 +4,7 @@ assignment (`result = 0`) and a true guard runs it (`result = 42`).
 
 Illustrated:
 ```
-guard o--> JMP skipAssignment (0)
-42 --> result (1)
-LABEL skipAssignment (2)
+guard o--> JMP skipAssignment (1)
+42 --> result (2)
+LABEL skipAssignment (3)
 ```
