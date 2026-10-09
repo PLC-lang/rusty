@@ -48,6 +48,7 @@ use plc_lowering::{
     control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, loops::LoopDesugarer,
     reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
 };
+use plc_xmlgen::xml_gen::copy_xmlfile_to_output;
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -75,7 +76,12 @@ pub trait Pipeline {
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic>;
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
-    fn generate(&mut self, context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic>;
+    fn generate(
+        &mut self,
+        context: &CodegenContext,
+        project: AnnotatedProject,
+        compile_options: &CompileOptions,
+    ) -> Result<(), Diagnostic>;
     fn generate_headers(&mut self, project: AnnotatedProject) -> Result<(), Diagnostic>;
 }
 
@@ -205,6 +211,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 debug_prefix_maps: params.debug_prefix_maps(),
                 debug_compilation_dir: params.debug_compilation_dir.clone(),
                 single_module: params.single_module,
+                generation: params.to_gen_parameters(),
                 constructors_only: params.constructors_only,
                 build_info: (!params.fno_ident).then(ident),
             }
@@ -421,6 +428,11 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             return Ok(());
         }
 
+        let Some(compile_options) = self.get_compile_options() else {
+            log::debug!("No compile options provided");
+            return Ok(());
+        };
+
         // 4. Validate
         annotated_project.validate(&self.context, &mut self.diagnostician)?;
 
@@ -466,7 +478,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         }
 
         // 5. Codegen
-        self.generate(&CodegenContext::create(), annotated_project)
+        self.generate(&CodegenContext::create(), annotated_project, &compile_options)
     }
 
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
@@ -512,20 +524,23 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         Ok(annotated_project)
     }
 
-    fn generate(&mut self, _context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic> {
+    fn generate(
+        &mut self,
+        _context: &CodegenContext,
+        project: AnnotatedProject,
+        compile_options: &CompileOptions,
+    ) -> Result<(), Diagnostic> {
         self.participants.iter_mut().try_fold((), |_, participant| participant.pre_generate(&project))?;
-        let Some(compile_options) = self.get_compile_options() else {
-            log::debug!("No compile options provided");
-            return Ok(());
-        };
         let target = self.compile_parameters.as_ref().and_then(|it| it.target.as_ref());
         if compile_options.single_module || matches!(compile_options.output_format, FormatOption::Object) {
             log::info!("Using single module mode");
             let context = CodegenContext::create();
             project
-                .generate_single_module(&context, &compile_options, target)?
+                .generate_single_module(&context, compile_options, target)?
                 .map(|module| {
-                    self.participants.iter_mut().try_fold((), |_, participant| participant.generate(&module))
+                    self.participants.iter_mut().try_fold((), |_, participant| {
+                        participant.generate(&module, &project, compile_options)
+                    })
                 })
                 .unwrap_or(Ok(()))?;
         } else {
@@ -536,13 +551,15 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                     let context = CodegenContext::create();
                     let module = project.generate_module(
                         &context,
-                        &compile_options,
+                        compile_options,
                         unit,
                         dependencies,
                         literals,
                         target,
                     )?;
-                    self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
+                    self.participants.iter().try_fold((), |_, participant| {
+                        participant.generate(&module, &project, compile_options)
+                    })
                 })
                 .collect::<Result<Vec<_>, Diagnostic>>()?;
         }
@@ -921,7 +938,9 @@ impl AnnotatedProject {
         let modules =
             targets.iter().map(|target| self.generate_single_module(&context, compile_options, Some(target)));
         let mut result = vec![];
+
         for (target, module) in targets.iter().zip(modules) {
+            let units = &self.units.iter().map(|current| &current.unit).collect();
             let obj: Object = module?
                 .unwrap()
                 .persist(
@@ -931,6 +950,8 @@ impl AnnotatedProject {
                     compile_options.relocation_preference,
                     target,
                     compile_options.optimization,
+                    units,
+                    &compile_options.generation,
                 )
                 .map(Into::into)?;
 
@@ -1162,6 +1183,14 @@ impl GeneratedProject {
                     }
                     FormatOption::Object | FormatOption::Relocatable => {
                         linker.build_relocatable(output_location).map_err(Into::into)
+                    }
+                    FormatOption::XML => {
+                        let paths: Vec<&Path> = self.objects.iter().map(|a| a.get_path()).collect();
+
+                        match copy_xmlfile_to_output(paths, output_location) {
+                            Ok(path) => Ok(path),
+                            Err(error) => Err(Diagnostic::new(error.to_string())),
+                        }
                     }
                     _ => unreachable!("Already handled in previous match"),
                 }
