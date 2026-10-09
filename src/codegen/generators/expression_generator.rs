@@ -391,11 +391,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let left_value = self.generate_expression(left)?;
             let right_value = self.generate_expression(right)?;
 
-            if matches!(
-                operator,
-                Operator::Less | Operator::Greater | Operator::LessOrEqual | Operator::GreaterOrEqual
-            ) {
-                return self.generate_int_ordering_comparison(operator, left, left_value, right, right_value);
+            if operator.is_comparison_operator() {
+                return self.generate_int_comparison(operator, left, left_value, right, right_value);
             }
 
             let is_signed = ltype.is_signed_int() || rtype.is_signed_int();
@@ -416,12 +413,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
-    /// generates an ordering comparison (<, >, <=, >=) of two integers that compares their values
+    /// generates a comparison (=, <>, <, >, <=, >=) of two integers that compares their values
     ///
     /// A negative value needs a signed predicate and a value with the highest bit set needs an unsigned
     /// one. If the operands need both (e.g. `ULINT#16#FFFFFFFFFFFFFFFF > -1`), they are extended to twice
-    /// their width and compared as signed values.
-    fn generate_int_ordering_comparison(
+    /// their width and compared as signed values, so `UDINT#16#FFFFFFFF = -1` is `FALSE`.
+    fn generate_int_comparison(
         &self,
         operator: &Operator,
         left: &AstNode,
@@ -429,7 +426,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         right: &AstNode,
         right_value: BasicValueEnum<'ink>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        let (left_value, right_value) = (left_value.into_int_value(), right_value.into_int_value());
+        let left_value = self.convert_to_int_value_if_pointer(left_value)?;
+        let right_value = self.convert_to_int_value_if_pointer(right_value)?;
         let width = left_value.get_type().get_bit_width().max(right_value.get_type().get_bit_width());
         let (left_negative, left_highest_bit) = self.get_int_value_range(left, width);
         let (right_negative, right_highest_bit) = self.get_int_value_range(right, width);

@@ -16,6 +16,7 @@ FUNCTION main : DINT
         dintNegative : DINT := -1;
         dintPositive : DINT := 1;
         direction : Direction := backward;
+        address : LWORD;
     END_VAR
 
     // CHECK: 1 0 1 0
@@ -37,9 +38,22 @@ FUNCTION main : DINT
     // CHECK: 1 0
     printf('%d %d$N', direction < stop, direction > forward);
 
-    // A negative signed value is less than every unsigned value
+    // A negative signed value is less than every unsigned value and equal to none
     // CHECK: 1 0 1 0
     printf('%d %d %d %d$N', ulintSmall > dintNegative, ulintSmall < dintNegative, ulintBig >= -1, ulintBig <= -1);
     // CHECK: 1 0 1 0
     printf('%d %d %d %d$N', udintBig > dintNegative, udintBig < dintNegative, dintNegative < lwordBig, dintNegative > lwordBig);
+    // CHECK: 0 1 0 1
+    printf('%d %d %d %d$N', dwordBig = dintNegative, dwordBig <> dintNegative, ulintBig = -1, ulintBig <> -1);
+    // CHECK: 0 1 0
+    printf('%d %d %d$N', lwordBig = dintNegative, dintNegative <> lwordBig, udintBig = -294967296);
+
+    // Equal values compare as equal
+    // CHECK: 1 0 1 1
+    printf('%d %d %d %d$N', udintBig = 4000000000, udintBig <> 4000000000, dwordSmall = dintPositive, ulintBig = lwordBig);
+
+    // Addresses compare as unsigned values
+    address := ADR(dintPositive);
+    // CHECK: 1 1 0
+    printf('%d %d %d$N', address = ADR(dintPositive), address >= ADR(dintPositive), address < ADR(dintPositive));
 END_FUNCTION
