@@ -69,7 +69,7 @@ So `a + b * c` multiplies first, and `x < 1 AND y > 2` compares first. A sign is
 
 ## Mixed types
 
-Precedence says how an expression is grouped. The types of its operands say in which type it is computed, and that type does not come from the target of the assignment. Every integer narrower than `DINT` is widened to `DINT` first, and a pair of different types is computed in the wider of the two. The result then moves to the target: a move to a wider type is silent, and a move to a narrower one compiles with a warning, because the value can change.
+Precedence says how an expression is grouped. The types of its operands say in which type it is computed, and that type does not come from the target of the assignment. Every integer narrower than `DINT` is widened to `DINT` first, and a pair of different types is computed in the wider of the two. A literal next to a `UDINT`, `ULINT`, `DWORD`, or `LWORD` takes that type when it fits, so the operation stays unsigned; see [basic types](basic-types.md#integers). The result then moves to the target: a move to a wider type is silent, and a move to a narrower one compiles with a warning, because the value can change.
 
 ```iecst
 VAR

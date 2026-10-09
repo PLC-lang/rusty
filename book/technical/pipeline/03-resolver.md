@@ -124,6 +124,8 @@ the addition uses `DINT` for both operands and for its result. The assignment th
 
 The comparison widens `sintVar` from `SINT` to `DINT` through a hint on that operand. Its result has type `BOOL`, which already matches the assignment target.
 
+An integer literal next to an unsigned operand of at least 32 bits, a `UDINT`, `ULINT`, `DWORD`, or `LWORD`, does not take part in the widening when its value fits into that type. The operation then runs in the operand's type and the literal gets it as hint, so `udintVar / 2` stays an unsigned division instead of a `DINT` one.
+
 Visualized:
 
 ```

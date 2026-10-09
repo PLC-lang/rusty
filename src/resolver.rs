@@ -31,8 +31,9 @@ use crate::{
     typesystem::{
         self, get_bigger_type, get_date_time_arithmetic, DataTypeInformation, DateTimeArithmetic,
         InternalType, StringEncoding, StructSource, BOOL_TYPE, BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE,
-        DINT_TYPE, DWORD_TYPE, LINT_TYPE, LONG_DATE_AND_TIME_TYPE, LONG_DATE_TYPE, LONG_TIME_OF_DAY_TYPE,
-        LONG_TIME_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        DINT_SIZE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LONG_DATE_AND_TIME_TYPE, LONG_DATE_TYPE,
+        LONG_TIME_OF_DAY_TYPE, LONG_TIME_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE,
+        TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 use crate::{
@@ -2259,8 +2260,15 @@ impl<'i> TypeAnnotator<'i> {
                         self.update_expected_types(result, &data.right);
                         Some(result_type.to_string())
                     } else if l_intrinsic_type.is_numerical() && r_intrinsic_type.is_numerical() {
+                        let unsigned_literal_type =
+                            get_unsigned_type_for_literal(self.index, left_type, &data.right).or_else(|| {
+                                get_unsigned_type_for_literal(self.index, right_type, &data.left)
+                            });
+
                         let bigger_type = if l_intrinsic_type.is_bool() && r_intrinsic_type.is_bool() {
                             left_type
+                        } else if let Some(unsigned_type) = unsigned_literal_type {
+                            unsigned_type
                         } else {
                             let ty = if left_type.is_bit() && right_type.is_bit() {
                                 right_type
@@ -3105,6 +3113,23 @@ fn to_variable_annotation(
         argument_type: v.get_declaration_type(),
         auto_deref: kind,
     }
+}
+
+/// Returns `operand_type` if it is an unsigned integer of at least DINT size and `literal` is an integer
+/// literal that fits into it, so that the literal does not make the operation signed
+fn get_unsigned_type_for_literal<'i>(
+    index: &'i Index,
+    operand_type: &'i typesystem::DataType,
+    literal: &AstNode,
+) -> Option<&'i typesystem::DataType> {
+    let value = literal.get_literal_integer_value()?;
+    let DataTypeInformation::Integer { signed: false, size, .. } =
+        index.get_intrinsic_type_by_name(operand_type.get_name()).get_type_information()
+    else {
+        return None;
+    };
+
+    (*size >= DINT_SIZE && value >= 0 && value < 1 << size).then_some(operand_type)
 }
 
 fn get_int_type_name_for(value: i128) -> &'static str {
