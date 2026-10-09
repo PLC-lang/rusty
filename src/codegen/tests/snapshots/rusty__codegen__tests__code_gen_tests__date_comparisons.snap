@@ -18,12 +18,12 @@ entry:
   %c = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   %d = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
   %load_a = load i32, ptr %a, align [filtered]
-  %tmpVar = icmp sgt i32 %load_a, 1619827200
+  %tmpVar = icmp ugt i32 %load_a, 1619827200
   %load_b = load i32, ptr %b, align [filtered]
-  %tmpVar1 = icmp sgt i32 %load_b, 1619897357
+  %tmpVar1 = icmp ugt i32 %load_b, 1619897357
   %load_c = load i32, ptr %c, align [filtered]
-  %tmpVar2 = icmp sgt i32 %load_c, 156557000
+  %tmpVar2 = icmp ugt i32 %load_c, 156557000
   %load_d = load i32, ptr %d, align [filtered]
-  %tmpVar3 = icmp sgt i32 %load_d, 70157000
+  %tmpVar3 = icmp ugt i32 %load_d, 70157000
   ret void
 }

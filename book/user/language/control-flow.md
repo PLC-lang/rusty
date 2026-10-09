@@ -73,6 +73,8 @@ END_FOR
 
 The end value is included. The counter is an ordinary variable of the POU, and after the loop it keeps the value that ended it: after `FOR i := 1 TO 3`, `i` is `4`, and after `FOR i := 10 TO 1 BY -3`, `i` is `-2`. When the body never runs, the counter keeps the start value.
 
+The loop ends when the counter has moved past the end value, so the counter's type must be able to hold that value. An end value at the limit of the type makes the step wrap the counter around, and the loop never ends: `FOR b := 0 TO 255` with `b : BYTE`, or `FOR u := 3 TO 0 BY -1` with an unsigned `u`. Use a counter type that can hold the end value plus one step.
+
 
 ## WHILE and REPEAT
 
