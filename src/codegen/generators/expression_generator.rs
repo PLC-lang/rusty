@@ -29,7 +29,7 @@ use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
-        llvm_typesystem::cast_if_needed,
+        llvm_typesystem::{cast_if_needed, get_llvm_int_type},
         CodegenError,
     },
     index::{
@@ -388,14 +388,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return self.generate_bool_binary_expression(operator, left, right);
         }
         if ltype.is_int() && rtype.is_int() {
-            let is_signed = ltype.is_signed_int() || rtype.is_signed_int();
+            let left_value = self.generate_expression(left)?;
+            let right_value = self.generate_expression(right)?;
 
-            self.create_llvm_int_binary_expression(
-                operator,
-                self.generate_expression(left)?,
-                self.generate_expression(right)?,
-                Some(is_signed),
-            )
+            if operator.is_comparison_operator() {
+                return self.generate_int_comparison(operator, left, left_value, right, right_value);
+            }
+
+            let is_signed = ltype.is_signed_int() || rtype.is_signed_int();
+            self.create_llvm_int_binary_expression(operator, left_value, right_value, Some(is_signed))
         } else if ltype.is_float() && rtype.is_float() {
             self.create_llvm_float_binary_expression(
                 operator,
@@ -409,6 +410,70 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.create_llvm_binary_expression_for_pointer(operator, left, ltype, right, rtype, expression)
         } else {
             self.create_llvm_generic_binary_expression(left, right, expression)
+        }
+    }
+
+    /// generates a comparison (=, <>, <, >, <=, >=) of two integers that compares their values
+    ///
+    /// A negative value needs a signed predicate and a value with the highest bit set needs an unsigned
+    /// one. If the operands need both (e.g. `ULINT#16#FFFFFFFFFFFFFFFF > -1`), they are extended to twice
+    /// their width and compared as signed values, so `UDINT#16#FFFFFFFF = -1` is `FALSE`.
+    fn generate_int_comparison(
+        &self,
+        operator: &Operator,
+        left: &AstNode,
+        left_value: BasicValueEnum<'ink>,
+        right: &AstNode,
+        right_value: BasicValueEnum<'ink>,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
+        let left_value = self.convert_to_int_value_if_pointer(left_value)?;
+        let right_value = self.convert_to_int_value_if_pointer(right_value)?;
+        let width = left_value.get_type().get_bit_width().max(right_value.get_type().get_bit_width());
+        let (left_negative, left_highest_bit) = self.get_int_value_range(left, width);
+        let (right_negative, right_highest_bit) = self.get_int_value_range(right, width);
+
+        // Without both kinds of values one predicate fits all values
+        let has_negative = left_negative || right_negative;
+        let has_highest_bit = left_highest_bit || right_highest_bit;
+        if !(has_negative && has_highest_bit) {
+            return self.create_llvm_int_binary_expression(
+                operator,
+                left_value.into(),
+                right_value.into(),
+                Some(!has_highest_bit),
+            );
+        }
+
+        // Otherwise compare the extended values
+        let wide_type = get_llvm_int_type(self.llvm.context, width * 2, "comparison");
+        let extend = |value: IntValue<'ink>, negative: bool| -> Result<BasicValueEnum<'ink>, CodegenError> {
+            Ok(if negative {
+                self.llvm.builder.build_int_s_extend(value, wide_type, "")?
+            } else {
+                self.llvm.builder.build_int_z_extend(value, wide_type, "")?
+            }
+            .as_basic_value_enum())
+        };
+
+        self.create_llvm_int_binary_expression(
+            operator,
+            extend(left_value, left_negative)?,
+            extend(right_value, right_negative)?,
+            Some(true),
+        )
+    }
+
+    /// returns whether `expression` can be negative and whether it can have the highest of `width` bits
+    /// set while being positive
+    fn get_int_value_range(&self, expression: &AstNode, width: u32) -> (bool, bool) {
+        if let Some(value) = expression.get_literal_integer_value() {
+            return (value < 0, value >= 1 << (width - 1));
+        }
+
+        let data_type = self.annotations.get_type_or_void(expression, self.index);
+        match self.index.get_intrinsic_type_by_name(data_type.get_name()).get_type_information() {
+            DataTypeInformation::Integer { signed: false, size, .. } => (false, *size >= width),
+            _ => (true, false),
         }
     }
 
@@ -2326,20 +2391,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.llvm.builder.build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, "tmpVar")?
             }
 
-            Operator::Less => {
-                self.llvm.builder.build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, "tmpVar")?
-            }
-
-            Operator::Greater => {
-                self.llvm.builder.build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, "tmpVar")?
-            }
-
-            Operator::LessOrEqual => {
-                self.llvm.builder.build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, "tmpVar")?
-            }
-
-            Operator::GreaterOrEqual => {
-                self.llvm.builder.build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar")?
+            Operator::Less | Operator::Greater | Operator::LessOrEqual | Operator::GreaterOrEqual => {
+                // Without sign information the operands are compared as signed values
+                let predicate = get_int_ordering_predicate(operator, is_signed.unwrap_or(true));
+                self.llvm.builder.build_int_compare(predicate, int_lvalue, int_rvalue, "tmpVar")?
             }
             Operator::Xor => self.llvm.builder.build_xor(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::And => self.llvm.builder.build_and(int_lvalue, int_rvalue, "tmpVar")?,
@@ -3707,6 +3762,21 @@ fn int_value_multiply_accumulate<'ink>(
         llvm.builder.build_store(accum, curr)?;
     }
     Ok(llvm.builder.build_load(i32_type, accum, "accessor")?.into_int_value())
+}
+
+/// Returns the integer predicate for the ordering comparison `operator` (<, >, <=, >=)
+fn get_int_ordering_predicate(operator: &Operator, is_signed: bool) -> IntPredicate {
+    match (operator, is_signed) {
+        (Operator::Less, true) => IntPredicate::SLT,
+        (Operator::Less, false) => IntPredicate::ULT,
+        (Operator::Greater, true) => IntPredicate::SGT,
+        (Operator::Greater, false) => IntPredicate::UGT,
+        (Operator::LessOrEqual, true) => IntPredicate::SLE,
+        (Operator::LessOrEqual, false) => IntPredicate::ULE,
+        (Operator::GreaterOrEqual, true) => IntPredicate::SGE,
+        (Operator::GreaterOrEqual, false) => IntPredicate::UGE,
+        _ => unreachable!("'{operator}' is no ordering comparison"),
+    }
 }
 
 // XXX: Could be problematic with https://github.com/PLC-lang/rusty/issues/668
