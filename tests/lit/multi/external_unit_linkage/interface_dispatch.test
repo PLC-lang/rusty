@@ -1,0 +1,20 @@
+RUN: %PLC -c --fpic %S/interface_dispatch_lib.st -o %t.lib.o
+RUN: %COMPILE -i %S/interface_dispatch_lib.st %S/interface_dispatch_main.st %t.lib.o && %RUN | %CHECK %s
+RUN: %COMPILE --generate-external-constructors -i %S/interface_dispatch_lib.st %S/interface_dispatch_main.st %t.lib.o && %RUN | %CHECK %s
+
+interface_dispatch_lib.st declares interfaces and function blocks, and is
+compiled to its own object. The program includes it, links that object, and
+dispatches through the interfaces in both directions: it calls library types
+through interfaces, and the library calls program types that implement library
+interfaces. ILogger has no implementor in the library, so only the object built
+from interface_dispatch_lib.st may define its interface table type, also
+when the program is built with --generate-external-constructors.
+
+CHECK: 9 100
+CHECK: 9 200
+CHECK: 27
+CHECK: 307
+CHECK: 109
+CHECK: 50 200
+CHECK: 200
+CHECK: 58 57

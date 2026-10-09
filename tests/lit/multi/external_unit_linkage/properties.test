@@ -1,0 +1,11 @@
+RUN: %PLC -c --fpic %S/properties_lib.st -o %t.lib.o
+RUN: %COMPILE -i %S/properties_lib.st %S/properties_main.st %t.lib.o && %RUN | %CHECK %s
+
+properties_lib.st is compiled to its own object. properties_main.st includes it
+and links that object. The property accessors must be defined only in the
+object built from properties_lib.st.
+
+CHECK: 42
+CHECK: 10
+CHECK: 7
+CHECK: 10

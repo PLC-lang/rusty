@@ -22,7 +22,7 @@ flowchart LR
 
 The participant runs once at `post_index`. A variable requires retained storage if its block has `RETAIN` or its type contains a retained member. The index follows nested structs, arrays, and aliases, with cycle detection. The participant uses that result.
 
-For each unit, the participant visits globals and then POUs. It appends extracted variables to a `VAR_GLOBAL RETAIN` block, creating one if needed. It then rebuilds the index so that annotation sees the new globals and pointer types.
+For each unit, the participant visits globals and then POUs. It appends extracted variables to a `VAR_GLOBAL RETAIN` block with the linkage of their origin (the program, or the block of the moved global), creating one if needed. The storage of an included or `{external}` program is therefore only declared, and the unit that owns the program defines it. It then rebuilds the index so that annotation sees the new globals and pointer types.
 
 
 ## Transformation
@@ -92,7 +92,7 @@ A global in a plain `VAR_GLOBAL` block whose type retains transitively is moved 
  END_VAR
 ```
 
-Codegen would place `implicit` in `.retain` even without the move, because it asks the same transitive question for every global it emits. The move makes the answer visible in the lowered tree. A block created by the participant has an internal source location, internal linkage, and public access.
+Codegen would place `implicit` in `.retain` even without the move, because it asks the same transitive question for every global it emits. The move makes the answer visible in the lowered tree. A block created by the participant has an internal source location, the linkage of the variables it holds, and public access.
 
 Function blocks, functions, and methods are otherwise left alone. Their `VAR RETAIN` blocks keep the modifier, and a `VAR RETAIN` in a function or method has no effect: the variable stays on the stack and no diagnostic is reported.
 

@@ -1,0 +1,9 @@
+RUN: %PLC -c --fpic %S/reference_to_return_lib.st -o %t.lib.o
+RUN: %COMPILE -i %S/reference_to_return_lib.st %S/reference_to_return_main.st %t.lib.o && %RUN | %CHECK %s
+
+reference_to_return_lib.st is compiled to its own object. The program includes
+it and links that object. The symbols generated for the REFERENCE TO return
+value must be defined only in the object built from reference_to_return_lib.st.
+
+CHECK: 3
+CHECK: 7
