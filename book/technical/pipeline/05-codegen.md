@@ -301,6 +301,8 @@ Binary and unary expressions become the matching integer or float instruction. C
 store i8 %5, ptr %deref3                    ; write overflow through the output pointer
 ```
 
+An integer comparison takes its predicate from the values that the operands can hold. It is signed (`sgt`) unless an operand can have its highest bit set, an unsigned type as wide as the comparison or a literal that large, and unsigned (`ugt`) then. When one side can be negative and the other can have the highest bit set, as in `ulintVar > -1`, both are extended to twice their width, with the sign for the signed side and with zeros for the other, and compared as signed values.
+
 Codegen expects earlier stages to have resolved names and checked types. An unsupported expression stops the run with an internal codegen error.
 
 

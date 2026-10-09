@@ -27,6 +27,8 @@ On the date and time types the operators follow rules of their own, which the [t
 
 `=`, `<>`, `<`, `>`, `<=`, and `>=` compare two values of the same kind and produce a `BOOL`. They work on numbers, on enumerations, and on text, where they compare character by character. A comparison of two values that do not belong together, such as a text and a number, is rejected.
 
+Integers compare by their values, also when the two sides differ in sign or in width: a `UDINT` that holds 4 000 000 000 is greater than `5`, a `ULINT` is greater than `-1`, and no unsigned value is equal to `-1`.
+
 Note that the test for equality is a single `=`, because `:=` is the assignment.
 
 
