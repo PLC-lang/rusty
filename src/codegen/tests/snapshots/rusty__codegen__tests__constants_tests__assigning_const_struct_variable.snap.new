@@ -1,0 +1,27 @@
+---
+source: src/codegen/tests/constants_tests.rs
+assertion_line: 70
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%Point = type { i16, i16 }
+%main = type { %Point }
+
+@const_strct = unnamed_addr constant %Point { i16 1, i16 2 }
+@main_instance = global %main zeroinitializer
+
+define void @main(ptr %0) {
+entry:
+  %strct = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %strct, ptr align [filtered] @const_strct, i64 ptrtoint (ptr getelementptr (%Point, ptr null, i32 1) to i64), i1 false)
+  ret void
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+attributes #0 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }

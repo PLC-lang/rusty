@@ -1,0 +1,29 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 531
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%prg = type { [81 x i8], [81 x i16] }
+
+@prg_instance = global %prg zeroinitializer
+@utf08_literal_0 = private unnamed_addr constant [12 x i8] c"im a genius\00"
+@utf16_literal_0 = private unnamed_addr constant [18 x i16] [i16 105, i16 109, i16 32, i16 97, i16 32, i16 117, i16 116, i16 102, i16 49, i16 54, i16 32, i16 103, i16 101, i16 110, i16 105, i16 117, i16 115, i16 0]
+
+define void @prg(ptr %0) {
+entry:
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %y, ptr align [filtered] @utf08_literal_0, i32 12, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %z, ptr align [filtered] @utf16_literal_0, i32 36, i1 false)
+  ret void
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
+
+attributes #0 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
