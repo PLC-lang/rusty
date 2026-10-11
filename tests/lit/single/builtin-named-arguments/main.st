@@ -8,13 +8,13 @@
 // This test verifies that builtin functions work correctly with named arguments:
 // - MOVE: named (IN := x) arguments
 // - SEL: named (G := TRUE, IN0 := b, IN1 := c) arguments
-// - SIZEOF: named (in := myarray) arguments
-// - UPPER_BOUND: named (arr := vla, dim := x) arguments
-// - LOWER_BOUND: named (arr := vla, dim := x) arguments
+// - SIZEOF: named (IN := myarray) arguments
+// - UPPER_BOUND: named (ARR := vla, DIM := x) arguments
+// - LOWER_BOUND: named (ARR := vla, DIM := x) arguments
 // - DIV: named (IN1 := dividend, IN2 := divisor) arguments
 // - SUB: named (IN1 := dividend, IN2 := subtrahend) arguments
-// - SHL: named (IN := x, n := y) arguments
-// - SHR: named (IN := x, n := y) arguments
+// - SHL: named (IN := x, N := y) arguments
+// - SHR: named (IN := x, N := y) arguments
 //
 // For ADR and REF, both calling conventions are tested to verify they produce equivalent results.
 
@@ -48,7 +48,7 @@ END_VAR
     printf('%d$N', a);                      // CHECK: 4
 
     // SIZEOF
-    result := SIZEOF(in := myarray);
+    result := SIZEOF(IN := myarray);
     printf('%d$N', result);                 // CHECK: 10
 
     // DIV
@@ -60,11 +60,11 @@ END_VAR
     printf('%d$N', result);                 // CHECK: 13
 
     // SHL
-    shl_result := SHL(n := 2, IN := 1);
+    shl_result := SHL(N := 2, IN := 1);
     printf('%d$N', shl_result);             // CHECK: 4
 
     // SHR
-    shr_result := SHR(n := 1, IN := 4);
+    shr_result := SHR(N := 1, IN := 4);
     printf('%d$N', shr_result);             // CHECK: 2
 
     test_bounds(myarray);
@@ -83,11 +83,11 @@ VAR
 END_VAR
 
     // UPPER_BOUND
-    result := UPPER_BOUND(arr := vla, dim := x);
+    result := UPPER_BOUND(ARR := vla, DIM := x);
     printf('%d$N', result);                 // CHECK: 9
 
     // LOWER_BOUND
-    result := LOWER_BOUND(arr := vla, dim := x);
+    result := LOWER_BOUND(ARR := vla, DIM := x);
     printf('%d$N', result);                 // CHECK: 0
 
 END_FUNCTION

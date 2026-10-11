@@ -12,7 +12,7 @@ entry:
   %myFunc = alloca i32, align [filtered]
     #dbg_declare(ptr %myFunc, !8, !DIExpression(), !10)
   store i32 0, ptr %myFunc, align [filtered]
-  store i32 3, ptr %myFunc, align [filtered], !dbg !11
+  store volatile i32 3, ptr %myFunc, align [filtered], !dbg !11
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !12
   ret i32 %myFunc_ret, !dbg !13
 }

@@ -59,7 +59,7 @@ In a project file, the key `compile_type` does the same. Use `Static`, `Object`,
 plc main.st -O aggressive
 ```
 
-The four levels are `none`, `less`, `default`, and `aggressive`, and they are the levels of LLVM from `-O0` to `-O3`. The default is `default`. Use `none` while you debug, because the generated code then follows the source closely. The level changes the machine code only. The text that `--ir` writes is the same at every level.
+The four levels are `none`, `less`, `default`, and `aggressive`, and they are the levels of LLVM from `-O0` to `-O3`. The default is `default`. Use `none` while you debug, because the generated code then follows the source closely. The level changes the machine code only. The text that `--ir` writes is the same at every level, with one exception: with `-g` and `none`, the write that completes a statement is `volatile`, so that a debugger keeps a stop on it (see [debug information](debugging.md#stepping)).
 
 
 ## Check without producing anything

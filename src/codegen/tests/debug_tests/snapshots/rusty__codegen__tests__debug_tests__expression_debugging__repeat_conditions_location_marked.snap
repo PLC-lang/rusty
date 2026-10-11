@@ -22,7 +22,7 @@ while_body:                                       ; preds = %continue1, %entry
   br i1 %0, label %condition_body, label %continue1, !dbg !14
 
 continue:                                         ; preds = %condition_body3
-  store i32 1, ptr %myFunc, align [filtered], !dbg !15
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !15
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !16
   ret i32 %myFunc_ret, !dbg !17
 
@@ -35,7 +35,7 @@ condition_body:                                   ; preds = %while_body
 
 continue1:                                        ; preds = %continue2, %while_body
   store i8 1, ptr %__ran_once_0, align [filtered], !dbg !20
-  store i32 1, ptr %myFunc, align [filtered], !dbg !21
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !21
   br label %while_body, !dbg !22
 
 condition_body3:                                  ; preds = %condition_body

@@ -10,7 +10,7 @@ VAR
 END_VAR
 
 a := MOVE(y);
-b := MOVE(in := y);
+b := MOVE(IN := y);
 // CHECK: MOVE=7331 7331
 printf('MOVE=%d %d$N', a, b);
 END_FUNCTION

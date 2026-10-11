@@ -9,6 +9,9 @@
 //!     PROPERTY_GET foo: DINT
 //!         // ...
 //!         foo := <expr>;
+//!         IF <condition> THEN
+//!             RETURN;
+//!         END_IF
 //!         // ...
 //!     END_PROPERTY
 //!
@@ -31,6 +34,10 @@
 //!
 //!         // ...
 //!         foo := <expr>;
+//!         IF <condition> THEN
+//!             __get_foo := foo; // Patched in by the lowerer
+//!             RETURN;
+//!         END_IF
 //!         // ...
 //!         __get_foo := foo; // Patched in by the lowerer
 //!     END_METHOD
@@ -89,6 +96,14 @@ pub struct PropertyLowerer {
     pub id_provider: IdProvider,
     pub annotations: Option<AstAnnotations>,
     pub diagnostics: Vec<Diagnostic>,
+}
+
+/// Inserts `__get_<property> := <property>` before every RETURN of a getter, so that an early RETURN
+/// returns the current value of the property variable
+struct GetterReturnLowerer {
+    id_provider: IdProvider,
+    return_name: String,
+    property_name: String,
 }
 
 impl PropertyLowerer {
@@ -237,6 +252,28 @@ impl AstVisitorMut for PropertyLowerer {
     }
 }
 
+impl AstVisitorMut for GetterReturnLowerer {
+    fn visit_statement_list(&mut self, stmts: &mut Vec<AstNode>) {
+        let mut lowered = Vec::with_capacity(stmts.len());
+
+        for mut node in std::mem::take(stmts) {
+            self.visit(&mut node);
+
+            if matches!(node.stmt, AstStatement::ReturnStatement(_)) {
+                lowered.push(create_internal_assignment(
+                    &mut self.id_provider,
+                    self.return_name.as_str(),
+                    self.property_name.as_str(),
+                ));
+            }
+
+            lowered.push(node);
+        }
+
+        *stmts = lowered;
+    }
+}
+
 /// The actual logic for lowering properties into methods and their implementations counterpart
 pub fn lower_to_pou(
     mut provider: IdProvider,
@@ -314,6 +351,12 @@ pub fn lower_to_pou(
 
                 let name_lhs = format!("__{kind}_{name}");
 
+                GetterReturnLowerer {
+                    id_provider: provider.clone(),
+                    return_name: name_lhs.clone(),
+                    property_name: name.to_string(),
+                }
+                .visit_statement_list(&mut implementation.statements);
                 implementation.statements.push(create_internal_assignment(&mut provider, name_lhs, name));
             }
 
@@ -629,6 +672,105 @@ mod tests {
                 interfaces: [],
                 properties: [],
             }
+            "#);
+        }
+
+        #[test]
+        fn get_assigns_return_value_before_every_return_statement() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY_GET foo: DINT
+                    IF TRUE THEN
+                        foo := 5;
+                        RETURN;
+                    END_IF
+                    foo := 6;
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
+
+            let (unit, _) = lower_properties_to_pous(source);
+            insta::assert_debug_snapshot!(unit.implementations[1].statements, @r#"
+            [
+                IfStatement {
+                    blocks: [
+                        ConditionalBlock {
+                            condition: LiteralBool {
+                                value: true,
+                            },
+                            body: [
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "foo",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: LiteralInteger {
+                                        value: 5,
+                                    },
+                                },
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__get_foo",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "foo",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                },
+                                ReturnStatement {
+                                    condition: None,
+                                },
+                                EmptyStatement,
+                            ],
+                        },
+                    ],
+                    else_block: [],
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: LiteralInteger {
+                        value: 6,
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__get_foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ]
             "#);
         }
 

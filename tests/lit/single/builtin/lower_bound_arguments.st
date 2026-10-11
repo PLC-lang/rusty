@@ -23,8 +23,8 @@ VAR
 END_VAR
 
 a := LOWER_BOUND(vla, dim);
-b := LOWER_BOUND(arr := vla, dim := dim);
-c := LOWER_BOUND(dim := dim, arr := vla);
+b := LOWER_BOUND(ARR := vla, DIM := dim);
+c := LOWER_BOUND(DIM := dim, ARR := vla);
 // CHECK: LOWER_BOUND=0 0 0
 printf('LOWER_BOUND=%d %d %d$N', a, b, c);
 END_FUNCTION

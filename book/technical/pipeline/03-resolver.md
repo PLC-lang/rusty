@@ -225,7 +225,7 @@ While it annotates, the visitor records every type, variable, and callable the u
 | What | Where |
 |---|---|
 | Resolver | `src/resolver.rs`, `src/resolver/` |
-| Built-ins | `src/builtins.rs` |
+| Built-ins | `src/builtins.rs`, declarations in `src/builtins/` |
 
 
 ## What's next

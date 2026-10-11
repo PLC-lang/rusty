@@ -63,6 +63,8 @@ The getter uses the property name as a local result variable. The generated meth
 +END_METHOD
 ```
 
+A `RETURN` in the getter body gets the same copy in front of it, also inside nested `IF`, `CASE`, and loop blocks, so an early return gives the value assigned until then.
+
 ### Setter to method
 
 In the setter body the property name stands for the incoming value, so it becomes a by-value input parameter, and the method has no return type:

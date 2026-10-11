@@ -9,9 +9,10 @@ A debugger reads line N of the diagram's debug file as execution order N, so eac
 ordered element must get its execution order as its line, with no offset.
 
 The stores are matched inside the function, so no other function's instructions can bind.
+An unoptimized build makes each key store volatile, so the backend keeps it.
 CHECK-LABEL: define void @execution_order_line(ptr %0) !dbg ![[#SCOPE_FUNCTION:]]
-CHECK:       store i16 %{{.*}}, ptr %b, {{.*}}!dbg ![[#KEY_B:]]
-CHECK:       store i16 %{{.*}}, ptr %c, {{.*}}!dbg ![[#KEY_C:]]
+CHECK:       store{{( volatile)?}} i16 %{{.*}}, ptr %b, {{.*}}!dbg ![[#KEY_B:]]
+CHECK:       store{{( volatile)?}} i16 %{{.*}}, ptr %c, {{.*}}!dbg ![[#KEY_C:]]
 
 The diagram statements are scoped to a lexical block bound to the diagram's own file.
 CHECK-DAG: ![[#FILE_DIAGRAM:]] = !DIFile(filename: "{{.*}}execution_order_line.cfc.execution_order_line", directory:

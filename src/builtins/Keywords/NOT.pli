@@ -1,0 +1,6 @@
+(* Returns the bitwise negation of IN *)
+FUNCTION NOT<T: ANY> : T
+VAR_INPUT
+    IN : T;
+END_VAR
+END_FUNCTION
