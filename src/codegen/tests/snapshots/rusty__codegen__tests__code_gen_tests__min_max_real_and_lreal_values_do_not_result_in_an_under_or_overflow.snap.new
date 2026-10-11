@@ -1,0 +1,22 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 285
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%main = type { float, float, double, double }
+
+@main_instance = global %main { float f0xFF7FFFFF, float f0x7F7FFFFF, double f0xFFEFFFFFFFFFFFFF, double f0x7FEFFFFFFFFFFFFF }
+
+define void @main(ptr %0) {
+entry:
+  %F32_MIN = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %F32_MAX = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %F64_MIN = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %F64_MAX = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+  ret void
+}

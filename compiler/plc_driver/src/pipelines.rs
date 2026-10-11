@@ -518,6 +518,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             log::debug!("No compile options provided");
             return Ok(());
         };
+
         let target = self.compile_parameters.as_ref().and_then(|it| it.target.as_ref());
         if compile_options.single_module || matches!(compile_options.output_format, FormatOption::Object) {
             log::info!("Using single module mode");

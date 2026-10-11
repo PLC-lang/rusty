@@ -340,3 +340,133 @@ fn using_arrays() {
         assert_eq!(i as i32, *j);
     }
 }
+
+#[test]
+fn union_members_overlay_the_same_memory() {
+    #[repr(C)]
+    #[derive(Debug, Default)]
+    struct MainType {
+        high: u8,
+        next: u8,
+        low_word: u8,
+        high_word: u8,
+    }
+
+    let testcode = r#"
+    TYPE Overlay : UNION
+        Raw : ARRAY[0..8] OF BYTE;
+        Real : LREAL;
+    END_UNION
+    END_TYPE
+
+    TYPE DWORDBytes : UNION
+        Bytes : ARRAY[0..3] OF BYTE;
+        DWORDVal : DWORD;
+    END_UNION
+    END_TYPE
+
+    VAR_GLOBAL
+        o : Overlay;
+        d : DWORDBytes;
+    END_VAR
+
+    PROGRAM main
+    VAR
+        high : BYTE;
+        next : BYTE;
+        lowWord : BYTE;
+        highWord : BYTE;
+    END_VAR
+        o.Real := 1.5;
+        d.DWORDVal := 16#01020304;
+        high := o.Raw[7];
+        next := o.Raw[6];
+        lowWord := d.Bytes[0];
+        highWord := d.Bytes[3];
+    END_PROGRAM
+    "#;
+
+    let mut main = MainType::default();
+    let _: i32 = compile_and_run(testcode, &mut main);
+    assert_eq!(0x3F, main.high);
+    assert_eq!(0xF8, main.next);
+    assert_eq!(0x04, main.low_word);
+    assert_eq!(0x01, main.high_word);
+}
+
+#[test]
+fn union_write_through_one_member_is_read_through_another() {
+    #[repr(C)]
+    #[derive(Debug, Default)]
+    struct MainType {
+        d: u32,
+        value: u32,
+    }
+
+    let testcode = r#"
+    TYPE DWORDBytes : UNION
+        Bytes : ARRAY[0..3] OF BYTE;
+        DWORDVal : DWORD;
+    END_UNION
+    END_TYPE
+
+    PROGRAM main
+    VAR
+        d : DWORDBytes;
+        value : DWORD;
+    END_VAR
+        d.Bytes[0] := 16#78;
+        d.Bytes[1] := 16#56;
+        d.Bytes[2] := 16#34;
+        d.Bytes[3] := 16#12;
+        value := d.DWORDVal;
+    END_PROGRAM
+    "#;
+
+    let mut main = MainType::default();
+    let _: i32 = compile_and_run(testcode, &mut main);
+    assert_eq!(0x12345678, main.value);
+    assert_eq!(0x12345678, main.d);
+}
+
+#[test]
+fn sizeof_union_is_size_of_largest_member_rounded_to_alignment() {
+    #[repr(C)]
+    #[derive(Debug, Default)]
+    struct MainType {
+        overlay_size: u64,
+        bytes_size: u64,
+    }
+
+    let testcode = r#"
+    TYPE Overlay : UNION
+        Raw : ARRAY[0..8] OF BYTE;
+        Real : LREAL;
+    END_UNION
+    END_TYPE
+
+    TYPE DWORDBytes : UNION
+        Bytes : ARRAY[0..3] OF BYTE;
+        DWORDVal : DWORD;
+    END_UNION
+    END_TYPE
+
+    PROGRAM main
+    VAR
+        overlaySize : ULINT;
+        bytesSize : ULINT;
+    END_VAR
+    VAR_TEMP
+        o : Overlay;
+        d : DWORDBytes;
+    END_VAR
+        overlaySize := SIZEOF(o);
+        bytesSize := SIZEOF(d);
+    END_PROGRAM
+    "#;
+
+    let mut main = MainType::default();
+    let _: i32 = compile_and_run(testcode, &mut main);
+    assert_eq!(16, main.overlay_size);
+    assert_eq!(4, main.bytes_size);
+}

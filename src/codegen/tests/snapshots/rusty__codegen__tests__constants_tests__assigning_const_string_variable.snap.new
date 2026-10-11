@@ -1,0 +1,26 @@
+---
+source: src/codegen/tests/constants_tests.rs
+assertion_line: 22
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%main = type { [81 x i8] }
+
+@const_str = unnamed_addr constant [81 x i8] c"global constant string\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+@main_instance = global %main zeroinitializer
+
+define void @main(ptr %0) {
+entry:
+  %str = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %str, ptr align [filtered] @const_str, i32 80, i1 false)
+  ret void
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
+
+attributes #0 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }

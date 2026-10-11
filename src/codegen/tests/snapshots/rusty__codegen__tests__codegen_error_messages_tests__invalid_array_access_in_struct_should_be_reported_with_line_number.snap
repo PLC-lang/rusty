@@ -1,6 +1,5 @@
 ---
 source: src/codegen/tests/codegen_error_messages_tests.rs
-assertion_line: 132
 expression: msg
 ---
 error[E071]: Invalid array access: type 'INT' is not an array type

@@ -135,6 +135,7 @@ impl InterfaceTableGenerator {
             }
 
             let definition = UserTypeDeclaration {
+                is_union: false,
                 data_type: DataType::StructType {
                     name: Some(helper::get_itable_name(interface.get_name())),
                     variables: members,

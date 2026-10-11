@@ -93,6 +93,7 @@ pub const CHAR_TYPE: &str = "CHAR";
 pub const WCHAR_TYPE: &str = "WCHAR";
 pub const VOID_TYPE: &str = "VOID";
 pub const VOID_INTERNAL_NAME: &str = "__VOID";
+pub const ANY_TYPE: &str = "ANY";
 pub const __VLA_TYPE: &str = "__VLA";
 
 #[cfg(test)]
@@ -185,6 +186,10 @@ impl DataType {
 
     pub fn is_vla(&self) -> bool {
         self.get_type_information().is_vla()
+    }
+
+    pub fn is_type_erased_any(&self) -> bool {
+        self.name.eq_ignore_ascii_case(ANY_TYPE)
     }
 
     pub fn is_pointer(&self) -> bool {
@@ -407,6 +412,7 @@ impl TypeSize {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StructSource {
     OriginalDeclaration,
+    Union,
     Pou(PouType),
     Internal(InternalType),
 }
@@ -589,6 +595,10 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::Array { .. })
     }
 
+    pub fn is_union(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Union, .. })
+    }
+
     pub fn is_vla(&self) -> bool {
         matches!(
             self,
@@ -763,6 +773,15 @@ impl DataTypeInformation {
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
                 .map(Bytes::new)
                 .unwrap()),
+            DataTypeInformation::Struct { members, source: StructSource::Union, .. } => members
+                .iter()
+                .map(|it| it.get_type_name())
+                .try_fold(MemoryLocation::new(0), |prev, it| {
+                    let type_info: &DataTypeInformation = index.get_type_information_or_void(it);
+                    let size = type_info.get_size_recursive(index, seen)?.value();
+                    Ok(MemoryLocation::new(prev.value().max(size)))
+                })
+                .map(Into::into),
             DataTypeInformation::Struct { members, .. } => members
                 .iter()
                 .map(|it| it.get_type_name())
@@ -1012,6 +1031,14 @@ pub fn get_builtin_types() -> Vec<DataType> {
     vec![
         DataType {
             name: VOID_INTERNAL_NAME.into(),
+            initial_value: None,
+            information: DataTypeInformation::Void,
+            nature: TypeNature::Any,
+            location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
+        },
+        DataType {
+            name: ANY_TYPE.into(),
             initial_value: None,
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,

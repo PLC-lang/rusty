@@ -854,6 +854,7 @@ fn pre_processing_generates_generic_types() {
     assert_eq!(1, ast.user_types.len());
     //A type __myFunc__G is created
     let expected = UserTypeDeclaration {
+        is_union: false,
         data_type: DataType::GenericType {
             name: "__myFunc__G".into(),
             generic_symbol: "G".into(),
@@ -889,6 +890,7 @@ fn pre_processing_generates_nested_generic_types() {
 
     //A type __myFunc__G is created
     let expected = UserTypeDeclaration {
+        is_union: false,
         data_type: DataType::GenericType {
             name: "__myFunc__G".into(),
             generic_symbol: "G".into(),
@@ -2185,6 +2187,53 @@ fn inheritance_chain_correctly_finds_parents() {
     assert_eq!(inheritance_chain, Vec::<&PouIndexEntry>::new());
     let inheritance_chain = index.get_inheritance_chain("grandparent", "child");
     assert_eq!(inheritance_chain, Vec::<&PouIndexEntry>::new());
+}
+
+#[test]
+fn union_is_indexed_as_union_struct() {
+    let (_, index) = index(
+        "
+        TYPE Overlay : UNION
+            a : DINT;
+            b : LREAL;
+        END_UNION
+        END_TYPE
+        ",
+    );
+
+    let info = index.find_effective_type_info("Overlay").unwrap();
+    assert!(info.is_union());
+    assert!(matches!(info, DataTypeInformation::Struct { source: StructSource::Union, .. }));
+    assert_eq!(index.find_member("Overlay", "a").unwrap().get_type_name(), "DINT");
+    assert_eq!(index.find_member("Overlay", "b").unwrap().get_type_name(), "LREAL");
+}
+
+#[test]
+fn union_size_is_size_of_largest_member() {
+    let (_, index) = index(
+        "
+        TYPE Overlay : UNION
+            a : BYTE;
+            b : ARRAY[0..9] OF BYTE;
+            c : LREAL;
+        END_UNION
+        END_TYPE
+
+        TYPE Sequential : STRUCT
+            a : BYTE;
+            b : ARRAY[0..9] OF BYTE;
+            c : LREAL;
+        END_STRUCT
+        END_TYPE
+        ",
+    );
+
+    let union_info = index.find_effective_type_info("Overlay").unwrap();
+    assert_eq!(union_info.get_size(&index).unwrap().value(), 10);
+
+    let struct_info = index.find_effective_type_info("Sequential").unwrap();
+    assert!(!struct_info.is_union());
+    assert_eq!(struct_info.get_size(&index).unwrap().value(), 19);
 }
 
 #[test]

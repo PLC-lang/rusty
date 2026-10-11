@@ -17,7 +17,7 @@ use plc_source::source_location::SourceLocation;
 
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
-use crate::typesystem::VOID_TYPE;
+use crate::typesystem::{ANY_TYPE, VOID_TYPE};
 use crate::validation::statement::helper::{
     get_literal_int_or_const_expr_value, is_literal_or_const_expr_value_zero,
 };
@@ -680,8 +680,8 @@ fn validate_access_index<T: AnnotationMap>(
                     Diagnostic::new(format!(
                         "{access_type:?}-Wise access for type {} must be in range {}..{}",
                         target_type.get_name(),
-                        &range.start,
-                        &range.end
+                        range.start,
+                        range.end
                     ))
                     .with_error_code("E057")
                     .with_location(location),
@@ -1306,12 +1306,6 @@ fn validate_by_ref_argument_type<T: AnnotationMap>(
         return;
     }
 
-    // Non-references (literals, expressions) are passed through a temporary or already flagged
-    // by `validate_call_by_ref`.
-    if !arg.can_be_assigned_to() {
-        return;
-    }
-
     // By-ref parameter types may be wrapped in an auto-deref pointer: compare the target type.
     let param_type =
         if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } = param_type_info {
@@ -1319,6 +1313,27 @@ fn validate_by_ref_argument_type<T: AnnotationMap>(
         } else {
             context.index.get_effective_type_or_void_by_name(param.get_type_name())
         };
+
+    if param_type.is_type_erased_any() {
+        if !arg.can_be_assigned_to() && !param.is_inout() {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Expected a reference for parameter {} because their type is {}",
+                    param.get_name(),
+                    ANY_TYPE
+                ))
+                .with_error_code("E031")
+                .with_location(arg),
+            );
+        }
+        return;
+    }
+
+    // Non-references (literals, expressions) are passed through a temporary or already flagged
+    // by `validate_call_by_ref`.
+    if !arg.can_be_assigned_to() {
+        return;
+    }
 
     // Reference arguments are transparent: compare their target type. An auto-deref variable is
     // annotated with the raw name of its target type, so resolve aliases as for any other variable.
@@ -1750,6 +1765,19 @@ pub(super) fn validate_assignment<T: AnnotationMap>(
         // we need the inner type unless the RHS is a reference (e.g. REF(...) or ADR(...))
         let left_type = normalized_left_type_for_assignment(context, left_type, right);
         let right_type = normalized_right_type_for_assignment(context, right_type, right);
+
+        if left_type.is_type_erased_any() {
+            if !context.is_call() {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Invalid assignment: cannot assign to a value of type {ANY_TYPE}"
+                    ))
+                    .with_error_code("E037")
+                    .with_location(location),
+                );
+            }
+            return;
+        }
 
         // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
         // are no longer allowed inside a POU body

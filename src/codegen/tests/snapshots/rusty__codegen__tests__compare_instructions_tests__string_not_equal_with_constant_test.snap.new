@@ -1,0 +1,51 @@
+---
+source: src/codegen/tests/compare_instructions_tests.rs
+assertion_line: 104
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+@utf08_literal_0 = private unnamed_addr constant [2 x i8] c"b\00"
+
+define i8 @STRING_EQUAL(ptr %0, ptr %1) {
+entry:
+  %STRING_EQUAL = alloca i8, align [filtered]
+  %op1 = alloca [1025 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %op1, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %op1, ptr align [filtered] %0, i64 1024, i1 false)
+  %op2 = alloca [1025 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %op2, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %op2, ptr align [filtered] %1, i64 1024, i1 false)
+  store i8 0, ptr %STRING_EQUAL, align [filtered]
+  %STRING_EQUAL_ret = load i8, ptr %STRING_EQUAL, align [filtered]
+  ret i8 %STRING_EQUAL_ret
+}
+
+define i16 @baz() {
+entry:
+  %baz = alloca i16, align [filtered]
+  %a = alloca [81 x i8], align [filtered]
+  %result = alloca i8, align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %a, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  store i8 0, ptr %result, align [filtered]
+  store i16 0, ptr %baz, align [filtered]
+  %call = call i8 @STRING_EQUAL(ptr %a, ptr @utf08_literal_0)
+  %0 = icmp ne i8 %call, 0
+  %tmpVar = xor i1 %0, true
+  %1 = zext i1 %tmpVar to i8
+  store i8 %1, ptr %result, align [filtered]
+  %baz_ret = load i16, ptr %baz, align [filtered]
+  ret i16 %baz_ret
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
+
+attributes #0 = { nocallback nofree nosync nounwind willreturn memory(argmem: write) }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
