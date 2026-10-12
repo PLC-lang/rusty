@@ -80,13 +80,21 @@ impl DiagnosticAssessor for DiagnosticsRegistry {
 
     fn get_diagnostic_configuration(&self) -> String {
         let config: DiagnosticsConfiguration = self.into();
-        serde_json::ser::to_string(&config).expect("Cannot fail")
+        serde_json::ser::to_string_pretty(&config).expect("Cannot fail")
     }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(transparent)]
 pub struct DiagnosticsConfiguration(FxHashMap<Severity, Vec<String>>);
+
+impl DiagnosticsConfiguration {
+    pub fn sort(&mut self) {
+        for codes in self.0.values_mut() {
+            codes.sort();
+        }
+    }
+}
 
 impl From<&DiagnosticsRegistry> for DiagnosticsConfiguration {
     fn from(registry: &DiagnosticsRegistry) -> Self {
@@ -95,6 +103,7 @@ impl From<&DiagnosticsRegistry> for DiagnosticsConfiguration {
             let entry = res.0.entry(val.severity).or_default();
             entry.push(val.code.into());
         }
+        res.sort();
         res
     }
 }
@@ -318,5 +327,91 @@ mod tests {
         assert_eq!(diagnostics_registry.assess(&e001), Severity::Warning);
         assert_eq!(diagnostics_registry.assess(&e002), Severity::Info);
         assert_eq!(diagnostics_registry.assess(&e003), Severity::Ignore);
+    }
+
+    #[test]
+    fn diagnostic_codes_are_sorted_ascending_within_categories() {
+        let registry = DiagnosticsRegistry::default();
+        let DiagnosticsConfiguration(config) = (&registry).into();
+
+        for (severity, codes) in &config {
+            assert!(!codes.is_empty(), "expected non-empty codes for {severity:?}");
+            assert!(
+                codes.windows(2).all(|w| w[0] <= w[1]),
+                "codes in category {severity:?} are not sorted ascendingly: {codes:?}"
+            );
+        }
+
+        assert!(config.contains_key(&Severity::Warning));
+        assert!(config.contains_key(&Severity::Error));
+        assert!(config.contains_key(&Severity::Info));
+        assert!(config.contains_key(&Severity::Ignore));
+    }
+
+    #[test]
+    fn diagnostic_configuration_is_pretty_printed() {
+        let registry = DiagnosticsRegistry::default();
+        let json = registry.get_diagnostic_configuration();
+
+        assert!(json.contains('\n'), "expected newlines in pretty-printed json");
+        assert!(json.contains("  "), "expected indentations in pretty-printed json");
+
+        let parsed: serde_json::Value = serde_json::from_str(&json).expect("valid json");
+        assert!(parsed.is_object());
+    }
+
+    #[test]
+    fn repeated_configuration_export_is_deterministic() {
+        let registry = DiagnosticsRegistry::default();
+        let first = registry.get_diagnostic_configuration();
+        for _ in 0..10 {
+            let next = registry.get_diagnostic_configuration();
+            assert_eq!(first, next);
+        }
+    }
+
+    #[test]
+    fn empty_category_and_empty_registry_handled_safely() {
+        let empty_registry = DiagnosticsRegistry::new(rustc_hash::FxHashMap::default());
+        let DiagnosticsConfiguration(empty_config) = (&empty_registry).into();
+        assert!(empty_config.is_empty());
+
+        let json = empty_registry.get_diagnostic_configuration();
+        assert_eq!(json.trim(), "{}");
+
+        let mut config_with_empty_category: DiagnosticsConfiguration =
+            serde_json::de::from_str(r#"{"warning": [], "error": ["E002", "E001"]}"#).unwrap();
+        config_with_empty_category.sort();
+
+        let DiagnosticsConfiguration(map) = &config_with_empty_category;
+        assert_eq!(map.get(&Severity::Warning).unwrap(), &Vec::<String>::new());
+        assert_eq!(map.get(&Severity::Error).unwrap(), &vec!["E001".to_string(), "E002".to_string()]);
+
+        let registry = DiagnosticsRegistry::default().with_configuration(config_with_empty_category);
+        let DiagnosticsConfiguration(reexported) = (&registry).into();
+        for (severity, codes) in &reexported {
+            assert!(
+                codes.windows(2).all(|w| w[0] <= w[1]),
+                "reexported codes for {severity:?} are not sorted: {codes:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn diagnostic_entries_and_severities_preserved() {
+        use super::DIAGNOSTICS;
+
+        let registry = DiagnosticsRegistry::default();
+        let DiagnosticsConfiguration(config) = (&registry).into();
+
+        let mut total_codes = 0;
+        for (severity, codes) in &config {
+            for code in codes {
+                total_codes += 1;
+                let entry = DIAGNOSTICS.get(code.as_str()).expect("code exists in registry");
+                assert_eq!(entry.severity, *severity, "code {code} severity changed");
+            }
+        }
+        assert_eq!(total_codes, DIAGNOSTICS.len(), "total diagnostic count mismatch");
     }
 }
