@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-43dc174a.js";
+            window.path_to_searchindex_js = "../../searchindex-e3dc9425.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -203,7 +203,7 @@ END_FUNCTION
 <p>At <code>post_annotate</code>, annotations identify callees and assignment targets. The index identifies return variables. The participant counts call sites per implementation and callee, rewrites declarations and bodies, then rebuilds the index and annotations.</p>
 <h2 id="transformation"><a class="header" href="#transformation">Transformation</a></h2>
 <h3 id="the-callee"><a class="header" href="#the-callee">The callee</a></h3>
-<p>The callee loses its return type and gets a by-value <code>VAR_INPUT</code> variable named <code>__&lt;pou&gt;_return_val</code> at the front of its by-value input block. The variable’s type is a generated named pointer type, <code>__referenceFunc__referenceFunc_return_val</code> here, that is a <code>REFERENCE TO</code> the original referenced type and is appended to the unit’s type list. The <code>REF=</code> that assigns the return variable becomes a plain assignment, so the callee writes the value through the reference into the caller’s storage:</p>
+<p>The callee loses its return type and gets a by-value <code>VAR_INPUT</code> variable named <code>__&lt;pou&gt;_return_val</code> at the front of its by-value input block. The variable’s type is a generated named pointer type, <code>__referenceFunc__referenceFunc_return_val</code> here, that is a <code>REFERENCE TO</code> the original referenced type and is appended to the unit’s type list with the linkage of the callee. The <code>REF=</code> that assigns the return variable becomes a plain assignment, so the callee writes the value through the reference into the caller’s storage:</p>
 <pre><code class="language-diff">-FUNCTION referenceFunc: REFERENCE TO INT
 +FUNCTION referenceFunc
      VAR_INPUT
@@ -219,7 +219,7 @@ END_FUNCTION
 <p>The name is the POU name with every <code>.</code> replaced by <code>_</code>, prefixed with <code>__</code> unless the name already starts with <code>__</code>: a method <code>fb.get</code> gets <code>__fb_get_return_val</code>, a function <code>__pick</code> gets <code>__pick_return_val</code>. When the callee has no by-value <code>VAR_INPUT</code> block, one is appended after its existing blocks. The caller always passes the reference as the first argument, so the rewrite expects the by-value input block to be the first block of the POU.</p>
 <p>Only a <code>REF=</code> to the return variable is rewritten; a plain assignment to it becomes an empty statement. The type <code>__referenceFunc_return</code> that pre-processing generated for the original return type stays in the unit, unused.</p>
 <h3 id="the-caller"><a class="header" href="#the-caller">The caller</a></h3>
-<p>The caller gets two <code>VAR_TEMP</code> variables per call site: a reference and storage for the copied value. Their names are <code>__&lt;callee&gt;_return_val_N</code> and <code>__&lt;callee&gt;_return_val_store_N</code>; the reference uses the generated type <code>__&lt;caller&gt;__&lt;callee&gt;_return_val_N</code>. The counter starts at 1 for each callee in an implementation. A <code>VAR_TEMP</code> block is added if needed. The containing statement becomes an expression list: point the reference at storage, call the callee, then use the reference:</p>
+<p>The caller gets two <code>VAR_TEMP</code> variables per call site: a reference and storage for the copied value. Their names are <code>__&lt;callee&gt;_return_val_N</code> and <code>__&lt;callee&gt;_return_val_store_N</code>; the reference uses the generated type <code>__&lt;caller&gt;__&lt;callee&gt;_return_val_N</code>, which has the linkage of the caller. The counter starts at 1 for each callee in an implementation. A <code>VAR_TEMP</code> block is added if needed. The containing statement becomes an expression list: point the reference at storage, call the callee, then use the reference:</p>
 <pre><code class="language-diff"> FUNCTION main
      VAR
          refVal: REFERENCE TO INT;

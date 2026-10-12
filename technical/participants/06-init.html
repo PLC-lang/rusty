@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-43dc174a.js";
+            window.path_to_searchindex_js = "../../searchindex-e3dc9425.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -237,7 +237,7 @@ END_PROGRAM
 +    self.stop.x := 5;
 +END_FUNCTION
 </code></pre>
-<p>Built-in types, generic types, and variable-length arrays get no constructor. The types the pre-processor created for inline declarations, such as <code>__Refs_r</code> for the member <code>r</code> below, are user types too and get constructors like every other type; most of them are empty.</p>
+<p>Built-in types, generic types, and variable-length arrays get no constructor. Members and variables of a built-in type, such as the interface fat pointer, get no constructor call either. The types the pre-processor created for inline declarations, such as <code>__Refs_r</code> for the member <code>r</code> below, are user types too and get constructors like every other type; most of them are empty.</p>
 <h3 id="references-and-pointers"><a class="header" href="#references-and-pointers">References and pointers</a></h3>
 <p>A <code>REFERENCE TO</code> variable, an <code>AT</code> alias, and a hardware-mapped variable are initialized with <code>REF=</code>, because their initial value is an address, not a value; a <code>REF(...)</code> call in the initializer is unwrapped. A pointer keeps its <code>:=</code> with the <code>ADR</code> or <code>REF</code> call. Inside a stateful POU, a bare name in the initializer that is a member of that POU is qualified with <code>self.</code>:</p>
 <pre><code class="language-diff"> FUNCTION_BLOCK Refs

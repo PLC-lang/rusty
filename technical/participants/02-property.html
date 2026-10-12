@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-43dc174a.js";
+            window.path_to_searchindex_js = "../../searchindex-e3dc9425.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -214,7 +214,7 @@ END_FUNCTION
     style post_annotate fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
 </pre>
 
-<p>At <code>pre_index</code>, the participant converts accessor blocks into method declarations and bodies. The index registers these methods, and the resolver can find them.</p>
+<p>At <code>pre_index</code>, the participant converts accessor blocks into method declarations and bodies with the linkage of their POU. The accessors of an included or <code>{external}</code> POU are therefore only declared, like its other methods. The index registers these methods, and the resolver can find them.</p>
 <p>At <code>post_annotate</code>, it reads property annotations. Each annotation names the getter or setter required by the access. The lowerer inserts the call and reruns annotation. It keeps the index because the declarations have not changed.</p>
 <p>The order inside a statement is fixed. In an assignment the participant lowers the index expressions of the target first, then the right side, then the assignment itself; in a reference it lowers the base and the index before the reference. <code>inst.foo[inst.bar]</code> therefore becomes <code>inst.__get_foo()[inst.__get_bar()]</code>, and <code>inst.scaled := inst.scaled + 1</code> becomes <code>inst.__set_scaled(inst.__get_scaled() + 1)</code>. The driver collects the participant’s diagnostics after the last <code>post_annotate</code> hook.</p>
 <h2 id="transformation"><a class="header" href="#transformation">Transformation</a></h2>

@@ -29,7 +29,7 @@
 <a href=#29 id=29 data-nosnippet>29</a>//! - **External** types are defined in the same project but written in a different language (e.g. C).
 <a href=#30 id=30 data-nosnippet>30</a>//!   By default they get `Body::External` (declared). With `--generate-external-constructors`,
 <a href=#31 id=31 data-nosnippet>31</a>//!   the compiler generates constructor definitions for them as well.
-<a href=#32 id=32 data-nosnippet>32</a>//! - **Built-in** types get `Body::None` (no constructor generated).
+<a href=#32 id=32 data-nosnippet>32</a>//! - **Built-in** types have no constructor: none is generated and none is called.
 <a href=#33 id=33 data-nosnippet>33</a>//! - External variables are not re-initialized; they are assumed to be initialized externally.
 <a href=#34 id=34 data-nosnippet>34</a>//!
 <a href=#35 id=35 data-nosnippet>35</a>//! ## User-defined constructors
@@ -348,21 +348,21 @@
 <a href=#348 id=348 data-nosnippet>348</a>    </span><span class="kw">fn </span>visit_user_type_declaration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, user_type: <span class="kw-2">&amp;</span>plc_ast::ast::UserTypeDeclaration) {
 <a href=#349 id=349 data-nosnippet>349</a>        <span class="kw">let </span>name = user_type.data_type.get_name().expect(<span class="string">"name is set at this stage"</span>);
 <a href=#350 id=350 data-nosnippet>350</a>        <span class="self">self</span>.context.enter_datatype(name);
-<a href=#351 id=351 data-nosnippet>351</a>        <span class="comment">// Generic, VLA, and built-in types don't need constructors. We register Body::None
-<a href=#352 id=352 data-nosnippet>352</a>        // so that apply_initialization skips POU generation for them (see Body::None =&gt; {}).
-<a href=#353 id=353 data-nosnippet>353</a>        </span><span class="kw">if </span>user_type.data_type.is_generic() {
-<a href=#354 id=354 data-nosnippet>354</a>            <span class="self">self</span>.constructors.insert(name.to_string(), Body::None);
-<a href=#355 id=355 data-nosnippet>355</a>            <span class="self">self</span>.context.exit_datatype();
-<a href=#356 id=356 data-nosnippet>356</a>            <span class="kw">return</span>;
-<a href=#357 id=357 data-nosnippet>357</a>        }
-<a href=#358 id=358 data-nosnippet>358</a>        <span class="kw">let </span>index = <span class="self">self</span>.index.as_ref().expect(<span class="string">"index is set at this stage"</span>);
-<a href=#359 id=359 data-nosnippet>359</a>        <span class="kw">if </span>index.get_type_information_or_void(name).is_vla() {
-<a href=#360 id=360 data-nosnippet>360</a>            <span class="self">self</span>.constructors.insert(name.to_string(), Body::None);
-<a href=#361 id=361 data-nosnippet>361</a>            <span class="self">self</span>.context.exit_datatype();
-<a href=#362 id=362 data-nosnippet>362</a>            <span class="kw">return</span>;
-<a href=#363 id=363 data-nosnippet>363</a>        }
-<a href=#364 id=364 data-nosnippet>364</a>        <span class="kw">if </span>user_type.linkage == plc_ast::ast::LinkageType::BuiltIn {
-<a href=#365 id=365 data-nosnippet>365</a>            <span class="self">self</span>.constructors.insert(name.to_string(), Body::None);
+<a href=#351 id=351 data-nosnippet>351</a>        <span class="comment">// Generic and VLA types don't need constructors. We register Body::None so that
+<a href=#352 id=352 data-nosnippet>352</a>        // apply_initialization skips POU generation for them (see Body::None =&gt; {}).
+<a href=#353 id=353 data-nosnippet>353</a>        // Built-in types are not registered at all, so no constructor calls are created for them.
+<a href=#354 id=354 data-nosnippet>354</a>        </span><span class="kw">if </span>user_type.data_type.is_generic() {
+<a href=#355 id=355 data-nosnippet>355</a>            <span class="self">self</span>.constructors.insert(name.to_string(), Body::None);
+<a href=#356 id=356 data-nosnippet>356</a>            <span class="self">self</span>.context.exit_datatype();
+<a href=#357 id=357 data-nosnippet>357</a>            <span class="kw">return</span>;
+<a href=#358 id=358 data-nosnippet>358</a>        }
+<a href=#359 id=359 data-nosnippet>359</a>        <span class="kw">let </span>index = <span class="self">self</span>.index.as_ref().expect(<span class="string">"index is set at this stage"</span>);
+<a href=#360 id=360 data-nosnippet>360</a>        <span class="kw">if </span>index.get_type_information_or_void(name).is_vla() {
+<a href=#361 id=361 data-nosnippet>361</a>            <span class="self">self</span>.constructors.insert(name.to_string(), Body::None);
+<a href=#362 id=362 data-nosnippet>362</a>            <span class="self">self</span>.context.exit_datatype();
+<a href=#363 id=363 data-nosnippet>363</a>            <span class="kw">return</span>;
+<a href=#364 id=364 data-nosnippet>364</a>        }
+<a href=#365 id=365 data-nosnippet>365</a>        <span class="kw">if </span>user_type.linkage == plc_ast::ast::LinkageType::BuiltIn {
 <a href=#366 id=366 data-nosnippet>366</a>            <span class="self">self</span>.context.exit_datatype();
 <a href=#367 id=367 data-nosnippet>367</a>            <span class="kw">return</span>;
 <a href=#368 id=368 data-nosnippet>368</a>        }
@@ -733,8 +733,8 @@
 <a href=#733 id=733 data-nosnippet>733</a>        </span><span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.pous {
 <a href=#734 id=734 data-nosnippet>734</a>            <span class="self">self</span>.pre_register_pou_constructor(pou);
 <a href=#735 id=735 data-nosnippet>735</a>        }
-<a href=#736 id=736 data-nosnippet>736</a>        <span class="comment">// Register all user-defined types (structs)
-<a href=#737 id=737 data-nosnippet>737</a>        </span><span class="kw">for </span>user_type <span class="kw">in </span><span class="kw-2">&amp;</span>unit.user_types {
+<a href=#736 id=736 data-nosnippet>736</a>        <span class="comment">// Register all user-defined types (structs), except built-in types without constructors
+<a href=#737 id=737 data-nosnippet>737</a>        </span><span class="kw">for </span>user_type <span class="kw">in </span>unit.user_types.iter().filter(|it| !it.linkage.is_built_in()) {
 <a href=#738 id=738 data-nosnippet>738</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = user_type.data_type.get_name() {
 <a href=#739 id=739 data-nosnippet>739</a>                <span class="self">self</span>.constructors.entry(name.to_string()).or_insert(Body::None);
 <a href=#740 id=740 data-nosnippet>740</a>            }

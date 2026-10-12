@@ -28,7 +28,7 @@ for them — never a definition.</li>
 <li><strong>External</strong> types are defined in the same project but written in a different language (e.g. C).
 By default they get <code>Body::External</code> (declared). With <code>--generate-external-constructors</code>,
 the compiler generates constructor definitions for them as well.</li>
-<li><strong>Built-in</strong> types get <code>Body::None</code> (no constructor generated).</li>
+<li><strong>Built-in</strong> types have no constructor: none is generated and none is called.</li>
 <li>External variables are not re-initialized; they are assumed to be initialized externally.</li>
 </ul>
 <h3 id="user-defined-constructors"><a class="doc-anchor" href="#user-defined-constructors">§</a>User-defined constructors</h3>

@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-43dc174a.js";
+            window.path_to_searchindex_js = "searchindex-e3dc9425.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-645c3480.js"></script>
@@ -6740,7 +6740,7 @@ END_FUNCTION
     style post_annotate fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
 </pre>
 
-<p>At <code>pre_index</code>, the participant converts accessor blocks into method declarations and bodies. The index registers these methods, and the resolver can find them.</p>
+<p>At <code>pre_index</code>, the participant converts accessor blocks into method declarations and bodies with the linkage of their POU. The accessors of an included or <code>{external}</code> POU are therefore only declared, like its other methods. The index registers these methods, and the resolver can find them.</p>
 <p>At <code>post_annotate</code>, it reads property annotations. Each annotation names the getter or setter required by the access. The lowerer inserts the call and reruns annotation. It keeps the index because the declarations have not changed.</p>
 <p>The order inside a statement is fixed. In an assignment the participant lowers the index expressions of the target first, then the right side, then the assignment itself; in a reference it lowers the base and the index before the reference. <code>inst.foo[inst.bar]</code> therefore becomes <code>inst.__get_foo()[inst.__get_bar()]</code>, and <code>inst.scaled := inst.scaled + 1</code> becomes <code>inst.__set_scaled(inst.__get_scaled() + 1)</code>. The driver collects the participant’s diagnostics after the last <code>post_annotate</code> hook.</p>
 <h2 id="transformation-2"><a class="header" href="#transformation-2">Transformation</a></h2>
@@ -7062,6 +7062,7 @@ refInterfaceC.baz(); // This would call FbD.bar rather than FbD.baz!
 </code></pre>
 <p>Each itable struct includes <code>__upcast_&lt;Ancestor&gt;</code> pointer fields for every proper ancestor interface in its hierarchy, sorted alphabetically. Root interfaces like <code>IA</code> have none. These fields enable interface upcasting at run time with a single field read (see Interface upcasting below).</p>
 <p>The function pointer types reference the original interface method (for example <code>IA.foo</code>), which already exists in the index as a registered implementation without a body. This avoids separate forward declarations. Inherited methods are included: <code>__itable_IB</code> contains both <code>foo</code> (from <code>IA</code>) and <code>bar</code> (from <code>IB</code>), with inherited methods first. In the diamond above, the methods of the ancestors (<code>IA.foo</code>, <code>IB.bar</code>, <code>IC.baz</code>) come before the own methods of <code>ID</code> (<code>ID.qux</code>).</p>
+<p>The unit that declares the interface owns its itable struct and defines its constructor. An interface from an include file only declares the constructor, even when no POU of the library implements it, because the object built from the library defines it. In a unit of the project, the constructor is also only declared when the unit has at least one implementor and all of its implementors are <code>{external}</code>, unless <code>--generate-external-constructors</code> is set. A unit of the project that declares the interface without implementing it defines the constructor.</p>
 <p>Then, the compiler generates global instances for every (interface, POU) combination, sorted by name. Each <code>__upcast</code> field is initialized to the ancestor instance for the same POU:</p>
 <pre><code class="language-diff">+VAR_GLOBAL
 +    __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo));
@@ -7116,7 +7117,7 @@ refInterfaceC.baz(); // This would call FbD.bar rather than FbD.baz!
 -FUNCTION producer: IA
 +FUNCTION producer: __FATPOINTER
 </code></pre>
-<p>The <code>__FATPOINTER</code> struct is generated on demand: it is added to the first compilation unit of the project only when at least one interface is used as a type. If no code uses interface types, no fat pointer struct is emitted. A function that returns <code>__FATPOINTER</code> returns an aggregate, so the aggregate-return lowerer later turns its return into a <code>VAR_IN_OUT</code> parameter like for any struct.</p>
+<p>The <code>__FATPOINTER</code> struct is generated on demand: it is added to the first compilation unit of the project only when at least one interface is used as a type. If no code uses interface types, no fat pointer struct is emitted. Every compilation that uses interfaces adds its own copy, so the struct has built-in linkage: no object defines a constructor for it, and none is called. A function that returns <code>__FATPOINTER</code> returns an aggregate, so the aggregate-return lowerer later turns its return into a <code>VAR_IN_OUT</code> parameter like for any struct.</p>
 <h4 id="dispatch-transformations"><a class="header" href="#dispatch-transformations">Dispatch transformations</a></h4>
 <p>With itables and fat pointers in place, the compiler can transform all interface-related operations. There are four kinds of transformations.</p>
 <p><strong>Assignments</strong>: When a concrete POU instance is assigned to an interface variable, the compiler expands the single assignment into two: one for the data pointer and one for the itable pointer.</p>
@@ -7292,7 +7293,7 @@ id=2
 </code></pre>
 <h2 id="interactions-3"><a class="header" href="#interactions-3">Interactions</a></h2>
 <p>At <code>pre_index</code>, the <a href="#property">property lowerer</a> creates <code>__get_x</code> and <code>__set_x</code> methods. By the time the tables are generated they are ordinary methods, so they receive vtable and itable slots, and property accesses through pointers and interfaces dispatch dynamically.</p>
-<p>This participant creates the <code>__vtable</code> member but never fills it. The <a href="#init">init participant</a>, registered later and running at <code>post_annotate</code> too, does the storing: the constructor of every class and function block ends with <code>self.__vtable := ADR(__vtable_FbA_instance)</code>. For a derived type the constructor of the base runs first and stores the table of the base, then the derived constructor overwrites the same member through the embedded base: <code>self.__FbA.__vtable := ADR(__vtable_FbB_instance)</code>. The member initializers of the vtable structs and the initializers of the itable instances become constructors too, and <code>__FATPOINTER</code> gets one like any struct. All of them run from the global constructors before the program starts.</p>
+<p>This participant creates the <code>__vtable</code> member but never fills it. The <a href="#init">init participant</a>, registered later and running at <code>post_annotate</code> too, does the storing: the constructor of every class and function block ends with <code>self.__vtable := ADR(__vtable_FbA_instance)</code>. For a derived type the constructor of the base runs first and stores the table of the base, then the derived constructor overwrites the same member through the embedded base: <code>self.__FbA.__vtable := ADR(__vtable_FbB_instance)</code>. The member initializers of the vtable structs and the initializers of the itable instances become constructors too. <code>__FATPOINTER</code> is built-in and gets none. All of them run from the global constructors before the program starts.</p>
 <p>The <a href="#inheritance-1">inheritance lowerer</a>, also later, resolves the members the rewrite introduced. An access follows the declared type, so a pointer declared as <code>POINTER TO FbB</code> gives <code>refInstanceB^.__vtable</code>, and because <code>FbB</code> has no member of that name it becomes <code>refInstanceB^.__FbA.__vtable</code>. The re-annotation at the end of this participant finds the inherited member; the inheritance lowerer spells out the path.</p>
 <p>The <a href="#aggregate-return">aggregate-return lowerer</a> runs after this participant and sees the indirect calls like any other call. This matters when both transformations apply to the same call, for example an interface method that returns a <code>STRING</code> and takes an interface argument. The interface dispatch pass produces the fat pointer preamble followed by the call; the aggregate lowerer then processes each statement individually, so the order is preserved:</p>
 <pre><code class="language-diff"> // User code:
@@ -7400,7 +7401,7 @@ END_FUNCTION
 <p>At <code>post_annotate</code>, annotations identify callees and assignment targets. The index identifies return variables. The participant counts call sites per implementation and callee, rewrites declarations and bodies, then rebuilds the index and annotations.</p>
 <h2 id="transformation-5"><a class="header" href="#transformation-5">Transformation</a></h2>
 <h3 id="the-callee"><a class="header" href="#the-callee">The callee</a></h3>
-<p>The callee loses its return type and gets a by-value <code>VAR_INPUT</code> variable named <code>__&lt;pou&gt;_return_val</code> at the front of its by-value input block. The variable’s type is a generated named pointer type, <code>__referenceFunc__referenceFunc_return_val</code> here, that is a <code>REFERENCE TO</code> the original referenced type and is appended to the unit’s type list. The <code>REF=</code> that assigns the return variable becomes a plain assignment, so the callee writes the value through the reference into the caller’s storage:</p>
+<p>The callee loses its return type and gets a by-value <code>VAR_INPUT</code> variable named <code>__&lt;pou&gt;_return_val</code> at the front of its by-value input block. The variable’s type is a generated named pointer type, <code>__referenceFunc__referenceFunc_return_val</code> here, that is a <code>REFERENCE TO</code> the original referenced type and is appended to the unit’s type list with the linkage of the callee. The <code>REF=</code> that assigns the return variable becomes a plain assignment, so the callee writes the value through the reference into the caller’s storage:</p>
 <pre><code class="language-diff">-FUNCTION referenceFunc: REFERENCE TO INT
 +FUNCTION referenceFunc
      VAR_INPUT
@@ -7416,7 +7417,7 @@ END_FUNCTION
 <p>The name is the POU name with every <code>.</code> replaced by <code>_</code>, prefixed with <code>__</code> unless the name already starts with <code>__</code>: a method <code>fb.get</code> gets <code>__fb_get_return_val</code>, a function <code>__pick</code> gets <code>__pick_return_val</code>. When the callee has no by-value <code>VAR_INPUT</code> block, one is appended after its existing blocks. The caller always passes the reference as the first argument, so the rewrite expects the by-value input block to be the first block of the POU.</p>
 <p>Only a <code>REF=</code> to the return variable is rewritten; a plain assignment to it becomes an empty statement. The type <code>__referenceFunc_return</code> that pre-processing generated for the original return type stays in the unit, unused.</p>
 <h3 id="the-caller"><a class="header" href="#the-caller">The caller</a></h3>
-<p>The caller gets two <code>VAR_TEMP</code> variables per call site: a reference and storage for the copied value. Their names are <code>__&lt;callee&gt;_return_val_N</code> and <code>__&lt;callee&gt;_return_val_store_N</code>; the reference uses the generated type <code>__&lt;caller&gt;__&lt;callee&gt;_return_val_N</code>. The counter starts at 1 for each callee in an implementation. A <code>VAR_TEMP</code> block is added if needed. The containing statement becomes an expression list: point the reference at storage, call the callee, then use the reference:</p>
+<p>The caller gets two <code>VAR_TEMP</code> variables per call site: a reference and storage for the copied value. Their names are <code>__&lt;callee&gt;_return_val_N</code> and <code>__&lt;callee&gt;_return_val_store_N</code>; the reference uses the generated type <code>__&lt;caller&gt;__&lt;callee&gt;_return_val_N</code>, which has the linkage of the caller. The counter starts at 1 for each callee in an implementation. A <code>VAR_TEMP</code> block is added if needed. The containing statement becomes an expression list: point the reference at storage, call the callee, then use the reference:</p>
 <pre><code class="language-diff"> FUNCTION main
      VAR
          refVal: REFERENCE TO INT;
@@ -7525,7 +7526,7 @@ END_PROGRAM
 +    self.stop.x := 5;
 +END_FUNCTION
 </code></pre>
-<p>Built-in types, generic types, and variable-length arrays get no constructor. The types the pre-processor created for inline declarations, such as <code>__Refs_r</code> for the member <code>r</code> below, are user types too and get constructors like every other type; most of them are empty.</p>
+<p>Built-in types, generic types, and variable-length arrays get no constructor. Members and variables of a built-in type, such as the interface fat pointer, get no constructor call either. The types the pre-processor created for inline declarations, such as <code>__Refs_r</code> for the member <code>r</code> below, are user types too and get constructors like every other type; most of them are empty.</p>
 <h3 id="references-and-pointers"><a class="header" href="#references-and-pointers">References and pointers</a></h3>
 <p>A <code>REFERENCE TO</code> variable, an <code>AT</code> alias, and a hardware-mapped variable are initialized with <code>REF=</code>, because their initial value is an address, not a value; a <code>REF(...)</code> call in the initializer is unwrapped. A pointer keeps its <code>:=</code> with the <code>ADR</code> or <code>REF</code> call. Inside a stateful POU, a bare name in the initializer that is a member of that POU is qualified with <code>self.</code>:</p>
 <pre><code class="language-diff"> FUNCTION_BLOCK Refs
@@ -7601,7 +7602,7 @@ END_PROGRAM
 </pre>
 
 <p>The participant runs once at <code>post_index</code>. A variable requires retained storage if its block has <code>RETAIN</code> or its type contains a retained member. The index follows nested structs, arrays, and aliases, with cycle detection. The participant uses that result.</p>
-<p>For each unit, the participant visits globals and then POUs. It appends extracted variables to a <code>VAR_GLOBAL RETAIN</code> block, creating one if needed. It then rebuilds the index so that annotation sees the new globals and pointer types.</p>
+<p>For each unit, the participant visits globals and then POUs. It appends extracted variables to a <code>VAR_GLOBAL RETAIN</code> block with the linkage of their origin (the program, or the block of the moved global), creating one if needed. The storage of an included or <code>{external}</code> program is therefore only declared, and the unit that owns the program defines it. It then rebuilds the index so that annotation sees the new globals and pointer types.</p>
 <h2 id="transformation-7"><a class="header" href="#transformation-7">Transformation</a></h2>
 <h3 id="program-variables"><a class="header" href="#program-variables">Program variables</a></h3>
 <p>A program has exactly one instance, so a retained member can become a global of its own without a change in meaning. The variable’s type and initializer move to a new global named <code>__&lt;program&gt;_&lt;variable&gt;__retain</code>. The variable itself stays in its block with the same name, but its type becomes an alias pointer to the global, and its initializer the global itself. The block loses its <code>RETAIN</code> modifier:</p>
@@ -7653,7 +7654,7 @@ END_PROGRAM
      x: INT;
  END_VAR
 </code></pre>
-<p>Codegen would place <code>implicit</code> in <code>.retain</code> even without the move, because it asks the same transitive question for every global it emits. The move makes the answer visible in the lowered tree. A block created by the participant has an internal source location, internal linkage, and public access.</p>
+<p>Codegen would place <code>implicit</code> in <code>.retain</code> even without the move, because it asks the same transitive question for every global it emits. The move makes the answer visible in the lowered tree. A block created by the participant has an internal source location, the linkage of the variables it holds, and public access.</p>
 <p>Function blocks, functions, and methods are otherwise left alone. Their <code>VAR RETAIN</code> blocks keep the modifier, and a <code>VAR RETAIN</code> in a function or method has no effect: the variable stays on the stack and no diagnostic is reported.</p>
 <h2 id="interactions-7"><a class="header" href="#interactions-7">Interactions</a></h2>
 <p>The polymorphism lowerer runs before this participant, so the <code>__vtable</code> member it adds to every function block ends in the retained instance. The retain flag comes from the parser, which accepts <code>RETAIN</code> on every block kind and parses <code>NON_RETAIN</code> without a record of it, through the indexer, which copies the flag of a block to each of its members. A struct member declared in a <code>TYPE</code> block and a return variable are never flagged themselves.</p>

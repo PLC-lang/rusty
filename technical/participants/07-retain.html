@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-43dc174a.js";
+            window.path_to_searchindex_js = "../../searchindex-e3dc9425.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -198,7 +198,7 @@ END_PROGRAM
 </pre>
 
 <p>The participant runs once at <code>post_index</code>. A variable requires retained storage if its block has <code>RETAIN</code> or its type contains a retained member. The index follows nested structs, arrays, and aliases, with cycle detection. The participant uses that result.</p>
-<p>For each unit, the participant visits globals and then POUs. It appends extracted variables to a <code>VAR_GLOBAL RETAIN</code> block, creating one if needed. It then rebuilds the index so that annotation sees the new globals and pointer types.</p>
+<p>For each unit, the participant visits globals and then POUs. It appends extracted variables to a <code>VAR_GLOBAL RETAIN</code> block with the linkage of their origin (the program, or the block of the moved global), creating one if needed. The storage of an included or <code>{external}</code> program is therefore only declared, and the unit that owns the program defines it. It then rebuilds the index so that annotation sees the new globals and pointer types.</p>
 <h2 id="transformation"><a class="header" href="#transformation">Transformation</a></h2>
 <h3 id="program-variables"><a class="header" href="#program-variables">Program variables</a></h3>
 <p>A program has exactly one instance, so a retained member can become a global of its own without a change in meaning. The variable’s type and initializer move to a new global named <code>__&lt;program&gt;_&lt;variable&gt;__retain</code>. The variable itself stays in its block with the same name, but its type becomes an alias pointer to the global, and its initializer the global itself. The block loses its <code>RETAIN</code> modifier:</p>
@@ -250,7 +250,7 @@ END_PROGRAM
      x: INT;
  END_VAR
 </code></pre>
-<p>Codegen would place <code>implicit</code> in <code>.retain</code> even without the move, because it asks the same transitive question for every global it emits. The move makes the answer visible in the lowered tree. A block created by the participant has an internal source location, internal linkage, and public access.</p>
+<p>Codegen would place <code>implicit</code> in <code>.retain</code> even without the move, because it asks the same transitive question for every global it emits. The move makes the answer visible in the lowered tree. A block created by the participant has an internal source location, the linkage of the variables it holds, and public access.</p>
 <p>Function blocks, functions, and methods are otherwise left alone. Their <code>VAR RETAIN</code> blocks keep the modifier, and a <code>VAR RETAIN</code> in a function or method has no effect: the variable stays on the stack and no diagnostic is reported.</p>
 <h2 id="interactions"><a class="header" href="#interactions">Interactions</a></h2>
 <p>The polymorphism lowerer runs before this participant, so the <code>__vtable</code> member it adds to every function block ends in the retained instance. The retain flag comes from the parser, which accepts <code>RETAIN</code> on every block kind and parses <code>NON_RETAIN</code> without a record of it, through the indexer, which copies the flag of a block to each of its members. A struct member declared in a <code>TYPE</code> block and a return variable are never flagged themselves.</p>

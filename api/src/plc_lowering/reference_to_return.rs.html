@@ -30,8 +30,8 @@
 <a href=#30 id=30 data-nosnippet>30</a><span class="kw">use </span>plc_ast::{
 <a href=#31 id=31 data-nosnippet>31</a>    ast::{
 <a href=#32 id=32 data-nosnippet>32</a>        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CallStatement,
-<a href=#33 id=33 data-nosnippet>33</a>        CompilationUnit, DataType, DataTypeDeclaration, EmptyStatement, Implementation, LinkageType, Pou,
-<a href=#34 id=34 data-nosnippet>34</a>        PouType, UserTypeDeclaration, Variable, VariableBlock,
+<a href=#33 id=33 data-nosnippet>33</a>        CompilationUnit, DataType, DataTypeDeclaration, EmptyStatement, Implementation, Pou, PouType,
+<a href=#34 id=34 data-nosnippet>34</a>        UserTypeDeclaration, Variable, VariableBlock,
 <a href=#35 id=35 data-nosnippet>35</a>    },
 <a href=#36 id=36 data-nosnippet>36</a>    mut_visitor::{AstVisitorMut, WalkerMut},
 <a href=#37 id=37 data-nosnippet>37</a>    provider::IdProvider,
@@ -343,7 +343,7 @@
 <a href=#343 id=343 data-nosnippet>343</a>                initializer: <span class="prelude-val">None</span>,
 <a href=#344 id=344 data-nosnippet>344</a>                location: location.clone(),
 <a href=#345 id=345 data-nosnippet>345</a>                scope: <span class="prelude-val">None</span>,
-<a href=#346 id=346 data-nosnippet>346</a>                linkage: LinkageType::Internal,
+<a href=#346 id=346 data-nosnippet>346</a>                linkage: pou.linkage,
 <a href=#347 id=347 data-nosnippet>347</a>            };
 <a href=#348 id=348 data-nosnippet>348</a>
 <a href=#349 id=349 data-nosnippet>349</a>            <span class="self">self</span>.new_user_types.push(new_user_type);
@@ -413,7 +413,7 @@
 <a href=#413 id=413 data-nosnippet>413</a>                        initializer: <span class="prelude-val">None</span>,
 <a href=#414 id=414 data-nosnippet>414</a>                        location: return_type_for_call_location.clone(),
 <a href=#415 id=415 data-nosnippet>415</a>                        scope: <span class="prelude-val">None</span>,
-<a href=#416 id=416 data-nosnippet>416</a>                        linkage: LinkageType::Internal,
+<a href=#416 id=416 data-nosnippet>416</a>                        linkage: pou.linkage,
 <a href=#417 id=417 data-nosnippet>417</a>                    };
 <a href=#418 id=418 data-nosnippet>418</a>
 <a href=#419 id=419 data-nosnippet>419</a>                    <span class="self">self</span>.new_user_types.push(new_user_type);
@@ -914,7 +914,7 @@
 <a href=#914 id=914 data-nosnippet>914</a></span><span class="kw">mod </span>tests {
 <a href=#915 id=915 data-nosnippet>915</a>    <span class="kw">use </span>insta::assert_snapshot;
 <a href=#916 id=916 data-nosnippet>916</a>    <span class="kw">use </span>plc_ast::{
-<a href=#917 id=917 data-nosnippet>917</a>        ast::{ArgumentProperty, VariableBlockType},
+<a href=#917 id=917 data-nosnippet>917</a>        ast::{ArgumentProperty, LinkageType, VariableBlockType},
 <a href=#918 id=918 data-nosnippet>918</a>        ser::AstSerializer,
 <a href=#919 id=919 data-nosnippet>919</a>    };
 <a href=#920 id=920 data-nosnippet>920</a>    <span class="kw">use </span>plc_driver::parse_and_annotate;
@@ -1999,5 +1999,38 @@
 <a href=#1999 id=1999 data-nosnippet>1999</a>        ', __fb2___get_value_return_val_1);
 <a href=#2000 id=2000 data-nosnippet>2000</a>        "</span>);
 <a href=#2001 id=2001 data-nosnippet>2001</a>    }
-<a href=#2002 id=2002 data-nosnippet>2002</a>}
+<a href=#2002 id=2002 data-nosnippet>2002</a>
+<a href=#2003 id=2003 data-nosnippet>2003</a>    <span class="attr">#[test]
+<a href=#2004 id=2004 data-nosnippet>2004</a>    </span><span class="kw">fn </span>generated_return_types_take_the_linkage_of_their_pou() {
+<a href=#2005 id=2005 data-nosnippet>2005</a>        <span class="kw">let </span>src: SourceCode = <span class="string">r#"
+<a href=#2006 id=2006 data-nosnippet>2006</a>            {external}
+<a href=#2007 id=2007 data-nosnippet>2007</a>            FUNCTION externalFunc : REFERENCE TO INT
+<a href=#2008 id=2008 data-nosnippet>2008</a>                VAR_INPUT
+<a href=#2009 id=2009 data-nosnippet>2009</a>                    in : REFERENCE TO INT;
+<a href=#2010 id=2010 data-nosnippet>2010</a>                END_VAR
+<a href=#2011 id=2011 data-nosnippet>2011</a>            END_FUNCTION
+<a href=#2012 id=2012 data-nosnippet>2012</a>
+<a href=#2013 id=2013 data-nosnippet>2013</a>            FUNCTION main
+<a href=#2014 id=2014 data-nosnippet>2014</a>                VAR
+<a href=#2015 id=2015 data-nosnippet>2015</a>                    refVal : REFERENCE TO INT;
+<a href=#2016 id=2016 data-nosnippet>2016</a>                END_VAR
+<a href=#2017 id=2017 data-nosnippet>2017</a>                refVal REF= externalFunc(refVal);
+<a href=#2018 id=2018 data-nosnippet>2018</a>            END_FUNCTION
+<a href=#2019 id=2019 data-nosnippet>2019</a>            "#
+<a href=#2020 id=2020 data-nosnippet>2020</a>        </span>.into();
+<a href=#2021 id=2021 data-nosnippet>2021</a>
+<a href=#2022 id=2022 data-nosnippet>2022</a>        <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).expect(<span class="string">"must parse and annotation"</span>);
+<a href=#2023 id=2023 data-nosnippet>2023</a>        <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit();
+<a href=#2024 id=2024 data-nosnippet>2024</a>        <span class="kw">let </span>linkage_of = |name: <span class="kw-2">&amp;</span>str| {
+<a href=#2025 id=2025 data-nosnippet>2025</a>            unit.user_types
+<a href=#2026 id=2026 data-nosnippet>2026</a>                .iter()
+<a href=#2027 id=2027 data-nosnippet>2027</a>                .find(|it| it.data_type.get_name() == <span class="prelude-val">Some</span>(name))
+<a href=#2028 id=2028 data-nosnippet>2028</a>                .map(|it| it.linkage)
+<a href=#2029 id=2029 data-nosnippet>2029</a>                .expect(<span class="string">"generated type should exist"</span>)
+<a href=#2030 id=2030 data-nosnippet>2030</a>        };
+<a href=#2031 id=2031 data-nosnippet>2031</a>
+<a href=#2032 id=2032 data-nosnippet>2032</a>        <span class="macro">assert_eq!</span>(linkage_of(<span class="string">"__externalFunc__externalFunc_return_val"</span>), LinkageType::External);
+<a href=#2033 id=2033 data-nosnippet>2033</a>        <span class="macro">assert_eq!</span>(linkage_of(<span class="string">"__main__externalFunc_return_val_1"</span>), LinkageType::Internal);
+<a href=#2034 id=2034 data-nosnippet>2034</a>    }
+<a href=#2035 id=2035 data-nosnippet>2035</a>}
 </code></pre></div></section></main></body></html>
