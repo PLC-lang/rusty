@@ -188,7 +188,7 @@ The [Internals](../internals/README.md) chapters show how each language construc
 
 Units are indexed concurrently, one table each, and the tables are merged in unit order into one global index. Merging appends: a name declared in two files ends with two entries under one key, which validation later reports as a duplicate. Constant expressions are copied into the global constant store, receive new IDs, and the entries that hold an ID are updated.
 
-Two more tables are merged in after the user's units. The built-in types, `BOOL`, `INT`, `DINT`, `REAL`, `STRING`, `TIME`, and the rest, are constructed directly. The built-in functions, `ADR`, `SIZEOF`, `MUX`, `SEL`, the generic arithmetic and comparison functions, and the array bound functions, are Structured Text declarations embedded in the compiler. They are parsed, pre-processed, and indexed like any other unit, and merged last. A user function named `add` therefore shares a key with the built-in `ADD` and is a duplicate symbol.
+Two more tables are merged in after the user's units. The built-in types, `BOOL`, `INT`, `DINT`, `REAL`, `STRING`, `TIME`, and the rest, are constructed directly. The built-in functions, `ADR`, `SIZEOF`, `MUX`, `SEL`, the generic arithmetic and comparison functions, and the array bound functions, are Structured Text declarations embedded in the compiler. Each one is a file in `src/builtins/` that the compiler includes at build time, so tools such as an IDE can read the same declarations from the sources. They are parsed, pre-processed, and indexed like any other unit, and merged last. A user function named `add` therefore shares a key with the built-in `ADD` and is a duplicate symbol.
 
 Visualized for two files, showing only the POU map:
 
@@ -269,7 +269,7 @@ Validation turns the stored reasons into diagnostics: `TOO_BIG` becomes a warnin
 | Index | `src/index.rs`, `src/index/` |
 | Constant evaluation | `src/resolver/` |
 | Types | `src/typesystem.rs` |
-| Built-ins | `src/builtins.rs` |
+| Built-ins | `src/builtins.rs`, declarations in `src/builtins/` |
 
 
 ## What's next

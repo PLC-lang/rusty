@@ -1,0 +1,7 @@
+(* Returns TRUE if IN1 is not equal to IN2 (<>) *)
+FUNCTION NE<T: ANY_ELEMENTARY> : BOOL
+VAR_INPUT
+    IN1 : T;
+    IN2 : T;
+END_VAR
+END_FUNCTION

@@ -14,13 +14,13 @@ VAR
 END_VAR
 
 a := SHL(x, 2);
-b := SHL(IN := x, n := 2);
-c := SHL(n := 2, IN := x);
+b := SHL(IN := x, N := 2);
+c := SHL(N := 2, IN := x);
 // CHECK: SHL=36 36 36
 printf('SHL=%d %d %d$N', a, b, c);
 
 // named argument before the positional one, IN is filled by x
-a := SHL(n := 2, x);
+a := SHL(N := 2, x);
 // CHECK: SHL-named-first=36
 printf('SHL-named-first=%d$N', a);
 END_FUNCTION

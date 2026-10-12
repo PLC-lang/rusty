@@ -1,0 +1,7 @@
+(* Returns the remainder after division of IN1 by IN2 *)
+FUNCTION MOD<T1: ANY, T2: ANY> : T1
+VAR_INPUT
+    IN1 : T1;
+    IN2 : T2;
+END_VAR
+END_FUNCTION

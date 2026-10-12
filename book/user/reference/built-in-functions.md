@@ -13,10 +13,10 @@ The parameter names in the second column are the names a call can use.
 
 | Call | Parameters | Result | Gives |
 |---|---|---|---|
-| `ADR(in)` | `in: ANY` | `LWORD` | The address of a variable, as a number |
-| `REF(in)` | `in: ANY` | `REF_TO` the type of `in` | A reference to a variable |
-| `SIZEOF(in)` | `in: ANY` | `ULINT` | The size of the argument's type, in bytes |
-| `MOVE(in)` | `in: ANY` | The type of `in` | The value of `in` |
+| `ADR(IN)` | `IN: ANY` | `LWORD` | The address of a variable, as a number |
+| `REF(IN)` | `IN: ANY` | `REF_TO` the type of `IN` | A reference to a variable |
+| `SIZEOF(IN)` | `IN: ANY` | `ULINT` | The size of the argument's type, in bytes |
+| `MOVE(IN)` | `IN: ANY` | The type of `IN` | The value of `IN` |
 
 ### Selection
 
@@ -29,10 +29,10 @@ The parameter names in the second column are the names a call can use.
 
 | Call | Parameters | Result | Gives |
 |---|---|---|---|
-| `LOWER_BOUND(arr, dim)` | `arr: ARRAY[*]`, `dim: ANY_INT` | `DINT` | The first index of dimension `dim` |
-| `UPPER_BOUND(arr, dim)` | `arr: ARRAY[*]`, `dim: ANY_INT` | `DINT` | The last index of dimension `dim` |
+| `LOWER_BOUND(ARR, DIM)` | `ARR: ARRAY[*]`, `DIM: ANY_INT` | `DINT` | The first index of dimension `DIM` |
+| `UPPER_BOUND(ARR, DIM)` | `ARR: ARRAY[*]`, `DIM: ANY_INT` | `DINT` | The last index of dimension `DIM` |
 
-`arr` takes an array of any size only, not an array of a fixed size. [Functions](../language/functions.md#arrays-of-any-size) shows both in a loop.
+`ARR` takes an array of any size only, not an array of a fixed size. [Functions](../language/functions.md#arrays-of-any-size) shows both in a loop.
 
 ### Arithmetic
 
@@ -75,8 +75,8 @@ For a `BOOL` the result is the logical one, for any other type it is bit by bit,
 
 | Call | Parameters | Result | Gives |
 |---|---|---|---|
-| `SHL(IN, n)` | `IN: ANY`, `n: UDINT` | The type of `IN` | `IN` shifted left by `n` bits |
-| `SHR(IN, n)` | `IN: ANY`, `n: UDINT` | The type of `IN` | `IN` shifted right by `n` bits |
+| `SHL(IN, N)` | `IN: ANY`, `N: UDINT` | The type of `IN` | `IN` shifted left by `N` bits |
+| `SHR(IN, N)` | `IN: ANY`, `N: UDINT` | The type of `IN` | `IN` shifted right by `N` bits |
 
 
 ## Names that are also operators

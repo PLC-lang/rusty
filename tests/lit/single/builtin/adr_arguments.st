@@ -8,7 +8,7 @@ VAR
     p : BOOL;
 END_VAR
 
-p := ADR(i) = ADR(in := i);
+p := ADR(i) = ADR(IN := i);
 // CHECK: ADR=1
 printf('ADR=%d$N', p);
 END_FUNCTION

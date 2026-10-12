@@ -1,0 +1,6 @@
+(* Returns the bitwise OR of all inputs *)
+FUNCTION OR<T: ANY> : T
+VAR_INPUT
+    IN : {sized} T...;
+END_VAR
+END_FUNCTION

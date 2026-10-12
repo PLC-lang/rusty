@@ -1,0 +1,6 @@
+(* Returns TRUE if each input is less than the next one (<) *)
+FUNCTION LT<T: ANY_ELEMENTARY> : BOOL
+VAR_INPUT
+    IN : {sized} T...;
+END_VAR
+END_FUNCTION

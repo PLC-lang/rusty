@@ -1,0 +1,6 @@
+FUNCTION MUX<U: ANY> : U
+VAR_INPUT
+    K : DINT;
+    IN : {sized} U...;
+END_VAR
+END_FUNCTION

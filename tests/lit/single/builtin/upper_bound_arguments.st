@@ -23,8 +23,8 @@ VAR
 END_VAR
 
 a := UPPER_BOUND(vla, dim);
-b := UPPER_BOUND(arr := vla, dim := dim);
-c := UPPER_BOUND(dim := dim, arr := vla);
+b := UPPER_BOUND(ARR := vla, DIM := dim);
+c := UPPER_BOUND(DIM := dim, ARR := vla);
 // CHECK: UPPER_BOUND=9 9 9
 printf('UPPER_BOUND=%d %d %d$N', a, b, c);
 END_FUNCTION

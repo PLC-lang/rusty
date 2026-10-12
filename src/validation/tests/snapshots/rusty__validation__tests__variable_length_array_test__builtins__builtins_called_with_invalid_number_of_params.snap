@@ -20,11 +20,11 @@ error[E032]: this POU takes 2 arguments but 1 argument was supplied
 15 │             LOWER_BOUND(1);
    │             ^^^^^^^^^^^ this POU takes 2 arguments but 1 argument was supplied
 
-error[E031]: Expected a reference for parameter arr because their type is InOut
+error[E031]: Expected a reference for parameter ARR because their type is InOut
    ┌─ <internal>:15:25
    │
 15 │             LOWER_BOUND(1);
-   │                         ^ Expected a reference for parameter arr because their type is InOut
+   │                         ^ Expected a reference for parameter ARR because their type is InOut
 
 error[E037]: Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:15:25
@@ -56,11 +56,11 @@ error[E032]: this POU takes 2 arguments but 1 argument was supplied
 20 │             UPPER_BOUND(1);
    │             ^^^^^^^^^^^ this POU takes 2 arguments but 1 argument was supplied
 
-error[E031]: Expected a reference for parameter arr because their type is InOut
+error[E031]: Expected a reference for parameter ARR because their type is InOut
    ┌─ <internal>:20:25
    │
 20 │             UPPER_BOUND(1);
-   │                         ^ Expected a reference for parameter arr because their type is InOut
+   │                         ^ Expected a reference for parameter ARR because their type is InOut
 
 error[E037]: Invalid assignment: cannot assign 'DINT' to 'VARIABLE LENGTH ARRAY'
    ┌─ <internal>:20:25

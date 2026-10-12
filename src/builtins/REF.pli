@@ -1,0 +1,6 @@
+{constant}
+FUNCTION REF<U: ANY> : REF_TO U
+VAR_INPUT
+    IN : U;
+END_VAR
+END_FUNCTION

@@ -1,0 +1,6 @@
+(* Returns TRUE if all inputs are equal (=) *)
+FUNCTION EQ<T: ANY_ELEMENTARY> : BOOL
+VAR_INPUT
+    IN : {sized} T...;
+END_VAR
+END_FUNCTION
