@@ -1,0 +1,9 @@
+RUN: %PLC -c --fpic %S/retain_lib.st -o %t.lib.o
+RUN: %COMPILE -i %S/retain_lib.st %S/retain_main.st %t.lib.o && %RUN | %CHECK %s
+
+retain_lib.st is compiled to its own object. The program includes it and links
+that object. The retain storage of RetainProgram and retainFb must be defined
+only in the object built from retain_lib.st.
+
+CHECK: 2
+CHECK: 4

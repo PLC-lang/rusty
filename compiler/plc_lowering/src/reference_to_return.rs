@@ -30,8 +30,8 @@ use plc::{
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CallStatement,
-        CompilationUnit, DataType, DataTypeDeclaration, EmptyStatement, Implementation, LinkageType, Pou,
-        PouType, UserTypeDeclaration, Variable, VariableBlock,
+        CompilationUnit, DataType, DataTypeDeclaration, EmptyStatement, Implementation, Pou, PouType,
+        UserTypeDeclaration, Variable, VariableBlock,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -343,7 +343,7 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                 initializer: None,
                 location: location.clone(),
                 scope: None,
-                linkage: LinkageType::Internal,
+                linkage: pou.linkage,
             };
 
             self.new_user_types.push(new_user_type);
@@ -413,7 +413,7 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                         initializer: None,
                         location: return_type_for_call_location.clone(),
                         scope: None,
-                        linkage: LinkageType::Internal,
+                        linkage: pou.linkage,
                     };
 
                     self.new_user_types.push(new_user_type);
@@ -914,7 +914,7 @@ fn remove_property_prefix(name: &str) -> String {
 mod tests {
     use insta::assert_snapshot;
     use plc_ast::{
-        ast::{ArgumentProperty, VariableBlockType},
+        ast::{ArgumentProperty, LinkageType, VariableBlockType},
         ser::AstSerializer,
     };
     use plc_driver::parse_and_annotate;
@@ -1998,5 +1998,38 @@ mod tests {
         printf('FB2-Value: %d
         ', __fb2___get_value_return_val_1);
         ");
+    }
+
+    #[test]
+    fn generated_return_types_take_the_linkage_of_their_pou() {
+        let src: SourceCode = r#"
+            {external}
+            FUNCTION externalFunc : REFERENCE TO INT
+                VAR_INPUT
+                    in : REFERENCE TO INT;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    refVal : REFERENCE TO INT;
+                END_VAR
+                refVal REF= externalFunc(refVal);
+            END_FUNCTION
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
+        let unit = &project.units[0].get_unit();
+        let linkage_of = |name: &str| {
+            unit.user_types
+                .iter()
+                .find(|it| it.data_type.get_name() == Some(name))
+                .map(|it| it.linkage)
+                .expect("generated type should exist")
+        };
+
+        assert_eq!(linkage_of("__externalFunc__externalFunc_return_val"), LinkageType::External);
+        assert_eq!(linkage_of("__main__externalFunc_return_val_1"), LinkageType::Internal);
     }
 }

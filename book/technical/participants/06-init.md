@@ -80,7 +80,7 @@ Every user type gets a constructor as well. A struct constructs and initializes 
 +END_FUNCTION
 ```
 
-Built-in types, generic types, and variable-length arrays get no constructor. The types the pre-processor created for inline declarations, such as `__Refs_r` for the member `r` below, are user types too and get constructors like every other type; most of them are empty.
+Built-in types, generic types, and variable-length arrays get no constructor. Members and variables of a built-in type, such as the interface fat pointer, get no constructor call either. The types the pre-processor created for inline declarations, such as `__Refs_r` for the member `r` below, are user types too and get constructors like every other type; most of them are empty.
 
 ### References and pointers
 
