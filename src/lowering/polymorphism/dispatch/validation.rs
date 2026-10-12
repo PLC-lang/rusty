@@ -73,6 +73,34 @@ pub fn validate_interface_assignment(
     Some(Diagnostic::invalid_interface_assignment(source_iface, target_iface, location.clone()))
 }
 
+/// Validates that an interface variable passed to a by-reference parameter (`VAR_OUTPUT`, `VAR_IN_OUT` or
+/// `REFERENCE TO`) has exactly the parameter's interface type. The callee writes through the parameter, so
+/// an upcast into a temporary fat pointer would never reach the caller. Returns `Some(Diagnostic)` if not.
+///
+/// ```st
+/// consumer(inout1 := refIA);  // ok:    inout1 : IA
+/// consumer(inout1 := refIB);  // error: IB EXTENDS IA, but the callee writes an IA
+/// consumer(inout1 := refIC);  // error: IC unrelated to IA
+/// ```
+pub fn validate_byref_interface_argument(
+    parameter_name: &str,
+    expected_iface: &str,
+    actual_iface: &str,
+    location: &SourceLocation,
+) -> Option<Diagnostic> {
+    if expected_iface.eq_ignore_ascii_case(actual_iface) {
+        return None;
+    }
+
+    Some(
+        Diagnostic::new(format!(
+            "Parameter {parameter_name} is passed by reference, it requires an argument of type {expected_iface} but got {actual_iface}"
+        ))
+        .with_error_code("E037")
+        .with_location(location.clone()),
+    )
+}
+
 /// Validates that an interface reference is not called directly.
 ///
 /// ```st

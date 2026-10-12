@@ -117,9 +117,9 @@
 
 use plc_ast::{
     ast::{
-        steal_expression_list, Allocation, Assignment, AstFactory, AstNode, AstStatement, CallStatement,
-        CompilationUnit, DataType as AstDataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration,
-        Variable,
+        resolve_argument_slots, steal_expression_list, Allocation, Assignment, AstFactory, AstNode,
+        AstStatement, CallStatement, CompilationUnit, DataType as AstDataType, DataTypeDeclaration,
+        LinkageType, UserTypeDeclaration, Variable,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -128,8 +128,8 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::Index,
-    resolver::{AnnotationMap, AnnotationMapImpl},
+    index::{Index, VariableIndexEntry},
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     typesystem::{DataType, DataTypeInformation, VOID_INTERNAL_NAME},
 };
 
@@ -388,19 +388,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         // allocate a temporary fat pointer in the preamble and replace the argument in-place.
         if let Some(ref mut params) = parameters {
             let mut args = steal_expression_list(params);
+            let bindings = self.bind_arguments_to_parameters(operator, &args);
 
-            for arg in args.iter_mut() {
+            for (arg, parameter) in args.iter_mut().zip(bindings) {
                 match &mut arg.stmt {
                     // Named argument (input, output, or in-out). Inspect and potentially replace the RHS.
                     AstStatement::Assignment(Assignment { right, .. })
                     | AstStatement::OutputAssignment(Assignment { right, .. })
                     | AstStatement::RefAssignment(Assignment { right, .. }) => {
-                        self.maybe_wrap_argument(right.as_mut());
+                        self.maybe_wrap_argument(parameter, right.as_mut());
                     }
 
                     // Positional argument. Inspect and potentially replace the whole node.
                     _ => {
-                        self.maybe_wrap_argument(arg);
+                        self.maybe_wrap_argument(parameter, arg);
                     }
                 }
             }
@@ -444,22 +445,69 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
     }
 }
 
-impl InterfaceDispatchLowerer<'_> {
+impl<'a> InterfaceDispatchLowerer<'a> {
+    /// Resolves the callee parameter each argument binds to. A named argument carries its declaring
+    /// POU and position in its argument annotation. A positional argument carries the callee instead,
+    /// so it is bound by slot over the callee's parameters, inherited ones included, as the validator
+    /// does; a function pointer call passes the instance as a first argument that binds to nothing.
+    fn bind_arguments_to_parameters(
+        &self,
+        operator: &AstNode,
+        args: &[AstNode],
+    ) -> Vec<Option<&'a VariableIndexEntry>> {
+        let index = self.index;
+        let arguments: Vec<&AstNode> = args.iter().collect();
+        let callee = arguments.iter().find_map(|arg| match self.annotations.get_hint(arg) {
+            Some(StatementAnnotation::Argument { pou, .. }) if arg.get_assignment_identifier().is_none() => {
+                Some(pou.as_str())
+            }
+            _ => None,
+        });
+        let parameters = callee.map(|pou| index.get_available_parameters(pou)).unwrap_or_default();
+        let skip = usize::from(self.annotations.get(operator).is_some_and(StatementAnnotation::is_fnptr))
+            .min(arguments.len());
+        let slots = resolve_argument_slots(&arguments[skip..], parameters.iter().map(|it| it.get_name()));
+
+        let mut bindings = vec![None; skip];
+        for (arg, slot) in arguments.iter().skip(skip).zip(slots) {
+            let parameter = match self.annotations.get_hint(arg) {
+                Some(StatementAnnotation::Argument { pou, position, .. })
+                    if arg.get_assignment_identifier().is_some() =>
+                {
+                    index.find_parameter(pou, *position as u32)
+                }
+                _ => slot.and_then(|slot| parameters.get(slot)).copied(),
+            };
+            bindings.push(parameter);
+        }
+
+        bindings
+    }
+
     /// Checks whether `arg` is a concrete POU being passed where an interface is expected.
     /// If so, generates a temporary fat pointer (alloca + field assignments) in `self.preamble`
     /// and replaces `arg` in-place with a reference to the temporary.
-    fn maybe_wrap_argument(&mut self, arg: &mut AstNode) {
-        let actual_type = self.annotations.get_type_or_void(arg, self.index);
-        let expected_type = self.annotations.get_hint_or_void(arg, self.index);
-
-        // VAR_OUTPUT, VAR_IN_OUT and REFERENCE TO parameters are indexed as auto-deref pointers to the
-        // interface, so look through the pointer to find the interface the callee expects.
-        let expected_type = match expected_type.get_type_information() {
-            DataTypeInformation::Pointer { auto_deref: Some(_), inner_type_name, .. } => {
-                self.index.get_effective_type_or_void_by_name(inner_type_name)
-            }
-            _ => expected_type,
+    ///
+    /// `parameter` is the callee parameter `arg` binds to, see [`Self::bind_arguments_to_parameters`].
+    fn maybe_wrap_argument(&mut self, parameter: Option<&VariableIndexEntry>, arg: &mut AstNode) {
+        let Some(parameter) = parameter else {
+            return;
         };
+
+        let actual_type = self.annotations.get_type_or_void(arg, self.index);
+        let parameter_type = self.index.get_effective_type_or_void_by_name(parameter.get_type_name());
+
+        // VAR_IN_OUT, REFERENCE TO and function VAR_OUTPUT parameters are indexed as auto-deref pointers
+        // to the interface, so look through the pointer to find the interface the callee expects.
+        let (expected_type, pointer) = match parameter_type.get_type_information() {
+            DataTypeInformation::Pointer { auto_deref: Some(_), inner_type_name, .. } => {
+                (self.index.get_effective_type_or_void_by_name(inner_type_name), true)
+            }
+            _ => (parameter_type, false),
+        };
+
+        // A function block or program VAR_OUTPUT is a plain member, but the call writes through it too.
+        let by_ref = pointer || parameter.is_output();
 
         // Not an interface parameter, nothing to do.
         if !expected_type.is_interface() {
@@ -470,6 +518,21 @@ impl InterfaceDispatchLowerer<'_> {
         if actual_type.is_interface() {
             let source_iface = actual_type.get_name();
             let target_iface = expected_type.get_name();
+
+            // A by-reference parameter is storage the callee writes through, so the argument is passed
+            // as is and must be the exact interface; an upcast temporary would never reach the caller.
+            if by_ref {
+                if let Some(diagnostic) = validation::validate_byref_interface_argument(
+                    parameter.get_name(),
+                    target_iface,
+                    source_iface,
+                    &arg.location,
+                ) {
+                    self.diagnostics.push(diagnostic);
+                }
+
+                return;
+            }
 
             if let Some(diagnostic) = validation::validate_interface_assignment(
                 self.index,
@@ -2663,6 +2726,45 @@ mod tests {
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(in1 := __fatpointer_1)",
                 "consumer(reference)",
+            ]
+            "#);
+        }
+
+        /// A variable declared with an alias of an interface is annotated with the interface itself,
+        /// so it passes through without wrapping.
+        #[test]
+        fn aliased_interface_argument_passes_through() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                TYPE AliasIA : IA; END_TYPE
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        in1: IA;
+                    END_VAR
+
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        reference: AliasIA;
+                    END_VAR
+
+                    consumer(reference, reference);
+                    consumer(in1 := reference, inout1 := reference);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "consumer(reference, reference)",
+                "consumer(in1 := reference, inout1 := reference)",
             ]
             "#);
         }

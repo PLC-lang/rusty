@@ -105,4 +105,10 @@ FUNCTION main : DINT
     result := GetElementOutput(returned);
     value := returned.ElementData();
     printf('main: output result = %d, size = %llu, value = %.1f$N', result, returned.ElementSize(), value^);
+
+    // A concrete instance is accepted as the output argument too. The callee writes into a temporary
+    // fat pointer that nothing copies back, so only the return value is observable.
+    // CHECK-NEXT: main: output into instance result = 8, value = 1.5
+    result := GetElementOutput(element);
+    printf('main: output into instance result = %d, value = %.1f$N', result, element.Value);
 END_FUNCTION
