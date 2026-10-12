@@ -1601,6 +1601,183 @@ pub fn get_equals_function_name_for(type_name: &str, operator: &Operator) -> Opt
     suffix.map(|suffix| format!("{type_name}_{suffix}")) // TODO: Naming convention (see plc_util/src/convention.rs)
 }
 
+/// How a binary arithmetic expression with a date or time operand is carried out. Every date and
+/// time type counts nanoseconds, so most combinations are the plain integer operation; a time of
+/// day wraps at midnight and a duration scaled by a real goes through the standard library.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DateTimeArithmetic {
+    /// A call to the named standard library function; `swap_operands` moves a leading number
+    /// behind the duration for the commutative `ANY_NUM * TIME`
+    Call { function: String, result_type: &'static str, swap_operands: bool, mixed_families: bool },
+    /// The plain integer operation on the stored values; `bare_number` marks a duration combined
+    /// with an integer that carries no unit
+    Plain { result_type: &'static str, bare_number: bool, mixed_families: bool },
+}
+
+impl DateTimeArithmetic {
+    pub fn result_type(&self) -> &'static str {
+        match self {
+            DateTimeArithmetic::Call { result_type, .. } | DateTimeArithmetic::Plain { result_type, .. } => {
+                result_type
+            }
+        }
+    }
+
+    /// Whether a short type meets a long one, which the next version rejects
+    pub fn mixed_families(&self) -> bool {
+        match self {
+            DateTimeArithmetic::Call { mixed_families, .. }
+            | DateTimeArithmetic::Plain { mixed_families, .. } => *mixed_families,
+        }
+    }
+}
+
+// (left, operator, right, result) of the additions and subtractions IEC 61131-3 defines, in the
+// names of the short family; the long family maps onto the same rows
+const DATE_TIME_ROWS: &[(&str, Operator, &str, &str)] = &[
+    (TIME_TYPE, Operator::Plus, TIME_TYPE, TIME_TYPE),
+    (TIME_OF_DAY_TYPE, Operator::Plus, TIME_TYPE, TIME_OF_DAY_TYPE),
+    (DATE_AND_TIME_TYPE, Operator::Plus, TIME_TYPE, DATE_AND_TIME_TYPE),
+    (TIME_TYPE, Operator::Minus, TIME_TYPE, TIME_TYPE),
+    (DATE_TYPE, Operator::Minus, DATE_TYPE, TIME_TYPE),
+    (TIME_OF_DAY_TYPE, Operator::Minus, TIME_TYPE, TIME_OF_DAY_TYPE),
+    (TIME_OF_DAY_TYPE, Operator::Minus, TIME_OF_DAY_TYPE, TIME_TYPE),
+    (DATE_AND_TIME_TYPE, Operator::Minus, TIME_TYPE, DATE_AND_TIME_TYPE),
+    (DATE_AND_TIME_TYPE, Operator::Minus, DATE_AND_TIME_TYPE, TIME_TYPE),
+];
+
+/// The short-family name of a date or time type, `None` for any other type
+fn short_family(name: &str) -> Option<&'static str> {
+    match name {
+        TIME_TYPE | LONG_TIME_TYPE => Some(TIME_TYPE),
+        TIME_OF_DAY_TYPE | LONG_TIME_OF_DAY_TYPE => Some(TIME_OF_DAY_TYPE),
+        DATE_TYPE | LONG_DATE_TYPE => Some(DATE_TYPE),
+        DATE_AND_TIME_TYPE | LONG_DATE_AND_TIME_TYPE => Some(DATE_AND_TIME_TYPE),
+        _ => None,
+    }
+}
+
+fn long_family(short: &str) -> &'static str {
+    match short {
+        TIME_TYPE => LONG_TIME_TYPE,
+        TIME_OF_DAY_TYPE => LONG_TIME_OF_DAY_TYPE,
+        DATE_TYPE => LONG_DATE_TYPE,
+        _ => LONG_DATE_AND_TIME_TYPE,
+    }
+}
+
+fn is_long_family(name: &str) -> bool {
+    matches!(name, LONG_TIME_TYPE | LONG_TIME_OF_DAY_TYPE | LONG_DATE_TYPE | LONG_DATE_AND_TIME_TYPE)
+}
+
+/// The name that decides the family of a date or time operand. The long types are aliases of the
+/// short ones, so the declared name is consulted before the intrinsic type.
+fn family_name<'a>(index: &'a Index, data_type: &'a DataType) -> &'a str {
+    match data_type.get_name() {
+        LONG_TIME_TYPE | LONG_TIME_TYPE_SHORTENED => LONG_TIME_TYPE,
+        LONG_TIME_OF_DAY_TYPE | LONG_TIME_OF_DAY_TYPE_SHORTENED => LONG_TIME_OF_DAY_TYPE,
+        LONG_DATE_TYPE | LONG_DATE_TYPE_SHORTENED => LONG_DATE_TYPE,
+        LONG_DATE_AND_TIME_TYPE | LONG_DATE_AND_TIME_TYPE_SHORTENED => LONG_DATE_AND_TIME_TYPE,
+        _ => index.get_intrinsic_type_by_name(data_type.get_name()).get_name(),
+    }
+}
+
+/// Looks up how `left <operator> right` is carried out when at least one operand is a date or
+/// time type. Returns `None` for a combination the standard does not define. The family of the
+/// result follows the left date or time operand.
+pub fn get_date_time_arithmetic(
+    index: &Index,
+    left: &DataType,
+    operator: &Operator,
+    right: &DataType,
+) -> Option<DateTimeArithmetic> {
+    let (left_name, right_name) = (family_name(index, left), family_name(index, right));
+    let (left_short, right_short) = (short_family(left_name), short_family(right_name));
+    let long = if left_short.is_some() { is_long_family(left_name) } else { is_long_family(right_name) };
+    let mixed_families = left_short.is_some()
+        && right_short.is_some()
+        && is_long_family(left_name) != is_long_family(right_name);
+    let typed = |short: &'static str| if long { long_family(short) } else { short };
+
+    // the additions and subtractions; a time of day wraps at midnight, which only the function does
+    if let (Some(l), Some(r)) = (left_short, right_short) {
+        let row = DATE_TIME_ROWS.iter().find(|(a, op, b, _)| *a == l && op == operator && *b == r);
+        if let Some((.., result)) = row {
+            let result_type = typed(result);
+            if l == TIME_OF_DAY_TYPE && r == TIME_TYPE {
+                let function = match (long, operator) {
+                    (false, Operator::Plus) => "ADD_TOD_TIME",
+                    (false, _) => "SUB_TOD_TIME",
+                    (true, Operator::Plus) => "ADD_LTOD_LTIME",
+                    (true, _) => "SUB_LTOD_LTIME",
+                };
+                return Some(DateTimeArithmetic::Call {
+                    function: function.to_string(),
+                    result_type,
+                    swap_operands: false,
+                    mixed_families,
+                });
+            }
+            return Some(DateTimeArithmetic::Plain { result_type, bare_number: false, mixed_families });
+        }
+    }
+
+    // a duration scaled by a number: an integer factor is the plain product or quotient, a real
+    // factor calls the implementation for its width
+    let is_duration = |short: Option<&str>| short == Some(TIME_TYPE);
+    let real_kind =
+        |number: &DataType| match index.get_intrinsic_type_information(number.get_type_information()) {
+            DataTypeInformation::Float { size: 32, .. } => Some("REAL"),
+            DataTypeInformation::Float { .. } => Some("LREAL"),
+            _ => None,
+        };
+    let scaled = |prefix: &str, kind: Option<&str>, swap_operands: bool| {
+        Some(match kind {
+            Some(kind) => DateTimeArithmetic::Call {
+                function: format!("{prefix}_{}__{kind}", typed(TIME_TYPE)),
+                result_type: typed(TIME_TYPE),
+                swap_operands,
+                mixed_families: false,
+            },
+            None => DateTimeArithmetic::Plain {
+                result_type: typed(TIME_TYPE),
+                bare_number: false,
+                mixed_families: false,
+            },
+        })
+    };
+    let left_is_number = left.has_nature(TypeNature::Num, index);
+    let right_is_number = right.has_nature(TypeNature::Num, index);
+    match operator {
+        Operator::Multiplication if is_duration(left_short) && right_is_number => {
+            return scaled("MUL", real_kind(right), false);
+        }
+        Operator::Multiplication if is_duration(right_short) && left_is_number => {
+            return scaled("MUL", real_kind(left), true);
+        }
+        Operator::Division if is_duration(left_short) && right_is_number => {
+            return scaled("DIV", real_kind(right), false);
+        }
+        _ => {}
+    }
+
+    // a duration and an integer without a unit
+    let bare_number = || {
+        Some(DateTimeArithmetic::Plain {
+            result_type: typed(TIME_TYPE),
+            bare_number: true,
+            mixed_families: false,
+        })
+    };
+    let left_is_int = left.has_nature(TypeNature::Int, index);
+    let right_is_int = right.has_nature(TypeNature::Int, index);
+    match operator {
+        Operator::Plus | Operator::Minus if is_duration(left_short) && right_is_int => bare_number(),
+        Operator::Plus if is_duration(right_short) && left_is_int => bare_number(),
+        _ => None,
+    }
+}
+
 pub fn get_literal_actual_signed_type_name(lit: &AstLiteral, signed: bool) -> Option<&str> {
     // Returns a range with the min and max value of the given type
     macro_rules! is_covered_by {

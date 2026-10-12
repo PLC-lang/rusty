@@ -19,6 +19,8 @@ entry:
   %out1 = alloca ptr, align [filtered]
   store ptr %1, ptr %out1, align [filtered]
   store i16 0, ptr %foo__INT, align [filtered]
+  %2 = load ptr, ptr %out1, align [filtered]
+  store i16 0, ptr %2, align [filtered]
   %foo__INT_ret = load i16, ptr %foo__INT, align [filtered]
   ret i16 %foo__INT_ret
 }

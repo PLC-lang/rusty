@@ -551,9 +551,11 @@ fn direct_access_in_output_assignment_of_function() {
       store i8 %0, ptr %in, align [filtered]
       %out = alloca ptr, align [filtered]
       store ptr %1, ptr %out, align [filtered]
+      %2 = load ptr, ptr %out, align [filtered]
+      store i8 0, ptr %2, align [filtered]
       %deref = load ptr, ptr %out, align [filtered]
-      %2 = load i8, ptr %in, align [filtered]
-      %tmpVar = xor i8 %2, -1
+      %3 = load i8, ptr %in, align [filtered]
+      %tmpVar = xor i8 %3, -1
       store i8 %tmpVar, ptr %deref, align [filtered]
       ret void
     }

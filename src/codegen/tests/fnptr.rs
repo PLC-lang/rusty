@@ -300,6 +300,8 @@ fn function_pointer_method_with_all_variable_parameter_types() {
       %inout = alloca ptr, align [filtered]
       store ptr %3, ptr %inout, align [filtered]
       store i32 0, ptr %A.foo, align [filtered]
+      %4 = load ptr, ptr %out, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %4, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
       %A__foo_ret = load i32, ptr %A.foo, align [filtered]
       ret i32 %A__foo_ret
     }

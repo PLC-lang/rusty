@@ -13,6 +13,8 @@ entry:
   %v = alloca ptr, align [filtered]
   store ptr %0, ptr %v, align [filtered]
   store i32 0, ptr %bump, align [filtered]
+  %1 = load ptr, ptr %v, align [filtered]
+  store i8 0, ptr %1, align [filtered]
   store i32 1, ptr %bump, align [filtered]
   %deref = load ptr, ptr %v, align [filtered]
   store i8 2, ptr %deref, align [filtered]

@@ -414,6 +414,54 @@ fn program_empty_inout_assignment() {
 }
 
 #[test]
+fn program_empty_inout_assignment_takes_type_default() {
+    // GIVEN
+    let result = codegen(
+        "
+        TYPE Preset : DINT := 20; END_TYPE
+
+        PROGRAM prog
+        VAR_IN_OUT
+            inout1 : Preset;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM main
+            prog(inout1 := );
+        END_PROGRAM
+        ",
+    );
+    // THEN
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %prog = type { ptr }
+    %main = type {}
+
+    @prog_instance = global %prog zeroinitializer
+    @main_instance = global %main zeroinitializer
+
+    define void @prog(ptr %0) {
+    entry:
+      %inout1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @main(ptr %0) {
+    entry:
+      %1 = alloca i32, align [filtered]
+      store i32 20, ptr %1, align [filtered]
+      store ptr %1, ptr @prog_instance, align [filtered]
+      call void @prog(ptr @prog_instance)
+      ret void
+    }
+    "#);
+}
+
+#[test]
 fn program_missing_input_assignment() {
     // GIVEN
     let result = codegen(

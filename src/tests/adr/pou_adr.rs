@@ -422,6 +422,8 @@ fn function_get_a_method_with_by_ref_parameters() {
       store i16 1, ptr %v, align [filtered]
       store i16 2, ptr %vt, align [filtered]
       store i32 0, ptr %main_fun, align [filtered]
+      %3 = load ptr, ptr %o, align [filtered]
+      store i64 0, ptr %3, align [filtered]
       %main_fun_ret = load i32, ptr %main_fun, align [filtered]
       ret i32 %main_fun_ret
     }
@@ -462,6 +464,7 @@ fn calling_a_function() {
       %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       %load_x = load i16, ptr %x, align [filtered]
       %1 = alloca i64, align [filtered]
+      store i64 0, ptr %1, align [filtered]
       %call = call i32 @main_fun(i16 %load_x, ptr %z, ptr %1)
       ret void
     }
@@ -480,6 +483,8 @@ fn calling_a_function() {
       store i16 1, ptr %v, align [filtered]
       store i16 2, ptr %vt, align [filtered]
       store i32 0, ptr %main_fun, align [filtered]
+      %3 = load ptr, ptr %o, align [filtered]
+      store i64 0, ptr %3, align [filtered]
       %main_fun_ret = load i32, ptr %main_fun, align [filtered]
       ret i32 %main_fun_ret
     }

@@ -107,7 +107,7 @@ FUNCTION main
     // CHECK-NEXT: FbA::input, in_variable = main, clean
     reference.input('input, literal', localInputVariable);
 
-    // CHECK-NEXT: FbA::output, out = main, clean
+    // CHECK-NEXT: FbA::output, out =
     // CHECK-NEXT: FbA::output, dirty
     // CHECK-NEXT: main, clean
     reference.output(localOutputVariable);
@@ -125,7 +125,7 @@ FUNCTION main
 
     // CHECK-NEXT: FbA::in_out_and_inout, in_literal = in_out_and_inout, literal
     // CHECK-NEXT: FbA::in_out_and_inout, in_variable = main, clean
-    // CHECK-NEXT: FbA::in_out_and_inout, out = main, clean
+    // CHECK-NEXT: FbA::in_out_and_inout, out =
     // CHECK-NEXT: FbA::in_out_and_inout, inout = main, clean
     // CHECK-NEXT: out = FbA::in_out_and_inout, out dirty
     // CHECK-NEXT: inout = FbA::in_out_and_inout, inout dirty

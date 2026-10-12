@@ -7,11 +7,20 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
+%myStruct = type { i16 }
+
 define void @func(ptr %0, ptr %1) {
 entry:
   %func = alloca ptr, align [filtered]
   store ptr %0, ptr %func, align [filtered]
   %xxx = alloca ptr, align [filtered]
   store ptr %1, ptr %xxx, align [filtered]
+  %2 = load ptr, ptr %xxx, align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %2, i8 0, i64 ptrtoint (ptr getelementptr (%myStruct, ptr null, i32 1) to i64), i1 false)
   ret void
 }
+
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
