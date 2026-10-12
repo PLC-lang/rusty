@@ -502,6 +502,19 @@ This works with named arguments too:
 +consumer(in := __fatpointer_0);
 ```
 
+The parameter direction does not matter. A `VAR_OUTPUT`, `VAR_IN_OUT` or `REFERENCE TO` parameter is indexed as an auto-deref pointer to the interface; the lowerer looks through that pointer and wraps the concrete instance in the same way, so the callee receives the address of the temporary:
+
+```diff
+-consumer(out => instanceFbA, inout := instanceFbB);
++alloca __fatpointer_0: __FATPOINTER;
++__fatpointer_0.data := ADR(instanceFbA);
++__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
++alloca __fatpointer_1: __FATPOINTER;
++__fatpointer_1.data := ADR(instanceFbB);
++__fatpointer_1.table := ADR(__itable_IA_FbB_instance);
++consumer(out => __fatpointer_0, inout := __fatpointer_1);
+```
+
 Multiple interface arguments in a single call each get their own temporary; the counter is shared by the whole compilation and never reset:
 
 ```diff

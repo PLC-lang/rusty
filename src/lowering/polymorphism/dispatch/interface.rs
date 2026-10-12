@@ -130,7 +130,7 @@ use plc_source::source_location::SourceLocation;
 use crate::{
     index::Index,
     resolver::{AnnotationMap, AnnotationMapImpl},
-    typesystem::{DataType, VOID_INTERNAL_NAME},
+    typesystem::{DataType, DataTypeInformation, VOID_INTERNAL_NAME},
 };
 
 use super::validation;
@@ -392,7 +392,6 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             for arg in args.iter_mut() {
                 match &mut arg.stmt {
                     // Named argument (input, output, or in-out). Inspect and potentially replace the RHS.
-                    // TODO: Add tests for output (`out1 => x`) and in-out (`inout1 := x`) argument wrapping.
                     AstStatement::Assignment(Assignment { right, .. })
                     | AstStatement::OutputAssignment(Assignment { right, .. })
                     | AstStatement::RefAssignment(Assignment { right, .. }) => {
@@ -452,6 +451,15 @@ impl InterfaceDispatchLowerer<'_> {
     fn maybe_wrap_argument(&mut self, arg: &mut AstNode) {
         let actual_type = self.annotations.get_type_or_void(arg, self.index);
         let expected_type = self.annotations.get_hint_or_void(arg, self.index);
+
+        // VAR_OUTPUT, VAR_IN_OUT and REFERENCE TO parameters are indexed as auto-deref pointers to the
+        // interface, so look through the pointer to find the interface the callee expects.
+        let expected_type = match expected_type.get_type_information() {
+            DataTypeInformation::Pointer { auto_deref: Some(_), inner_type_name, .. } => {
+                self.index.get_effective_type_or_void_by_name(inner_type_name)
+            }
+            _ => expected_type,
+        };
 
         // Not an interface parameter, nothing to do.
         if !expected_type.is_interface() {
@@ -2554,6 +2562,107 @@ mod tests {
                 "__fatpointer_2.data := ADR(instance)",
                 "__fatpointer_2.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(in1 := __fatpointer_2, out1 => refOut, inout1 := refInout)",
+            ]
+            "#);
+        }
+
+        /// A concrete POU passed to a VAR_OUTPUT or VAR_IN_OUT interface parameter is wrapped in a
+        /// temporary fat pointer, exactly like a VAR_INPUT argument.
+        #[test]
+        fn concrete_pou_as_output_and_inout_argument() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_OUTPUT
+                        out1: IA;
+                    END_VAR
+
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instanceOut: FbA;
+                        instanceInout: FbA;
+                    END_VAR
+
+                    consumer(instanceOut, instanceInout);
+                    consumer(out1 => instanceOut, inout1 := instanceInout);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instanceOut)",
+                "FbA__ctor(instanceInout)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instanceOut)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "alloca __fatpointer_1: __FATPOINTER",
+                "__fatpointer_1.data := ADR(instanceInout)",
+                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_0, __fatpointer_1)",
+                "alloca __fatpointer_2: __FATPOINTER",
+                "__fatpointer_2.data := ADR(instanceOut)",
+                "__fatpointer_2.table := ADR(__itable_IA_FbA_instance)",
+                "alloca __fatpointer_3: __FATPOINTER",
+                "__fatpointer_3.data := ADR(instanceInout)",
+                "__fatpointer_3.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(out1 => __fatpointer_2, inout1 := __fatpointer_3)",
+            ]
+            "#);
+        }
+
+        /// A concrete POU passed to a `REFERENCE TO` interface parameter is wrapped in a temporary
+        /// fat pointer, which the callee then references.
+        #[test]
+        fn concrete_pou_as_reference_to_argument() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        in1: REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                        reference: IA;
+                    END_VAR
+
+                    consumer(instance);
+                    consumer(in1 := instance);
+                    consumer(reference);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_0)",
+                "alloca __fatpointer_1: __FATPOINTER",
+                "__fatpointer_1.data := ADR(instance)",
+                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(in1 := __fatpointer_1)",
+                "consumer(reference)",
             ]
             "#);
         }
