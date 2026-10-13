@@ -192,7 +192,7 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// `VAR_INPUT {ref}` or `REFERENCE TO` parameter. They outlive the calling function, so they are
     /// emitted as globals of the unit being lowered instead of statement-scoped allocations. Each is
     /// named after the implementation that binds it and numbered by `retained_counters`, so separately
-    /// compiled units never define the same symbol.
+    /// compiled units define the same symbol only if they define the same POU.
     globals: Vec<String>,
 
     /// Names of the retained fat pointers bound inside an implementation with external linkage. Codegen
@@ -203,8 +203,9 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// Whether the implementation being visited has external linkage.
     current_pou_external: bool,
 
-    /// Mangled name of the implementation being visited, e.g. `FbA__foo` for the method `FbA.foo`, with
-    /// the generic signature of a template appended, e.g. `bind__ANY_INT` for `bind<T: ANY_INT>`.
+    /// Identity of the implementation being visited in retained global names: its mangled name, e.g.
+    /// `FbA__foo` for the method `FbA.foo`, and the generic signature of a template, each prefixed with
+    /// its length so that no other POU name reads the same, e.g. `4bind_7ANY_INT` for `bind<T: ANY_INT>`.
     current_pou: String,
 
     /// Generic signatures of the templates in the unit being lowered, keyed by their name location,
@@ -306,11 +307,12 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             return;
         }
 
-        self.current_pou = implementation.name.replace('.', "__");
-        self.current_pou_external = implementation.linkage.is_external();
+        let name = implementation.name.replace('.', "__");
+        self.current_pou = format!("{}{name}", name.len());
         if let Some(signature) = self.generic_signatures.get(&implementation.name_location) {
-            self.current_pou = format!("{}__{signature}", self.current_pou);
+            self.current_pou = format!("{}_{}{signature}", self.current_pou, signature.len());
         }
+        self.current_pou_external = implementation.linkage.is_external();
         implementation.walk(self);
     }
 
@@ -593,13 +595,13 @@ impl<'a> InterfaceDispatchLowerer<'a> {
         // A function block or program VAR_OUTPUT is a plain member, but the call writes through it too.
         let by_ref = pointer || parameter.is_output();
 
-        // A stateful POU keeps a pointer-typed parameter between calls, so its fat pointer must outlive
-        // the calling function.
-        let retained = pointer
-            && parameter
-                .get_qualifier()
-                .and_then(|pou| self.index.find_pou(pou))
-                .is_some_and(|it| it.is_stateful());
+        // A stateful POU keeps a pointer-typed parameter between calls, and any POU may save a REFERENCE TO
+        // parameter with REF=, so such a fat pointer must outlive the calling function.
+        let stateful = parameter
+            .get_qualifier()
+            .and_then(|pou| self.index.find_pou(pou))
+            .is_some_and(|it| it.is_stateful());
+        let retained = pointer && (stateful || parameter_type.get_type_information().is_reference_to());
 
         self.wrap_argument(arg, actual_type, expected_type, by_ref.then(|| parameter.get_name()), retained);
     }
@@ -2842,8 +2844,9 @@ mod tests {
             "#);
         }
 
-        /// A concrete POU passed to a `REFERENCE TO` interface parameter is wrapped in a temporary
-        /// fat pointer, which the callee then references.
+        /// A concrete POU passed to a `REFERENCE TO` interface parameter is wrapped in a fat pointer,
+        /// which the callee then references. The callee may save that reference, so the fat pointer is
+        /// a global of the unit rather than a statement-scoped allocation.
         #[test]
         fn concrete_pou_as_reference_to_argument() {
             let source = r#"
@@ -2875,14 +2878,12 @@ mod tests {
             [
                 "// Statements in main",
                 "FbA__ctor(instance)",
-                "alloca __fatpointer_0: __FATPOINTER",
-                "__fatpointer_0.data := ADR(instance)",
-                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
-                "consumer(__fatpointer_0)",
-                "alloca __fatpointer_1: __FATPOINTER",
-                "__fatpointer_1.data := ADR(instance)",
-                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
-                "consumer(in1 := __fatpointer_1)",
+                "__fatpointer_4main_0.data := ADR(instance)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_4main_0)",
+                "__fatpointer_4main_1.data := ADR(instance)",
+                "__fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(in1 := __fatpointer_4main_1)",
                 "consumer(reference)",
             ]
             "#);
@@ -2986,10 +2987,10 @@ mod tests {
             "#);
         }
 
-        /// A stateful POU keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter between calls, so the fat
-        /// pointer wrapping a concrete instance becomes a global of the unit instead of a statement
-        /// scoped allocation named after the binding implementation. A function or method parameter
-        /// only lives during the call and keeps the allocation.
+        /// A stateful POU keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter between
+        /// calls, and any POU may save a `REFERENCE TO` parameter, so the fat pointer wrapping a concrete
+        /// instance becomes a global of the unit named after the binding implementation. A function or
+        /// method `VAR_IN_OUT` only lives during the call and keeps the statement-scoped allocation.
         #[test]
         fn retained_arguments_use_global_fat_pointers() {
             let source = r#"
@@ -3027,6 +3028,9 @@ mod tests {
                     VAR_INPUT
                         ref1: REFERENCE TO IA;
                     END_VAR
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
                 END_FUNCTION
 
                 FUNCTION main
@@ -3038,7 +3042,7 @@ mod tests {
                     fbConsumer(instance, instance, instance);
                     fbConsumer(ref1 := instance, in1 := instance, inout1 := instance);
                     progConsumer(instance);
-                    consumer(instance);
+                    consumer(instance, instance);
                     fbConsumer.bind(instance);
                 END_FUNCTION
             "#;
@@ -3048,31 +3052,32 @@ mod tests {
                 "// Statements in main",
                 "FbA__ctor(instance)",
                 "FbConsumer__ctor(fbConsumer)",
-                "__fatpointer_main_0.data := ADR(instance)",
-                "__fatpointer_main_0.table := ADR(__itable_IA_FbA_instance)",
-                "__fatpointer_main_1.data := ADR(instance)",
-                "__fatpointer_main_1.table := ADR(__itable_IA_FbA_instance)",
-                "__fatpointer_main_2.data := ADR(instance)",
-                "__fatpointer_main_2.table := ADR(__itable_IA_FbA_instance)",
-                "fbConsumer(__fatpointer_main_0, __fatpointer_main_1, __fatpointer_main_2)",
-                "__fatpointer_main_3.data := ADR(instance)",
-                "__fatpointer_main_3.table := ADR(__itable_IA_FbA_instance)",
-                "__fatpointer_main_4.data := ADR(instance)",
-                "__fatpointer_main_4.table := ADR(__itable_IA_FbA_instance)",
-                "__fatpointer_main_5.data := ADR(instance)",
-                "__fatpointer_main_5.table := ADR(__itable_IA_FbA_instance)",
-                "fbConsumer(ref1 := __fatpointer_main_3, in1 := __fatpointer_main_4, inout1 := __fatpointer_main_5)",
-                "__fatpointer_main_6.data := ADR(instance)",
-                "__fatpointer_main_6.table := ADR(__itable_IA_FbA_instance)",
-                "progConsumer(__fatpointer_main_6)",
+                "__fatpointer_4main_0.data := ADR(instance)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_1.data := ADR(instance)",
+                "__fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_2.data := ADR(instance)",
+                "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
+                "fbConsumer(__fatpointer_4main_0, __fatpointer_4main_1, __fatpointer_4main_2)",
+                "__fatpointer_4main_3.data := ADR(instance)",
+                "__fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_4.data := ADR(instance)",
+                "__fatpointer_4main_4.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_5.data := ADR(instance)",
+                "__fatpointer_4main_5.table := ADR(__itable_IA_FbA_instance)",
+                "fbConsumer(ref1 := __fatpointer_4main_3, in1 := __fatpointer_4main_4, inout1 := __fatpointer_4main_5)",
+                "__fatpointer_4main_6.data := ADR(instance)",
+                "__fatpointer_4main_6.table := ADR(__itable_IA_FbA_instance)",
+                "progConsumer(__fatpointer_4main_6)",
+                "__fatpointer_4main_7.data := ADR(instance)",
+                "__fatpointer_4main_7.table := ADR(__itable_IA_FbA_instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
-                "consumer(__fatpointer_0)",
-                "alloca __fatpointer_1: __FATPOINTER",
-                "__fatpointer_1.data := ADR(instance)",
-                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
-                "fbConsumer.bind(__fatpointer_1)",
+                "consumer(__fatpointer_4main_7, __fatpointer_0)",
+                "__fatpointer_4main_8.data := ADR(instance)",
+                "__fatpointer_4main_8.table := ADR(__itable_IA_FbA_instance)",
+                "fbConsumer.bind(__fatpointer_4main_8)",
             ]
             "#);
             insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
@@ -3080,13 +3085,15 @@ mod tests {
                 "__vtable_FbA_instance : __vtable_FbA",
                 "__vtable_FbConsumer_instance : __vtable_FbConsumer",
                 "__itable_IA_FbA_instance : __itable_IA",
-                "__fatpointer_main_0 : __FATPOINTER",
-                "__fatpointer_main_1 : __FATPOINTER",
-                "__fatpointer_main_2 : __FATPOINTER",
-                "__fatpointer_main_3 : __FATPOINTER",
-                "__fatpointer_main_4 : __FATPOINTER",
-                "__fatpointer_main_5 : __FATPOINTER",
-                "__fatpointer_main_6 : __FATPOINTER",
+                "__fatpointer_4main_0 : __FATPOINTER",
+                "__fatpointer_4main_1 : __FATPOINTER",
+                "__fatpointer_4main_2 : __FATPOINTER",
+                "__fatpointer_4main_3 : __FATPOINTER",
+                "__fatpointer_4main_4 : __FATPOINTER",
+                "__fatpointer_4main_5 : __FATPOINTER",
+                "__fatpointer_4main_6 : __FATPOINTER",
+                "__fatpointer_4main_7 : __FATPOINTER",
+                "__fatpointer_4main_8 : __FATPOINTER",
             ]
             "#);
         }
@@ -3139,8 +3146,8 @@ mod tests {
                 "__vtable_FbA_instance : __vtable_FbA",
                 "__vtable_FbConsumer_instance : __vtable_FbConsumer",
                 "__itable_IA_FbA_instance : __itable_IA",
-                "__fatpointer_bind__ANY_INT_0 : __FATPOINTER",
-                "__fatpointer_bind__ANY_REAL_0 : __FATPOINTER",
+                "__fatpointer_4bind_7ANY_INT_0 : __FATPOINTER",
+                "__fatpointer_4bind_8ANY_REAL_0 : __FATPOINTER",
             ]
             "#);
         }
@@ -3189,8 +3196,8 @@ mod tests {
                 "__vtable_FbA_instance : __vtable_FbA {external}",
                 "__vtable_FbConsumer_instance : __vtable_FbConsumer {external}",
                 "__itable_IA_FbA_instance : __itable_IA {external}",
-                "__fatpointer_bind_0 : __FATPOINTER",
-                "__fatpointer_bindExt_0 : __FATPOINTER {external}",
+                "__fatpointer_4bind_0 : __FATPOINTER",
+                "__fatpointer_7bindExt_0 : __FATPOINTER {external}",
             ]
             "#);
         }

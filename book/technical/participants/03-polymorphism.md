@@ -517,21 +517,21 @@ The lowerer binds each argument to its callee parameter first: a named argument 
 
 The temporary is where the callee's writes end up, through the address for a pointer-backed parameter and through the post-call copy for a stateful POU's `VAR_OUTPUT`, and nothing copies it back: a concrete instance cannot hold a fat pointer. A callee that assigns its `VAR_OUTPUT` or rebinds its `VAR_IN_OUT` therefore writes into the temporary, and the caller never sees that value. An interface variable passed to such a parameter is not wrapped at all; it must have the exact parameter interface, see Validation.
 
-A function block, program or class keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter between calls, so a statement-scoped temporary would leave the instance pointing into a stack frame that is gone once the calling function returns. For such a parameter the lowerer emits the fat pointer as a global of the unit instead, one per call site, and the preamble fills that global. The global is named after the implementation that binds it, with the `.` of a method name replaced by `__` and the natures of a template's generics appended, such as `bind__ANY_INT`, and numbered per such name. The names of two objects compiled separately are therefore distinct whenever the binding POUs are distinct symbols, which linking the objects requires anyway, also for templates that only differ in their generics. In an included unit the block is declared external, because the object compiled from that unit defines it; the same holds for a binding inside an implementation declared `{external}`, whose body codegen omits:
+A function block or program keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter between calls, and any POU may save a `REFERENCE TO` parameter with `REF=`, so a statement-scoped temporary would leave such a binding pointing into a stack frame that is gone once the calling function returns. For such a parameter the lowerer emits the fat pointer as a global of the unit instead, one per call site, and the preamble fills that global. The global is named after the implementation that binds it, with the `.` of a method name replaced by `__`, the natures of a template's generics appended, and each part prefixed with its length so that no other POU name reads the same, such as `4bind` or `4bind_7ANY_INT`, and numbered per such name. The names of two objects compiled separately are therefore distinct whenever the binding POUs are distinct symbols, which linking the objects requires anyway, also for templates that only differ in their generics. In an included unit the block is declared external, because the object compiled from that unit defines it; the same holds for a binding inside an implementation declared `{external}`, whose body codegen omits:
 
 ```diff
  FUNCTION bind
 -    globalConsumer(globalInstance);
 +    // in VAR_GLOBAL of the unit:
-+    __fatpointer_bind_0 : __FATPOINTER;
++    __fatpointer_4bind_0 : __FATPOINTER;
 +    // at the call site:
-+    __fatpointer_bind_0.data := ADR(globalInstance);
-+    __fatpointer_bind_0.table := ADR(__itable_IA_FbA_instance);
-+    globalConsumer(__fatpointer_bind_0);
++    __fatpointer_4bind_0.data := ADR(globalInstance);
++    __fatpointer_4bind_0.table := ADR(__itable_IA_FbA_instance);
++    globalConsumer(__fatpointer_4bind_0);
  END_FUNCTION
 ```
 
-Every instance bound at the same call site shares that global, so a loop that binds several instances through one call leaves all of them referring to the instance bound last.
+Every instance bound at the same call site shares that global, so a loop that binds several instances through one call leaves all of them referring to the instance bound last, and a recursive activation that binds a different instance at the same site rebinds the outer activation's parameter as well. A function or method `VAR_IN_OUT` or `VAR_INPUT {ref}` keeps the statement-scoped temporary.
 
 Multiple interface arguments in a single call each get their own temporary; the counter is shared by the whole compilation and never reset:
 
