@@ -119,7 +119,7 @@ use plc_ast::{
     ast::{
         resolve_argument_slots, steal_expression_list, Allocation, Assignment, AstFactory, AstNode,
         AstStatement, CallStatement, CompilationUnit, DataType as AstDataType, DataTypeDeclaration,
-        LinkageType, UserTypeDeclaration, Variable,
+        LinkageType, UserTypeDeclaration, Variable, VariableBlock,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -187,6 +187,11 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// ```
     replacement: Option<Vec<AstNode>>,
 
+    /// Names of the fat pointers a stateful POU keeps between calls through a `VAR_IN_OUT` or
+    /// `REFERENCE TO` parameter. They outlive the calling function, so they are emitted as globals
+    /// of the unit being lowered instead of statement-scoped allocations.
+    globals: Vec<String>,
+
     /// Monotonic counter for generating unique fat-pointer temporary names
     /// (`__fatpointer_0`, `__fatpointer_1`, ...). Never reset; each call-argument wrap site
     /// gets a distinct alloca across the entire compilation unit.
@@ -204,6 +209,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             diagnostics: Vec::new(),
             preamble: Vec::new(),
             replacement: None,
+            globals: Vec::new(),
             fp_counter: 0,
         }
     }
@@ -213,6 +219,13 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     pub fn lower(&mut self, units: &mut [CompilationUnit]) -> Vec<Diagnostic> {
         for unit in units.iter_mut() {
             self.visit_compilation_unit(unit);
+
+            if !self.globals.is_empty() {
+                let location = SourceLocation::internal_in_unit(unit.file.get_name());
+                let variables =
+                    self.globals.drain(..).map(|name| helper::create_global(&name, &location)).collect();
+                unit.global_vars.push(VariableBlock::global().with_variables(variables));
+            }
         }
 
         // If any interface-typed variable was encountered, inject the __FATPOINTER struct
@@ -449,7 +462,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     /// Resolves the callee parameter each argument binds to. A named argument carries its declaring
     /// POU and position in its argument annotation. A positional argument carries the callee instead,
     /// so it is bound by slot over the callee's parameters, inherited ones included, as the validator
-    /// does; a function pointer call passes the instance as a first argument that binds to nothing.
+    /// does, and a surplus positional argument binds to the variadic parameter. A function pointer
+    /// call passes the instance as a first argument that binds to nothing.
     fn bind_arguments_to_parameters(
         &self,
         operator: &AstNode,
@@ -476,7 +490,10 @@ impl<'a> InterfaceDispatchLowerer<'a> {
                 {
                     index.find_parameter(pou, *position as u32)
                 }
-                _ => slot.and_then(|slot| parameters.get(slot)).copied(),
+                _ => slot
+                    .and_then(|slot| parameters.get(slot))
+                    .copied()
+                    .or_else(|| callee.and_then(|pou| index.get_variadic_member(pou))),
             };
             bindings.push(parameter);
         }
@@ -508,6 +525,14 @@ impl<'a> InterfaceDispatchLowerer<'a> {
 
         // A function block or program VAR_OUTPUT is a plain member, but the call writes through it too.
         let by_ref = pointer || parameter.is_output();
+
+        // A stateful POU keeps a pointer-typed parameter between calls, so its fat pointer must outlive
+        // the calling function.
+        let retained = pointer
+            && parameter
+                .get_qualifier()
+                .and_then(|pou| self.index.find_pou(pou))
+                .is_some_and(|it| it.is_stateful());
 
         // Not an interface parameter, nothing to do.
         if !expected_type.is_interface() {
@@ -574,8 +599,11 @@ impl<'a> InterfaceDispatchLowerer<'a> {
 
         // Build the reference node that will replace the original argument.
         let fp_ref = helper::create_identifier_ref(&mut self.ids, &fp_name);
-        let alloca = helper::create_alloca(&mut self.ids, &fp_name);
-        self.preamble.push(alloca);
+        if retained {
+            self.globals.push(fp_name.clone());
+        } else {
+            self.preamble.push(helper::create_alloca(&mut self.ids, &fp_name));
+        }
 
         if actual_type.is_interface() {
             // Upcast: actual is a different (child) interface, copy .data and read __upcast_* for .table.
@@ -861,6 +889,21 @@ mod helper {
         }
     }
 
+    /// Creates a global `__FATPOINTER` variable with the given name, for a fat pointer that a stateful
+    /// POU keeps between calls. `location` places it in the unit that defines it.
+    pub fn create_global(name: &str, location: &SourceLocation) -> Variable {
+        Variable {
+            name: name.to_string(),
+            data_type_declaration: DataTypeDeclaration::Reference {
+                referenced_type: FATPOINTER_TYPE_NAME.to_string(),
+                location: location.clone(),
+            },
+            initializer: None,
+            address: None,
+            location: location.clone(),
+        }
+    }
+
     /// Creates a simple identifier reference node (e.g. `__fatpointer_0`).
     pub fn create_identifier_ref(ids: &mut IdProvider, name: &str) -> AstNode {
         AstFactory::create_member_reference(
@@ -952,6 +995,23 @@ mod tests {
         }
 
         result
+    }
+
+    fn lower_and_serialize_globals(source: impl Into<SourceCode>) -> Vec<String> {
+        let (_, project) = parse_and_annotate("unit-test", vec![source.into()]).unwrap();
+        let unit = project.units[0].get_unit();
+
+        unit.global_vars
+            .iter()
+            .flat_map(|block| &block.variables)
+            .map(|variable| {
+                format!(
+                    "{} : {}",
+                    variable.name,
+                    variable.data_type_declaration.get_name().unwrap_or_default()
+                )
+            })
+            .collect()
     }
 
     mod fatpointer {
@@ -2765,6 +2825,137 @@ mod tests {
                 "// Statements in main",
                 "consumer(reference, reference)",
                 "consumer(in1 := reference, inout1 := reference)",
+            ]
+            "#);
+        }
+
+        /// Surplus positional arguments bind to a sized variadic interface parameter: a concrete POU
+        /// is wrapped and a child interface is upcast, exactly like for a fixed parameter.
+        #[test]
+        fn variadic_interface_arguments() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        first: IA;
+                        rest: {sized} IA...;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                        refIA: IA;
+                        refIB: IB;
+                    END_VAR
+
+                    consumer(refIA, instance, refIB, refIA);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "alloca __fatpointer_1: __FATPOINTER",
+                "__fatpointer_1.data := refIB.data",
+                "__fatpointer_1.table := __itable_IB#(refIB.table^).__upcast_IA",
+                "consumer(refIA, __fatpointer_0, __fatpointer_1, refIA)",
+            ]
+            "#);
+        }
+
+        /// A stateful POU keeps a `VAR_IN_OUT` or `REFERENCE TO` parameter between calls, so the fat
+        /// pointer wrapping a concrete instance becomes a global of the unit instead of a statement
+        /// scoped allocation. A function parameter only lives during the call and keeps the allocation.
+        #[test]
+        fn retained_arguments_use_global_fat_pointers() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbConsumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                    END_VAR
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                PROGRAM progConsumer
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_PROGRAM
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                        fbConsumer: FbConsumer;
+                    END_VAR
+
+                    fbConsumer(instance, instance);
+                    fbConsumer(ref1 := instance, inout1 := instance);
+                    progConsumer(instance);
+                    consumer(instance);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "FbConsumer__ctor(fbConsumer)",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_1.data := ADR(instance)",
+                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
+                "fbConsumer(__fatpointer_0, __fatpointer_1)",
+                "__fatpointer_2.data := ADR(instance)",
+                "__fatpointer_2.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_3.data := ADR(instance)",
+                "__fatpointer_3.table := ADR(__itable_IA_FbA_instance)",
+                "fbConsumer(ref1 := __fatpointer_2, inout1 := __fatpointer_3)",
+                "__fatpointer_4.data := ADR(instance)",
+                "__fatpointer_4.table := ADR(__itable_IA_FbA_instance)",
+                "progConsumer(__fatpointer_4)",
+                "alloca __fatpointer_5: __FATPOINTER",
+                "__fatpointer_5.data := ADR(instance)",
+                "__fatpointer_5.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_5)",
+            ]
+            "#);
+            insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
+            [
+                "__vtable_FbA_instance : __vtable_FbA",
+                "__vtable_FbConsumer_instance : __vtable_FbConsumer",
+                "__itable_IA_FbA_instance : __itable_IA",
+                "__fatpointer_0 : __FATPOINTER",
+                "__fatpointer_1 : __FATPOINTER",
+                "__fatpointer_2 : __FATPOINTER",
+                "__fatpointer_3 : __FATPOINTER",
+                "__fatpointer_4 : __FATPOINTER",
             ]
             "#);
         }
