@@ -118,9 +118,12 @@
 use plc_ast::{
     ast::{
         resolve_argument_slots, steal_expression_list, Allocation, Assignment, AstFactory, AstNode,
-        AstStatement, CallStatement, CompilationUnit, DataType as AstDataType, DataTypeDeclaration,
-        GenericBinding, LinkageType, UserTypeDeclaration, Variable, VariableBlock,
+        AstStatement, BinaryExpression, CallStatement, CompilationUnit, DataType as AstDataType,
+        DataTypeDeclaration, EmptyStatement, GenericBinding, LinkageType, Operator, UserTypeDeclaration,
+        Variable, VariableBlock, VariableBlockType,
     },
+    control_statements::{ConditionalBlock, IfStatement},
+    literals::AstLiteral,
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
@@ -222,6 +225,18 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// (`__fatpointer_0`, `__fatpointer_1`, ...). Never reset; each call-argument wrap site
     /// gets a distinct alloca across the entire compilation unit.
     fp_counter: usize,
+
+    /// Counter for the BOOL temporaries that carry the value of a short-circuit operand whose call
+    /// arguments need a preamble, see [`AstVisitorMut::visit_binary_expression`].
+    sc_counter: usize,
+
+    /// Names of those BOOL temporaries per POU name. They are referenced inside the branches of the
+    /// generated IF, which an allocation statement cannot serve, so they become `VAR_TEMP` variables
+    /// of the POU once the unit is lowered.
+    temps: FxHashMap<String, Vec<String>>,
+
+    /// Name of the POU that owns the implementation being visited; an action names its parent.
+    current_pou_type: String,
 }
 
 impl<'a> InterfaceDispatchLowerer<'a> {
@@ -242,6 +257,9 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             generic_signatures: FxHashMap::default(),
             retained_counters: FxHashMap::default(),
             fp_counter: 0,
+            sc_counter: 0,
+            temps: FxHashMap::default(),
+            current_pou_type: String::new(),
         }
     }
 
@@ -259,6 +277,19 @@ impl<'a> InterfaceDispatchLowerer<'a> {
 
             // An included unit is compiled to its own object elsewhere, which defines the globals.
             let location = SourceLocation::internal_in_unit(unit.file.get_name());
+            for pou in unit.pous.iter_mut() {
+                let Some(names) = self.temps.remove(&pou.name.to_lowercase()) else {
+                    continue;
+                };
+                let variables =
+                    names.iter().map(|name| helper::create_variable(name, "BOOL", &location)).collect();
+                pou.variable_blocks.push(
+                    VariableBlock::default()
+                        .with_block_type(VariableBlockType::Temp)
+                        .with_variables(variables),
+                );
+            }
+            self.temps.clear();
             if !self.globals.is_empty() {
                 let variables =
                     self.globals.drain(..).map(|name| helper::create_global(&name, &location)).collect();
@@ -308,6 +339,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             return;
         }
 
+        self.current_pou_type = implementation.type_name.to_lowercase();
         let name = implementation.name.replace('.', "__");
         self.current_pou = format!("{}{name}", name.len());
         if let Some(signature) = self.generic_signatures.get(&implementation.name_location) {
@@ -434,6 +466,82 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         let data_assign = helper::create_data_assignment(&mut self.ids, left, right);
         let table_assign = helper::create_table_assignment(&mut self.ids, left, interface_name, pou_name);
         self.replacement = Some(vec![data_assign, table_assign]);
+    }
+
+    /// A preamble is hoisted before the enclosing statement, which would run it even when AND_THEN or
+    /// OR_ELSE skips the operand that needs it, and so rebind a retained fat pointer for a call that
+    /// never happens. Such an operand is lowered into an IF that carries its preamble in the branch
+    /// that evaluates it and leaves its value in a BOOL `VAR_TEMP` of the POU:
+    ///
+    /// ```text
+    /// // Before:
+    /// enabled AND_THEN holder.bind(instance)
+    ///
+    /// // After:
+    /// IF enabled THEN
+    ///     __fatpointer_4main_0.data := ADR(instance);
+    ///     __fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance);
+    ///     __shortcircuit_0 := holder.bind(__fatpointer_4main_0);
+    /// ELSE
+    ///     __shortcircuit_0 := FALSE;
+    /// END_IF
+    /// __shortcircuit_0
+    /// ```
+    fn visit_binary_expression(&mut self, node: &mut AstNode) {
+        let AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) = &mut node.stmt
+        else {
+            unreachable!();
+        };
+
+        if !matches!(operator, Operator::AndThen | Operator::OrElse) {
+            self.visit(left);
+            self.visit(right);
+            return;
+        }
+
+        // The left operand always runs, so its preamble stays with the enclosing statement.
+        self.visit(left);
+
+        // Collect the preamble the right operand needs on its own.
+        let outer_preamble = std::mem::take(&mut self.preamble);
+        self.visit(right);
+        let right_preamble = std::mem::replace(&mut self.preamble, outer_preamble);
+        if right_preamble.is_empty() {
+            return;
+        }
+
+        let operator = *operator;
+        let location = node.location.clone();
+        let AstStatement::BinaryExpression(BinaryExpression { left, right, .. }) =
+            std::mem::replace(&mut node.stmt, AstStatement::EmptyStatement(EmptyStatement {}))
+        else {
+            unreachable!();
+        };
+
+        let name = format!("__shortcircuit_{}", self.sc_counter);
+        self.sc_counter += 1;
+        self.temps.entry(self.current_pou_type.clone()).or_default().push(name.clone());
+
+        // Only the branch that evaluates the right operand runs its preamble.
+        let mut evaluate = right_preamble;
+        evaluate.push(helper::create_assignment_to(&mut self.ids, &name, *right));
+        let skipped_value = helper::create_bool_literal(&mut self.ids, operator == Operator::OrElse);
+        let skip = vec![helper::create_assignment_to(&mut self.ids, &name, skipped_value)];
+        let (body, else_block) = match operator {
+            Operator::AndThen => (evaluate, skip),
+            _ => (skip, evaluate),
+        };
+
+        self.preamble.push(AstFactory::create_if_statement(
+            IfStatement {
+                blocks: vec![ConditionalBlock { condition: left, body }],
+                else_block,
+                end_location: SourceLocation::internal(),
+            },
+            location,
+            self.ids.next_id(),
+        ));
+        *node = helper::create_identifier_ref(&mut self.ids, &name);
     }
 
     fn visit_call_statement(&mut self, node: &mut AstNode) {
@@ -988,6 +1096,17 @@ mod helper {
         }
     }
 
+    /// Creates `name := value`.
+    pub fn create_assignment_to(ids: &mut IdProvider, name: &str, value: AstNode) -> AstNode {
+        let target = create_identifier_ref(ids, name);
+        AstFactory::create_assignment(target, value, ids.next_id())
+    }
+
+    /// Creates a `TRUE` or `FALSE` literal.
+    pub fn create_bool_literal(ids: &mut IdProvider, value: bool) -> AstNode {
+        AstFactory::create_literal(AstLiteral::Bool(value), SourceLocation::internal(), ids.next_id())
+    }
+
     /// Mangles the natures of a template's generics into an identifier, e.g. `ANY_INT_ANY_REAL` for
     /// `<T: ANY_INT, U: ANY_REAL>`. The names of the generics do not tell templates apart: templates
     /// that differ only in them produce the same monomorphs. Every nature starts with `ANY`, so the
@@ -996,13 +1115,18 @@ mod helper {
         generics.iter().map(|binding| binding.nature.to_string()).collect::<Vec<_>>().join("_")
     }
 
-    /// Creates a global `__FATPOINTER` variable with the given name, for a fat pointer that a stateful
-    /// POU keeps between calls. `location` places it in the unit that defines it.
+    /// Creates a global `__FATPOINTER` variable with the given name, for a fat pointer that a POU may
+    /// keep beyond the call. `location` places it in the unit that defines it.
     pub fn create_global(name: &str, location: &SourceLocation) -> Variable {
+        create_variable(name, FATPOINTER_TYPE_NAME, location)
+    }
+
+    /// Creates a variable declaration of the given type.
+    pub fn create_variable(name: &str, type_name: &str, location: &SourceLocation) -> Variable {
         Variable {
             name: name.to_string(),
             data_type_declaration: DataTypeDeclaration::Reference {
-                referenced_type: FATPOINTER_TYPE_NAME.to_string(),
+                referenced_type: type_name.to_string(),
                 location: location.clone(),
             },
             initializer: None,
@@ -3326,6 +3450,66 @@ mod tests {
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
                 "alloca __fatpointer_2: __FATPOINTER",
                 "consumer(__fatpointer_1, __fatpointer_2)",
+            ]
+            "#);
+        }
+
+        /// A short-circuit operand whose call needs a preamble is lowered into an IF, so a skipped call
+        /// does not rebind the retained fat pointer of its site.
+        #[test]
+        fn short_circuit_operand_runs_preamble_only_when_evaluated() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK Holder
+                    METHOD bind : BOOL
+                        VAR_INPUT
+                            refIn : REFERENCE TO IA;
+                        END_VAR
+                    END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION main : BOOL
+                    VAR
+                        enabled : BOOL;
+                        holder : Holder;
+                        instance : FbA;
+                    END_VAR
+
+                    main := enabled AND_THEN holder.bind(instance);
+                    main := enabled OR_ELSE holder.bind(instance);
+                    main := holder.bind(instance) AND_THEN enabled;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "Holder__ctor(holder)",
+                "FbA__ctor(instance)",
+                "IF enabled THEN",
+                "    __fatpointer_4main_0.data := ADR(instance)",
+                "    __fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "    __shortcircuit_0 := holder.bind(__fatpointer_4main_0)",
+                "ELSE",
+                "    __shortcircuit_0 := FALSE",
+                "END_IF",
+                "main := __shortcircuit_0",
+                "IF enabled THEN",
+                "    __shortcircuit_1 := TRUE",
+                "ELSE",
+                "    __fatpointer_4main_1.data := ADR(instance)",
+                "    __fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "    __shortcircuit_1 := holder.bind(__fatpointer_4main_1)",
+                "END_IF",
+                "main := __shortcircuit_1",
+                "__fatpointer_4main_2.data := ADR(instance)",
+                "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
+                "main := holder.bind(__fatpointer_4main_2) AND_THEN enabled",
             ]
             "#);
         }

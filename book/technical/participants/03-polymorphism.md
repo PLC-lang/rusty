@@ -533,7 +533,7 @@ A function block or program keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENC
 
 Every instance bound at the same call site shares that global, so a loop that binds several instances through one call leaves all of them referring to the instance bound last, and a recursive activation that binds a different instance at the same site rebinds the outer activation's parameter as well.
 
-A by-reference parameter needs a variable. A call result or literal is left unwrapped, so the validator rejects it with E031 as for any other by-reference parameter, instead of a generated fat pointer pointing at the result's temporary.
+A by-reference parameter needs a variable. A call result or literal is not wrapped with its address; the lowerer reports E031 for it, as the validator does for any other by-reference parameter, and substitutes an unfilled dummy fat pointer so that the call stays structurally valid.
 
 Multiple interface arguments in a single call each get their own temporary; the counter is shared by the whole compilation and never reset:
 
@@ -552,6 +552,22 @@ Multiple interface arguments in a single call each get their own temporary; the 
 ```
 
 The preamble (allocations and assignments) is hoisted before the call. When the call is nested inside another statement, for example `result := consumer(instance)` or the condition of an `IF`, the preamble is hoisted above that whole statement, so that the fat pointer is fully constructed before the call executes.
+
+Hoisting would run the preamble even when `AND_THEN` or `OR_ELSE` skips the operand that needs it, and so rebind a retained fat pointer for a call that never happens. Such an operand is lowered into an `IF` that carries its preamble in the branch that evaluates it and leaves its value in a BOOL `VAR_TEMP` added to the POU; the operand is replaced by that temporary. A statement-scoped allocation cannot serve here, because codegen does not see it inside the branches:
+
+```diff
+-result := enabled AND_THEN holder.bind(instance);
++// in VAR_TEMP of the POU:
++__shortcircuit_0 : BOOL;
++IF enabled THEN
++    __fatpointer_4main_0.data := ADR(instance);
++    __fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance);
++    __shortcircuit_0 := holder.bind(__fatpointer_4main_0);
++ELSE
++    __shortcircuit_0 := FALSE;
++END_IF
++result := __shortcircuit_0;
+```
 
 **Interface upcasting**: When a child interface variable is assigned to a parent interface variable (for example `refIA := refIB` where `IB EXTENDS IA`), both sides are already fat pointers. The `.data` field can be copied directly; it still points to the same concrete POU instance. However, the `.table` field points to an `__itable_IB_*` instance but must point to the corresponding `__itable_IA_*` instance for the same POU. Since the concrete POU is only known at run time, the correct itable instance cannot be determined statically.
 
