@@ -29,7 +29,7 @@
 //! - **External** types are defined in the same project but written in a different language (e.g. C).
 //!   By default they get `Body::External` (declared). With `--generate-external-constructors`,
 //!   the compiler generates constructor definitions for them as well.
-//! - **Built-in** types get `Body::None` (no constructor generated).
+//! - **Built-in** types have no constructor: none is generated and none is called.
 //! - External variables are not re-initialized; they are assumed to be initialized externally.
 //!
 //! ## User-defined constructors
@@ -341,8 +341,9 @@ impl AstVisitor for Initializer {
     fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
         let name = user_type.data_type.get_name().expect("name is set at this stage");
         self.context.enter_datatype(name);
-        // Generic, VLA, and built-in types don't need constructors. We register Body::None
-        // so that apply_initialization skips POU generation for them (see Body::None => {}).
+        // Generic and VLA types don't need constructors. We register Body::None so that
+        // apply_initialization skips POU generation for them (see Body::None => {}).
+        // Built-in types are not registered at all, so no constructor calls are created for them.
         if user_type.data_type.is_generic() {
             self.constructors.insert(name.to_string(), Body::None);
             self.context.exit_datatype();
@@ -355,7 +356,6 @@ impl AstVisitor for Initializer {
             return;
         }
         if user_type.linkage == plc_ast::ast::LinkageType::BuiltIn {
-            self.constructors.insert(name.to_string(), Body::None);
             self.context.exit_datatype();
             return;
         }
@@ -719,8 +719,8 @@ impl Initializer {
         for pou in &unit.pous {
             self.pre_register_pou_constructor(pou);
         }
-        // Register all user-defined types (structs)
-        for user_type in &unit.user_types {
+        // Register all user-defined types (structs), except built-in types without constructors
+        for user_type in unit.user_types.iter().filter(|it| !it.linkage.is_built_in()) {
             if let Some(name) = user_type.data_type.get_name() {
                 self.constructors.entry(name.to_string()).or_insert(Body::None);
             }

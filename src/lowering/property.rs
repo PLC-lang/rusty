@@ -106,7 +106,7 @@ impl PropertyLowerer {
         // Lower properties defined in a POU (e.g. a FUNCTION_BLOCK).
         for pou in &mut unit.pous {
             for property in &mut pou.properties {
-                let (pous, impls) = lower_to_pou(self.id_provider.clone(), &pou.name, property);
+                let (pous, impls) = lower_to_pou(self.id_provider.clone(), &pou.name, pou.linkage, property);
 
                 local_pous.extend(pous);
                 local_impls.extend(impls);
@@ -116,7 +116,12 @@ impl PropertyLowerer {
         // Lower properties defined in an interface.
         for interface in &mut unit.interfaces {
             for property in &mut interface.properties {
-                let (pous, _) = lower_to_pou(self.id_provider.clone(), &interface.ident.name, property);
+                let (pous, _) = lower_to_pou(
+                    self.id_provider.clone(),
+                    &interface.ident.name,
+                    LinkageType::Internal,
+                    property,
+                );
 
                 interface.methods.extend(pous);
             }
@@ -240,6 +245,7 @@ impl AstVisitorMut for PropertyLowerer {
 pub fn lower_to_pou(
     mut provider: IdProvider,
     parent: &str,
+    linkage: LinkageType,
     property: &mut PropertyBlock,
 ) -> (Vec<Pou>, Vec<Implementation>) {
     let mut pous = Vec::new();
@@ -266,7 +272,7 @@ pub fn lower_to_pou(
             name_location: location.clone(),
             poly_mode: None,
             generics: Vec::new(),
-            linkage: LinkageType::Internal,
+            linkage,
             super_class: None,
             interfaces: Vec::new(),
             is_const: false,
@@ -511,7 +517,17 @@ mod tests {
     }
 
     mod ast {
-        use crate::lowering::property::tests::{lower, lower_properties_to_pous};
+        use plc_ast::{ast::LinkageType, provider::IdProvider};
+        use plc_source::source_location::SourceLocationFactory;
+
+        use crate::{
+            lexer::lex_with_ids,
+            lowering::property::{
+                tests::{lower, lower_properties_to_pous},
+                PropertyLowerer,
+            },
+            parser::parse,
+        };
 
         #[test]
         fn get_is_lowered_to_method_with_local_variable_and_tail_return_statement() {
@@ -793,6 +809,44 @@ mod tests {
             assert_eq!(unit.pous[6].name, "fb.__set_baz");
             assert_eq!(unit.pous[7].name, "fb.__get_qux");
             assert_eq!(unit.pous[8].name, "fb.__set_qux");
+        }
+
+        #[test]
+        fn properties_take_the_linkage_of_their_parent_pou() {
+            let source = r"
+            FUNCTION_BLOCK fb
+                PROPERTY_GET foo: DINT END_PROPERTY
+                PROPERTY_SET foo: DINT END_PROPERTY
+            END_FUNCTION_BLOCK
+            ";
+
+            let id_provider = IdProvider::default();
+            let (mut unit, _) = parse(
+                lex_with_ids(source, id_provider.clone(), SourceLocationFactory::internal(source)),
+                LinkageType::Include,
+                "test.st",
+            );
+            PropertyLowerer::new(id_provider).properties_to_pous(&mut unit);
+
+            let pous = unit.pous.iter().map(|it| (it.name.as_str(), it.linkage)).collect::<Vec<_>>();
+            let impls =
+                unit.implementations.iter().map(|it| (it.name.as_str(), it.linkage)).collect::<Vec<_>>();
+            assert_eq!(
+                pous,
+                vec![
+                    ("fb", LinkageType::Include),
+                    ("fb.__get_foo", LinkageType::Include),
+                    ("fb.__set_foo", LinkageType::Include)
+                ]
+            );
+            assert_eq!(
+                impls,
+                vec![
+                    ("fb", LinkageType::Include),
+                    ("fb.__get_foo", LinkageType::Include),
+                    ("fb.__set_foo", LinkageType::Include)
+                ]
+            );
         }
 
         #[test]

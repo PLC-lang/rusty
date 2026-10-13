@@ -74,7 +74,7 @@ struct Context {
     container_name: Option<String>,
     container_linkage: Option<LinkageType>,
     in_program: bool,
-    retain_variables: Vec<Variable>,
+    retain_variables: Vec<(LinkageType, Variable)>,
     pointer_types: Vec<UserTypeDeclaration>,
 }
 
@@ -85,27 +85,21 @@ impl AstVisitorMut for RetainLowerer {
         // Register the pointer types synthesized for extracted program retain variables.
         unit.user_types.append(&mut self.context.pointer_types);
 
-        // After visiting the compilation unit, add all retain variables to the global vars
-        if !self.context.retain_variables.is_empty() {
-            // Find an existing retain global variable block or create a new one if it doesn't exist
-            unit.global_vars
-                .iter_mut()
-                .find(|block| block.retain)
-                .map(|block| {
-                    block.variables.append(&mut self.context.retain_variables);
-                })
-                .unwrap_or_else(|| {
-                    let retain_block = plc_ast::ast::VariableBlock {
-                        variables: self.context.retain_variables.drain(..).collect(),
-                        kind: plc_ast::ast::VariableBlockType::Global,
-                        constant: false,
-                        retain: true,
-                        linkage: plc_ast::ast::LinkageType::Internal,
-                        location: SourceLocation::internal(),
-                        access: AccessModifier::Public,
-                    };
-                    unit.global_vars.push(retain_block);
-                });
+        // After visiting the compilation unit, add each retain variable to a global retain block with
+        // the linkage of the variable's origin, so that only the owning unit defines it
+        for (linkage, variable) in self.context.retain_variables.drain(..) {
+            match unit.global_vars.iter_mut().find(|block| block.retain && block.linkage == linkage) {
+                Some(block) => block.variables.push(variable),
+                None => unit.global_vars.push(plc_ast::ast::VariableBlock {
+                    variables: vec![variable],
+                    kind: plc_ast::ast::VariableBlockType::Global,
+                    constant: false,
+                    retain: true,
+                    linkage,
+                    location: SourceLocation::internal(),
+                    access: AccessModifier::Public,
+                }),
+            }
         }
     }
     fn visit_pou(&mut self, pou: &mut plc_ast::ast::Pou) {
@@ -139,12 +133,13 @@ impl AstVisitorMut for RetainLowerer {
 
             if self.context.in_program {
                 let (old_variable, new_var) = self.replace_with_retain_variable(variable);
-                self.context.retain_variables.push(new_var);
+                let linkage = self.context.container_linkage.unwrap_or(LinkageType::Internal);
+                self.context.retain_variables.push((linkage, new_var));
                 block.variables.push(old_variable);
             } else if matches!(block.kind, plc_ast::ast::VariableBlockType::Global) && !block.retain {
                 // Global variable in a non-retain block whose type transitively contains retain
                 // members (e.g. an FB with VAR RETAIN). Move it to a retain block.
-                self.context.retain_variables.push(variable);
+                self.context.retain_variables.push((block.linkage, variable));
             } else {
                 // FB retain variables stay in-place within the FB's struct. The entire FB instance
                 // gets placed in the .retain section when instantiated at the global/program level,
@@ -211,7 +206,7 @@ impl RetainLowerer {
 
 #[cfg(test)]
 mod tests {
-    use plc_ast::ast::{CompilationUnit, DataTypeDeclaration, Variable, VariableBlock};
+    use plc_ast::ast::{CompilationUnit, DataTypeDeclaration, LinkageType, Variable, VariableBlock};
     use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
 
@@ -418,5 +413,53 @@ mod tests {
             .map(|v| v.get_name())
             .collect();
         assert_eq!(non_retain_globals, vec!["x"], "only x should remain in the non-retain global block");
+    }
+
+    #[test]
+    fn retain_variables_are_grouped_by_the_linkage_of_their_origin() {
+        let source: SourceCode = r#"
+        FUNCTION_BLOCK FbRetain
+        VAR RETAIN
+            r : INT;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        {external}
+        PROGRAM ExternalProgram
+        VAR RETAIN
+            x : INT;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM InternalProgram
+        VAR RETAIN
+            y : INT;
+        END_VAR
+        END_PROGRAM
+
+        {external}
+        VAR_GLOBAL
+            externalFb : FbRetain;
+        END_VAR
+        "#
+        .into();
+
+        let (_, project) =
+            parse_and_annotate("test", vec![source]).expect("Failed to parse compilation unit");
+        let unit = project.units[0].get_unit();
+
+        let retain_blocks = unit
+            .global_vars
+            .iter()
+            .filter(|block| block.retain)
+            .map(|block| (block.linkage, block.variables.iter().map(Variable::get_name).collect::<Vec<_>>()))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            retain_blocks,
+            vec![
+                (LinkageType::External, vec!["externalFb", "__ExternalProgram_x__retain"]),
+                (LinkageType::Internal, vec!["__InternalProgram_y__retain"]),
+            ]
+        );
     }
 }
