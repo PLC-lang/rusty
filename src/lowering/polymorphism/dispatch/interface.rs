@@ -122,14 +122,14 @@ use plc_ast::{
         DataTypeDeclaration, EmptyStatement, GenericBinding, LinkageType, Operator, UserTypeDeclaration,
         Variable, VariableBlock, VariableBlockType,
     },
-    control_statements::{ConditionalBlock, IfStatement},
+    control_statements::{AstControlStatement, ConditionalBlock, IfStatement},
     literals::AstLiteral,
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     index::{Index, VariableIndexEntry},
@@ -237,6 +237,16 @@ pub struct InterfaceDispatchLowerer<'a> {
 
     /// Name of the POU that owns the implementation being visited; an action names its parent.
     current_pou_type: String,
+
+    /// Lowercase names of the POUs declared in the unit being lowered. Only those can receive a
+    /// `VAR_TEMP`, so a short-circuit in an action whose parent is declared elsewhere keeps the
+    /// eager preamble.
+    unit_pous: FxHashSet<String>,
+
+    /// Whether the node being visited is the first thing its statement evaluates. The IF that a
+    /// short-circuit operand is lowered into is hoisted before the statement, which only preserves
+    /// the evaluation order in that position.
+    leading: bool,
 }
 
 impl<'a> InterfaceDispatchLowerer<'a> {
@@ -260,6 +270,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             sc_counter: 0,
             temps: FxHashMap::default(),
             current_pou_type: String::new(),
+            unit_pous: FxHashSet::default(),
+            leading: false,
         }
     }
 
@@ -273,6 +285,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
                 .filter(|pou| !pou.generics.is_empty())
                 .map(|pou| (pou.name_location.clone(), helper::generic_signature(&pou.generics)))
                 .collect();
+            self.unit_pous = unit.pous.iter().map(|pou| pou.name.to_lowercase()).collect();
             self.visit_compilation_unit(unit);
 
             // An included unit is compiled to its own object elsewhere, which defines the globals.
@@ -361,6 +374,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         for mut stmt in original {
             self.preamble.clear();
             self.replacement = None;
+            self.leading = true;
 
             stmt.walk(self);
 
@@ -471,7 +485,10 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
     /// A preamble is hoisted before the enclosing statement, which would run it even when AND_THEN or
     /// OR_ELSE skips the operand that needs it, and so rebind a retained fat pointer for a call that
     /// never happens. Such an operand is lowered into an IF that carries its preamble in the branch
-    /// that evaluates it and leaves its value in a BOOL `VAR_TEMP` of the POU:
+    /// that evaluates it and leaves its value in a BOOL `VAR_TEMP` of the POU. The IF is hoisted as
+    /// well, so this only applies where the short-circuit is the first thing its statement evaluates,
+    /// where the left operand is a BOOL so that validation still sees a wrong operand, and where the
+    /// POU is declared in this unit and can take the `VAR_TEMP`; elsewhere the preamble stays eager.
     ///
     /// ```text
     /// // Before:
@@ -493,14 +510,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             unreachable!();
         };
 
-        if !matches!(operator, Operator::AndThen | Operator::OrElse) {
-            self.visit(left);
+        let short_circuit = matches!(operator, Operator::AndThen | Operator::OrElse);
+        let conditional = short_circuit
+            && self.leading
+            && self.unit_pous.contains(&self.current_pou_type)
+            && self.annotations.get_type_or_void(left, self.index).get_type_information().is_bool();
+
+        // The left operand always runs, so its preamble stays with the enclosing statement. The right
+        // operand is never the first thing the statement evaluates.
+        self.visit(left);
+        self.leading = false;
+        if !conditional {
             self.visit(right);
             return;
         }
-
-        // The left operand always runs, so its preamble stays with the enclosing statement.
-        self.visit(left);
 
         // Collect the preamble the right operand needs on its own.
         let outer_preamble = std::mem::take(&mut self.preamble);
@@ -544,6 +567,35 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         *node = helper::create_identifier_ref(&mut self.ids, &name);
     }
 
+    /// Only the first condition of an IF and the selector of a CASE are evaluated first; a later
+    /// condition or a loop condition is not, so a short-circuit there keeps the eager preamble.
+    fn visit_control_statement(&mut self, node: &mut AstNode) {
+        let AstStatement::ControlStatement(statement) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        match statement {
+            AstControlStatement::If(statement) => {
+                for (position, block) in statement.blocks.iter_mut().enumerate() {
+                    self.leading = position == 0;
+                    self.visit(&mut block.condition);
+                    self.visit_statement_list(&mut block.body);
+                }
+                self.visit_statement_list(&mut statement.else_block);
+            }
+            AstControlStatement::Case(statement) => {
+                self.visit(&mut statement.selector);
+                self.leading = false;
+                statement.case_blocks.walk(self);
+                self.visit_statement_list(&mut statement.else_block);
+            }
+            _ => {
+                self.leading = false;
+                statement.walk(self);
+            }
+        }
+    }
+
     fn visit_call_statement(&mut self, node: &mut AstNode) {
         let AstStatement::CallStatement(CallStatement { operator, parameters }) = &mut node.stmt else {
             unreachable!();
@@ -554,9 +606,11 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
         // Walk parameters with the `in_call_args` guard active. This prevents `visit_assignment`
         // from expanding named arguments like `in1 := instance` into fat-pointer field assignments.
-        // The counter nests correctly for cases like `foo(in1 := bar(in2 := instance))`.
+        // The counter nests correctly for cases like `foo(in1 := bar(in2 := instance))`. An argument
+        // is never the first thing a statement evaluates.
         if let Some(ref mut params) = parameters {
             self.in_call_args += 1;
+            self.leading = false;
             params.walk(self);
             self.in_call_args -= 1;
         }
@@ -3483,6 +3537,9 @@ mod tests {
                     main := enabled AND_THEN holder.bind(instance);
                     main := enabled OR_ELSE holder.bind(instance);
                     main := holder.bind(instance) AND_THEN enabled;
+                    IF enabled AND_THEN holder.bind(instance) THEN
+                        main := TRUE;
+                    END_IF
                 END_FUNCTION
             "#;
 
@@ -3510,6 +3567,92 @@ mod tests {
                 "__fatpointer_4main_2.data := ADR(instance)",
                 "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
                 "main := holder.bind(__fatpointer_4main_2) AND_THEN enabled",
+                "IF enabled THEN",
+                "    __fatpointer_4main_3.data := ADR(instance)",
+                "    __fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
+                "    __shortcircuit_2 := holder.bind(__fatpointer_4main_3)",
+                "ELSE",
+                "    __shortcircuit_2 := FALSE",
+                "END_IF",
+                "IF __shortcircuit_2 THEN",
+                "    main := TRUE",
+                "END_IF",
+            ]
+            "#);
+        }
+
+        /// The IF a short-circuit operand is lowered into is hoisted before the statement. Where the
+        /// short-circuit is not the first thing the statement evaluates, that would reorder side
+        /// effects, so the operand keeps the eager preamble; the same holds for a left operand that is
+        /// not a BOOL, which validation must still reject.
+        #[test]
+        fn short_circuit_operand_keeps_eager_preamble_outside_leading_position() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK Holder
+                    METHOD bind : BOOL
+                        VAR_INPUT
+                            refIn : REFERENCE TO IA;
+                        END_VAR
+                    END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION enable : BOOL
+                END_FUNCTION
+
+                FUNCTION consume : BOOL
+                    VAR_INPUT
+                        flag : BOOL;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main : BOOL
+                    VAR
+                        enabled : BOOL;
+                        holder : Holder;
+                        instance : FbA;
+                    END_VAR
+
+                    main := enable() AND (enabled AND_THEN holder.bind(instance));
+                    main := consume(enabled AND_THEN holder.bind(instance));
+                    main := 1 AND_THEN holder.bind(instance);
+                    IF enable() THEN
+                    ELSIF enabled AND_THEN holder.bind(instance) THEN
+                    END_IF
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "Holder__ctor(holder)",
+                "FbA__ctor(instance)",
+                "__fatpointer_4main_0.data := ADR(instance)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "main := enable() AND (enabled AND_THEN holder.bind(__fatpointer_4main_0))",
+                "__fatpointer_4main_1.data := ADR(instance)",
+                "__fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "main := consume(enabled AND_THEN holder.bind(__fatpointer_4main_1))",
+                "__fatpointer_4main_2.data := ADR(instance)",
+                "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
+                "main := 1 AND_THEN holder.bind(__fatpointer_4main_2)",
+                "IF enable() THEN",
+                "ELSE",
+                "    IF enabled THEN",
+                "        __fatpointer_4main_3.data := ADR(instance)",
+                "        __fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
+                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_3)",
+                "    ELSE",
+                "        __shortcircuit_0 := FALSE",
+                "    END_IF",
+                "    IF __shortcircuit_0 THEN",
+                "    END_IF",
+                "END_IF",
             ]
             "#);
         }

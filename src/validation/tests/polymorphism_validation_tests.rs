@@ -1141,6 +1141,40 @@ mod interface {
     }
 
     #[test]
+    fn short_circuit_with_wrapped_argument_keeps_operand_check() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION consume : BOOL
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main : BOOL
+                VAR
+                    instance : FbA;
+                END_VAR
+                main := 1 AND_THEN consume(instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"
+        error[E133]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+           ┌─ <internal>:18:25
+           │
+        18 │                 main := 1 AND_THEN consume(instance);
+           │                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+        ");
+    }
+
+    #[test]
     fn assign_pou_implementing_child_interface_to_parent_interface_ref() {
         let source = r#"
             INTERFACE IA

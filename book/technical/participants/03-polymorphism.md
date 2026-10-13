@@ -569,6 +569,8 @@ Hoisting would run the preamble even when `AND_THEN` or `OR_ELSE` skips the oper
 +result := __shortcircuit_0;
 ```
 
+The generated `IF` is hoisted as well, so the rewrite only applies where it preserves the evaluation order and the validation: the short-circuit must be the first thing its statement evaluates, such as the right-hand side of an assignment, the first condition of an `IF` or the selector of a `CASE`, but not a call argument, the right operand of another operator, an `ELSIF` or a loop condition; its left operand must be a BOOL, so that an invalid operand still reaches the E133 check; and the POU must be declared in the unit being lowered, which an action of a function block from another unit is not. Elsewhere the preamble stays eager, with the shared-site behavior described above.
+
 **Interface upcasting**: When a child interface variable is assigned to a parent interface variable (for example `refIA := refIB` where `IB EXTENDS IA`), both sides are already fat pointers. The `.data` field can be copied directly; it still points to the same concrete POU instance. However, the `.table` field points to an `__itable_IB_*` instance but must point to the corresponding `__itable_IA_*` instance for the same POU. Since the concrete POU is only known at run time, the correct itable instance cannot be determined statically.
 
 The solution uses the `__upcast_<Ancestor>` fields embedded in each itable struct. Each itable instance initializes these fields to point directly to the ancestor itable instance for the same POU, so one field read resolves the upcast regardless of hierarchy depth:
