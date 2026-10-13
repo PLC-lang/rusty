@@ -119,7 +119,7 @@ use plc_ast::{
     ast::{
         resolve_argument_slots, steal_expression_list, Allocation, Assignment, AstFactory, AstNode,
         AstStatement, CallStatement, CompilationUnit, DataType as AstDataType, DataTypeDeclaration,
-        LinkageType, UserTypeDeclaration, Variable, VariableBlock,
+        GenericBinding, LinkageType, UserTypeDeclaration, Variable, VariableBlock,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -195,8 +195,14 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// compiled units never define the same symbol.
     globals: Vec<String>,
 
-    /// Mangled name of the implementation being visited, e.g. `FbA__foo` for the method `FbA.foo`.
+    /// Mangled name of the implementation being visited, e.g. `FbA__foo` for the method `FbA.foo`, with
+    /// the generic signature of a template appended, e.g. `bind__T_ANY_INT` for `bind<T: ANY_INT>`.
     current_pou: String,
+
+    /// Generic signatures of the templates in the unit being lowered, keyed by their name location,
+    /// which a POU shares with its implementation. Templates that only differ in their generics
+    /// share a name, so the signature keeps their retained globals apart.
+    generic_signatures: FxHashMap<SourceLocation, String>,
 
     /// Counts the retained fat pointers per implementation name. Generic overloads share a name, so
     /// the count continues across them instead of restarting per implementation.
@@ -221,6 +227,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             replacement: None,
             globals: Vec::new(),
             current_pou: String::new(),
+            generic_signatures: FxHashMap::default(),
             retained_counters: FxHashMap::default(),
             fp_counter: 0,
         }
@@ -230,6 +237,12 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     /// Returns any diagnostics produced by interface validation checks.
     pub fn lower(&mut self, units: &mut [CompilationUnit]) -> Vec<Diagnostic> {
         for unit in units.iter_mut() {
+            self.generic_signatures = unit
+                .pous
+                .iter()
+                .filter(|pou| !pou.generics.is_empty())
+                .map(|pou| (pou.name_location.clone(), helper::generic_signature(&pou.generics)))
+                .collect();
             self.visit_compilation_unit(unit);
 
             // An included unit is compiled to its own object elsewhere, which defines the globals.
@@ -274,6 +287,9 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         }
 
         self.current_pou = implementation.name.replace('.', "__");
+        if let Some(signature) = self.generic_signatures.get(&implementation.name_location) {
+            self.current_pou = format!("{}__{signature}", self.current_pou);
+        }
         implementation.walk(self);
     }
 
@@ -912,6 +928,15 @@ mod helper {
             location: SourceLocation::internal(),
             metadata: None,
         }
+    }
+
+    /// Mangles the generic bindings of a template into an identifier, e.g. `T_ANY_INT` for `<T: ANY_INT>`.
+    pub fn generic_signature(generics: &[GenericBinding]) -> String {
+        generics
+            .iter()
+            .map(|binding| format!("{}_{}", binding.name, binding.nature))
+            .collect::<Vec<_>>()
+            .join("_")
     }
 
     /// Creates a global `__FATPOINTER` variable with the given name, for a fat pointer that a stateful
@@ -3014,6 +3039,60 @@ mod tests {
                 "__fatpointer_main_4 : __FATPOINTER",
                 "__fatpointer_main_5 : __FATPOINTER",
                 "__fatpointer_main_6 : __FATPOINTER",
+            ]
+            "#);
+        }
+
+        /// Generic templates that only differ in their generics share a name. Their retained globals carry
+        /// the generic signature, so objects compiled from different templates never define the same symbol.
+        #[test]
+        fn retained_arguments_in_generic_templates() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbConsumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                VAR_GLOBAL
+                    fbConsumer: FbConsumer;
+                    instance: FbA;
+                END_VAR
+
+                FUNCTION bind<T: ANY_INT> : T
+                    VAR_INPUT
+                        value: T;
+                    END_VAR
+
+                    fbConsumer(instance);
+                    bind := value;
+                END_FUNCTION
+
+                FUNCTION bind<U: ANY_REAL> : U
+                    VAR_INPUT
+                        value: U;
+                    END_VAR
+
+                    fbConsumer(instance);
+                    bind := value;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
+            [
+                "fbConsumer : FbConsumer",
+                "instance : FbA",
+                "__vtable_FbA_instance : __vtable_FbA",
+                "__vtable_FbConsumer_instance : __vtable_FbConsumer",
+                "__itable_IA_FbA_instance : __itable_IA",
+                "__fatpointer_bind__T_ANY_INT_0 : __FATPOINTER",
+                "__fatpointer_bind__U_ANY_REAL_0 : __FATPOINTER",
             ]
             "#);
         }
