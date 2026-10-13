@@ -195,6 +195,14 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// compiled units never define the same symbol.
     globals: Vec<String>,
 
+    /// Names of the retained fat pointers bound inside an implementation with external linkage. Codegen
+    /// omits such a body, so the unit only declares these globals and the object that defines the
+    /// implementation defines them.
+    external_globals: Vec<String>,
+
+    /// Whether the implementation being visited has external linkage.
+    current_pou_external: bool,
+
     /// Mangled name of the implementation being visited, e.g. `FbA__foo` for the method `FbA.foo`, with
     /// the generic signature of a template appended, e.g. `bind__T_ANY_INT` for `bind<T: ANY_INT>`.
     current_pou: String,
@@ -226,6 +234,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             preamble: Vec::new(),
             replacement: None,
             globals: Vec::new(),
+            external_globals: Vec::new(),
+            current_pou_external: false,
             current_pou: String::new(),
             generic_signatures: FxHashMap::default(),
             retained_counters: FxHashMap::default(),
@@ -246,14 +256,24 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             self.visit_compilation_unit(unit);
 
             // An included unit is compiled to its own object elsewhere, which defines the globals.
+            let location = SourceLocation::internal_in_unit(unit.file.get_name());
             if !self.globals.is_empty() {
-                let location = SourceLocation::internal_in_unit(unit.file.get_name());
                 let variables =
                     self.globals.drain(..).map(|name| helper::create_global(&name, &location)).collect();
                 let linkage =
                     if unit.linkage.is_included() { LinkageType::External } else { LinkageType::Internal };
                 unit.global_vars
                     .push(VariableBlock::global().with_linkage(linkage).with_variables(variables));
+            }
+            if !self.external_globals.is_empty() {
+                let variables = self
+                    .external_globals
+                    .drain(..)
+                    .map(|name| helper::create_global(&name, &location))
+                    .collect();
+                unit.global_vars.push(
+                    VariableBlock::global().with_linkage(LinkageType::External).with_variables(variables),
+                );
             }
         }
 
@@ -287,6 +307,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         }
 
         self.current_pou = implementation.name.replace('.', "__");
+        self.current_pou_external = implementation.linkage.is_external();
         if let Some(signature) = self.generic_signatures.get(&implementation.name_location) {
             self.current_pou = format!("{}__{signature}", self.current_pou);
         }
@@ -634,7 +655,11 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             let counter = self.retained_counters.entry(self.current_pou.clone()).or_default();
             let name = format!("__fatpointer_{}_{}", self.current_pou, counter);
             *counter += 1;
-            self.globals.push(name.clone());
+            if self.current_pou_external {
+                self.external_globals.push(name.clone());
+            } else {
+                self.globals.push(name.clone());
+            }
             name
         } else {
             let name = format!("__fatpointer_{}", self.fp_counter);
@@ -1053,10 +1078,11 @@ mod tests {
 
         unit.global_vars
             .iter()
-            .flat_map(|block| &block.variables)
-            .map(|variable| {
+            .flat_map(|block| block.variables.iter().map(move |variable| (block, variable)))
+            .map(|(block, variable)| {
+                let linkage = if block.linkage.is_external() { " {external}" } else { "" };
                 format!(
-                    "{} : {}",
+                    "{} : {}{linkage}",
                     variable.name,
                     variable.data_type_declaration.get_name().unwrap_or_default()
                 )
@@ -3093,6 +3119,56 @@ mod tests {
                 "__itable_IA_FbA_instance : __itable_IA",
                 "__fatpointer_bind__T_ANY_INT_0 : __FATPOINTER",
                 "__fatpointer_bind__U_ANY_REAL_0 : __FATPOINTER",
+            ]
+            "#);
+        }
+
+        /// An implementation with external linkage keeps its body, but codegen omits it, so the retained
+        /// fat pointers it binds are only declared and the object defining the implementation defines them.
+        #[test]
+        fn retained_arguments_in_external_implementation_are_declared() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                {external}
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                {external}
+                FUNCTION_BLOCK FbConsumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                {external}
+                FUNCTION bindExt
+                    VAR_IN_OUT
+                        consumer: FbConsumer;
+                        instance: FbA;
+                    END_VAR
+
+                    consumer(instance);
+                END_FUNCTION
+
+                FUNCTION bind
+                    VAR_IN_OUT
+                        consumer: FbConsumer;
+                        instance: FbA;
+                    END_VAR
+
+                    consumer(instance);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
+            [
+                "__vtable_FbA_instance : __vtable_FbA {external}",
+                "__vtable_FbConsumer_instance : __vtable_FbConsumer {external}",
+                "__itable_IA_FbA_instance : __itable_IA {external}",
+                "__fatpointer_bind_0 : __FATPOINTER",
+                "__fatpointer_bindExt_0 : __FATPOINTER {external}",
             ]
             "#);
         }
