@@ -502,7 +502,7 @@ This works with named arguments too:
 +consumer(in := __fatpointer_0);
 ```
 
-The lowerer binds each argument to its callee parameter first: a named argument names its declaring POU and position in its argument annotation, a positional argument is bound by slot over the callee's parameters, inherited ones included, and a surplus positional argument binds to the variadic parameter. A `VAR_IN_OUT`, `REFERENCE TO` or function `VAR_OUTPUT` parameter is indexed as an auto-deref pointer to the interface, so the lowerer looks through the pointer; a function block or program `VAR_OUTPUT` is a plain member. In both cases a concrete instance is wrapped in the same way, so the callee receives the address of the temporary:
+The lowerer binds each argument to its callee parameter first: a named argument names its declaring POU and position in its argument annotation, a positional argument is bound by slot over the callee's parameters, inherited ones included, and a surplus positional argument binds to the variadic parameter. A `VAR_IN_OUT`, `VAR_INPUT {ref}`, `REFERENCE TO` or function `VAR_OUTPUT` parameter is indexed as an auto-deref pointer to the interface, so the lowerer looks through the pointer; a function block or program `VAR_OUTPUT` is a plain member. In both cases a concrete instance is wrapped in the same way, so the callee receives the address of the temporary:
 
 ```diff
 -consumer(out => instanceFbA, inout := instanceFbB);
@@ -517,16 +517,18 @@ The lowerer binds each argument to its callee parameter first: a named argument 
 
 The temporary is the storage the callee writes through, and nothing copies it back: a concrete instance cannot hold a fat pointer. A callee that assigns its `VAR_OUTPUT` or rebinds its `VAR_IN_OUT` therefore writes into the temporary, and the caller never sees that value. An interface variable passed to such a parameter is not wrapped at all; it must have the exact parameter interface, see Validation.
 
-A function block, program or class keeps a `VAR_IN_OUT` or `REFERENCE TO` parameter between calls, so a statement-scoped temporary would leave the instance pointing into a stack frame that is gone once the calling function returns. For such a parameter the lowerer emits the fat pointer as a global of the unit instead, one per call site, and the preamble fills that global:
+A function block, program or class keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter between calls, so a statement-scoped temporary would leave the instance pointing into a stack frame that is gone once the calling function returns. For such a parameter the lowerer emits the fat pointer as a global of the unit instead, one per call site, and the preamble fills that global. The global is named after the implementation that binds it, with the `.` of a method name replaced by `__`, and numbered per implementation, so objects compiled separately never define the same symbol. In an included unit the block is declared external, because the object compiled from that unit defines it:
 
 ```diff
--globalConsumer(globalInstance);
-+// in VAR_GLOBAL of the unit:
-+__fatpointer_0 : __FATPOINTER;
-+// at the call site:
-+__fatpointer_0.data := ADR(globalInstance);
-+__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
-+globalConsumer(__fatpointer_0);
+ FUNCTION bind
+-    globalConsumer(globalInstance);
++    // in VAR_GLOBAL of the unit:
++    __fatpointer_bind_0 : __FATPOINTER;
++    // at the call site:
++    __fatpointer_bind_0.data := ADR(globalInstance);
++    __fatpointer_bind_0.table := ADR(__itable_IA_FbA_instance);
++    globalConsumer(__fatpointer_bind_0);
+ END_FUNCTION
 ```
 
 Every instance bound at the same call site shares that global, so a loop that binds several instances through one call leaves all of them referring to the instance bound last.
@@ -716,6 +718,6 @@ The result temporary carries no callee name, because this rewrite leaves the ope
 
 ## Validation
 
-The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: `Invalid assignment: 'FbX' does not implement interface 'IA'`. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: `Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically`. It reports E037 when an interface variable of a child, parent or unrelated interface is passed to a `VAR_OUTPUT`, `VAR_IN_OUT` or `REFERENCE TO` parameter of any POU: `Parameter inout1 is passed by reference, it requires an argument of type IA but got IB`. An upcast through a temporary would never reach the caller's variable, so parameters the call writes through take only the exact interface. It reports E129 when an interface variable is called directly, `refInterface()`: `Interfaces cannot be called directly`.
+The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: `Invalid assignment: 'FbX' does not implement interface 'IA'`. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: `Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically`. It reports E037 when an interface variable of a child, parent or unrelated interface is passed to a `VAR_OUTPUT`, `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter of any POU, by-reference variadics included: `Parameter inout1 is passed by reference, it requires an argument of type IA but got IB`. An upcast through a temporary would never reach the caller's variable, so parameters the call writes through take only the exact interface. It reports E129 when an interface variable is called directly, `refInterface()`: `Interfaces cannot be called directly`.
 
 These checks run before interface types become `__FATPOINTER`, while the original interface names are still available. On failure, the lowerer drops the statement or leaves an unfilled argument temporary to avoid diagnostics about generated code. It passes its diagnostics to the driver.

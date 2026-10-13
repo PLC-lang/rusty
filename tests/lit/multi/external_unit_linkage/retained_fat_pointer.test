@@ -1,0 +1,9 @@
+RUN: %PLC -c --fpic %S/retained_fat_pointer_lib_a.st -o %t.lib_a.o
+RUN: %PLC -c --fpic -i %S/retained_fat_pointer_lib_a.st %S/retained_fat_pointer_lib_b.st -o %t.lib_b.o
+RUN: %COMPILE -i %S/retained_fat_pointer_lib_a.st -i %S/retained_fat_pointer_lib_b.st %S/retained_fat_pointer_main.st %t.lib_a.o %t.lib_b.o && %RUN | %CHECK %s
+
+Each library binds a concrete instance to a function block's REFERENCE TO interface input, which
+keeps the fat pointer in a global of that library. Both libraries are compiled to their own objects
+and linked into one program, so the globals of different libraries must not share a name.
+
+CHECK: 1 2

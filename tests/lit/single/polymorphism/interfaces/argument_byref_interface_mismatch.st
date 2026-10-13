@@ -43,6 +43,12 @@ FUNCTION consumerRef
     END_VAR
 END_FUNCTION
 
+FUNCTION consumerRefInput
+    VAR_INPUT {ref}
+        in1 : IA;
+    END_VAR
+END_FUNCTION
+
 FUNCTION_BLOCK FbConsumer
     VAR_OUTPUT
         out1 : IA;
@@ -89,6 +95,10 @@ FUNCTION main
 
     // CHECK-DAG: {{.*}}argument_byref_interface_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Parameter ref1 is passed by reference, it requires an argument of type IA but got IB
     consumerRef(refIB);
+
+    // A by-reference input binds the argument's address as well.
+    // CHECK-DAG: {{.*}}argument_byref_interface_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Parameter in1 is passed by reference, it requires an argument of type IA but got IB
+    consumerRefInput(refIB);
 
     // Function block and program outputs are plain members rather than pointers, but the call still
     // writes through them, so they take the exact interface as well.

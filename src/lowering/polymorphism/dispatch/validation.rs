@@ -73,8 +73,8 @@ pub fn validate_interface_assignment(
     Some(Diagnostic::invalid_interface_assignment(source_iface, target_iface, location.clone()))
 }
 
-/// Validates that an interface variable passed to a by-reference parameter (`VAR_OUTPUT`, `VAR_IN_OUT` or
-/// `REFERENCE TO`) has exactly the parameter's interface type. The callee writes through the parameter, so
+/// Validates that an interface variable passed to a by-reference parameter (`VAR_OUTPUT`, `VAR_IN_OUT`,
+/// `VAR_INPUT {ref}` or `REFERENCE TO`) has exactly the parameter's interface type. The callee writes through the parameter, so
 /// an upcast into a temporary fat pointer would never reach the caller. Returns `Some(Diagnostic)` if not.
 ///
 /// ```st
