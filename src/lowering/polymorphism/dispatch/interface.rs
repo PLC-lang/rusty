@@ -204,7 +204,7 @@ pub struct InterfaceDispatchLowerer<'a> {
     current_pou_external: bool,
 
     /// Mangled name of the implementation being visited, e.g. `FbA__foo` for the method `FbA.foo`, with
-    /// the generic signature of a template appended, e.g. `bind__T_ANY_INT` for `bind<T: ANY_INT>`.
+    /// the generic signature of a template appended, e.g. `bind__ANY_INT` for `bind<T: ANY_INT>`.
     current_pou: String,
 
     /// Generic signatures of the templates in the unit being lowered, keyed by their name location,
@@ -561,13 +561,23 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     ///
     /// `parameter` is the callee parameter `arg` binds to, see [`Self::bind_arguments_to_parameters`].
     fn maybe_wrap_argument(&mut self, parameter: Option<&VariableIndexEntry>, arg: &mut AstNode) {
-        let Some(parameter) = parameter else {
+        // An omitted argument has nothing to wrap; the callee resets the output.
+        if arg.is_empty_statement() {
             return;
-        };
+        }
 
         // A by-reference variable is annotated with the raw name of its target type, so resolve an alias.
         let actual_type = self.annotations.get_type_or_void(arg, self.index);
         let actual_type = self.index.find_effective_type(actual_type).unwrap_or(actual_type);
+
+        // An argument that binds to no parameter, such as one of a generic builtin, keeps the type the
+        // resolver hinted for it and is passed by value.
+        let Some(parameter) = parameter else {
+            let expected_type = self.annotations.get_hint_or_void(arg, self.index);
+            self.wrap_argument(arg, actual_type, expected_type, None, false);
+            return;
+        };
+
         let parameter_type = self.index.get_effective_type_or_void_by_name(parameter.get_type_name());
 
         // VAR_IN_OUT, VAR_INPUT {ref}, REFERENCE TO and function VAR_OUTPUT parameters are indexed as
@@ -591,6 +601,19 @@ impl<'a> InterfaceDispatchLowerer<'a> {
                 .and_then(|pou| self.index.find_pou(pou))
                 .is_some_and(|it| it.is_stateful());
 
+        self.wrap_argument(arg, actual_type, expected_type, by_ref.then(|| parameter.get_name()), retained);
+    }
+
+    /// Wraps `arg` for a parameter of `expected_type`. `by_ref` carries the parameter name when the callee
+    /// writes through the parameter, and `retained` whether the callee keeps it between calls.
+    fn wrap_argument(
+        &mut self,
+        arg: &mut AstNode,
+        actual_type: &DataType,
+        expected_type: &DataType,
+        by_ref: Option<&str>,
+        retained: bool,
+    ) {
         // Not an interface parameter, nothing to do.
         if !expected_type.is_interface() {
             return;
@@ -603,9 +626,9 @@ impl<'a> InterfaceDispatchLowerer<'a> {
 
             // A by-reference parameter is storage the callee writes through, so the argument is passed
             // as is and must be the exact interface; an upcast temporary would never reach the caller.
-            if by_ref {
+            if let Some(parameter_name) = by_ref {
                 if let Some(diagnostic) = validation::validate_byref_interface_argument(
-                    parameter.get_name(),
+                    parameter_name,
                     target_iface,
                     source_iface,
                     &arg.location,
@@ -955,13 +978,12 @@ mod helper {
         }
     }
 
-    /// Mangles the generic bindings of a template into an identifier, e.g. `T_ANY_INT` for `<T: ANY_INT>`.
+    /// Mangles the natures of a template's generics into an identifier, e.g. `ANY_INT_ANY_REAL` for
+    /// `<T: ANY_INT, U: ANY_REAL>`. The names of the generics do not tell templates apart: templates
+    /// that differ only in them produce the same monomorphs. Every nature starts with `ANY`, so the
+    /// sequence reads back unambiguously.
     pub fn generic_signature(generics: &[GenericBinding]) -> String {
-        generics
-            .iter()
-            .map(|binding| format!("{}_{}", binding.name, binding.nature))
-            .collect::<Vec<_>>()
-            .join("_")
+        generics.iter().map(|binding| binding.nature.to_string()).collect::<Vec<_>>().join("_")
     }
 
     /// Creates a global `__FATPOINTER` variable with the given name, for a fat pointer that a stateful
@@ -3117,8 +3139,8 @@ mod tests {
                 "__vtable_FbA_instance : __vtable_FbA",
                 "__vtable_FbConsumer_instance : __vtable_FbConsumer",
                 "__itable_IA_FbA_instance : __itable_IA",
-                "__fatpointer_bind__T_ANY_INT_0 : __FATPOINTER",
-                "__fatpointer_bind__U_ANY_REAL_0 : __FATPOINTER",
+                "__fatpointer_bind__ANY_INT_0 : __FATPOINTER",
+                "__fatpointer_bind__ANY_REAL_0 : __FATPOINTER",
             ]
             "#);
         }
@@ -3169,6 +3191,71 @@ mod tests {
                 "__itable_IA_FbA_instance : __itable_IA {external}",
                 "__fatpointer_bind_0 : __FATPOINTER",
                 "__fatpointer_bindExt_0 : __FATPOINTER {external}",
+            ]
+            "#);
+        }
+
+        /// An omitted interface output is not wrapped; the callee resets it and the call discards it.
+        #[test]
+        fn omitted_output_argument_is_not_wrapped() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION consumer
+                    VAR_OUTPUT
+                        out1: IA;
+                        out2: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        refIA: IA;
+                    END_VAR
+
+                    consumer(out1 =>, out2 =>);
+                    consumer(out1 => refIA, out2 =>);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "consumer(out1 => , out2 => )",
+                "consumer(out1 => refIA, out2 => )",
+            ]
+            "#);
+        }
+
+        /// The arguments of a generic builtin bind to no indexed parameter and keep the type the resolver
+        /// hinted for them. The resolver types a builtin over interfaces as REAL, so no interface hint
+        /// exists, nothing is wrapped, and the assignment of the result cannot be lowered.
+        #[test]
+        fn generic_builtin_arguments_keep_their_hint() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                END_INTERFACE
+
+                FUNCTION main
+                    VAR
+                        refIA: IA;
+                        refIB: IB;
+                        selected: IA;
+                    END_VAR
+
+                    selected := SEL(FALSE, refIB, refIA);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "selected.data := ADR(SEL(FALSE, refIB, refIA))",
+                "selected.table := ADR(__itable_IA_REAL_instance)",
             ]
             "#);
         }
