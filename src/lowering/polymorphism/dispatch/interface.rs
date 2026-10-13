@@ -119,8 +119,8 @@ use plc_ast::{
     ast::{
         resolve_argument_slots, steal_expression_list, Allocation, Assignment, AstFactory, AstNode,
         AstStatement, BinaryExpression, CallStatement, CompilationUnit, DataType as AstDataType,
-        DataTypeDeclaration, EmptyStatement, GenericBinding, LinkageType, Operator, UserTypeDeclaration,
-        Variable, VariableBlock, VariableBlockType,
+        DataTypeDeclaration, EmptyStatement, GenericBinding, LinkageType, Operator, ReferenceAccess,
+        ReferenceExpr, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     control_statements::{AstControlStatement, ConditionalBlock, IfStatement},
     literals::AstLiteral,
@@ -399,8 +399,13 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             return;
         };
 
-        // Walk children first so nested calls/expressions are processed before we inspect types.
+        // Walk children first so nested calls/expressions are processed before we inspect types. The
+        // target's address is computed before the value, so the value is only evaluated first when
+        // that address needs no evaluation of its own.
+        let leading = self.leading && helper::has_static_address(left);
+        self.leading = false;
         left.walk(self);
+        self.leading = leading;
         right.walk(self);
 
         // Named call arguments like `in1 := instance` are Assignment nodes too, but
@@ -487,8 +492,8 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
     /// never happens. Such an operand is lowered into an IF that carries its preamble in the branch
     /// that evaluates it and leaves its value in a BOOL `VAR_TEMP` of the POU. The IF is hoisted as
     /// well, so this only applies where the short-circuit is the first thing its statement evaluates,
-    /// where the left operand is a BOOL so that validation still sees a wrong operand, and where the
-    /// POU is declared in this unit and can take the `VAR_TEMP`; elsewhere the preamble stays eager.
+    /// where both operands are BOOL so that validation still sees a wrong operand, and where the POU
+    /// is declared in this unit and can take the `VAR_TEMP`; elsewhere the preamble stays eager.
     ///
     /// ```text
     /// // Before:
@@ -514,7 +519,8 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         let conditional = short_circuit
             && self.leading
             && self.unit_pous.contains(&self.current_pou_type)
-            && self.annotations.get_type_or_void(left, self.index).get_type_information().is_bool();
+            && self.annotations.get_type_or_void(left, self.index).get_type_information().is_bool()
+            && self.annotations.get_type_or_void(right, self.index).get_type_information().is_bool();
 
         // The left operand always runs, so its preamble stays with the enclosing statement. The right
         // operand is never the first thing the statement evaluates.
@@ -1147,6 +1153,19 @@ mod helper {
             id: ids.next_id(),
             location: SourceLocation::internal(),
             metadata: None,
+        }
+    }
+
+    /// Whether `node` names storage whose address needs no evaluation: a variable or a chain of plain
+    /// member accesses, without an index, a dereference or a call that a side effect could change.
+    pub fn has_static_address(node: &AstNode) -> bool {
+        match &node.stmt {
+            AstStatement::Identifier(_) => true,
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) => {
+                matches!(member.stmt, AstStatement::Identifier(_))
+                    && base.as_ref().is_none_or(|base| has_static_address(base))
+            }
+            _ => false,
         }
     }
 
@@ -3582,9 +3601,10 @@ mod tests {
         }
 
         /// The IF a short-circuit operand is lowered into is hoisted before the statement. Where the
-        /// short-circuit is not the first thing the statement evaluates, that would reorder side
-        /// effects, so the operand keeps the eager preamble; the same holds for a left operand that is
-        /// not a BOOL, which validation must still reject.
+        /// short-circuit is not the first thing the statement evaluates, including the value of an
+        /// assignment whose target address must be computed first, that would reorder side effects,
+        /// so the operand keeps the eager preamble; the same holds for an operand that is not a BOOL,
+        /// which validation must still reject.
         #[test]
         fn short_circuit_operand_keeps_eager_preamble_outside_leading_position() {
             let source = r#"
@@ -3611,16 +3631,26 @@ mod tests {
                     END_VAR
                 END_FUNCTION
 
+                FUNCTION count : DINT
+                    VAR_INPUT
+                        refIn : REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION
+
                 FUNCTION main : BOOL
                     VAR
                         enabled : BOOL;
                         holder : Holder;
                         instance : FbA;
+                        values : ARRAY[0..1] OF BOOL;
+                        i : DINT;
                     END_VAR
 
                     main := enable() AND (enabled AND_THEN holder.bind(instance));
                     main := consume(enabled AND_THEN holder.bind(instance));
                     main := 1 AND_THEN holder.bind(instance);
+                    main := enabled AND_THEN count(instance);
+                    values[i] := enabled AND_THEN holder.bind(instance);
                     IF enable() THEN
                     ELSIF enabled AND_THEN holder.bind(instance) THEN
                     END_IF
@@ -3632,6 +3662,7 @@ mod tests {
                 "// Statements in main",
                 "Holder__ctor(holder)",
                 "FbA__ctor(instance)",
+                "__main_values__ctor(values)",
                 "__fatpointer_4main_0.data := ADR(instance)",
                 "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
                 "main := enable() AND (enabled AND_THEN holder.bind(__fatpointer_4main_0))",
@@ -3641,12 +3672,18 @@ mod tests {
                 "__fatpointer_4main_2.data := ADR(instance)",
                 "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
                 "main := 1 AND_THEN holder.bind(__fatpointer_4main_2)",
+                "__fatpointer_4main_3.data := ADR(instance)",
+                "__fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
+                "main := enabled AND_THEN count(__fatpointer_4main_3)",
+                "__fatpointer_4main_4.data := ADR(instance)",
+                "__fatpointer_4main_4.table := ADR(__itable_IA_FbA_instance)",
+                "values[i] := enabled AND_THEN holder.bind(__fatpointer_4main_4)",
                 "IF enable() THEN",
                 "ELSE",
                 "    IF enabled THEN",
-                "        __fatpointer_4main_3.data := ADR(instance)",
-                "        __fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
-                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_3)",
+                "        __fatpointer_4main_5.data := ADR(instance)",
+                "        __fatpointer_4main_5.table := ADR(__itable_IA_FbA_instance)",
+                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_5)",
                 "    ELSE",
                 "        __shortcircuit_0 := FALSE",
                 "    END_IF",

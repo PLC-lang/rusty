@@ -1155,11 +1155,19 @@ mod interface {
                 END_VAR
             END_FUNCTION
 
+            FUNCTION count : DINT
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
             FUNCTION main : BOOL
                 VAR
+                    flag : BOOL;
                     instance : FbA;
                 END_VAR
                 main := 1 AND_THEN consume(instance);
+                main := flag AND_THEN count(instance);
             END_FUNCTION
         "#;
 
@@ -1167,10 +1175,22 @@ mod interface {
 
         insta::assert_snapshot!(diagnostics, @"
         error[E133]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
-           ┌─ <internal>:18:25
+           ┌─ <internal>:25:25
            │
-        18 │                 main := 1 AND_THEN consume(instance);
+        25 │                 main := 1 AND_THEN consume(instance);
            │                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+
+        error[E133]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+           ┌─ <internal>:26:25
+           │
+        26 │                 main := flag AND_THEN count(instance);
+           │                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+
+        warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
+           ┌─ <internal>:26:39
+           │
+        26 │                 main := flag AND_THEN count(instance);
+           │                                       ^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'BOOL'.
         ");
     }
 

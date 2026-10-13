@@ -482,7 +482,7 @@ And with nested interface calls, which are lowered bottom up:
 +__itable_IA#(reference.table^).baz^(reference.data^, __itable_IA#(reference.table^).foo^(reference.data^, __itable_IA#(reference.table^).bar^(reference.data^)), 42);
 ```
 
-**Call arguments**: When a concrete POU instance is passed as an argument to a function that expects an interface type, the compiler allocates a temporary fat pointer, fills it, and passes it in place of the original argument. The temporary is an allocation statement scoped to the enclosing statement, not a declared variable:
+**Call arguments**: When a concrete POU instance is passed as an argument to a function that expects an interface type, the compiler allocates a temporary fat pointer, fills it, and passes it in place of the original argument. For a by-value input the temporary is an allocation statement scoped to the enclosing statement, not a declared variable, as in the examples that follow; a pointer-backed parameter gets a global of the unit instead, see below:
 
 ```diff
 -consumer(instanceFbA);
@@ -569,7 +569,7 @@ Hoisting would run the preamble even when `AND_THEN` or `OR_ELSE` skips the oper
 +result := __shortcircuit_0;
 ```
 
-The generated `IF` is hoisted as well, so the rewrite only applies where it preserves the evaluation order and the validation: the short-circuit must be the first thing its statement evaluates, such as the right-hand side of an assignment, the first condition of an `IF` or the selector of a `CASE`, but not a call argument, the right operand of another operator, an `ELSIF` or a loop condition; its left operand must be a BOOL, so that an invalid operand still reaches the E133 check; and the POU must be declared in the unit being lowered, which an action of a function block from another unit is not. Elsewhere the preamble stays eager, with the shared-site behavior described above.
+The generated `IF` is hoisted as well, so the rewrite only applies where it preserves the evaluation order and the validation: the short-circuit must be the first thing its statement evaluates, such as the value assigned to a plain variable or member, the first condition of an `IF` or the selector of a `CASE`, but not the value assigned to an indexed or dereferenced target, whose address is computed first, a call argument, the right operand of another operator, an `ELSIF` or a loop condition; both operands must be BOOL, so that an invalid operand still reaches the E133 check; and the POU must be declared in the unit being lowered, which an action of a function block from another unit is not. Elsewhere the preamble stays eager, with the shared-site behavior described above.
 
 **Interface upcasting**: When a child interface variable is assigned to a parent interface variable (for example `refIA := refIB` where `IB EXTENDS IA`), both sides are already fat pointers. The `.data` field can be copied directly; it still points to the same concrete POU instance. However, the `.table` field points to an `__itable_IB_*` instance but must point to the corresponding `__itable_IA_*` instance for the same POU. Since the concrete POU is only known at run time, the correct itable instance cannot be determined statically.
 
