@@ -126,6 +126,7 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 
 use crate::{
     index::{Index, VariableIndexEntry},
@@ -190,15 +191,16 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// Names of the fat pointers a stateful POU keeps between calls through a `VAR_IN_OUT`,
     /// `VAR_INPUT {ref}` or `REFERENCE TO` parameter. They outlive the calling function, so they are
     /// emitted as globals of the unit being lowered instead of statement-scoped allocations. Each is
-    /// named after the implementation that binds it and numbered by `retained_counter`, so separately
+    /// named after the implementation that binds it and numbered by `retained_counters`, so separately
     /// compiled units never define the same symbol.
     globals: Vec<String>,
 
     /// Mangled name of the implementation being visited, e.g. `FbA__foo` for the method `FbA.foo`.
     current_pou: String,
 
-    /// Counts the retained fat pointers of the implementation being visited.
-    retained_counter: usize,
+    /// Counts the retained fat pointers per implementation name. Generic overloads share a name, so
+    /// the count continues across them instead of restarting per implementation.
+    retained_counters: FxHashMap<String, usize>,
 
     /// Monotonic counter for generating unique fat-pointer temporary names
     /// (`__fatpointer_0`, `__fatpointer_1`, ...). Never reset; each call-argument wrap site
@@ -219,7 +221,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             replacement: None,
             globals: Vec::new(),
             current_pou: String::new(),
-            retained_counter: 0,
+            retained_counters: FxHashMap::default(),
             fp_counter: 0,
         }
     }
@@ -272,7 +274,6 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         }
 
         self.current_pou = implementation.name.replace('.', "__");
-        self.retained_counter = 0;
         implementation.walk(self);
     }
 
@@ -527,7 +528,9 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             return;
         };
 
+        // A by-reference variable is annotated with the raw name of its target type, so resolve an alias.
         let actual_type = self.annotations.get_type_or_void(arg, self.index);
+        let actual_type = self.index.find_effective_type(actual_type).unwrap_or(actual_type);
         let parameter_type = self.index.get_effective_type_or_void_by_name(parameter.get_type_name());
 
         // VAR_IN_OUT, VAR_INPUT {ref}, REFERENCE TO and function VAR_OUTPUT parameters are indexed as
@@ -612,8 +615,9 @@ impl<'a> InterfaceDispatchLowerer<'a> {
 
         // Generate a unique name for the fat pointer and allocate it.
         let fp_name = if retained {
-            let name = format!("__fatpointer_{}_{}", self.current_pou, self.retained_counter);
-            self.retained_counter += 1;
+            let counter = self.retained_counters.entry(self.current_pou.clone()).or_default();
+            let name = format!("__fatpointer_{}_{}", self.current_pou, counter);
+            *counter += 1;
             self.globals.push(name.clone());
             name
         } else {
@@ -2811,8 +2815,8 @@ mod tests {
             "#);
         }
 
-        /// A variable declared with an alias of an interface is annotated with the interface itself,
-        /// so it passes through without wrapping.
+        /// A variable declared with an alias of an interface passes through without wrapping. A local
+        /// variable is annotated with the interface itself, a by-reference parameter with the raw alias.
         #[test]
         fn aliased_interface_argument_passes_through() {
             let source = r#"
@@ -2839,13 +2843,25 @@ mod tests {
                     consumer(reference, reference);
                     consumer(in1 := reference, inout1 := reference);
                 END_FUNCTION
+
+                FUNCTION forward
+                    VAR_IN_OUT
+                        source: AliasIA;
+                    END_VAR
+
+                    consumer(source, source);
+                    consumer(in1 := source, inout1 := source);
+                END_FUNCTION
             "#;
 
-            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main", "forward"]), @r#"
             [
                 "// Statements in main",
                 "consumer(reference, reference)",
                 "consumer(in1 := reference, inout1 := reference)",
+                "// Statements in forward",
+                "consumer(source, source)",
+                "consumer(in1 := source, inout1 := source)",
             ]
             "#);
         }
