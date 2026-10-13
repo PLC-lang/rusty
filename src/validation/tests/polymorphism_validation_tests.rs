@@ -1086,6 +1086,61 @@ mod interface {
     }
 
     #[test]
+    fn call_arg_call_result_to_byref_param() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION producer : FbA
+            END_FUNCTION
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+                VAR_IN_OUT
+                    inout1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION_BLOCK FbConsumer
+                VAR_INPUT
+                    ref1 : REFERENCE TO IA;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                    fbConsumer : FbConsumer;
+                END_VAR
+                consumer(producer(), instance);
+                consumer(instance, producer());
+                fbConsumer(producer());
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"
+        error[E031]: Expected a reference for parameter inout1 because their type is InOut
+           ┌─ <internal>:32:36
+           │
+        32 │                 consumer(instance, producer());
+           │                                    ^^^^^^^^^^^ Expected a reference for parameter inout1 because their type is InOut
+
+        error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
+           ┌─ <internal>:33:28
+           │
+        33 │                 fbConsumer(producer());
+           │                            ^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
+        ");
+    }
+
+    #[test]
     fn assign_pou_implementing_child_interface_to_parent_interface_ref() {
         let source = r#"
             INTERFACE IA

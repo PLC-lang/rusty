@@ -188,9 +188,10 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// ```
     replacement: Option<Vec<AstNode>>,
 
-    /// Names of the fat pointers a stateful POU keeps between calls through a `VAR_IN_OUT`,
-    /// `VAR_INPUT {ref}` or `REFERENCE TO` parameter. They outlive the calling function, so they are
-    /// emitted as globals of the unit being lowered instead of statement-scoped allocations. Each is
+    /// Names of the fat pointers behind `VAR_IN_OUT`, `VAR_INPUT {ref}` and `REFERENCE TO` parameters.
+    /// A stateful POU keeps such a parameter between calls and any POU may save or forward it, so they
+    /// outlive the calling function and are emitted as globals of the unit being lowered instead of
+    /// statement-scoped allocations. Each is
     /// named after the implementation that binds it and numbered by `retained_counters`, so separately
     /// compiled units define the same symbol only if they define the same POU.
     globals: Vec<String>,
@@ -595,25 +596,20 @@ impl<'a> InterfaceDispatchLowerer<'a> {
         // A function block or program VAR_OUTPUT is a plain member, but the call writes through it too.
         let by_ref = pointer || parameter.is_output();
 
-        // A stateful POU keeps a pointer-typed parameter between calls, and any POU may save a REFERENCE TO
-        // parameter with REF=, so such a fat pointer must outlive the calling function.
-        let stateful = parameter
-            .get_qualifier()
-            .and_then(|pou| self.index.find_pou(pou))
-            .is_some_and(|it| it.is_stateful());
-        let retained = pointer && (stateful || parameter_type.get_type_information().is_reference_to());
-
-        self.wrap_argument(arg, actual_type, expected_type, by_ref.then(|| parameter.get_name()), retained);
+        // A stateful POU keeps a pointer-typed parameter between calls, and any POU may save or forward
+        // the reference, so the fat pointer behind a pointer-typed parameter must outlive the calling
+        // function.
+        self.wrap_argument(arg, actual_type, expected_type, by_ref.then_some(parameter), pointer);
     }
 
-    /// Wraps `arg` for a parameter of `expected_type`. `by_ref` carries the parameter name when the callee
-    /// writes through the parameter, and `retained` whether the callee keeps it between calls.
+    /// Wraps `arg` for a parameter of `expected_type`. `by_ref` carries the parameter when the callee
+    /// writes through it, and `retained` whether the callee may keep the reference.
     fn wrap_argument(
         &mut self,
         arg: &mut AstNode,
         actual_type: &DataType,
         expected_type: &DataType,
-        by_ref: Option<&str>,
+        by_ref: Option<&VariableIndexEntry>,
         retained: bool,
     ) {
         // Not an interface parameter, nothing to do.
@@ -628,9 +624,9 @@ impl<'a> InterfaceDispatchLowerer<'a> {
 
             // A by-reference parameter is storage the callee writes through, so the argument is passed
             // as is and must be the exact interface; an upcast temporary would never reach the caller.
-            if let Some(parameter_name) = by_ref {
+            if let Some(parameter) = by_ref {
                 if let Some(diagnostic) = validation::validate_byref_interface_argument(
-                    parameter_name,
+                    parameter.get_name(),
                     target_iface,
                     source_iface,
                     &arg.location,
@@ -660,9 +656,21 @@ impl<'a> InterfaceDispatchLowerer<'a> {
         let pou_name = actual_type.get_name();
         let interface_name = expected_type.get_name();
 
-        if let Some(diagnostic) =
-            validation::validate_pou_implements_interface(self.index, pou_name, interface_name, &arg.location)
-        {
+        // A by-reference parameter needs a variable: a generated fat pointer would point at the temporary
+        // of a call result. Validate that here, before the argument is replaced, mirroring E031 for
+        // other by-reference parameters.
+        let diagnostic = by_ref
+            .and_then(|parameter| validation::validate_byref_argument_is_variable(self.index, parameter, arg))
+            .or_else(|| {
+                validation::validate_pou_implements_interface(
+                    self.index,
+                    pou_name,
+                    interface_name,
+                    &arg.location,
+                )
+            });
+
+        if let Some(diagnostic) = diagnostic {
             self.diagnostics.push(diagnostic);
 
             // Replace the argument with a dummy fat pointer so the call remains structurally
@@ -2789,8 +2797,9 @@ mod tests {
             "#);
         }
 
-        /// A concrete POU passed to a VAR_OUTPUT or VAR_IN_OUT interface parameter is wrapped in a
-        /// temporary fat pointer, exactly like a VAR_INPUT argument.
+        /// A concrete POU passed to a VAR_OUTPUT or VAR_IN_OUT interface parameter is wrapped in a fat
+        /// pointer, exactly like a VAR_INPUT argument. The callee may keep the reference, so the fat
+        /// pointer is a global of the unit rather than a statement-scoped allocation.
         #[test]
         fn concrete_pou_as_output_and_inout_argument() {
             let source = r#"
@@ -2826,20 +2835,16 @@ mod tests {
                 "// Statements in main",
                 "FbA__ctor(instanceOut)",
                 "FbA__ctor(instanceInout)",
-                "alloca __fatpointer_0: __FATPOINTER",
-                "__fatpointer_0.data := ADR(instanceOut)",
-                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __fatpointer_1: __FATPOINTER",
-                "__fatpointer_1.data := ADR(instanceInout)",
-                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
-                "consumer(__fatpointer_0, __fatpointer_1)",
-                "alloca __fatpointer_2: __FATPOINTER",
-                "__fatpointer_2.data := ADR(instanceOut)",
-                "__fatpointer_2.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __fatpointer_3: __FATPOINTER",
-                "__fatpointer_3.data := ADR(instanceInout)",
-                "__fatpointer_3.table := ADR(__itable_IA_FbA_instance)",
-                "consumer(out1 => __fatpointer_2, inout1 := __fatpointer_3)",
+                "__fatpointer_4main_0.data := ADR(instanceOut)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_1.data := ADR(instanceInout)",
+                "__fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_4main_0, __fatpointer_4main_1)",
+                "__fatpointer_4main_2.data := ADR(instanceOut)",
+                "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_3.data := ADR(instanceInout)",
+                "__fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(out1 => __fatpointer_4main_2, inout1 := __fatpointer_4main_3)",
             ]
             "#);
         }
@@ -2988,9 +2993,9 @@ mod tests {
         }
 
         /// A stateful POU keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter between
-        /// calls, and any POU may save a `REFERENCE TO` parameter, so the fat pointer wrapping a concrete
-        /// instance becomes a global of the unit named after the binding implementation. A function or
-        /// method `VAR_IN_OUT` only lives during the call and keeps the statement-scoped allocation.
+        /// calls, and any POU may save or forward such a parameter, so the fat pointer wrapping a
+        /// concrete instance becomes a global of the unit named after the binding implementation. Only a
+        /// by-value input, which copies the fat pointer, keeps the statement-scoped allocation.
         #[test]
         fn retained_arguments_use_global_fat_pointers() {
             let source = r#"
@@ -3027,6 +3032,7 @@ mod tests {
                 FUNCTION consumer
                     VAR_INPUT
                         ref1: REFERENCE TO IA;
+                        in1: IA;
                     END_VAR
                     VAR_IN_OUT
                         inout1: IA;
@@ -3042,7 +3048,7 @@ mod tests {
                     fbConsumer(instance, instance, instance);
                     fbConsumer(ref1 := instance, in1 := instance, inout1 := instance);
                     progConsumer(instance);
-                    consumer(instance, instance);
+                    consumer(instance, instance, instance);
                     fbConsumer.bind(instance);
                 END_FUNCTION
             "#;
@@ -3074,10 +3080,12 @@ mod tests {
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
-                "consumer(__fatpointer_4main_7, __fatpointer_0)",
                 "__fatpointer_4main_8.data := ADR(instance)",
                 "__fatpointer_4main_8.table := ADR(__itable_IA_FbA_instance)",
-                "fbConsumer.bind(__fatpointer_4main_8)",
+                "consumer(__fatpointer_4main_7, __fatpointer_0, __fatpointer_4main_8)",
+                "__fatpointer_4main_9.data := ADR(instance)",
+                "__fatpointer_4main_9.table := ADR(__itable_IA_FbA_instance)",
+                "fbConsumer.bind(__fatpointer_4main_9)",
             ]
             "#);
             insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
@@ -3094,6 +3102,7 @@ mod tests {
                 "__fatpointer_4main_6 : __FATPOINTER",
                 "__fatpointer_4main_7 : __FATPOINTER",
                 "__fatpointer_4main_8 : __FATPOINTER",
+                "__fatpointer_4main_9 : __FATPOINTER",
             ]
             "#);
         }
@@ -3263,6 +3272,60 @@ mod tests {
                 "// Statements in main",
                 "selected.data := ADR(SEL(FALSE, refIB, refIA))",
                 "selected.table := ADR(__itable_IA_REAL_instance)",
+            ]
+            "#);
+        }
+
+        /// A call result passed to a by-reference interface parameter is rejected with E031, as for any
+        /// other by-reference parameter, and replaced by an unfilled dummy. Passed by value it is wrapped.
+        #[test]
+        fn call_result_for_byref_parameter_is_rejected() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION producer : FbA
+                END_FUNCTION
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        in1: IA;
+                    END_VAR
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                    END_VAR
+
+                    consumer(producer(), instance);
+                    consumer(instance, producer());
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "alloca __producer0: FbA;",
+                "producer(__producer0);",
+                "__fatpointer_0.data := ADR(__producer0);",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_0.data := ADR(instance)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_0, __fatpointer_4main_0)",
+                "alloca __fatpointer_1: __FATPOINTER",
+                "__fatpointer_1.data := ADR(instance)",
+                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
+                "alloca __fatpointer_2: __FATPOINTER",
+                "consumer(__fatpointer_1, __fatpointer_2)",
             ]
             "#);
         }

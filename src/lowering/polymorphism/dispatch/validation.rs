@@ -18,7 +18,9 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::Index, lowering::polymorphism::table::interface::helper as itable_helper, resolver::AnnotationMap,
+    index::{Index, VariableIndexEntry},
+    lowering::polymorphism::table::interface::helper as itable_helper,
+    resolver::AnnotationMap,
 };
 
 /// Validates that a POU implements the target interface. Returns `Some(Diagnostic)` if not.
@@ -98,6 +100,39 @@ pub fn validate_byref_interface_argument(
         ))
         .with_error_code("E037")
         .with_location(location.clone()),
+    )
+}
+
+/// Validates that a concrete instance passed to a by-reference interface parameter is a variable, as a
+/// by-reference parameter of any other type requires. Returns `Some(Diagnostic)` if not.
+///
+/// ```st
+/// consumer(inout1 := instance);    // ok:    a variable
+/// consumer(inout1 := producer());  // error: a call result has no storage the callee may keep
+/// ```
+pub fn validate_byref_argument_is_variable(
+    index: &Index,
+    parameter: &VariableIndexEntry,
+    argument: &AstNode,
+) -> Option<Diagnostic> {
+    if argument.can_be_assigned_to() {
+        return None;
+    }
+
+    let parameter_kind =
+        if index.find_effective_type_info(parameter.get_type_name()).is_some_and(|it| it.is_reference_to()) {
+            "REFERENCE TO".to_string()
+        } else {
+            parameter.get_variable_type().to_string()
+        };
+
+    Some(
+        Diagnostic::new(format!(
+            "Expected a reference for parameter {} because their type is {parameter_kind}",
+            parameter.get_name()
+        ))
+        .with_error_code("E031")
+        .with_location(argument.location.clone()),
     )
 }
 

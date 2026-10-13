@@ -96,6 +96,8 @@ FUNCTION Report: DINT
 END_FUNCTION
 ```
 
+A parameter the call writes through, `VAR_OUTPUT`, `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO`, takes an interface variable of exactly its interface; a variable of a child or parent interface is rejected with E037. An instance of an implementing function block can be passed to such a parameter too. The callee then works through a reference to that instance, and an interface it assigns to the parameter does not reach the caller, because the instance cannot hold one.
+
 Use an interface when the implementations have nothing in common but their operations, and `EXTENDS` when they share data or behavior.
 
 
