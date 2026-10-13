@@ -470,6 +470,16 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
+        // Text locations of a CFC file point into its declaration, so slices must read that text
+        let declarations = self
+            .context
+            .sources_cfc()
+            .filter_map(|source| Some((source.get_location_str(), plc_cfc::declaration_text(source)?)))
+            .collect::<Vec<_>>();
+        for (path, text) in declarations {
+            self.context.register_text(path, text);
+        }
+
         let project = ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)?;
         Ok(project)
     }

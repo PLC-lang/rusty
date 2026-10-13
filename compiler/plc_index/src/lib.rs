@@ -23,6 +23,10 @@ pub struct GlobalContext {
     /// the relative file path and the value some [`SourceCode`]
     sources: FxHashMap<&'static str, SourceCode>,
 
+    /// Text that slices read instead of a file's raw source, for files whose text locations point
+    /// into a derived text, e.g. a CFC file's locations point into its embedded declaration
+    texts: FxHashMap<&'static str, String>,
+
     /// [`IdProvider`] used during the parsing session
     provider: IdProvider,
     error_fmt: ErrorFormat,
@@ -90,6 +94,11 @@ impl GlobalContext {
         self.generate_external_constructors
     }
 
+    /// Registers the text that slices of the given file read instead of its raw source
+    pub fn register_text(&mut self, path: &'static str, text: String) {
+        self.texts.insert(path, text);
+    }
+
     /// Returns some [`SourceCode`] based on the given key
     pub fn get(&self, key: &str) -> Option<&SourceCode> {
         self.sources.get(key)
@@ -120,10 +129,11 @@ impl GlobalContext {
     pub fn slice_raw(&self, location: &SourceLocation) -> &str {
         let path = location.get_file_name().unwrap_or("<internal>");
 
-        let Some(code) = self.sources.get(path) else { return "" };
+        let text = self.texts.get(path).or_else(|| self.sources.get(path).map(|code| &code.source));
+        let Some(code) = text else { return "" };
         let Some(span) = location.get_span().to_range() else { return "" };
 
-        &code.source[span]
+        &code[span]
     }
 
     // TODO: This is a proof-of-concept version how we could use the GlobalContext to handle

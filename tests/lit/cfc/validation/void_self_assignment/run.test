@@ -1,0 +1,5 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+The POU's name is sliced from the declaration text the IDE's text editor shows.
+CHECK: {{.*}}void_self_assignment.cfc.void_self_assignment:1: error[E037]: Invalid assignment: cannot assign 'INT' to 'void_self_assignment'
+CHECK: error: Compilation aborted due to critical errors
