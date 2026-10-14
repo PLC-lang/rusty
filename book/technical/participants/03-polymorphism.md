@@ -535,9 +535,9 @@ A function block or program keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENC
 
 Every instance bound at the same call site shares that global, so a loop that binds several instances through one call leaves all of them referring to the instance bound last, and a recursive activation that binds a different instance at the same site rebinds the outer activation's parameter as well.
 
-A by-reference parameter needs a variable. A concrete instance that is a call result, an element of a call result, also behind a cast, or a literal is not wrapped with its address; the pointee of a dereferenced pointer counts as a variable, whatever produced the pointer. The lowerer reports E031 for it, as the validator does for any other by-reference parameter, and substitutes an unfilled dummy fat pointer so that the call stays structurally valid. An interface-typed call result is left unchanged, and the validator's own by-reference diagnostic applies to it.
+A by-reference parameter needs a variable, because the callee may keep the address. A call result, an element of a call result, also behind a cast, or a literal is not passed; the pointee of a dereferenced pointer counts as a variable, whatever produced the pointer. The lowerer reports E031 for it, as the validator does for a by-reference parameter of an elementary type, and for a concrete instance substitutes an unfilled dummy fat pointer so that the call stays structurally valid; an interface-typed call result is left in place, since the call is structurally valid already.
 
-Multiple interface arguments in a single call each get their own temporary; the counter of the statement-scoped allocations is shared by the whole compilation and never reset, while the retained globals described below are numbered per binding POU name:
+Multiple interface arguments in a single call each get their own temporary; the counter of the statement-scoped allocations is shared by the whole compilation and never reset, while the retained globals described above are numbered per binding POU name:
 
 ```diff
 -consumer(instanceA, instanceB, instanceC);

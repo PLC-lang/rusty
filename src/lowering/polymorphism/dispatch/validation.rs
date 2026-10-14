@@ -103,8 +103,9 @@ pub fn validate_byref_interface_argument(
     )
 }
 
-/// Validates that a concrete instance passed to a by-reference interface parameter is a variable, as a
-/// by-reference parameter of any other type requires. Returns `Some(Diagnostic)` if not.
+/// Validates that an argument passed to a by-reference interface parameter is a variable, as a
+/// by-reference parameter of any other type requires; the callee may keep the address, which a call
+/// result's temporary does not survive. Returns `Some(Diagnostic)` if not.
 ///
 /// ```st
 /// consumer(inout1 := instance);       // ok:    a variable

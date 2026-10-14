@@ -1108,6 +1108,10 @@ mod interface {
                 getPtr := ADR(globalInstance);
             END_FUNCTION
 
+            FUNCTION producerIA : IA
+                producerIA := globalInstance;
+            END_FUNCTION
+
             FUNCTION consumer
                 VAR_INPUT
                     in1 : IA;
@@ -1137,6 +1141,8 @@ mod interface {
                 fbConsumer(instances[0]);
                 fbConsumer(getPtr()^);
                 fbConsumer(FbA#(instance));
+                fbConsumer(producerIA());
+                consumer(producerIA(), producerIA());
             END_FUNCTION
         "#;
 
@@ -1144,28 +1150,40 @@ mod interface {
 
         insta::assert_snapshot!(diagnostics, @"
         error[E031]: Expected a reference for parameter inout1 because their type is InOut
-           ┌─ <internal>:44:36
+           ┌─ <internal>:48:36
            │
-        44 │                 consumer(instance, producer());
+        48 │                 consumer(instance, producer());
            │                                    ^^^^^^^^^^^ Expected a reference for parameter inout1 because their type is InOut
 
         error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
-           ┌─ <internal>:45:28
+           ┌─ <internal>:49:28
            │
-        45 │                 fbConsumer(producer());
+        49 │                 fbConsumer(producer());
            │                            ^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
 
         error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
-           ┌─ <internal>:46:28
+           ┌─ <internal>:50:28
            │
-        46 │                 fbConsumer(producerArray()[0]);
+        50 │                 fbConsumer(producerArray()[0]);
            │                            ^^^^^^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
 
         error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
-           ┌─ <internal>:47:28
+           ┌─ <internal>:51:28
            │
-        47 │                 fbConsumer(FbA#(producerArray()[0]));
+        51 │                 fbConsumer(FbA#(producerArray()[0]));
            │                            ^^^^^^^^^^^^^^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
+
+        error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
+           ┌─ <internal>:55:28
+           │
+        55 │                 fbConsumer(producerIA());
+           │                            ^^^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
+
+        error[E031]: Expected a reference for parameter inout1 because their type is InOut
+           ┌─ <internal>:56:40
+           │
+        56 │                 consumer(producerIA(), producerIA());
+           │                                        ^^^^^^^^^^^^^ Expected a reference for parameter inout1 because their type is InOut
         ");
     }
 

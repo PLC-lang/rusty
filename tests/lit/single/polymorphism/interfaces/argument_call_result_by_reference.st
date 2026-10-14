@@ -25,6 +25,14 @@ END_FUNCTION
 FUNCTION producerArray : ARRAY[0..1] OF FbA
 END_FUNCTION
 
+VAR_GLOBAL
+    globalInstance : FbA;
+END_VAR
+
+FUNCTION producerIA : IA
+    producerIA := globalInstance;
+END_FUNCTION
+
 FUNCTION consumerInOut
     VAR_IN_OUT
         inout1 : IA;
@@ -45,6 +53,13 @@ FUNCTION main
     // An element of a call result lives in the result's temporary as well.
     // CHECK-DAG: {{.*}}argument_call_result_by_reference.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E031]: Expected a reference for parameter in1 because their type is REFERENCE TO
     globalConsumer(producerArray()[0]);
+
+    // An interface-typed call result is a temporary too, so the callee must not keep its address.
+    // CHECK-DAG: {{.*}}argument_call_result_by_reference.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E031]: Expected a reference for parameter in1 because their type is REFERENCE TO
+    globalConsumer(producerIA());
+
+    // CHECK-DAG: {{.*}}argument_call_result_by_reference.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E031]: Expected a reference for parameter inout1 because their type is InOut
+    consumerInOut(producerIA());
 
     // CHECK: {{.*}}Compilation aborted due to critical errors
 END_FUNCTION

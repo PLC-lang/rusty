@@ -868,14 +868,19 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             let target_iface = expected_type.get_name();
 
             // A by-reference parameter is storage the callee writes through, so the argument is passed
-            // as is and must be the exact interface; an upcast temporary would never reach the caller.
+            // as is: it must be a variable, since the callee may keep its address, and the exact
+            // interface, since an upcast temporary would never reach the caller.
             if let Some(parameter) = by_ref {
-                if let Some(diagnostic) = validation::validate_byref_interface_argument(
-                    parameter.get_name(),
-                    target_iface,
-                    source_iface,
-                    &arg.location,
-                ) {
+                let diagnostic = validation::validate_byref_argument_is_variable(self.index, parameter, arg)
+                    .or_else(|| {
+                        validation::validate_byref_interface_argument(
+                            parameter.get_name(),
+                            target_iface,
+                            source_iface,
+                            &arg.location,
+                        )
+                    });
+                if let Some(diagnostic) = diagnostic {
                     self.diagnostics.push(diagnostic);
                 }
 
