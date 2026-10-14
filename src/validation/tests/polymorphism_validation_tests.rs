@@ -1100,6 +1100,14 @@ mod interface {
             FUNCTION producerArray : ARRAY[0..1] OF FbA
             END_FUNCTION
 
+            VAR_GLOBAL
+                globalInstance : FbA;
+            END_VAR
+
+            FUNCTION getPtr : POINTER TO FbA
+                getPtr := ADR(globalInstance);
+            END_FUNCTION
+
             FUNCTION consumer
                 VAR_INPUT
                     in1 : IA;
@@ -1125,7 +1133,9 @@ mod interface {
                 consumer(instance, producer());
                 fbConsumer(producer());
                 fbConsumer(producerArray()[0]);
+                fbConsumer(FbA#(producerArray()[0]));
                 fbConsumer(instances[0]);
+                fbConsumer(getPtr()^);
             END_FUNCTION
         "#;
 
@@ -1133,22 +1143,28 @@ mod interface {
 
         insta::assert_snapshot!(diagnostics, @"
         error[E031]: Expected a reference for parameter inout1 because their type is InOut
-           ┌─ <internal>:36:36
+           ┌─ <internal>:44:36
            │
-        36 │                 consumer(instance, producer());
+        44 │                 consumer(instance, producer());
            │                                    ^^^^^^^^^^^ Expected a reference for parameter inout1 because their type is InOut
 
         error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
-           ┌─ <internal>:37:28
+           ┌─ <internal>:45:28
            │
-        37 │                 fbConsumer(producer());
+        45 │                 fbConsumer(producer());
            │                            ^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
 
         error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
-           ┌─ <internal>:38:28
+           ┌─ <internal>:46:28
            │
-        38 │                 fbConsumer(producerArray()[0]);
+        46 │                 fbConsumer(producerArray()[0]);
            │                            ^^^^^^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
+
+        error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
+           ┌─ <internal>:47:28
+           │
+        47 │                 fbConsumer(FbA#(producerArray()[0]));
+           │                            ^^^^^^^^^^^^^^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
         ");
     }
 

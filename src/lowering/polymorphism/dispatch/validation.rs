@@ -13,7 +13,7 @@
 //! break existing validations (some SUPER tests failed when I tried this). As a result, doing validations
 //! during lowering is the most pragmatic option right now, even if it's a bit inelegant.
 
-use plc_ast::ast::{AstNode, AstStatement, ReferenceExpr};
+use plc_ast::ast::{AstNode, AstStatement, ReferenceAccess, ReferenceExpr};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
@@ -110,6 +110,7 @@ pub fn validate_byref_interface_argument(
 /// consumer(inout1 := instance);       // ok:    a variable
 /// consumer(inout1 := producer());     // error: a call result has no storage the callee may keep
 /// consumer(inout1 := producer()[0]);  // error: an element of a call result lives in its temporary
+/// consumer(inout1 := getPtr()^);      // ok:    the pointee of a returned pointer is not a temporary
 /// ```
 pub fn validate_byref_argument_is_variable(
     index: &Index,
@@ -151,10 +152,15 @@ fn located(node: &AstNode) -> SourceLocation {
 }
 
 /// Whether `node` is a reference whose root is a variable, the instance itself or its parent rather
-/// than a call result, so that its storage outlives the statement.
+/// than a call result, so that its storage outlives the statement. A dereference names the storage
+/// the pointer refers to, whatever produced the pointer, and a cast is judged by its operand.
 fn is_variable_backed(node: &AstNode) -> bool {
     match &node.stmt {
         AstStatement::Identifier(_) | AstStatement::This | AstStatement::Super(_) => true,
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }) => true,
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(operand), .. }) => {
+            is_variable_backed(operand)
+        }
         AstStatement::ReferenceExpr(ReferenceExpr { base, .. }) => {
             base.as_ref().is_none_or(|base| is_variable_backed(base))
         }

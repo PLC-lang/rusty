@@ -535,7 +535,7 @@ A function block or program keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENC
 
 Every instance bound at the same call site shares that global, so a loop that binds several instances through one call leaves all of them referring to the instance bound last, and a recursive activation that binds a different instance at the same site rebinds the outer activation's parameter as well.
 
-A by-reference parameter needs a variable. A concrete instance that is a call result, an element of a call result or a literal is not wrapped with its address; the lowerer reports E031 for it, as the validator does for any other by-reference parameter, and substitutes an unfilled dummy fat pointer so that the call stays structurally valid. An interface-typed call result is left unchanged, and the validator's own by-reference diagnostic applies to it.
+A by-reference parameter needs a variable. A concrete instance that is a call result, an element of a call result, also behind a cast, or a literal is not wrapped with its address; the pointee of a dereferenced pointer counts as a variable, whatever produced the pointer. The lowerer reports E031 for it, as the validator does for any other by-reference parameter, and substitutes an unfilled dummy fat pointer so that the call stays structurally valid. An interface-typed call result is left unchanged, and the validator's own by-reference diagnostic applies to it.
 
 Multiple interface arguments in a single call each get their own temporary; the counter of the statement-scoped allocations is shared by the whole compilation and never reset, while the retained globals described below are numbered per binding POU name:
 
