@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-e3dc9425.js";
+            window.path_to_searchindex_js = "searchindex-1d65fcef.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-645c3480.js"></script>
@@ -2838,7 +2838,7 @@ plc build src/plc.json    # reads the given file
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="standard-library"><a class="header" href="#standard-library">Standard Library</a></h1>
 <p><code>iec61131std</code> provides the functions and function blocks of IEC 61131-3. This page says what is in it and which file declares each family. For the signature of a single function, read that file.</p>
-<p>One name appears here and in <a href="#built-in-functions">Built-in Functions</a>: <code>ABS</code> is built into the compiler, and the library declares it again to widen what a call accepts.</p>
+<p>The library declares no function that is also in <a href="#built-in-functions">Built-in Functions</a>. <code>ABS</code> is built into the compiler and needs no library.</p>
 <h2 id="using-it"><a class="header" href="#using-it">Using it</a></h2>
 <p>A release installs the library and its declarations:</p>
 <div class="table-wrapper">
@@ -2868,7 +2868,7 @@ plc build src/plc.json    # reads the given file
 </thead>
 <tbody>
 <tr><td>Arithmetic</td><td><code>arithmetic_functions.st</code></td><td><code>SQRT</code>, <code>LN</code>, <code>LOG</code>, <code>EXP</code>, <code>SIN</code>, <code>COS</code>, <code>TAN</code>, <code>ASIN</code>, <code>ACOS</code>, <code>ATAN</code>, <code>ATAN2</code>, <code>EXPT</code>, and the constants <code>PI_REAL</code>, <code>FRAC_PI_2_REAL</code>, <code>FRAC_PI_4_REAL</code>, <code>E_REAL</code>, <code>INF_REAL</code>, and <code>NAN_REAL</code>, each also in an <code>LREAL</code> form such as <code>PI_LREAL</code></td></tr>
-<tr><td>Numerical</td><td><code>numerical_functions.st</code></td><td><code>ABS</code></td></tr>
+<tr><td>Numerical</td><td><code>numerical_functions.st</code></td><td><code>ABS__SINT</code>, <code>ABS__INT</code>, <code>ABS__DINT</code>, <code>ABS__LINT</code>, <code>ABS__REAL</code>, and <code>ABS__LREAL</code>, each the built-in <code>ABS</code> for one type</td></tr>
 <tr><td>Selectors</td><td><code>selectors.st</code></td><td><code>MAX</code>, <code>MIN</code>, <code>LIMIT</code></td></tr>
 <tr><td>Bit shifts</td><td><code>bit_shift_functions.st</code></td><td><code>ROL</code>, <code>ROR</code></td></tr>
 <tr><td>Endianness</td><td><code>endianness_conversion_functions.st</code></td><td><code>TO_BIG_ENDIAN</code>, <code>TO_LITTLE_ENDIAN</code>, and back</td></tr>
