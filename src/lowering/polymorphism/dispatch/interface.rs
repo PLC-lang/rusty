@@ -208,6 +208,11 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// Whether codegen omits the body of the implementation being visited.
     current_pou_external: bool,
 
+    /// Whether the implementation being visited is a generic template. Overloaded templates share one
+    /// declaration for member lookup, so a `VAR_TEMP` added to one of them is not found from the
+    /// other; a short-circuit in a template keeps the eager preamble.
+    current_pou_generic: bool,
+
     /// Identity of the implementation being visited in retained global names: its mangled name, e.g.
     /// `FbA__foo` for the method `FbA.foo`, and the generic signature of a template, each prefixed with
     /// its length so that no other POU name reads the same, e.g. `4bind_7ANY_INT` for `bind<T: ANY_INT>`.
@@ -264,6 +269,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             globals: Vec::new(),
             external_globals: Vec::new(),
             current_pou_external: false,
+            current_pou_generic: false,
             current_pou: String::new(),
             generic_signatures: FxHashMap::default(),
             retained_counters: FxHashMap::default(),
@@ -360,6 +366,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             self.current_pou = format!("{}_{}{signature}", self.current_pou, signature.len());
         }
         self.current_pou_external = implementation.linkage.is_external() || implementation.generic;
+        self.current_pou_generic = implementation.generic;
         implementation.walk(self);
     }
 
@@ -494,7 +501,8 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
     /// that evaluates it and leaves its value in a BOOL `VAR_TEMP` of the POU. The IF is hoisted as
     /// well, so this only applies where the short-circuit is the first thing its statement evaluates,
     /// where both operands are BOOL so that validation still sees a wrong operand, and where the POU
-    /// is declared in this unit and can take the `VAR_TEMP`; elsewhere the preamble stays eager.
+    /// is declared in this unit, is not a generic template and can take the `VAR_TEMP`; elsewhere the
+    /// preamble stays eager.
     ///
     /// ```text
     /// // Before:
@@ -519,6 +527,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         let short_circuit = matches!(operator, Operator::AndThen | Operator::OrElse);
         let conditional = short_circuit
             && self.leading
+            && !self.current_pou_generic
             && self.unit_pous.contains(&self.current_pou_type)
             && self.annotations.get_type_or_void(left, self.index).get_type_information().is_bool()
             && self.annotations.get_type_or_void(right, self.index).get_type_information().is_bool();
@@ -572,6 +581,19 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             self.ids.next_id(),
         ));
         *node = helper::create_identifier_ref(&mut self.ids, &name);
+    }
+
+    /// `REF=` computes its target like `:=`, so the value is only evaluated first for a static target.
+    fn visit_ref_assignment(&mut self, node: &mut AstNode) {
+        let AstStatement::RefAssignment(Assignment { left, right }) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        let leading = self.leading && self.has_static_address(left);
+        self.leading = false;
+        self.visit(left);
+        self.leading = leading;
+        self.visit(right);
     }
 
     /// A base whose address needs evaluation, such as a call result or a dereferenced pointer, is
@@ -3692,6 +3714,7 @@ mod tests {
                         values : ARRAY[0..1] OF BOOL;
                         matrix : ARRAY[0..1, 0..1] OF BOOL;
                         target : REFERENCE TO BOOL;
+                        ptrs : ARRAY[0..1] OF REFERENCE TO BOOL;
                         i : DINT;
                     END_VAR
 
@@ -3703,6 +3726,7 @@ mod tests {
                     main := values()[enabled AND_THEN holder.bind(instance)];
                     main := matrix[i, enabled AND_THEN holder.bind(instance)];
                     target := enabled AND_THEN holder.bind(instance);
+                    ptrs[i] REF= values[enabled AND_THEN holder.bind(instance)];
                     IF enable() THEN
                     ELSIF enabled AND_THEN holder.bind(instance) THEN
                     END_IF
@@ -3717,6 +3741,7 @@ mod tests {
                 "__main_values__ctor(values)",
                 "__main_matrix__ctor(matrix)",
                 "__main_target__ctor(target)",
+                "__main_ptrs__ctor(ptrs)",
                 "__fatpointer_4main_0.data := ADR(instance)",
                 "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
                 "main := enable() AND (enabled AND_THEN holder.bind(__fatpointer_4main_0))",
@@ -3743,18 +3768,63 @@ mod tests {
                 "__fatpointer_4main_7.data := ADR(instance)",
                 "__fatpointer_4main_7.table := ADR(__itable_IA_FbA_instance)",
                 "target := enabled AND_THEN holder.bind(__fatpointer_4main_7)",
+                "__fatpointer_4main_8.data := ADR(instance)",
+                "__fatpointer_4main_8.table := ADR(__itable_IA_FbA_instance)",
+                "ptrs[i] REF= values[enabled AND_THEN holder.bind(__fatpointer_4main_8)]",
                 "IF enable() THEN",
                 "ELSE",
                 "    IF enabled THEN",
-                "        __fatpointer_4main_8.data := ADR(instance)",
-                "        __fatpointer_4main_8.table := ADR(__itable_IA_FbA_instance)",
-                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_8)",
+                "        __fatpointer_4main_9.data := ADR(instance)",
+                "        __fatpointer_4main_9.table := ADR(__itable_IA_FbA_instance)",
+                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_9)",
                 "    ELSE",
                 "        __shortcircuit_0 := FALSE",
                 "    END_IF",
                 "    IF __shortcircuit_0 THEN",
                 "    END_IF",
                 "END_IF",
+            ]
+            "#);
+        }
+
+        /// A generic template keeps the eager preamble: overloaded templates share one declaration for
+        /// member lookup, so a `VAR_TEMP` added to one of them is not found from the other.
+        #[test]
+        fn short_circuit_operand_in_generic_template_keeps_eager_preamble() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consume : BOOL
+                    VAR_INPUT
+                        in1 : IA;
+                    END_VAR
+                END_FUNCTION
+
+                VAR_GLOBAL
+                    enabled : BOOL;
+                    instance : FbA;
+                END_VAR
+
+                FUNCTION bind<T: ANY_INT> : BOOL
+                    VAR_INPUT
+                        value : T;
+                    END_VAR
+
+                    bind := enabled AND_THEN consume(instance);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["bind"]), @r#"
+            [
+                "// Statements in bind",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "bind := enabled AND_THEN consume(__fatpointer_0)",
             ]
             "#);
         }
