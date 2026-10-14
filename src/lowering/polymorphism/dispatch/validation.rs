@@ -171,18 +171,18 @@ fn is_variable_backed(node: &AstNode) -> bool {
     }
 }
 
-/// Validates that a concrete instance is not passed to a sized variadic whose element type is
-/// `REFERENCE TO` the interface. The variadic stores each element by value in a pointer-sized slot, so
-/// the fat pointer that would wrap the instance cannot be passed. Returns `Some(Diagnostic)` if it is.
+/// Validates that nothing is passed to a sized variadic whose element type is `REFERENCE TO` the
+/// interface. The variadic stores each element by value in a pointer-sized slot, which neither an
+/// interface reference nor the fat pointer wrapping an instance fits. Returns `Some(Diagnostic)` if it is.
 ///
 /// ```st
-/// consume(reference);  // ok:    an interface reference fits the element
-/// consume(instance);   // error: the wrapping fat pointer does not
+/// consume(reference);  // error: the fat pointer does not fit the element
+/// consume(instance);   // error: neither does the one wrapping the instance
 /// ```
-pub fn validate_variadic_takes_instance(
+pub fn validate_variadic_takes_argument(
     index: &Index,
     parameter: &VariableIndexEntry,
-    pou_name: &str,
+    argument_type: &str,
     interface_name: &str,
     location: &SourceLocation,
 ) -> Option<Diagnostic> {
@@ -194,7 +194,7 @@ pub fn validate_variadic_takes_instance(
 
     Some(
         Diagnostic::new(format!(
-            "Parameter {} is a sized variadic of REFERENCE TO {interface_name} and cannot take an instance of {pou_name}",
+            "Parameter {} is a sized variadic of REFERENCE TO {interface_name} and cannot take an argument of type {argument_type}",
             parameter.get_name()
         ))
         .with_error_code("E159")

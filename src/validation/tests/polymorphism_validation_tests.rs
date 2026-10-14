@@ -1222,7 +1222,7 @@ mod interface {
     }
 
     #[test]
-    fn call_arg_instance_to_reference_to_variadic() {
+    fn call_arg_to_reference_to_variadic() {
         let source = r#"
             INTERFACE IA
             END_INTERFACE
@@ -1258,11 +1258,17 @@ mod interface {
         let diagnostics = parse_and_validate_buffered(source);
 
         insta::assert_snapshot!(diagnostics, @"
-        error[E159]: Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an instance of FbA
+        error[E159]: Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type IA
+           ┌─ <internal>:27:25
+           │
+        27 │                 consume(reference);
+           │                         ^^^^^^^^^ Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type IA
+
+        error[E159]: Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type FbA
            ┌─ <internal>:28:25
            │
         28 │                 consume(instance);
-           │                         ^^^^^^^^ Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an instance of FbA
+           │                         ^^^^^^^^ Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type FbA
         ");
     }
 

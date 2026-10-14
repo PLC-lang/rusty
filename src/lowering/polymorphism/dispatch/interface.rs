@@ -879,6 +879,15 @@ impl<'a> InterfaceDispatchLowerer<'a> {
                             source_iface,
                             &arg.location,
                         )
+                    })
+                    .or_else(|| {
+                        validation::validate_variadic_takes_argument(
+                            self.index,
+                            parameter,
+                            source_iface,
+                            target_iface,
+                            &arg.location,
+                        )
                     });
                 if let Some(diagnostic) = diagnostic {
                     self.diagnostics.push(diagnostic);
@@ -921,7 +930,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             })
             .or_else(|| {
                 by_ref.and_then(|parameter| {
-                    validation::validate_variadic_takes_instance(
+                    validation::validate_variadic_takes_argument(
                         self.index,
                         parameter,
                         pou_name,
