@@ -150,11 +150,11 @@ fn located(node: &AstNode) -> SourceLocation {
     }
 }
 
-/// Whether `node` is a reference whose root is a variable rather than a call result, so that its
-/// storage outlives the statement.
+/// Whether `node` is a reference whose root is a variable, the instance itself or its parent rather
+/// than a call result, so that its storage outlives the statement.
 fn is_variable_backed(node: &AstNode) -> bool {
     match &node.stmt {
-        AstStatement::Identifier(_) => true,
+        AstStatement::Identifier(_) | AstStatement::This | AstStatement::Super(_) => true,
         AstStatement::ReferenceExpr(ReferenceExpr { base, .. }) => {
             base.as_ref().is_none_or(|base| is_variable_backed(base))
         }

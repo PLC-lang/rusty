@@ -1153,6 +1153,40 @@ mod interface {
     }
 
     #[test]
+    fn call_arg_this_backed_to_byref_param() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbConsumer
+                VAR_INPUT
+                    ref1 : REFERENCE TO IA;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbHolder IMPLEMENTS IA
+                VAR
+                    instance : FbA;
+                    consumer : FbConsumer;
+                END_VAR
+
+                METHOD bind
+                    consumer(THIS^.instance);
+                    consumer(THIS^);
+                    consumer(instance);
+                END_METHOD
+            END_FUNCTION_BLOCK
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
     fn short_circuit_with_wrapped_argument_keeps_operand_check() {
         let source = r#"
             INTERFACE IA
