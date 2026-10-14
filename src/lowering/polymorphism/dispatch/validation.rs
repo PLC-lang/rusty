@@ -13,7 +13,7 @@
 //! break existing validations (some SUPER tests failed when I tried this). As a result, doing validations
 //! during lowering is the most pragmatic option right now, even if it's a bit inelegant.
 
-use plc_ast::ast::AstNode;
+use plc_ast::ast::{AstNode, AstStatement, ReferenceExpr};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
@@ -107,15 +107,16 @@ pub fn validate_byref_interface_argument(
 /// by-reference parameter of any other type requires. Returns `Some(Diagnostic)` if not.
 ///
 /// ```st
-/// consumer(inout1 := instance);    // ok:    a variable
-/// consumer(inout1 := producer());  // error: a call result has no storage the callee may keep
+/// consumer(inout1 := instance);       // ok:    a variable
+/// consumer(inout1 := producer());     // error: a call result has no storage the callee may keep
+/// consumer(inout1 := producer()[0]);  // error: an element of a call result lives in its temporary
 /// ```
 pub fn validate_byref_argument_is_variable(
     index: &Index,
     parameter: &VariableIndexEntry,
     argument: &AstNode,
 ) -> Option<Diagnostic> {
-    if argument.can_be_assigned_to() {
+    if argument.can_be_assigned_to() && is_variable_backed(argument) {
         return None;
     }
 
@@ -132,8 +133,33 @@ pub fn validate_byref_argument_is_variable(
             parameter.get_name()
         ))
         .with_error_code("E031")
-        .with_location(argument.location.clone()),
+        .with_location(located(argument)),
     )
+}
+
+/// The location of `node`, or of its innermost located base when the node itself, such as an index
+/// access on a call result, carries none.
+fn located(node: &AstNode) -> SourceLocation {
+    match &node.stmt {
+        AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. })
+            if node.location.is_undefined() =>
+        {
+            located(base)
+        }
+        _ => node.location.clone(),
+    }
+}
+
+/// Whether `node` is a reference whose root is a variable rather than a call result, so that its
+/// storage outlives the statement.
+fn is_variable_backed(node: &AstNode) -> bool {
+    match &node.stmt {
+        AstStatement::Identifier(_) => true,
+        AstStatement::ReferenceExpr(ReferenceExpr { base, .. }) => {
+            base.as_ref().is_none_or(|base| is_variable_backed(base))
+        }
+        _ => false,
+    }
 }
 
 /// Validates that an interface reference is not called directly.

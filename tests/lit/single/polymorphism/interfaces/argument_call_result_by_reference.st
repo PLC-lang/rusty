@@ -22,6 +22,9 @@ END_FUNCTION_BLOCK
 FUNCTION producer : FbA
 END_FUNCTION
 
+FUNCTION producerArray : ARRAY[0..1] OF FbA
+END_FUNCTION
+
 FUNCTION consumerInOut
     VAR_IN_OUT
         inout1 : IA;
@@ -38,6 +41,10 @@ FUNCTION main
 
     // CHECK-DAG: {{.*}}argument_call_result_by_reference.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E031]: Expected a reference for parameter inout1 because their type is InOut
     consumerInOut(producer());
+
+    // An element of a call result lives in the result's temporary as well.
+    // CHECK-DAG: {{.*}}argument_call_result_by_reference.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E031]: Expected a reference for parameter in1 because their type is REFERENCE TO
+    globalConsumer(producerArray()[0]);
 
     // CHECK: {{.*}}Compilation aborted due to critical errors
 END_FUNCTION

@@ -502,7 +502,7 @@ This works with named arguments too:
 +consumer(in := __fatpointer_0);
 ```
 
-The lowerer binds each argument to its callee parameter first: a named argument names its declaring POU and position in its argument annotation, a positional argument is bound by slot over the callee's parameters, inherited ones included, and a surplus positional argument binds to the variadic parameter. A `VAR_IN_OUT`, `VAR_INPUT {ref}`, `REFERENCE TO` or function `VAR_OUTPUT` parameter is indexed as an auto-deref pointer to the interface, so the lowerer looks through the pointer and the callee receives the address of the fat pointer. A function block or program `VAR_OUTPUT` is a plain member: the call runs the POU and codegen then copies the member into the fat pointer. In both cases a concrete instance is wrapped in the same way, but the fat pointer is a global of the unit rather than a statement-scoped temporary, named as described below:
+The lowerer binds each argument to its callee parameter first: a named argument names its declaring POU and position in its argument annotation, a positional argument is bound by slot over the callee's parameters, inherited ones included, and a surplus positional argument binds to the variadic parameter. A `VAR_IN_OUT`, `VAR_INPUT {ref}`, `REFERENCE TO` or function `VAR_OUTPUT` parameter is indexed as an auto-deref pointer to the interface, so the lowerer looks through the pointer and the callee receives the address of the fat pointer. A function block or program `VAR_OUTPUT` is a plain member: the call runs the POU and codegen then copies the member into the fat pointer, which stays a statement-scoped temporary. In both cases a concrete instance is wrapped in the same way, but for a pointer-backed parameter the fat pointer is a global of the unit, named as described below:
 
 ```diff
 -consumer(out => instanceFbA, inout := instanceFbB);
@@ -535,7 +535,7 @@ A function block or program keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENC
 
 Every instance bound at the same call site shares that global, so a loop that binds several instances through one call leaves all of them referring to the instance bound last, and a recursive activation that binds a different instance at the same site rebinds the outer activation's parameter as well.
 
-A by-reference parameter needs a variable. A concrete instance that is a call result or literal is not wrapped with its address; the lowerer reports E031 for it, as the validator does for any other by-reference parameter, and substitutes an unfilled dummy fat pointer so that the call stays structurally valid. An interface-typed call result is left unchanged, and the validator's own by-reference diagnostic applies to it.
+A by-reference parameter needs a variable. A concrete instance that is a call result, an element of a call result or a literal is not wrapped with its address; the lowerer reports E031 for it, as the validator does for any other by-reference parameter, and substitutes an unfilled dummy fat pointer so that the call stays structurally valid. An interface-typed call result is left unchanged, and the validator's own by-reference diagnostic applies to it.
 
 Multiple interface arguments in a single call each get their own temporary; the counter is shared by the whole compilation and never reset:
 

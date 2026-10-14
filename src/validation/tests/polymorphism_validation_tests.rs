@@ -1097,6 +1097,9 @@ mod interface {
             FUNCTION producer : FbA
             END_FUNCTION
 
+            FUNCTION producerArray : ARRAY[0..1] OF FbA
+            END_FUNCTION
+
             FUNCTION consumer
                 VAR_INPUT
                     in1 : IA;
@@ -1115,11 +1118,14 @@ mod interface {
             FUNCTION main
                 VAR
                     instance : FbA;
+                    instances : ARRAY[0..1] OF FbA;
                     fbConsumer : FbConsumer;
                 END_VAR
                 consumer(producer(), instance);
                 consumer(instance, producer());
                 fbConsumer(producer());
+                fbConsumer(producerArray()[0]);
+                fbConsumer(instances[0]);
             END_FUNCTION
         "#;
 
@@ -1127,16 +1133,22 @@ mod interface {
 
         insta::assert_snapshot!(diagnostics, @"
         error[E031]: Expected a reference for parameter inout1 because their type is InOut
-           ┌─ <internal>:32:36
+           ┌─ <internal>:36:36
            │
-        32 │                 consumer(instance, producer());
+        36 │                 consumer(instance, producer());
            │                                    ^^^^^^^^^^^ Expected a reference for parameter inout1 because their type is InOut
 
         error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
-           ┌─ <internal>:33:28
+           ┌─ <internal>:37:28
            │
-        33 │                 fbConsumer(producer());
+        37 │                 fbConsumer(producer());
            │                            ^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
+
+        error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
+           ┌─ <internal>:38:28
+           │
+        38 │                 fbConsumer(producerArray()[0]);
+           │                            ^^^^^^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
         ");
     }
 
