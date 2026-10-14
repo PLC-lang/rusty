@@ -594,6 +594,19 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         }
     }
 
+    /// The elements of an expression list, such as the dimensions of an array index, are evaluated in
+    /// order, so only the first one can be the first thing the statement evaluates.
+    fn visit_expression_list(&mut self, node: &mut AstNode) {
+        let AstStatement::ExpressionList(expressions) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        for expression in expressions.iter_mut() {
+            self.visit(expression);
+            self.leading = false;
+        }
+    }
+
     /// Only the first condition of an IF and the selector of a CASE are evaluated first; a later
     /// condition or a loop condition is not, so a short-circuit there keeps the eager preamble.
     fn visit_control_statement(&mut self, node: &mut AstNode) {
@@ -3675,6 +3688,7 @@ mod tests {
                         holder : Holder;
                         instance : FbA;
                         values : ARRAY[0..1] OF BOOL;
+                        matrix : ARRAY[0..1, 0..1] OF BOOL;
                         target : REFERENCE TO BOOL;
                         i : DINT;
                     END_VAR
@@ -3685,6 +3699,7 @@ mod tests {
                     main := enabled AND_THEN count(instance);
                     values[i] := enabled AND_THEN holder.bind(instance);
                     main := values()[enabled AND_THEN holder.bind(instance)];
+                    main := matrix[i, enabled AND_THEN holder.bind(instance)];
                     target := enabled AND_THEN holder.bind(instance);
                     IF enable() THEN
                     ELSIF enabled AND_THEN holder.bind(instance) THEN
@@ -3698,6 +3713,7 @@ mod tests {
                 "Holder__ctor(holder)",
                 "FbA__ctor(instance)",
                 "__main_values__ctor(values)",
+                "__main_matrix__ctor(matrix)",
                 "__main_target__ctor(target)",
                 "__fatpointer_4main_0.data := ADR(instance)",
                 "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
@@ -3721,13 +3737,16 @@ mod tests {
                 "main := __values0[enabled AND_THEN holder.bind(__fatpointer_4main_5)];",
                 "__fatpointer_4main_6.data := ADR(instance)",
                 "__fatpointer_4main_6.table := ADR(__itable_IA_FbA_instance)",
-                "target := enabled AND_THEN holder.bind(__fatpointer_4main_6)",
+                "main := matrix[i, enabled AND_THEN holder.bind(__fatpointer_4main_6)]",
+                "__fatpointer_4main_7.data := ADR(instance)",
+                "__fatpointer_4main_7.table := ADR(__itable_IA_FbA_instance)",
+                "target := enabled AND_THEN holder.bind(__fatpointer_4main_7)",
                 "IF enable() THEN",
                 "ELSE",
                 "    IF enabled THEN",
-                "        __fatpointer_4main_7.data := ADR(instance)",
-                "        __fatpointer_4main_7.table := ADR(__itable_IA_FbA_instance)",
-                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_7)",
+                "        __fatpointer_4main_8.data := ADR(instance)",
+                "        __fatpointer_4main_8.table := ADR(__itable_IA_FbA_instance)",
+                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_8)",
                 "    ELSE",
                 "        __shortcircuit_0 := FALSE",
                 "    END_IF",
