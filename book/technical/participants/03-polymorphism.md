@@ -502,20 +502,22 @@ This works with named arguments too:
 +consumer(in := __fatpointer_0);
 ```
 
-The lowerer binds each argument to its callee parameter first: a named argument names its declaring POU and position in its argument annotation, a positional argument is bound by slot over the callee's parameters, inherited ones included, and a surplus positional argument binds to the variadic parameter. A `VAR_IN_OUT`, `VAR_INPUT {ref}`, `REFERENCE TO` or function `VAR_OUTPUT` parameter is indexed as an auto-deref pointer to the interface, so the lowerer looks through the pointer and the callee receives the address of the temporary. A function block or program `VAR_OUTPUT` is a plain member: the call runs the POU and codegen then copies the member into the temporary. In both cases a concrete instance is wrapped in the same way:
+The lowerer binds each argument to its callee parameter first: a named argument names its declaring POU and position in its argument annotation, a positional argument is bound by slot over the callee's parameters, inherited ones included, and a surplus positional argument binds to the variadic parameter. A `VAR_IN_OUT`, `VAR_INPUT {ref}`, `REFERENCE TO` or function `VAR_OUTPUT` parameter is indexed as an auto-deref pointer to the interface, so the lowerer looks through the pointer and the callee receives the address of the fat pointer. A function block or program `VAR_OUTPUT` is a plain member: the call runs the POU and codegen then copies the member into the fat pointer. In both cases a concrete instance is wrapped in the same way, but the fat pointer is a global of the unit rather than a statement-scoped temporary, named as described below:
 
 ```diff
 -consumer(out => instanceFbA, inout := instanceFbB);
-+alloca __fatpointer_0: __FATPOINTER;
-+__fatpointer_0.data := ADR(instanceFbA);
-+__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
-+alloca __fatpointer_1: __FATPOINTER;
-+__fatpointer_1.data := ADR(instanceFbB);
-+__fatpointer_1.table := ADR(__itable_IA_FbB_instance);
-+consumer(out => __fatpointer_0, inout := __fatpointer_1);
++// in VAR_GLOBAL of the unit:
++__fatpointer_4main_0 : __FATPOINTER;
++__fatpointer_4main_1 : __FATPOINTER;
++// at the call site in main:
++__fatpointer_4main_0.data := ADR(instanceFbA);
++__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance);
++__fatpointer_4main_1.data := ADR(instanceFbB);
++__fatpointer_4main_1.table := ADR(__itable_IA_FbB_instance);
++consumer(out => __fatpointer_4main_0, inout := __fatpointer_4main_1);
 ```
 
-The temporary is where the callee's writes end up, through the address for a pointer-backed parameter and through the post-call copy for a stateful POU's `VAR_OUTPUT`, and nothing copies it back: a concrete instance cannot hold a fat pointer. A callee that assigns its `VAR_OUTPUT` or rebinds its `VAR_IN_OUT` therefore writes into the temporary, and the caller never sees that value. An interface variable passed to such a parameter is not wrapped at all; it must have the exact parameter interface, see Validation.
+The fat pointer is where the callee's writes end up, through the address for a pointer-backed parameter and through the post-call copy for a stateful POU's `VAR_OUTPUT`, and nothing copies it back: a concrete instance cannot hold a fat pointer. A callee that assigns its `VAR_OUTPUT` or rebinds its `VAR_IN_OUT` therefore writes into the temporary, and the caller never sees that value. An interface variable passed to such a parameter is not wrapped at all; it must have the exact parameter interface, see Validation.
 
 A function block or program keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter between calls, and any POU may save such a parameter with `REF=` or forward it to a POU that keeps it, so a statement-scoped temporary would leave such a binding pointing into a stack frame that is gone once the calling function returns. For every pointer-typed parameter the lowerer therefore emits the fat pointer as a global of the unit instead, one per call site, and the preamble fills that global; only a by-value input, which copies the fat pointer, keeps the statement-scoped temporary. The global is named after the implementation that binds it, with the `.` of a method name replaced by `__`, the natures of a template's generics appended, and each part prefixed with its length so that no other POU name reads the same, such as `4bind` or `4bind_7ANY_INT`, and numbered per such name. The names of two objects compiled separately are therefore distinct whenever the binding POUs are distinct symbols, which linking the objects requires anyway, also for templates that only differ in their generics. In an included unit the block is declared external, because the object compiled from that unit defines it; the same holds for a binding inside an implementation declared `{external}`, whose body codegen omits:
 
@@ -569,7 +571,7 @@ Hoisting would run the preamble even when `AND_THEN` or `OR_ELSE` skips the oper
 +result := __shortcircuit_0;
 ```
 
-The generated `IF` is hoisted as well, so the rewrite only applies where it preserves the evaluation order and the validation: the short-circuit must be the first thing its statement evaluates, such as the value assigned to a plain variable or member, the first condition of an `IF` or the selector of a `CASE`, but not the value assigned to an indexed or dereferenced target, whose address is computed first, a call argument, the right operand of another operator, an `ELSIF` or a loop condition; both operands must be BOOL, so that an invalid operand still reaches the E133 check; and the POU must be declared in the unit being lowered, which an action of a function block from another unit is not. Elsewhere the preamble stays eager, with the shared-site behavior described above.
+The generated `IF` is hoisted as well, so the rewrite only applies where it preserves the evaluation order and the validation: the short-circuit must be the first thing its statement evaluates, such as the value assigned to a plain variable or member, the first condition of an `IF` or the selector of a `CASE`, but not the value assigned to an indexed, dereferenced or `REFERENCE TO` target, whose address is computed first, anything after a call or a non-static base, a call argument, the right operand of another operator, an `ELSIF` or a loop condition; both operands must be BOOL, so that an invalid operand still reaches the E133 check; and the POU must be declared in the unit being lowered, which an action of a function block from another unit is not. Elsewhere the preamble stays eager, with the shared-site behavior described above.
 
 **Interface upcasting**: When a child interface variable is assigned to a parent interface variable (for example `refIA := refIB` where `IB EXTENDS IA`), both sides are already fat pointers. The `.data` field can be copied directly; it still points to the same concrete POU instance. However, the `.table` field points to an `__itable_IB_*` instance but must point to the corresponding `__itable_IA_*` instance for the same POU. Since the concrete POU is only known at run time, the correct itable instance cannot be determined statically.
 

@@ -402,7 +402,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         // Walk children first so nested calls/expressions are processed before we inspect types. The
         // target's address is computed before the value, so the value is only evaluated first when
         // that address needs no evaluation of its own.
-        let leading = self.leading && helper::has_static_address(left);
+        let leading = self.leading && self.has_static_address(left);
         self.leading = false;
         left.walk(self);
         self.leading = leading;
@@ -573,6 +573,27 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         *node = helper::create_identifier_ref(&mut self.ids, &name);
     }
 
+    /// A base whose address needs evaluation, such as a call result or a dereferenced pointer, is
+    /// evaluated before the index or member that follows it.
+    fn visit_reference_expr(&mut self, node: &mut AstNode) {
+        let AstStatement::ReferenceExpr(ReferenceExpr { access, base }) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        if let Some(base) = base {
+            let static_base = self.has_static_address(base);
+            self.visit(base);
+            self.leading = self.leading && static_base;
+        }
+
+        match access {
+            ReferenceAccess::Member(node) | ReferenceAccess::Index(node) | ReferenceAccess::Cast(node) => {
+                self.visit(node)
+            }
+            _ => {}
+        }
+    }
+
     /// Only the first condition of an IF and the selector of a CASE are evaluated first; a later
     /// condition or a loop condition is not, so a short-circuit there keeps the eager preamble.
     fn visit_control_statement(&mut self, node: &mut AstNode) {
@@ -607,16 +628,16 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             unreachable!();
         };
 
-        // Walk the operator first (processes nested interface method calls depth-first).
+        // Walk the operator first (processes nested interface method calls depth-first). Nothing after
+        // the call is the first thing the statement evaluates.
         operator.walk(self);
+        self.leading = false;
 
         // Walk parameters with the `in_call_args` guard active. This prevents `visit_assignment`
         // from expanding named arguments like `in1 := instance` into fat-pointer field assignments.
-        // The counter nests correctly for cases like `foo(in1 := bar(in2 := instance))`. An argument
-        // is never the first thing a statement evaluates.
+        // The counter nests correctly for cases like `foo(in1 := bar(in2 := instance))`.
         if let Some(ref mut params) = parameters {
             self.in_call_args += 1;
-            self.leading = false;
             params.walk(self);
             self.in_call_args -= 1;
         }
@@ -684,6 +705,27 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 }
 
 impl<'a> InterfaceDispatchLowerer<'a> {
+    /// Whether `node` names storage whose address needs no evaluation: a variable or a chain of plain
+    /// member accesses, without an index, a dereference, a call or an auto-dereferenced reference
+    /// whose pointer codegen loads first and a side effect could change.
+    fn has_static_address(&self, node: &AstNode) -> bool {
+        let static_variable = match self.annotations.get(node) {
+            Some(StatementAnnotation::Variable { auto_deref, .. }) => auto_deref.is_none(),
+            Some(StatementAnnotation::Program { .. }) => true,
+            _ => false,
+        };
+
+        match &node.stmt {
+            AstStatement::Identifier(_) => static_variable,
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) => {
+                static_variable
+                    && matches!(member.stmt, AstStatement::Identifier(_))
+                    && base.as_ref().is_none_or(|base| self.has_static_address(base))
+            }
+            _ => false,
+        }
+    }
+
     /// Resolves the callee parameter each argument binds to. A named argument carries its declaring
     /// POU and position in its argument annotation. A positional argument carries the callee instead,
     /// so it is bound by slot over the callee's parameters, inherited ones included, as the validator
@@ -1153,19 +1195,6 @@ mod helper {
             id: ids.next_id(),
             location: SourceLocation::internal(),
             metadata: None,
-        }
-    }
-
-    /// Whether `node` names storage whose address needs no evaluation: a variable or a chain of plain
-    /// member accesses, without an index, a dereference or a call that a side effect could change.
-    pub fn has_static_address(node: &AstNode) -> bool {
-        match &node.stmt {
-            AstStatement::Identifier(_) => true,
-            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) => {
-                matches!(member.stmt, AstStatement::Identifier(_))
-                    && base.as_ref().is_none_or(|base| has_static_address(base))
-            }
-            _ => false,
         }
     }
 
@@ -3637,12 +3666,16 @@ mod tests {
                     END_VAR
                 END_FUNCTION
 
+                FUNCTION values : ARRAY[0..1] OF BOOL
+                END_FUNCTION
+
                 FUNCTION main : BOOL
                     VAR
                         enabled : BOOL;
                         holder : Holder;
                         instance : FbA;
                         values : ARRAY[0..1] OF BOOL;
+                        target : REFERENCE TO BOOL;
                         i : DINT;
                     END_VAR
 
@@ -3651,6 +3684,8 @@ mod tests {
                     main := 1 AND_THEN holder.bind(instance);
                     main := enabled AND_THEN count(instance);
                     values[i] := enabled AND_THEN holder.bind(instance);
+                    main := values()[enabled AND_THEN holder.bind(instance)];
+                    target := enabled AND_THEN holder.bind(instance);
                     IF enable() THEN
                     ELSIF enabled AND_THEN holder.bind(instance) THEN
                     END_IF
@@ -3663,6 +3698,7 @@ mod tests {
                 "Holder__ctor(holder)",
                 "FbA__ctor(instance)",
                 "__main_values__ctor(values)",
+                "__main_target__ctor(target)",
                 "__fatpointer_4main_0.data := ADR(instance)",
                 "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
                 "main := enable() AND (enabled AND_THEN holder.bind(__fatpointer_4main_0))",
@@ -3678,12 +3714,20 @@ mod tests {
                 "__fatpointer_4main_4.data := ADR(instance)",
                 "__fatpointer_4main_4.table := ADR(__itable_IA_FbA_instance)",
                 "values[i] := enabled AND_THEN holder.bind(__fatpointer_4main_4)",
+                "__fatpointer_4main_5.data := ADR(instance)",
+                "__fatpointer_4main_5.table := ADR(__itable_IA_FbA_instance)",
+                "alloca __values0: __values_return;",
+                "values(__values0);",
+                "main := __values0[enabled AND_THEN holder.bind(__fatpointer_4main_5)];",
+                "__fatpointer_4main_6.data := ADR(instance)",
+                "__fatpointer_4main_6.table := ADR(__itable_IA_FbA_instance)",
+                "target := enabled AND_THEN holder.bind(__fatpointer_4main_6)",
                 "IF enable() THEN",
                 "ELSE",
                 "    IF enabled THEN",
-                "        __fatpointer_4main_5.data := ADR(instance)",
-                "        __fatpointer_4main_5.table := ADR(__itable_IA_FbA_instance)",
-                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_5)",
+                "        __fatpointer_4main_7.data := ADR(instance)",
+                "        __fatpointer_4main_7.table := ADR(__itable_IA_FbA_instance)",
+                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_7)",
                 "    ELSE",
                 "        __shortcircuit_0 := FALSE",
                 "    END_IF",
