@@ -199,12 +199,13 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// compiled units define the same symbol only if they define the same POU.
     globals: Vec<String>,
 
-    /// Names of the retained fat pointers bound inside an implementation with external linkage. Codegen
-    /// omits such a body, so the unit only declares these globals and the object that defines the
-    /// implementation defines them.
+    /// Names of the retained fat pointers bound inside an implementation with external linkage or a
+    /// generic template. Codegen omits such a body, so the unit only declares these globals: the object
+    /// that defines the implementation defines them, and a monomorph of a template, which is declared
+    /// external by the generic lowering as well, has no defining object.
     external_globals: Vec<String>,
 
-    /// Whether the implementation being visited has external linkage.
+    /// Whether codegen omits the body of the implementation being visited.
     current_pou_external: bool,
 
     /// Identity of the implementation being visited in retained global names: its mangled name, e.g.
@@ -358,7 +359,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         if let Some(signature) = self.generic_signatures.get(&implementation.name_location) {
             self.current_pou = format!("{}_{}{signature}", self.current_pou, signature.len());
         }
-        self.current_pou_external = implementation.linkage.is_external();
+        self.current_pou_external = implementation.linkage.is_external() || implementation.generic;
         implementation.walk(self);
     }
 
@@ -3347,7 +3348,8 @@ mod tests {
         }
 
         /// Generic templates that only differ in their generics share a name. Their retained globals carry
-        /// the generic signature, so objects compiled from different templates never define the same symbol.
+        /// the generic signature and are only declared, because a template emits no code and separately
+        /// compiled libraries may contain the same template.
         #[test]
         fn retained_arguments_in_generic_templates() {
             let source = r#"
@@ -3394,8 +3396,8 @@ mod tests {
                 "__vtable_FbA_instance : __vtable_FbA",
                 "__vtable_FbConsumer_instance : __vtable_FbConsumer",
                 "__itable_IA_FbA_instance : __itable_IA",
-                "__fatpointer_4bind_7ANY_INT_0 : __FATPOINTER",
-                "__fatpointer_4bind_8ANY_REAL_0 : __FATPOINTER",
+                "__fatpointer_4bind_7ANY_INT_0 : __FATPOINTER {external}",
+                "__fatpointer_4bind_8ANY_REAL_0 : __FATPOINTER {external}",
             ]
             "#);
         }
