@@ -918,6 +918,17 @@ impl<'a> InterfaceDispatchLowerer<'a> {
                     interface_name,
                     &arg.location,
                 )
+            })
+            .or_else(|| {
+                by_ref.and_then(|parameter| {
+                    validation::validate_variadic_takes_instance(
+                        self.index,
+                        parameter,
+                        pou_name,
+                        interface_name,
+                        &arg.location,
+                    )
+                })
             });
 
         if let Some(diagnostic) = diagnostic {

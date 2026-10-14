@@ -1222,6 +1222,51 @@ mod interface {
     }
 
     #[test]
+    fn call_arg_instance_to_reference_to_variadic() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            TYPE RefIA : REFERENCE TO IA; END_TYPE
+
+            FUNCTION consume : DINT
+                VAR_INPUT
+                    rest : {sized} RefIA...;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION consumeByRef : DINT
+                VAR_INPUT {ref}
+                    rest : {sized} IA...;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                    reference : IA;
+                END_VAR
+                consume(reference);
+                consume(instance);
+                consumeByRef(instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"
+        error[E159]: Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an instance of FbA
+           ┌─ <internal>:28:25
+           │
+        28 │                 consume(instance);
+           │                         ^^^^^^^^ Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an instance of FbA
+        ");
+    }
+
+    #[test]
     fn short_circuit_with_wrapped_argument_keeps_operand_check() {
         let source = r#"
             INTERFACE IA
