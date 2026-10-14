@@ -1136,6 +1136,7 @@ mod interface {
                 fbConsumer(FbA#(producerArray()[0]));
                 fbConsumer(instances[0]);
                 fbConsumer(getPtr()^);
+                fbConsumer(FbA#(instance));
             END_FUNCTION
         "#;
 
@@ -1227,9 +1228,11 @@ mod interface {
                 VAR
                     flag : BOOL;
                     instance : FbA;
+                    ptr : POINTER TO BOOL;
                 END_VAR
                 main := 1 AND_THEN consume(instance);
                 main := flag AND_THEN count(instance);
+                ptr REF= flag AND_THEN consume(instance);
             END_FUNCTION
         "#;
 
@@ -1237,22 +1240,28 @@ mod interface {
 
         insta::assert_snapshot!(diagnostics, @"
         error[E133]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
-           ┌─ <internal>:25:25
+           ┌─ <internal>:26:25
            │
-        25 │                 main := 1 AND_THEN consume(instance);
+        26 │                 main := 1 AND_THEN consume(instance);
            │                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
 
         error[E133]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
-           ┌─ <internal>:26:25
+           ┌─ <internal>:27:25
            │
-        26 │                 main := flag AND_THEN count(instance);
+        27 │                 main := flag AND_THEN count(instance);
            │                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
 
         warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
-           ┌─ <internal>:26:39
+           ┌─ <internal>:27:39
            │
-        26 │                 main := flag AND_THEN count(instance);
+        27 │                 main := flag AND_THEN count(instance);
            │                                       ^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'BOOL'.
+
+        error[E098]: Invalid assignment, expected a reference
+           ┌─ <internal>:28:26
+           │
+        28 │                 ptr REF= flag AND_THEN consume(instance);
+           │                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, expected a reference
         ");
     }
 

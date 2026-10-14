@@ -153,10 +153,12 @@ fn located(node: &AstNode) -> SourceLocation {
 
 /// Whether `node` is a reference whose root is a variable, the instance itself or its parent rather
 /// than a call result, so that its storage outlives the statement. A dereference names the storage
-/// the pointer refers to, whatever produced the pointer, and a cast is judged by its operand.
+/// the pointer refers to, whatever produced the pointer, and a cast is judged by its operand, which
+/// the parser keeps in parentheses.
 fn is_variable_backed(node: &AstNode) -> bool {
     match &node.stmt {
         AstStatement::Identifier(_) | AstStatement::This | AstStatement::Super(_) => true,
+        AstStatement::ParenExpression(inner) => is_variable_backed(inner),
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }) => true,
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(operand), .. }) => {
             is_variable_backed(operand)

@@ -583,16 +583,15 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         *node = helper::create_identifier_ref(&mut self.ids, &name);
     }
 
-    /// `REF=` computes its target like `:=`, so the value is only evaluated first for a static target.
+    /// The value of a `REF=` must be a reference, so a short-circuit there is never rewritten into a
+    /// temporary; validation rejects the expression as written.
     fn visit_ref_assignment(&mut self, node: &mut AstNode) {
         let AstStatement::RefAssignment(Assignment { left, right }) = &mut node.stmt else {
             unreachable!();
         };
 
-        let leading = self.leading && self.has_static_address(left);
         self.leading = false;
         self.visit(left);
-        self.leading = leading;
         self.visit(right);
     }
 
@@ -3727,6 +3726,7 @@ mod tests {
                     main := matrix[i, enabled AND_THEN holder.bind(instance)];
                     target := enabled AND_THEN holder.bind(instance);
                     ptrs[i] REF= values[enabled AND_THEN holder.bind(instance)];
+                    target REF= enabled AND_THEN holder.bind(instance);
                     IF enable() THEN
                     ELSIF enabled AND_THEN holder.bind(instance) THEN
                     END_IF
@@ -3771,12 +3771,15 @@ mod tests {
                 "__fatpointer_4main_8.data := ADR(instance)",
                 "__fatpointer_4main_8.table := ADR(__itable_IA_FbA_instance)",
                 "ptrs[i] REF= values[enabled AND_THEN holder.bind(__fatpointer_4main_8)]",
+                "__fatpointer_4main_9.data := ADR(instance)",
+                "__fatpointer_4main_9.table := ADR(__itable_IA_FbA_instance)",
+                "target REF= enabled AND_THEN holder.bind(__fatpointer_4main_9)",
                 "IF enable() THEN",
                 "ELSE",
                 "    IF enabled THEN",
-                "        __fatpointer_4main_9.data := ADR(instance)",
-                "        __fatpointer_4main_9.table := ADR(__itable_IA_FbA_instance)",
-                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_9)",
+                "        __fatpointer_4main_10.data := ADR(instance)",
+                "        __fatpointer_4main_10.table := ADR(__itable_IA_FbA_instance)",
+                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_10)",
                 "    ELSE",
                 "        __shortcircuit_0 := FALSE",
                 "    END_IF",
