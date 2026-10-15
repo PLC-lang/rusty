@@ -120,7 +120,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::Index,
+    index::{Index, PouIndexEntry},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     typesystem::{DataType, DataTypeInformation},
 };
@@ -177,7 +177,7 @@ impl<'a> AstVisitorMut for PolymorphicCallLowerer<'a> {
             parameters.walk(self);
         }
 
-        if !self.is_polymorphic_call_candidate(operator) {
+        if self.calls_into_program(operator) || !self.is_polymorphic_call_candidate(operator) {
             return;
         };
 
@@ -243,6 +243,18 @@ impl<'a> PolymorphicCallLowerer<'a> {
         self.index.find_pou(pou_name).is_some_and(|pou| pou.is_function_block() || pou.is_class())
     }
 
+    /// Returns true if the given call operator runs the body or a method of a program, e.g. `refProg()` or
+    /// `refProg.foo()`. A program has no virtual table, so these calls stay direct.
+    fn calls_into_program(&self, operator: &AstNode) -> bool {
+        let is_method = self.annotations.get_type(operator, self.index).is_some_and(DataType::is_method);
+        let instance = if is_method { operator.get_base_ref_expr() } else { Some(operator) };
+
+        instance
+            .and_then(|it| self.annotations.get_type(it, self.index))
+            .and_then(|ty| self.index.find_pou(ty.get_name()))
+            .is_some_and(PouIndexEntry::is_program)
+    }
+
     /// Returns true if the given AST node is a candidate that needs to be lowered into a polymorphic call.
     fn is_polymorphic_call_candidate(&self, operator: &AstNode) -> bool {
         // We do not want to lower THIS and SUPER access, e.g. {THIS,SUPER}^() or {THIS,SUPER}^.foo()
@@ -294,8 +306,6 @@ impl<'a> PolymorphicCallLowerer<'a> {
             // Auto-deref, e.g. `refInstance: REFERENCE TO ...`
             (ReferenceAccess::Member(member), None) => {
                 self.annotations.get(member).is_some_and(StatementAnnotation::is_reference_to)
-                    && self
-                        .has_virtual_table(self.annotations.get_type_or_void(operator, self.index).get_name())
             }
 
             _ => false,
@@ -626,11 +636,20 @@ mod tests {
     }
 
     #[test]
-    fn calls_through_program_reference_are_untouched() {
+    fn only_function_block_calls_through_program_reference_are_lowered() {
         let source = r#"
+            FUNCTION_BLOCK A
+                METHOD bravo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
             PROGRAM mainProg
                 VAR_INPUT
                     in: DINT;
+                END_VAR
+
+                VAR
+                    refA: REFERENCE TO A;
                 END_VAR
 
                 METHOD alpha
@@ -645,6 +664,7 @@ mod tests {
                 refProg();
                 refProg(in := 1);
                 refProg.alpha();
+                refProg.refA.bravo();
             END_FUNCTION
         "#;
 
@@ -655,6 +675,7 @@ mod tests {
             "refProg()",
             "refProg(in := 1)",
             "refProg.alpha()",
+            "__vtable_A#(refProg.refA.__vtable^).bravo^(A#(refProg.refA))",
         ]
         "#);
     }
