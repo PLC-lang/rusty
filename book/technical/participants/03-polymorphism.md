@@ -175,7 +175,7 @@ One more note: methods called from within other methods, or from a function bloc
  END_METHOD
 ```
 
-Calls written as `THIS^.bar()` or `SUPER^.bar()` are left untouched, and so is a call on a plain instance variable, `instanceA.bar()`. In all three cases the type of the instance is exact, so the call is statically dispatched.
+Calls written as `THIS^.bar()` or `SUPER^.bar()` are left untouched, and so is a call on a plain instance variable, `instanceA.bar()`. In all three cases the type of the instance is exact, so the call is statically dispatched. Calls within the methods of a program are also left untouched: a program has no vtable and cannot be extended, so each call has exactly one target.
 
 One question remains about `__vtable_FbA#(refInstanceA^.__vtable^).foo^(FbA#(refInstanceA^))`: why is it safe to cast one vtable to another? The vtable layouts give the answer:
 
@@ -200,9 +200,9 @@ The order of the function pointers is stable: the pointers of the parent types c
 2. Generate a global variable instance for each vtable, filled with the correct addresses at construction time
 3. Generate and inject a `__vtable` member field of type `POINTER TO __VOID` into every non-extended class or function block, initialized by the init participant to the address of the global instance
 4. Transform **method** calls to use the lookup table, where the
-    1. method is called from within another method or a function block body, or
-    2. method is called through a variable of type `POINTER TO <CLASS|FUNCTION_BLOCK>`, `REF_TO`, or `REFERENCE TO`,
-    3. but leave `THIS^`, `SUPER^`, and instance variable calls untouched, since those are statically dispatched
+    1. method is called from within another method of a class or function block, or from a function block body, or
+    2. method is called through a `POINTER TO`, `REF_TO`, or `REFERENCE TO` variable whose target is a class or function block,
+    3. but leave `THIS^`, `SUPER^`, instance variable calls, and all calls on programs untouched, since those are statically dispatched
 
 ### Interface polymorphism
 

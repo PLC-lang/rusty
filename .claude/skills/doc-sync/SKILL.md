@@ -1,8 +1,6 @@
 ---
 name: doc-sync
 description: Check that a change keeps the book and the code in sync, in both directions. Use when reviewing a diff or before opening a pull request.
-entmoot:
-    mode: fast
 ---
 
 # Documentation Sync
