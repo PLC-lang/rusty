@@ -20,7 +20,7 @@ use plc_source::source_location::SourceLocation;
 use crate::{
     index::{Index, VariableIndexEntry},
     lowering::polymorphism::table::interface::helper as itable_helper,
-    resolver::AnnotationMap,
+    resolver::{AnnotationMap, StatementAnnotation},
 };
 
 /// Validates that a POU implements the target interface. Returns `Some(Diagnostic)` if not.
@@ -113,12 +113,13 @@ pub fn validate_byref_interface_argument(
 /// consumer(inout1 := producer()[0]);  // error: an element of a call result lives in its temporary
 /// consumer(inout1 := getPtr()^);      // ok:    the pointee of a returned pointer is not a temporary
 /// ```
-pub fn validate_byref_argument_is_variable(
+pub fn validate_byref_argument_is_variable<T: AnnotationMap>(
+    annotations: &T,
     index: &Index,
     parameter: &VariableIndexEntry,
     argument: &AstNode,
 ) -> Option<Diagnostic> {
-    if argument.can_be_assigned_to() && is_variable_backed(argument) {
+    if argument.can_be_assigned_to() && is_variable_backed(annotations, argument) {
         return None;
     }
 
@@ -153,19 +154,23 @@ fn located(node: &AstNode) -> SourceLocation {
 }
 
 /// Whether `node` is a reference whose root is a variable, the instance itself or its parent rather
-/// than a call result, so that its storage outlives the statement. A dereference names the storage
-/// the pointer refers to, whatever produced the pointer, and a cast is judged by its operand, which
-/// the parser keeps in parentheses.
-fn is_variable_backed(node: &AstNode) -> bool {
+/// than a call result, so that its storage outlives the statement. A dereference, explicit or through
+/// a `REFERENCE TO` variable or member, names the storage the pointer refers to, whatever produced the
+/// pointer, and a cast is judged by its operand, which the parser keeps in parentheses.
+fn is_variable_backed<T: AnnotationMap>(annotations: &T, node: &AstNode) -> bool {
+    if let Some(StatementAnnotation::Variable { auto_deref: Some(_), .. }) = annotations.get(node) {
+        return true;
+    }
+
     match &node.stmt {
         AstStatement::Identifier(_) | AstStatement::This | AstStatement::Super(_) => true,
-        AstStatement::ParenExpression(inner) => is_variable_backed(inner),
+        AstStatement::ParenExpression(inner) => is_variable_backed(annotations, inner),
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }) => true,
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(operand), .. }) => {
-            is_variable_backed(operand)
+            is_variable_backed(annotations, operand)
         }
         AstStatement::ReferenceExpr(ReferenceExpr { base, .. }) => {
-            base.as_ref().is_none_or(|base| is_variable_backed(base))
+            base.as_ref().is_none_or(|base| is_variable_backed(annotations, base))
         }
         _ => false,
     }

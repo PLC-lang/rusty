@@ -871,24 +871,29 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             // as is: it must be a variable, since the callee may keep its address, and the exact
             // interface, since an upcast temporary would never reach the caller.
             if let Some(parameter) = by_ref {
-                let diagnostic = validation::validate_byref_argument_is_variable(self.index, parameter, arg)
-                    .or_else(|| {
-                        validation::validate_byref_interface_argument(
-                            parameter.get_name(),
-                            target_iface,
-                            source_iface,
-                            &arg.location,
-                        )
-                    })
-                    .or_else(|| {
-                        validation::validate_variadic_takes_argument(
-                            self.index,
-                            parameter,
-                            source_iface,
-                            target_iface,
-                            &arg.location,
-                        )
-                    });
+                let diagnostic = validation::validate_byref_argument_is_variable(
+                    self.annotations,
+                    self.index,
+                    parameter,
+                    arg,
+                )
+                .or_else(|| {
+                    validation::validate_byref_interface_argument(
+                        parameter.get_name(),
+                        target_iface,
+                        source_iface,
+                        &arg.location,
+                    )
+                })
+                .or_else(|| {
+                    validation::validate_variadic_takes_argument(
+                        self.index,
+                        parameter,
+                        source_iface,
+                        target_iface,
+                        &arg.location,
+                    )
+                });
                 if let Some(diagnostic) = diagnostic {
                     self.diagnostics.push(diagnostic);
                 }
@@ -919,7 +924,9 @@ impl<'a> InterfaceDispatchLowerer<'a> {
         // of a call result. Validate that here, before the argument is replaced, mirroring E031 for
         // other by-reference parameters.
         let diagnostic = by_ref
-            .and_then(|parameter| validation::validate_byref_argument_is_variable(self.index, parameter, arg))
+            .and_then(|parameter| {
+                validation::validate_byref_argument_is_variable(self.annotations, self.index, parameter, arg)
+            })
             .or_else(|| {
                 validation::validate_pou_implements_interface(
                     self.index,
