@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-1d65fcef.js";
+            window.path_to_searchindex_js = "../../searchindex-1a8b0620.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -317,7 +317,7 @@ refInstanceA^.foo(); // Calls FbB.foo, the closest ancestor that overrides foo
 +    __vtable_FbA#(THIS^.__vtable^).bar^(FbA#(THIS^));
  END_METHOD
 </code></pre>
-<p>Calls written as <code>THIS^.bar()</code> or <code>SUPER^.bar()</code> are left untouched, and so is a call on a plain instance variable, <code>instanceA.bar()</code>. In all three cases the type of the instance is exact, so the call is statically dispatched.</p>
+<p>Calls written as <code>THIS^.bar()</code> or <code>SUPER^.bar()</code> are left untouched, and so is a call on a plain instance variable, <code>instanceA.bar()</code>. In all three cases the type of the instance is exact, so the call is statically dispatched. Calls within the methods of a program are also left untouched: a program has no vtable and cannot be extended, so each call has exactly one target.</p>
 <p>One question remains about <code>__vtable_FbA#(refInstanceA^.__vtable^).foo^(FbA#(refInstanceA^))</code>: why is it safe to cast one vtable to another? The vtable layouts give the answer:</p>
 <pre><code>┌─VTable FbA─┐   ┌─VTable FbB─┐   ┌─VTable FbC─┐
 ├────────────┤   ├────────────┤   ├────────────┤
@@ -338,9 +338,9 @@ refInstanceA^.foo(); // Calls FbB.foo, the closest ancestor that overrides foo
 <li>Generate and inject a <code>__vtable</code> member field of type <code>POINTER TO __VOID</code> into every non-extended class or function block, initialized by the init participant to the address of the global instance</li>
 <li>Transform <strong>method</strong> calls to use the lookup table, where the
 <ol>
-<li>method is called from within another method or a function block body, or</li>
-<li>method is called through a variable of type <code>POINTER TO &lt;CLASS|FUNCTION_BLOCK&gt;</code>, <code>REF_TO</code>, or <code>REFERENCE TO</code>,</li>
-<li>but leave <code>THIS^</code>, <code>SUPER^</code>, and instance variable calls untouched, since those are statically dispatched</li>
+<li>method is called from within another method of a class or function block, or from a function block body, or</li>
+<li>method is called through a <code>POINTER TO</code>, <code>REF_TO</code>, or <code>REFERENCE TO</code> variable whose target is a class or function block,</li>
+<li>but leave <code>THIS^</code>, <code>SUPER^</code>, instance variable calls, and all calls on programs untouched, since those are statically dispatched</li>
 </ol>
 </li>
 </ol>
