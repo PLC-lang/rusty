@@ -119,8 +119,8 @@ use plc_ast::{
     ast::{
         resolve_argument_slots, steal_expression_list, Allocation, Assignment, AstFactory, AstNode,
         AstStatement, BinaryExpression, CallStatement, CompilationUnit, DataType as AstDataType,
-        DataTypeDeclaration, EmptyStatement, GenericBinding, LinkageType, Operator, ReferenceAccess,
-        ReferenceExpr, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        DataTypeDeclaration, EmptyStatement, GenericBinding, Implementation, LinkageType, Operator, Pou,
+        ReferenceAccess, ReferenceExpr, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     control_statements::{AstControlStatement, ConditionalBlock, IfStatement},
     literals::AstLiteral,
@@ -129,7 +129,6 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
     index::{Index, VariableIndexEntry},
@@ -142,6 +141,52 @@ use super::validation;
 const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
 const FATPOINTER_DATA_FIELD_NAME: &str = "data";
 const FATPOINTER_TABLE_FIELD_NAME: &str = "table";
+
+/// State of the implementation being lowered. The lowering loop pairs every implementation with its
+/// declaration in the unit, which the parser gives the same name location; an action has none.
+#[derive(Default)]
+struct Scope {
+    /// Identity in retained global names: the mangled name, e.g. `FbA__foo` for the method `FbA.foo`,
+    /// and the generic signature of a template, each prefixed with its length so that no other POU name
+    /// reads the same, e.g. `4bind_7ANY_INT` for `bind<T: ANY_INT>`.
+    identity: String,
+
+    /// Whether the unit only declares the retained globals the body binds. Codegen omits the body of
+    /// an implementation with external linkage and of a generic template, whose monomorphs are
+    /// declared external by the generic lowering as well, so no object of this unit defines them.
+    declared_only: bool,
+
+    /// Whether the body may take `VAR_TEMP` variables: it has its own declaration in the unit, which
+    /// an action has not, and that declaration is not a generic template, since overloaded templates
+    /// share one declaration for member lookup.
+    takes_temps: bool,
+
+    /// Counts the retained fat pointers of the body.
+    retained: usize,
+
+    /// Names of the BOOL temporaries that carry the value of a short-circuit operand, see
+    /// [`AstVisitorMut::visit_binary_expression`]. They become `VAR_TEMP` variables of the declaration.
+    temps: Vec<String>,
+}
+
+impl Scope {
+    fn new(implementation: &Implementation, pou: Option<&Pou>) -> Self {
+        let name = implementation.name.replace('.', "__");
+        let signature = pou.map(|pou| helper::generic_signature(&pou.generics)).unwrap_or_default();
+        let identity = match signature.is_empty() {
+            true => format!("{}{name}", name.len()),
+            false => format!("{}{name}_{}{signature}", name.len(), signature.len()),
+        };
+
+        Scope {
+            identity,
+            declared_only: implementation.linkage.is_external() || implementation.generic,
+            takes_temps: pou.is_some() && !implementation.generic,
+            retained: 0,
+            temps: Vec::new(),
+        }
+    }
+}
 
 pub struct InterfaceDispatchLowerer<'a> {
     ids: IdProvider,
@@ -191,63 +236,21 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// ```
     replacement: Option<Vec<AstNode>>,
 
-    /// Names of the fat pointers behind `VAR_IN_OUT`, `VAR_INPUT {ref}` and `REFERENCE TO` parameters.
-    /// A stateful POU keeps such a parameter between calls and any POU may save or forward it, so they
-    /// outlive the calling function and are emitted as globals of the unit being lowered instead of
-    /// statement-scoped allocations. Each is
-    /// named after the implementation that binds it and numbered by `retained_counters`, so separately
-    /// compiled units define the same symbol only if they define the same POU.
-    globals: Vec<String>,
-
-    /// Names of the retained fat pointers bound inside an implementation with external linkage or a
-    /// generic template. Codegen omits such a body, so the unit only declares these globals: the object
-    /// that defines the implementation defines them, and a monomorph of a template, which is declared
-    /// external by the generic lowering as well, has no defining object.
-    external_globals: Vec<String>,
-
-    /// Whether codegen omits the body of the implementation being visited.
-    current_pou_external: bool,
-
-    /// Whether the implementation being visited is a generic template. Overloaded templates share one
-    /// declaration for member lookup, so a `VAR_TEMP` added to one of them is not found from the
-    /// other; a short-circuit in a template keeps the eager preamble.
-    current_pou_generic: bool,
-
-    /// Identity of the implementation being visited in retained global names: its mangled name, e.g.
-    /// `FbA__foo` for the method `FbA.foo`, and the generic signature of a template, each prefixed with
-    /// its length so that no other POU name reads the same, e.g. `4bind_7ANY_INT` for `bind<T: ANY_INT>`.
-    current_pou: String,
-
-    /// Generic signatures of the templates in the unit being lowered, keyed by their name location,
-    /// which a POU shares with its implementation. Templates that only differ in their generics
-    /// share a name, so the signature keeps their retained globals apart.
-    generic_signatures: FxHashMap<SourceLocation, String>,
-
-    /// Counts the retained fat pointers per implementation name. Generic overloads share a name, so
-    /// the count continues across them instead of restarting per implementation.
-    retained_counters: FxHashMap<String, usize>,
+    /// Names and linkage of the fat pointers behind `VAR_IN_OUT`, `VAR_INPUT {ref}` and `REFERENCE TO`
+    /// parameters. A stateful POU keeps such a parameter between calls and any POU may save or forward
+    /// it, so they outlive the calling function and are emitted as globals of the unit being lowered
+    /// instead of statement-scoped allocations. Each is named after the implementation that binds it,
+    /// see [`Scope::identity`], so separately compiled units define the same symbol only if they define
+    /// the same POU.
+    globals: Vec<(String, LinkageType)>,
 
     /// Monotonic counter for generating unique fat-pointer temporary names
     /// (`__fatpointer_0`, `__fatpointer_1`, ...). Never reset; each call-argument wrap site
     /// gets a distinct alloca across the entire compilation unit.
     fp_counter: usize,
 
-    /// Counter for the BOOL temporaries that carry the value of a short-circuit operand whose call
-    /// arguments need a preamble, see [`AstVisitorMut::visit_binary_expression`].
-    sc_counter: usize,
-
-    /// Names of those BOOL temporaries per POU name. They are referenced inside the branches of the
-    /// generated IF, which an allocation statement cannot serve, so they become `VAR_TEMP` variables
-    /// of the POU once the unit is lowered.
-    temps: FxHashMap<String, Vec<String>>,
-
-    /// Name of the POU that owns the implementation being visited; an action names its parent.
-    current_pou_type: String,
-
-    /// Lowercase names of the POUs declared in the unit being lowered. Only those can receive a
-    /// `VAR_TEMP`, so a short-circuit in an action whose parent is declared elsewhere keeps the
-    /// eager preamble.
-    unit_pous: FxHashSet<String>,
+    /// State of the implementation being lowered.
+    scope: Scope,
 
     /// Whether the node being visited is the first thing its statement evaluates. The IF that a
     /// short-circuit operand is lowered into is hoisted before the statement, which only preserves
@@ -267,17 +270,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             preamble: Vec::new(),
             replacement: None,
             globals: Vec::new(),
-            external_globals: Vec::new(),
-            current_pou_external: false,
-            current_pou_generic: false,
-            current_pou: String::new(),
-            generic_signatures: FxHashMap::default(),
-            retained_counters: FxHashMap::default(),
             fp_counter: 0,
-            sc_counter: 0,
-            temps: FxHashMap::default(),
-            current_pou_type: String::new(),
-            unit_pous: FxHashSet::default(),
+            scope: Scope::default(),
             leading: false,
         }
     }
@@ -286,48 +280,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     /// Returns any diagnostics produced by interface validation checks.
     pub fn lower(&mut self, units: &mut [CompilationUnit]) -> Vec<Diagnostic> {
         for unit in units.iter_mut() {
-            self.generic_signatures = unit
-                .pous
-                .iter()
-                .filter(|pou| !pou.generics.is_empty())
-                .map(|pou| (pou.name_location.clone(), helper::generic_signature(&pou.generics)))
-                .collect();
-            self.unit_pous = unit.pous.iter().map(|pou| pou.name.to_lowercase()).collect();
-            self.visit_compilation_unit(unit);
-
-            // An included unit is compiled to its own object elsewhere, which defines the globals.
-            let location = SourceLocation::internal_in_unit(unit.file.get_name());
-            for pou in unit.pous.iter_mut() {
-                let Some(names) = self.temps.remove(&pou.name.to_lowercase()) else {
-                    continue;
-                };
-                let variables =
-                    names.iter().map(|name| helper::create_variable(name, "BOOL", &location)).collect();
-                pou.variable_blocks.push(
-                    VariableBlock::default()
-                        .with_block_type(VariableBlockType::Temp)
-                        .with_variables(variables),
-                );
-            }
-            self.temps.clear();
-            if !self.globals.is_empty() {
-                let variables =
-                    self.globals.drain(..).map(|name| helper::create_global(&name, &location)).collect();
-                let linkage =
-                    if unit.linkage.is_included() { LinkageType::External } else { LinkageType::Internal };
-                unit.global_vars
-                    .push(VariableBlock::global().with_linkage(linkage).with_variables(variables));
-            }
-            if !self.external_globals.is_empty() {
-                let variables = self
-                    .external_globals
-                    .drain(..)
-                    .map(|name| helper::create_global(&name, &location))
-                    .collect();
-                unit.global_vars.push(
-                    VariableBlock::global().with_linkage(LinkageType::External).with_variables(variables),
-                );
-            }
+            self.lower_unit(unit);
         }
 
         // If any interface-typed variable was encountered, inject the __FATPOINTER struct
@@ -339,6 +292,65 @@ impl<'a> InterfaceDispatchLowerer<'a> {
         }
 
         std::mem::take(&mut self.diagnostics)
+    }
+
+    /// Lowers the declarations of a unit, then every implementation paired with its declaration, and
+    /// adds the generated variables to the unit.
+    fn lower_unit(&mut self, unit: &mut CompilationUnit) {
+        for block in &mut unit.global_vars {
+            self.visit_variable_block(block);
+        }
+        for user_type in &mut unit.user_types {
+            self.visit_user_type_declaration(user_type);
+        }
+        for pou in &mut unit.pous {
+            self.visit_pou(pou);
+        }
+        for interface in &mut unit.interfaces {
+            self.visit_interface(interface);
+        }
+
+        let location = SourceLocation::internal_in_unit(unit.file.get_name());
+        for implementation in unit.implementations.iter_mut() {
+            if implementation.location.is_internal() {
+                continue;
+            }
+
+            let pou = unit.pous.iter_mut().find(|pou| pou.name_location == implementation.name_location);
+            self.scope = Scope::new(implementation, pou.as_deref());
+            implementation.walk(self);
+
+            // The BOOL temporaries of the body become VAR_TEMP variables of its declaration
+            let temps = std::mem::take(&mut self.scope.temps);
+            if let Some(pou) = pou.filter(|_| !temps.is_empty()) {
+                let variables =
+                    temps.iter().map(|name| helper::create_variable(name, "BOOL", &location)).collect();
+                pou.variable_blocks.push(
+                    VariableBlock::default()
+                        .with_block_type(VariableBlockType::Temp)
+                        .with_variables(variables),
+                );
+            }
+        }
+
+        // An included unit is compiled to its own object elsewhere, which defines the globals. A
+        // declaration is emitted once, however many bodies share it.
+        let (mut defined, mut declared) = (Vec::new(), Vec::new());
+        for (name, linkage) in self.globals.drain(..) {
+            match linkage {
+                LinkageType::External if !declared.contains(&name) => declared.push(name),
+                LinkageType::External => {}
+                _ => defined.push(name),
+            }
+        }
+        let linkage = if unit.linkage.is_included() { LinkageType::External } else { LinkageType::Internal };
+        for (names, linkage) in [(defined, linkage), (declared, LinkageType::External)] {
+            if names.is_empty() {
+                continue;
+            }
+            let variables = names.iter().map(|name| helper::create_global(name, &location)).collect();
+            unit.global_vars.push(VariableBlock::global().with_linkage(linkage).with_variables(variables));
+        }
     }
 }
 
@@ -352,22 +364,6 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         }
 
         data_type_declaration.walk(self);
-    }
-
-    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
-        if implementation.location.is_internal() {
-            return;
-        }
-
-        self.current_pou_type = implementation.type_name.to_lowercase();
-        let name = implementation.name.replace('.', "__");
-        self.current_pou = format!("{}{name}", name.len());
-        if let Some(signature) = self.generic_signatures.get(&implementation.name_location) {
-            self.current_pou = format!("{}_{}{signature}", self.current_pou, signature.len());
-        }
-        self.current_pou_external = implementation.linkage.is_external() || implementation.generic;
-        self.current_pou_generic = implementation.generic;
-        implementation.walk(self);
     }
 
     fn visit_statement_list(&mut self, stmts: &mut Vec<AstNode>) {
@@ -500,9 +496,8 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
     /// never happens. Such an operand is lowered into an IF that carries its preamble in the branch
     /// that evaluates it and leaves its value in a BOOL `VAR_TEMP` of the POU. The IF is hoisted as
     /// well, so this only applies where the short-circuit is the first thing its statement evaluates,
-    /// where both operands are BOOL so that validation still sees a wrong operand, and where the POU
-    /// is declared in this unit, is not a generic template and can take the `VAR_TEMP`; elsewhere the
-    /// preamble stays eager.
+    /// where both operands are BOOL so that validation still sees a wrong operand, and where the body
+    /// can take the `VAR_TEMP`, see [`Scope::takes_temps`]; elsewhere the preamble stays eager.
     ///
     /// ```text
     /// // Before:
@@ -527,8 +522,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         let short_circuit = matches!(operator, Operator::AndThen | Operator::OrElse);
         let conditional = short_circuit
             && self.leading
-            && !self.current_pou_generic
-            && self.unit_pous.contains(&self.current_pou_type)
+            && self.scope.takes_temps
             && self.annotations.get_type_or_void(left, self.index).get_type_information().is_bool()
             && self.annotations.get_type_or_void(right, self.index).get_type_information().is_bool();
 
@@ -557,9 +551,8 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             unreachable!();
         };
 
-        let name = format!("__shortcircuit_{}", self.sc_counter);
-        self.sc_counter += 1;
-        self.temps.entry(self.current_pou_type.clone()).or_default().push(name.clone());
+        let name = format!("__shortcircuit_{}", self.scope.temps.len());
+        self.scope.temps.push(name.clone());
 
         // Only the branch that evaluates the right operand runs its preamble.
         let mut evaluate = right_preamble;
@@ -962,14 +955,11 @@ impl<'a> InterfaceDispatchLowerer<'a> {
 
         // Generate a unique name for the fat pointer and allocate it.
         let fp_name = if retained {
-            let counter = self.retained_counters.entry(self.current_pou.clone()).or_default();
-            let name = format!("__fatpointer_{}_{}", self.current_pou, counter);
-            *counter += 1;
-            if self.current_pou_external {
-                self.external_globals.push(name.clone());
-            } else {
-                self.globals.push(name.clone());
-            }
+            let name = format!("__fatpointer_{}_{}", self.scope.identity, self.scope.retained);
+            self.scope.retained += 1;
+            let linkage =
+                if self.scope.declared_only { LinkageType::External } else { LinkageType::Internal };
+            self.globals.push((name.clone(), linkage));
             name
         } else {
             let name = format!("__fatpointer_{}", self.fp_counter);
