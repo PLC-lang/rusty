@@ -301,6 +301,8 @@ Binary and unary expressions become the matching integer or float instruction. C
 store i8 %5, ptr %deref3                    ; write overflow through the output pointer
 ```
 
+The integer predicate follows the hinted operand types: a signed predicate such as `sgt` when one of them is signed, an unsigned one such as `ugt` when both are unsigned. A `USINT` compared with a `DINT` literal is zero-extended to `DINT` first and compares signed; two `UDINT` values compare with `ugt`.
+
 Codegen expects earlier stages to have resolved names and checked types. An unsupported expression stops the run with an internal codegen error.
 
 
@@ -362,6 +364,14 @@ continue:
     i32 0, label %case                    ; Slow
     i32 1, label %case3                   ; Fast
   ]
+```
+
+A range label checks the selector against both bounds in the selector's own type, with the selector's signedness. The range `11..254` on a `USINT` selector becomes:
+
+```llvm
+  %tmpVar = icmp uge i8 %load_x1, 11      ; x >= 11
+  ...
+  %tmpVar3 = icmp ule i8 %load_x2, -2     ; x <= 254 (-2 is the bit pattern of 254)
 ```
 
 ### Loops
