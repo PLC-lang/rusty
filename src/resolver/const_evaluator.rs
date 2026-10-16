@@ -733,18 +733,22 @@ fn find_member_variable<'idx>(
 
 /// The type of the operand of a unary expression, the way the resolver sees it: a constant
 /// reference has its declared type, a cast literal the cast type, and a plain integer literal is a
-/// `DINT`, or a `LINT` when it does not fit. A subrange or an enum counts as its base type, and a
-/// nested `-`, `+` or `NOT` as its operand, since none of them changes the width. Returns `None` for
-/// an operand whose type the evaluator cannot tell, such as a binary expression or a plain real
-/// literal.
+/// `DINT`, or a `LINT` when it does not fit. A subrange or an enum counts as its base type, a
+/// nested `-` as its widened type, and a nested `+` or `NOT` as its operand, since neither changes
+/// the width. Returns `None` for an operand whose type the evaluator cannot tell, such as a binary
+/// expression or a plain real literal.
 fn get_operand_type<'idx>(
     value: &AstNode,
     scope: Option<&str>,
     index: &'idx Index,
 ) -> Option<&'idx DataTypeInformation> {
     let operand_type = match value.get_stmt_peeled() {
+        // a nested negation is computed in its widened type, a plus or a NOT keeps the width
+        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
+            return get_negation_type(value, scope, index)
+        }
         AstStatement::UnaryExpression(UnaryExpression {
-            operator: Operator::Minus | Operator::Plus | Operator::Not,
+            operator: Operator::Plus | Operator::Not,
             value,
         }) => return get_operand_type(value, scope, index),
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {

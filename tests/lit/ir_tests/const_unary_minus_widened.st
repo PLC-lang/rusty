@@ -10,6 +10,7 @@ TYPE ED : DINT (DA := -2147483648, DB := 0); END_TYPE
 VAR_GLOBAL CONSTANT
     c1 : USINT := 200;
     ci : INT := -32768;
+    cs : SINT := -128;
     cd : DINT := -2147483648;
     cr : REAL := 16777217.0;
     csrd : SRd := -2147483648;
@@ -31,6 +32,7 @@ VAR_GLOBAL
     // NOT keeps the width of its operand, and a real constant holds the negated value
     gnot : DINT := -(NOT c1);
     gnn : USINT := NOT (NOT c1);
+    gnneg : DINT := NOT (-cs);
     gf : LREAL := -c1;
     // a constant built from an unsigned constant keeps its value in the static data too, and a
     // negation into a narrower target is cut down to that target
@@ -56,6 +58,7 @@ END_PROGRAM
 // CHECK: @gn = global i64 -2147483648
 // CHECK: @gnot = global i32 -55
 // CHECK: @gnn = global i8 -56
+// CHECK: @gnneg = global i32 -129
 // CHECK: @gf = global double -2.000000e+02
 // CHECK: @gfu = global double 2.000000e+02
 // CHECK: @glu = global i64 200

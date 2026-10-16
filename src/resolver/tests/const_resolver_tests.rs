@@ -353,6 +353,8 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
             c1 : USINT := 200;
             nnot : DINT := -(NOT c1);
             notnot : USINT := NOT (NOT c1);
+            cs : SINT := -128;
+            notneg : DINT := NOT (-cs);
         END_VAR
         ",
     );
@@ -377,6 +379,8 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
     // NOT keeps the width of its operand, so NOT 200 on a USINT is 55 and its negation -55
     debug_assert_eq!(&create_int_literal(-55), find_constant_value(&index, "nnot").unwrap());
     debug_assert_eq!(&create_int_literal(200), find_constant_value(&index, "notnot").unwrap());
+    // a nested negation is computed in the widened DINT, so the NOT around it is as well
+    debug_assert_eq!(&create_int_literal(-129), find_constant_value(&index, "notneg").unwrap());
 }
 
 #[test]
