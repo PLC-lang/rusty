@@ -1192,7 +1192,12 @@ fn this_in_method_call_chain() {
       store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align [filtered]
-      call void @FB_Test__Increment(ptr %deref)
+      %__vtable1 = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
+      %deref2 = load ptr, ptr %__vtable1, align [filtered]
+      %Increment = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref2, i32 0, i32 2
+      %1 = load ptr, ptr %Increment, align [filtered]
+      %deref3 = load ptr, ptr %this, align [filtered]
+      call void %1(ptr %deref3)
       ret void
     }
 
@@ -1937,8 +1942,13 @@ fn this_in_property_and_calling_method() {
       store i16 0, ptr %Value, align [filtered]
       store i16 0, ptr %FB_Test.__get_Value, align [filtered]
       %deref = load ptr, ptr %this, align [filtered]
-      %call = call i16 @FB_Test__DoubleX(ptr %deref)
-      store i16 %call, ptr %Value, align [filtered]
+      %__vtable1 = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
+      %deref2 = load ptr, ptr %__vtable1, align [filtered]
+      %DoubleX = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref2, i32 0, i32 1
+      %1 = load ptr, ptr %DoubleX, align [filtered]
+      %deref3 = load ptr, ptr %this, align [filtered]
+      %fnptr_call = call i16 %1(ptr %deref3)
+      store i16 %fnptr_call, ptr %Value, align [filtered]
       %load_Value = load i16, ptr %Value, align [filtered]
       store i16 %load_Value, ptr %FB_Test.__get_Value, align [filtered]
       %FB_Test____get_Value_ret = load i16, ptr %FB_Test.__get_Value, align [filtered]
