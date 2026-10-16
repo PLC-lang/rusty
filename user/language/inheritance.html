@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-a84f00b0.js";
+            window.path_to_searchindex_js = "../../searchindex-68495fc5.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -214,6 +214,7 @@ END_VAR
 any := ADR(scaled);
 value := any^.Read();   (* the method of ScaledSensor *)
 </code></pre>
+<p>The same holds inside the base block: in a method of <code>Sensor</code>, both <code>Read()</code> and <code>THIS^.Read()</code> run the method of <code>ScaledSensor</code> when the instance is a <code>ScaledSensor</code>.</p>
 <p>Take the address with <code>ADR</code>. <code>REF</code> gives a pointer to the exact type of its argument, so <code>any := REF(scaled)</code> warns that <code>REF_TO Sensor</code> and <code>ScaledSensor</code> are different types, although the call works.</p>
 <p>This is what makes a list of different sensors possible: they all have <code>Read</code>, and each one brings its own.</p>
 <h2 id="interfaces"><a class="header" href="#interfaces">Interfaces</a></h2>
