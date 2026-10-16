@@ -565,8 +565,11 @@ fn evaluate_with_target_hint(
                     Some(AstFactory::create_literal(AstLiteral::Bool(!v), location, id))
                 }
                 Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
-                    // `NOT` keeps the width of its operand, so the result wraps to the operand's type
-                    let v = get_operand_type(value, scope, index).map_or(!v, |it| wrap_to_type(!v, it));
+                    // the operand is read in its own type, and `NOT` keeps that width, so both the
+                    // operand and the result wrap to the operand's type
+                    let operand_type = get_operand_type(value, scope, index);
+                    let v = operand_type.map_or(*v, |it| wrap_to_type(*v, it));
+                    let v = operand_type.map_or(!v, |it| wrap_to_type(!v, it));
                     let v = cut_down_to_target(v, target_type, index);
                     let lit = AstFactory::create_literal(AstLiteral::Integer(v), location, id);
                     // re-evaluate to range-check a target the cut-down leaves alone, such as BOOL
@@ -590,6 +593,10 @@ fn evaluate_with_target_hint(
             let negation_type = get_negation_type(value, scope, index);
             match evaluate(value, scope, index, lhs)? {
                 Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
+                    // the operand is read in its own type: a constant initialized from a wider
+                    // constant keeps the raw value in the store, `b : SINT := a` with a USINT 200
+                    // holds 200 there but is -56 wherever it is read
+                    let v = get_operand_type(value, scope, index).map_or(v, |it| wrap_to_type(v, it));
                     let v = negation_type.map_or(-v, |it| wrap_to_type(-v, it));
                     // an integer target cuts the value down as the assignment at run time does, so
                     // the initializer resolves; the validator reports the implicit downcast
@@ -618,8 +625,36 @@ fn evaluate_with_target_hint(
                 _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant Minus {value:?}"))),
             }
         }
+        // + x
+        // The literal is handed on with the id and location of the `+`, so that the hint of the
+        // target applies to it; the inner literal may carry the id of a widened negation.
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Plus, value }) => {
-            evaluate(value, scope, index, lhs)?
+            match evaluate(value, scope, index, lhs)? {
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
+                    // the operand is read in its own type, and the value is cut down to an integer
+                    // target as the assignment at run time does, like a negation
+                    let v = get_operand_type(value, scope, index).map_or(v, |it| wrap_to_type(v, it));
+                    let v = cut_down_to_target(v, target_type, index);
+                    let lit = AstNode::new(AstStatement::Literal(AstLiteral::Integer(v)), id, location);
+                    evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
+                }
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), .. }) => {
+                    // a REAL operand is read with REAL precision, as the negation reads it
+                    let v =
+                        v.parse::<f64>().map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?;
+                    let v = match get_operand_type(value, scope, index) {
+                        Some(DataTypeInformation::Float { size: 32, .. }) => v as f32 as f64,
+                        _ => v,
+                    };
+                    let lit = AstNode::new(
+                        AstStatement::Literal(AstLiteral::new_real(format!("{v:}"))),
+                        id,
+                        location,
+                    );
+                    evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
+                }
+                other => other,
+            }
         }
         AstStatement::ExpressionList(expressions) => {
             let inner_elements = expressions

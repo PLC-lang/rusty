@@ -331,7 +331,7 @@ fn negated_constant_takes_the_type_of_the_negation() {
 fn negated_constant_is_folded_in_the_type_of_the_negation() {
     // GIVEN negations whose exact value does not fit the type the negation is computed in, on
     // plain constants, a subrange, enums, and nested unary operands
-    let (_, index) = index(
+    let (unit, index) = index(
         "TYPE SRd : DINT(-2147483648..0); END_TYPE
         TYPE ED : DINT (DA := -2147483648, DB := 0); END_TYPE
         TYPE EL : LINT (LA := -9223372036854775808, LB := 0); END_TYPE
@@ -355,6 +355,11 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
             notnot : USINT := NOT (NOT c1);
             cs : SINT := -128;
             notneg : DINT := NOT (-cs);
+            cb : SINT := c1;
+            negnarrow : DINT := -cb;
+            notnarrow : DINT := NOT cb;
+            plusneg : INT := +(-cs);
+            plusreal : LREAL := +cr;
         END_VAR
         ",
     );
@@ -381,6 +386,17 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
     debug_assert_eq!(&create_int_literal(200), find_constant_value(&index, "notnot").unwrap());
     // a nested negation is computed in the widened DINT, so the NOT around it is as well
     debug_assert_eq!(&create_int_literal(-129), find_constant_value(&index, "notneg").unwrap());
+    // a constant initialized from a wider constant keeps the raw value 200 in the store, but it is
+    // read as the SINT -56, so the operand is cut down to its own type before the operator
+    debug_assert_eq!(&create_int_literal(56), find_constant_value(&index, "negnarrow").unwrap());
+    debug_assert_eq!(&create_int_literal(55), find_constant_value(&index, "notnarrow").unwrap());
+    // a unary plus hands its operand's literal on with its own id, so the target's hint applies
+    let folded = find_constant_value(&index, "plusneg").unwrap();
+    debug_assert_eq!(&create_int_literal(128), folded);
+    let plus = unit.global_vars[0].variables.iter().find(|it| it.name == "plusneg").unwrap();
+    assert_eq!(plus.initializer.as_ref().unwrap().get_id(), folded.get_id());
+    // a unary plus reads a REAL operand with REAL precision, as the negation does
+    debug_assert_eq!(&create_real_literal(16777216.0), find_constant_value(&index, "plusreal").unwrap());
 }
 
 #[test]
