@@ -92,6 +92,8 @@ The `alloca` lines are allocation statements, a node kind that has no spelling i
 
 Most generated nodes have internal source locations. Reused source nodes keep theirs: conditions still point to the original conditions, and counter setup and comparisons point to the `FOR` header. A debugger can therefore stop on the source loop lines while skipping generated flags and loop-back jumps.
 
+The counter, the end value, the step, and the two flags appear more than once in the generated body. Each copy gets new node IDs, because the resolver stores annotations by ID: with shared IDs, the `DINT` hint that `i + 1` gives a `UDINT` counter would also reach `i > end`, and that comparison would run signed.
+
 
 ## Interactions
 

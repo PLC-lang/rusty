@@ -314,18 +314,18 @@ impl AstVisitorMut for ForDesugarer {
 
         // Increment the counter at the top of every iteration after the first one.
         let increment_assignment = helper::create_internal_assignment(
-            counter.clone(),
+            helper::clone_with_new_ids(&counter, &mut self.ids),
             helper::create_internal_binary_expression(
-                counter.clone(),
+                helper::clone_with_new_ids(&counter, &mut self.ids),
                 Operator::Plus,
-                step.clone(),
+                helper::clone_with_new_ids(&step, &mut self.ids),
                 &mut self.ids,
             ),
             &mut self.ids,
         );
         let increment_guard = helper::create_if_then(
             self.ids.clone(),
-            ran_once_ref.clone(),
+            helper::clone_with_new_ids(&ran_once_ref, &mut self.ids),
             vec![increment_assignment],
             SourceLocation::internal(),
         );
@@ -339,12 +339,17 @@ impl AstVisitorMut for ForDesugarer {
 
         // Compute the comparison direction once before entering the replacement loop.
         let is_incrementing_value = if has_explicit_step {
-            helper::create_internal_binary_expression(step.clone(), Operator::Greater, zero, &mut self.ids)
+            helper::create_internal_binary_expression(
+                helper::clone_with_new_ids(&step, &mut self.ids),
+                Operator::Greater,
+                zero,
+                &mut self.ids,
+            )
         } else {
             helper::create_internal_literal_true(&mut self.ids)
         };
         let is_incrementing_assignment = helper::create_internal_assignment(
-            is_incrementing_ref.clone(),
+            helper::clone_with_new_ids(&is_incrementing_ref, &mut self.ids),
             is_incrementing_value,
             &mut self.ids,
         );
@@ -354,15 +359,20 @@ impl AstVisitorMut for ForDesugarer {
         let incrementing_exit = helper::create_if_then_exit(
             self.ids.clone(),
             AstFactory::create_binary_expression(
-                counter.clone(),
+                helper::clone_with_new_ids(&counter, &mut self.ids),
                 Operator::Greater,
-                end.clone(),
+                helper::clone_with_new_ids(&end, &mut self.ids),
                 self.ids.next_id(),
             ),
         );
         let decrementing_exit = helper::create_if_then_exit(
             self.ids.clone(),
-            AstFactory::create_binary_expression(counter.clone(), Operator::Less, end, self.ids.next_id()),
+            AstFactory::create_binary_expression(
+                helper::clone_with_new_ids(&counter, &mut self.ids),
+                Operator::Less,
+                end,
+                self.ids.next_id(),
+            ),
         );
         let bound_guard = helper::create_if_then_else(
             self.ids.clone(),
@@ -394,9 +404,30 @@ pub(crate) mod helper {
         ast::{Allocation, AstFactory, AstNode, AstStatement, Operator},
         control_statements::{ConditionalBlock, IfStatement, LoopStatement},
         literals::AstLiteral,
+        mut_visitor::{AstVisitorMut, WalkerMut},
         provider::IdProvider,
     };
     use plc_source::source_location::SourceLocation;
+
+    /// Gives every visited node a new ID
+    struct IdRefresher {
+        ids: IdProvider,
+    }
+
+    impl AstVisitorMut for IdRefresher {
+        fn visit(&mut self, node: &mut AstNode) {
+            node.id = self.ids.next_id();
+            node.walk(self);
+        }
+    }
+
+    /// Returns a copy of `node` with new IDs. The resolver annotates nodes by ID, so a copy that
+    /// kept the original IDs would share its type hints with every other copy.
+    pub fn clone_with_new_ids(node: &AstNode, ids: &mut IdProvider) -> AstNode {
+        let mut copy = node.clone();
+        IdRefresher { ids: ids.clone() }.visit(&mut copy);
+        copy
+    }
 
     pub fn create_internal_literal_true(ids: &mut IdProvider) -> AstNode {
         AstFactory::create_literal(AstLiteral::Bool(true), SourceLocation::internal(), ids.next_id())
@@ -509,8 +540,24 @@ pub(crate) mod helper {
 
 #[cfg(test)]
 mod tests {
+    use plc_ast::{
+        ast::{AstId, AstNode},
+        visitor::{AstVisitor, Walker},
+    };
     use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
+
+    /// Collects the ID of every visited node
+    struct IdCollector {
+        ids: Vec<AstId>,
+    }
+
+    impl AstVisitor for IdCollector {
+        fn visit(&mut self, node: &AstNode) {
+            self.ids.push(node.get_id());
+            node.walk(self);
+        }
+    }
 
     fn serialize(source: impl Into<SourceCode>) -> String {
         let (_, project) = parse_and_annotate("unit-test", vec![source.into()]).unwrap();
@@ -846,6 +893,34 @@ mod tests {
     }
 
     mod for_loops {
+        #[test]
+        fn copies_of_counter_end_and_step_have_their_own_ids() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i, b, c : UDINT;
+                    END_VAR
+
+                    FOR i := 0 TO b BY c DO
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            use super::{parse_and_annotate, AstVisitor, IdCollector, SourceCode};
+            use std::collections::HashSet;
+
+            let (_, project) = parse_and_annotate("unit-test", vec![SourceCode::from(source)]).unwrap();
+            let unit = project.units[0].get_unit();
+            let statements = &unit.implementations.iter().find(|it| &it.name == "main").unwrap().statements;
+
+            let mut collector = IdCollector { ids: Vec::new() };
+            statements.iter().for_each(|statement| collector.visit(statement));
+
+            let mut seen = HashSet::new();
+            let duplicates: Vec<_> = collector.ids.into_iter().filter(|id| !seen.insert(*id)).collect();
+            assert_eq!(duplicates, Vec::<usize>::new());
+        }
+
         #[test]
         fn default_step() {
             let source = r#"
