@@ -375,6 +375,65 @@ fn binary_expressions_resolves_types_for_literals_directly() {
 }
 
 #[test]
+fn comparisons_resolve_literals_to_unsigned_operand_type_of_32_and_64_bits() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "TYPE Count : UDINT; END_TYPE
+
+        PROGRAM PRG
+            VAR a : UDINT; b : DWORD; c : UINT; d : Count; END_VAR
+            a > 5;
+            2 < b;
+            a > 5000000000;
+            c > 7;
+            d > 5;
+            a / 2;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    let operands = |statement: &AstNode| {
+        let AstStatement::BinaryExpression(BinaryExpression { left, right, .. }) = statement.get_stmt()
+        else {
+            unreachable!()
+        };
+        (left.clone(), right.clone())
+    };
+
+    // a > 5 --> compares in UDINT, the literal fits into UDINT
+    let (a, five) = operands(&statements[0]);
+    assert_type_and_hint!(&annotations, &index, &a, UDINT_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &five, DINT_TYPE, Some(UDINT_TYPE));
+
+    // 2 < b --> compares in DWORD, the literal fits into DWORD
+    let (two, b) = operands(&statements[1]);
+    assert_type_and_hint!(&annotations, &index, &two, DINT_TYPE, Some(DWORD_TYPE));
+    assert_type_and_hint!(&annotations, &index, &b, DWORD_TYPE, None);
+
+    // a > 5000000000 --> compares in LINT, the literal does not fit into UDINT
+    let (a, literal) = operands(&statements[2]);
+    assert_type_and_hint!(&annotations, &index, &a, UDINT_TYPE, Some(LINT_TYPE));
+    assert_type_and_hint!(&annotations, &index, &literal, LINT_TYPE, None);
+
+    // c > 7 --> compares in DINT, unsigned operands smaller than 32 bits are still widened to DINT
+    let (c, seven) = operands(&statements[3]);
+    assert_type_and_hint!(&annotations, &index, &c, UINT_TYPE, Some(DINT_TYPE));
+    assert_type_and_hint!(&annotations, &index, &seven, DINT_TYPE, None);
+
+    // d > 5 --> an alias of UDINT gives the literal the intrinsic type UDINT
+    let (_, five) = operands(&statements[4]);
+    assert_type_and_hint!(&annotations, &index, &five, DINT_TYPE, Some(UDINT_TYPE));
+
+    // a / 2 --> arithmetic still runs in DINT
+    let (a, two) = operands(&statements[5]);
+    assert_type_and_hint!(&annotations, &index, &a, UDINT_TYPE, Some(DINT_TYPE));
+    assert_type_and_hint!(&annotations, &index, &two, DINT_TYPE, None);
+    assert_type_and_hint!(&annotations, &index, &statements[5], DINT_TYPE, None);
+}
+
+#[test]
 fn addition_subtraction_expression_with_pointers_resolves_to_pointer_type() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(

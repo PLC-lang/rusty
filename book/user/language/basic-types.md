@@ -20,6 +20,8 @@ Eight integer types, four signed and four unsigned:
 
 `DINT` is the type to reach for. It is the type that the compiler gives to a whole-number literal, and only a literal too large for 32 bits becomes a `LINT`.
 
+In a comparison with a `UDINT`, `ULINT`, `DWORD`, or `LWORD`, a literal that fits into that type takes the type instead, so the comparison stays unsigned: with `a : UDINT := 16#8000_0000`, `a > 5` is `TRUE`. Arithmetic with a literal still runs in `DINT`, so `a - 10` with `a : UDINT := 5` is `-5`.
+
 A literal can be written in another base, and `_` between two digits groups them:
 
 ```iecst
