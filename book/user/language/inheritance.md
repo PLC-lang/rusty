@@ -45,6 +45,8 @@ any := ADR(scaled);
 value := any^.Read();   (* the method of ScaledSensor *)
 ```
 
+The same holds inside the base block: in a method of `Sensor`, both `Read()` and `THIS^.Read()` run the method of `ScaledSensor` when the instance is a `ScaledSensor`.
+
 Take the address with `ADR`. `REF` gives a pointer to the exact type of its argument, so `any := REF(scaled)` warns that `REF_TO Sensor` and `ScaledSensor` are different types, although the call works.
 
 This is what makes a list of different sensors possible: they all have `Read`, and each one brings its own.
