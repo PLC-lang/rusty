@@ -838,7 +838,8 @@ pub enum DataType {
     EnumType {
         name: Option<String>, //maybe empty for inline enums
         numeric_type: String,
-        elements: AstNode, //a single Ref, or an ExpressionList with Refs
+        elements: AstNode,          //a single Ref, or an ExpressionList with Refs
+        default_numeric_type: bool, // true if default numeric type is used
     },
     SubRangeType {
         name: Option<String>,

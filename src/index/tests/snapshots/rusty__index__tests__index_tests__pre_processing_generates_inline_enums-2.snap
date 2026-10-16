@@ -90,4 +90,5 @@ EnumType {
             },
         ],
     },
+    default_numeric_type: true,
 }

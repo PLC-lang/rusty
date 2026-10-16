@@ -42,6 +42,7 @@ Variable {
                                     },
                                 ],
                             },
+                            default_numeric_type: true,
                         },
                     },
                 },
