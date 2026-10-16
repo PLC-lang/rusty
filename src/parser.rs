@@ -1247,6 +1247,7 @@ fn parse_type_reference_type_definition(
                         name,
                         numeric_type: referenced_type,
                         elements: AstFactory::create_expression_list(expressions, location, id),
+                        default_numeric_type: false,
                     }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
@@ -1262,6 +1263,7 @@ fn parse_type_reference_type_definition(
                         name,
                         numeric_type: referenced_type,
                         elements: bounds.unwrap(),
+                        default_numeric_type: false,
                     }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
@@ -1350,7 +1352,12 @@ fn parse_string_type_definition(
             // This looks like an enum definition with STRING/WSTRING as the type
             // Create an EnumType so validation can catch it as invalid
             Some(DataTypeDeclaration::Definition {
-                data_type: Box::new(DataType::EnumType { name, numeric_type: text, elements: size }),
+                data_type: Box::new(DataType::EnumType {
+                    name,
+                    numeric_type: text,
+                    elements: size,
+                    default_numeric_type: false,
+                }),
                 location,
                 scope: lexer.scope.clone(),
             })
@@ -1393,12 +1400,17 @@ fn parse_enum_type_definition(
     let elements = parse_any_in_region(lexer, vec![KeywordParensClose], parse_enum_elements)?;
     // Check for Codesys-style type specification after the enum list
     // TYPE COLOR : (...) DWORD;
-    let numeric_type =
-        if lexer.token == Identifier { lexer.slice_and_advance() } else { DINT_TYPE.to_string() };
+    let numeric_type_specified = lexer.token == Identifier;
+    let numeric_type = if numeric_type_specified { lexer.slice_and_advance() } else { DINT_TYPE.to_string() };
     let initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
     Some((
         DataTypeDeclaration::Definition {
-            data_type: Box::new(DataType::EnumType { name, elements, numeric_type }),
+            data_type: Box::new(DataType::EnumType {
+                name,
+                elements,
+                numeric_type,
+                default_numeric_type: !numeric_type_specified,
+            }),
             location: start.span(&lexer.last_location()),
             scope: lexer.scope.clone(),
         },

@@ -51,6 +51,7 @@ UserTypeDeclaration {
                 },
             ],
         },
+        default_numeric_type: false,
     },
     initializer: None,
     scope: None,

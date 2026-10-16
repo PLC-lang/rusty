@@ -16,6 +16,7 @@ UserTypeDeclaration {
             ),
             base: None,
         },
+        default_numeric_type: false,
     },
     initializer: None,
     scope: None,
