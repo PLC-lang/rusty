@@ -181,9 +181,10 @@ impl<'a> AstVisitorMut for PolymorphicCallLowerer<'a> {
             return;
         };
 
+        // A call on THIS uses the virtual table of the enclosing POU, any other call that of its instance
         let unit_name = match self.in_method_or_function_block {
-            Some(ref name) => name.clone(),
-            None => match operator.get_base_ref_expr() {
+            Some(ref name) if self.is_method_call_on_this(operator) => name.clone(),
+            _ => match operator.get_base_ref_expr() {
                 Some(base) => {
                     // When dealing with e.g. __main_myVariable
                     let ty = self.annotations.get_type(base, self.index).unwrap();
@@ -255,6 +256,14 @@ impl<'a> PolymorphicCallLowerer<'a> {
             .is_some_and(PouIndexEntry::is_program)
     }
 
+    /// Returns true if the given call operator is a method call on the current instance within a method or
+    /// function block body, e.g. `foo()` or `THIS^.foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`.
+    fn is_method_call_on_this(&self, operator: &AstNode) -> bool {
+        self.in_method_or_function_block.is_some()
+            && self.annotations.get_type(operator, self.index).is_some_and(DataType::is_method)
+            && operator.get_base_ref_expr().is_none_or(|base| base.is_this() || base.is_this_deref())
+    }
+
     /// Returns true if the given AST node is a candidate that needs to be lowered into a polymorphic call.
     fn is_polymorphic_call_candidate(&self, operator: &AstNode) -> bool {
         // We do not want to lower body calls through THIS or SUPER, e.g. {THIS,SUPER}^(), nor SUPER^.foo().
@@ -272,11 +281,7 @@ impl<'a> PolymorphicCallLowerer<'a> {
         }
 
         // Case 1 (Method call within methods or function block bodies)
-        if self.in_method_or_function_block.is_some()
-            && self.annotations.get_type(operator, self.index).is_some_and(DataType::is_method)
-            // Only lower something alike `THIS^.foo()` or `foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`
-            && operator.get_base_ref_expr().is_none_or(|base| base.is_this() || base.is_this_deref())
-        {
+        if self.is_method_call_on_this(operator) {
             return true;
         }
 
@@ -677,6 +682,51 @@ mod tests {
             "refProg(in := 1)",
             "refProg.alpha()",
             "__vtable_A#(refProg.refA.__vtable^).bravo^(A#(refProg.refA))",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn calls_through_pointers_in_methods_use_the_virtual_table_of_the_instance() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD foo
+                END_METHOD
+
+                PROPERTY_GET prop: INT
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B
+                VAR
+                    refA: REFERENCE TO A;
+                    ptrA: POINTER TO A;
+                    x: INT;
+                END_VAR
+
+                METHOD foo
+                END_METHOD
+
+                METHOD bravo
+                    refA.foo();
+                    ptrA^.foo();
+                    x := ptrA^.prop;
+                    foo();
+                END_METHOD
+
+                refA.foo();
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(lower_statements(source, &["B", "B.bravo"]), @r#"
+        [
+            "// Statements in B",
+            "__vtable_A#(refA.__vtable^).foo^(A#(refA))",
+            "// Statements in B.bravo",
+            "__vtable_A#(refA.__vtable^).foo^(A#(refA))",
+            "__vtable_A#(ptrA^.__vtable^).foo^(A#(ptrA^))",
+            "x := __vtable_A#(ptrA^.__vtable^).__get_prop^(A#(ptrA^))",
+            "__vtable_B#(THIS^.__vtable^).foo^(B#(THIS^))",
         ]
         "#);
     }
