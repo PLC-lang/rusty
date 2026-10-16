@@ -359,6 +359,11 @@ pub mod helper {
         format!("__upcast_{ancestor_interface_name}")
     }
 
+    /// Returns the name of the virtual table field that points to the itable of the given interface.
+    pub fn get_interface_field_name(interface_name: &str) -> String {
+        format!("__interface_{interface_name}")
+    }
+
     /// Returns the names of all proper ancestor interfaces (excluding self) for the given interface,
     /// sorted alphabetically.
     pub fn collect_ancestor_interfaces<'idx>(
@@ -377,8 +382,13 @@ pub mod helper {
 
     /// Creates a `POINTER TO __VOID` variable for an upcast field in an itable struct definition.
     pub fn create_upcast_field(ancestor_name: &str, location: &SourceLocation) -> Variable {
+        create_void_pointer_field(&get_upcast_field_name(ancestor_name), location)
+    }
+
+    /// Creates a `POINTER TO __VOID` struct field with the given name.
+    pub fn create_void_pointer_field(name: &str, location: &SourceLocation) -> Variable {
         Variable {
-            name: get_upcast_field_name(ancestor_name),
+            name: name.to_string(),
             data_type_declaration: DataTypeDeclaration::Definition {
                 data_type: Box::new(DataType::PointerType {
                     name: None,

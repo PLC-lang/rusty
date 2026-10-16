@@ -1,0 +1,4 @@
+RUN: %COMPILE %S/app.st && %RUN | %CHECK %s
+CHECK: describe: 1 2
+CHECK: pointer: 2 2
+CHECK: tag: 200
