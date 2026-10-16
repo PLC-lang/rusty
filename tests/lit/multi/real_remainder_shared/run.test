@@ -1,0 +1,13 @@
+// REQUIRES: system-linux
+
+// A remainder on REAL and LREAL calls `fmodf` and `fmod` from libm. A shared object that uses them
+// links without `-lm` on the command line and records libm as a dependency.
+
+RUN: rm -rf %t.dir && mkdir -p %t.dir
+RUN: %COMPILE --shared %S/remainder.st && mv %t.out %t.dir/libremainder.so
+RUN: readelf --dynamic %t.dir/libremainder.so | grep -q 'NEEDED.*\[libm.so.6\]'
+RUN: %COMPILE %S/main.st -i %S/remainder.st -L%t.dir -lremainder
+RUN: env LD_LIBRARY_PATH=%t.dir:%STDLIBDIR %t.out | %CHECK %s
+
+// CHECK: REAL: 1.50
+// CHECK: LREAL: -1.50
