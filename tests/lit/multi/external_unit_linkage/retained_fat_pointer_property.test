@@ -1,0 +1,11 @@
+RUN: %PLC -c --fpic %S/retained_fat_pointer_lib_a.st -o %t.base.o
+RUN: %PLC -c --fpic -i %S/retained_fat_pointer_lib_a.st %S/retained_fat_pointer_property_lib_a.st -o %t.lib_a.o
+RUN: %PLC -c --fpic -i %S/retained_fat_pointer_lib_a.st %S/retained_fat_pointer_property_lib_b.st -o %t.lib_b.o
+RUN: %COMPILE -i %S/retained_fat_pointer_lib_a.st -i %S/retained_fat_pointer_property_lib_a.st -i %S/retained_fat_pointer_property_lib_b.st %S/retained_fat_pointer_property_main.st %t.base.o %t.lib_a.o %t.lib_b.o && %RUN | %CHECK %s
+
+Two libraries each bind a concrete instance to a function block's REFERENCE TO interface input inside a
+property getter. The binding belongs to the generated accessor only; the property body kept on the
+declaration must not emit a second, unnamed global, or the two objects clash on it.
+retained_fat_pointer_lib_a.st provides the interface and the consumer.
+
+CHECK: 1 2

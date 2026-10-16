@@ -482,7 +482,7 @@ And with nested interface calls, which are lowered bottom up:
 +__itable_IA#(reference.table^).baz^(reference.data^, __itable_IA#(reference.table^).foo^(reference.data^, __itable_IA#(reference.table^).bar^(reference.data^)), 42);
 ```
 
-**Call arguments**: When a concrete POU instance is passed as an argument to a function that expects an interface type, the compiler allocates a temporary fat pointer, fills it, and passes it in place of the original argument. The temporary is an allocation statement scoped to the enclosing statement, not a declared variable:
+**Call arguments**: When a concrete POU instance is passed as an argument to a function that expects an interface type, the compiler allocates a temporary fat pointer, fills it, and passes it in place of the original argument. For a by-value input the temporary is an allocation statement scoped to the enclosing statement, not a declared variable, as in the examples that follow; a pointer-backed parameter gets a global of the unit instead, see below:
 
 ```diff
 -consumer(instanceFbA);
@@ -502,7 +502,42 @@ This works with named arguments too:
 +consumer(in := __fatpointer_0);
 ```
 
-Multiple interface arguments in a single call each get their own temporary; the counter is shared by the whole compilation and never reset:
+The lowerer binds each argument to its callee parameter first: a named argument names its declaring POU and position in its argument annotation, a positional argument is bound by slot over the callee's parameters, inherited ones included, and a surplus positional argument binds to the variadic parameter. A `VAR_IN_OUT`, `VAR_INPUT {ref}`, `REFERENCE TO` or function `VAR_OUTPUT` parameter is indexed as an auto-deref pointer to the interface, so the lowerer looks through the pointer and the callee receives the address of the fat pointer. A function block or program `VAR_OUTPUT` is a plain member: the call runs the POU and codegen then copies the member into the fat pointer, which stays a statement-scoped temporary. In both cases a concrete instance is wrapped in the same way, but for a pointer-backed parameter the fat pointer is a global of the unit, named as described below:
+
+```diff
+-consumer(out => instanceFbA, inout := instanceFbB);
++// in VAR_GLOBAL of the unit:
++__fatpointer_4main_0 : __FATPOINTER;
++__fatpointer_4main_1 : __FATPOINTER;
++// at the call site in main:
++__fatpointer_4main_0.data := ADR(instanceFbA);
++__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance);
++__fatpointer_4main_1.data := ADR(instanceFbB);
++__fatpointer_4main_1.table := ADR(__itable_IA_FbB_instance);
++consumer(out => __fatpointer_4main_0, inout := __fatpointer_4main_1);
+```
+
+The fat pointer is where the callee's writes end up, through the address for a pointer-backed parameter and through the post-call copy for a stateful POU's `VAR_OUTPUT`, and nothing copies it back: a concrete instance cannot hold a fat pointer. A callee that assigns its `VAR_OUTPUT` or rebinds its `VAR_IN_OUT` therefore writes into the temporary, and the caller never sees that value. An interface variable passed to such a parameter is not wrapped at all; it must have the exact parameter interface, see Validation.
+
+A function block or program keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter between calls, and any POU may save such a parameter with `REF=` or forward it to a POU that keeps it, so a statement-scoped temporary would leave such a binding pointing into a stack frame that is gone once the calling function returns. For every pointer-typed parameter the lowerer therefore emits the fat pointer as a global of the unit instead, one per call site, and the preamble fills that global; a by-value input, which copies the fat pointer, and a function block or program `VAR_OUTPUT`, which is copied out after the call, keep the statement-scoped temporary. The global is named after the implementation that binds it, with the `.` of a method name replaced by `__`, the natures of a template's generics appended, and each part prefixed with its length so that no other POU name reads the same, such as `4bind` or `4bind_7ANY_INT`, and numbered per such name. The names of two objects compiled separately are therefore distinct whenever the binding POUs are distinct symbols, which linking the objects requires anyway, also for templates that only differ in their generics. A property body that stays on its declaration after the accessors were generated from it is not lowered; the generated accessor binds. In an included unit the block is declared external, because the object compiled from that unit defines it; the same holds for a binding inside an implementation declared `{external}`, whose body codegen omits. A generic template emits no code either and separately compiled libraries may contain the same template, so its retained globals are only declared; a monomorph, which the generic lowering declares external as well, has no defining object:
+
+```diff
+ FUNCTION bind
+-    globalConsumer(globalInstance);
++    // in VAR_GLOBAL of the unit:
++    __fatpointer_4bind_0 : __FATPOINTER;
++    // at the call site:
++    __fatpointer_4bind_0.data := ADR(globalInstance);
++    __fatpointer_4bind_0.table := ADR(__itable_IA_FbA_instance);
++    globalConsumer(__fatpointer_4bind_0);
+ END_FUNCTION
+```
+
+Every instance bound at the same call site shares that global, so a loop that binds several instances through one call leaves all of them referring to the instance bound last, and a recursive activation that binds a different instance at the same site rebinds the outer activation's parameter as well.
+
+A by-reference parameter needs a variable, because the callee may keep the address. A call result, an element of a call result, also behind a cast, or a literal is not passed; the pointee of a dereferenced pointer counts as a variable, whatever produced the pointer, and so does the target of a `REFERENCE TO` variable or member, also one read from a call result. The lowerer reports E031 for it, as the validator does for a by-reference parameter of an elementary type, and for a concrete instance substitutes an unfilled dummy fat pointer so that the call stays structurally valid; an interface-typed call result is left in place, since the call is structurally valid already.
+
+Multiple interface arguments in a single call each get their own temporary; the counter of the statement-scoped allocations is shared by the whole compilation and never reset, while the retained globals described above are numbered per binding POU name:
 
 ```diff
 -consumer(instanceA, instanceB, instanceC);
@@ -519,6 +554,24 @@ Multiple interface arguments in a single call each get their own temporary; the 
 ```
 
 The preamble (allocations and assignments) is hoisted before the call. When the call is nested inside another statement, for example `result := consumer(instance)` or the condition of an `IF`, the preamble is hoisted above that whole statement, so that the fat pointer is fully constructed before the call executes.
+
+Hoisting would run the preamble even when `AND_THEN` or `OR_ELSE` skips the operand that needs it, and so rebind a retained fat pointer for a call that never happens. Such an operand is lowered into an `IF` that carries its preamble in the branch that evaluates it and leaves its value in a BOOL `VAR_TEMP` added to the POU; the operand is replaced by that temporary. A statement-scoped allocation before the `IF` cannot serve here, because codegen generates a branch body from the generator's base index and so does not see an allocation registered earlier in the enclosing statement list:
+
+```diff
+-result := enabled AND_THEN holder.bind(instance);
++// in VAR_TEMP of the POU:
++__shortcircuit_0 : BOOL;
++IF enabled THEN
++    __fatpointer_4main_0.data := ADR(instance);
++    __fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance);
++    __shortcircuit_0 := holder.bind(__fatpointer_4main_0);
++ELSE
++    __shortcircuit_0 := FALSE;
++END_IF
++result := __shortcircuit_0;
+```
+
+The generated `IF` is hoisted as well, so the rewrite only applies where it preserves the evaluation order and the validation: the short-circuit must be the first thing its statement evaluates, such as the value assigned with `:=` to a plain variable or member, never the value of a `REF=`, which must be a reference and is left for validation to reject, the first condition of an `IF` or the selector of a `CASE`, but not the value assigned to an indexed, dereferenced or `REFERENCE TO` target, whose address is computed first, anything after a call or a non-static base, a later element of an expression list such as a second array dimension, a call argument, the right operand of another operator, an `ELSIF` or a loop condition; both operands must be BOOL, so that an invalid operand still reaches the E133 check; and the implementation must have its own declaration in the unit, which an action has not, and that declaration must not be a generic template, since overloaded templates share one declaration for member lookup. Elsewhere the preamble stays eager, with the shared-site behavior described above.
 
 **Interface upcasting**: When a child interface variable is assigned to a parent interface variable (for example `refIA := refIB` where `IB EXTENDS IA`), both sides are already fat pointers. The `.data` field can be copied directly; it still points to the same concrete POU instance. However, the `.table` field points to an `__itable_IB_*` instance but must point to the corresponding `__itable_IA_*` instance for the same POU. Since the concrete POU is only known at run time, the correct itable instance cannot be determined statically.
 
@@ -687,6 +740,6 @@ The result temporary carries no callee name, because this rewrite leaves the ope
 
 ## Validation
 
-The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: `Invalid assignment: 'FbX' does not implement interface 'IA'`. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: `Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically`. It reports E129 when an interface variable is called directly, `refInterface()`: `Interfaces cannot be called directly`.
+The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: `Invalid assignment: 'FbX' does not implement interface 'IA'`. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: `Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically`. It reports E037 when an interface variable of a child, parent or unrelated interface is passed to a `VAR_OUTPUT`, `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter of any POU, by-reference variadics included: `Parameter inout1 is passed by reference, it requires an argument of type IA but got IB`. An upcast through a temporary would never reach the caller's variable, so parameters the call writes through take only the exact interface. It reports E159 when an interface reference or a concrete instance is passed to a sized variadic whose element type is `REFERENCE TO` the interface, `rest : {sized} RefIA...`: the variadic stores each element by value in a pointer-sized slot, which a fat pointer does not fit; a by-reference variadic, `VAR_INPUT {ref} rest : {sized} IA...`, takes both. It reports E129 when an interface variable is called directly, `refInterface()`: `Interfaces cannot be called directly`.
 
-These checks run before interface types become `__FATPOINTER`, while the original interface names are still available. On failure, the lowerer drops the statement or leaves an unfilled argument temporary to avoid diagnostics about generated code. It passes its diagnostics to the driver.
+These checks run before interface types become `__FATPOINTER`, while the original interface names are still available. On an E126 or E129 failure, the lowerer drops the statement or leaves an unfilled argument temporary to avoid diagnostics about generated code; an E037 by-reference mismatch only reports and leaves the call and its argument unchanged. It passes its diagnostics to the driver.

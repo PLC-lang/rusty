@@ -1,0 +1,28 @@
+INTERFACE IA
+    METHOD foo : DINT END_METHOD
+END_INTERFACE
+
+FUNCTION_BLOCK Consumer
+VAR_INPUT
+    in1 : REFERENCE TO IA;
+END_VAR
+VAR_OUTPUT
+    result : DINT;
+END_VAR
+    result := in1.foo();
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FbA IMPLEMENTS IA
+    METHOD foo : DINT
+        foo := 1;
+    END_METHOD
+END_FUNCTION_BLOCK
+
+VAR_GLOBAL
+    consumerA : Consumer;
+    instanceA : FbA;
+END_VAR
+
+FUNCTION bindA
+    consumerA(instanceA);
+END_FUNCTION

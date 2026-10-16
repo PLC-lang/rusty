@@ -1,0 +1,9 @@
+RUN: %PLC -c --fpic %S/retained_fat_pointer_external_lib.st -o %t.lib.o
+RUN: %COMPILE %S/retained_fat_pointer_external_app.st %t.lib.o && %RUN | %CHECK %s
+
+The library binds a concrete instance to a function block's REFERENCE TO interface input inside
+bindExt, which keeps the fat pointer in a global of the library. The program declares bindExt as
+external but keeps its body, as a header would. Codegen omits that body, so the program must only
+declare the retained global and leave its definition to the library's object.
+
+CHECK: 1

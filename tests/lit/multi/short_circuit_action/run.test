@@ -1,0 +1,8 @@
+RUN: %COMPILE %S/declarations.st %S/actions.st && %RUN | %CHECK %s
+
+The action lives in a separate file from its function block. Its parent cannot take the BOOL
+temporary a short-circuit operand would be lowered into, so the call argument keeps the eager fat
+pointer preamble and the program still compiles and runs.
+
+CHECK: bound = 0
+CHECK-NEXT: bound = 1

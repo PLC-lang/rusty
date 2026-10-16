@@ -117,10 +117,14 @@
 
 use plc_ast::{
     ast::{
-        steal_expression_list, Allocation, Assignment, AstFactory, AstNode, AstStatement, CallStatement,
-        CompilationUnit, DataType as AstDataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration,
-        Variable,
+        resolve_argument_slots, steal_expression_list, Allocation, Assignment, AstFactory, AstNode,
+        AstStatement, BinaryExpression, CallStatement, CompilationUnit, DataType as AstDataType,
+        DataTypeDeclaration, EmptyStatement, GenericBinding, Implementation, LinkageType, Operator, Pou,
+        PropertyBlock, ReferenceAccess, ReferenceExpr, UserTypeDeclaration, Variable, VariableBlock,
+        VariableBlockType,
     },
+    control_statements::{AstControlStatement, ConditionalBlock, IfStatement},
+    literals::AstLiteral,
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
@@ -128,9 +132,9 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::Index,
-    resolver::{AnnotationMap, AnnotationMapImpl},
-    typesystem::{DataType, VOID_INTERNAL_NAME},
+    index::{Index, VariableIndexEntry},
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
+    typesystem::{DataType, DataTypeInformation, VOID_INTERNAL_NAME},
 };
 
 use super::validation;
@@ -138,6 +142,53 @@ use super::validation;
 const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
 const FATPOINTER_DATA_FIELD_NAME: &str = "data";
 const FATPOINTER_TABLE_FIELD_NAME: &str = "table";
+
+/// State of the implementation being lowered. The lowering loop pairs every implementation with its
+/// declaration in the unit by name and name location, since the parser gives both the same location and
+/// the accessors of a property share it; an action has no declaration.
+#[derive(Default)]
+struct Scope {
+    /// Identity in retained global names: the mangled name, e.g. `FbA__foo` for the method `FbA.foo`,
+    /// and the generic signature of a template, each prefixed with its length so that no other POU name
+    /// reads the same, e.g. `4bind_7ANY_INT` for `bind<T: ANY_INT>`.
+    identity: String,
+
+    /// Whether the unit only declares the retained globals the body binds. Codegen omits the body of
+    /// an implementation with external linkage and of a generic template, whose monomorphs are
+    /// declared external by the generic lowering as well, so no object of this unit defines them.
+    declared_only: bool,
+
+    /// Whether the body may take `VAR_TEMP` variables: it has its own declaration in the unit, which
+    /// an action has not, and that declaration is not a generic template, since overloaded templates
+    /// share one declaration for member lookup.
+    takes_temps: bool,
+
+    /// Counts the retained fat pointers of the body.
+    retained: usize,
+
+    /// Names of the BOOL temporaries that carry the value of a short-circuit operand, see
+    /// [`AstVisitorMut::visit_binary_expression`]. They become `VAR_TEMP` variables of the declaration.
+    temps: Vec<String>,
+}
+
+impl Scope {
+    fn new(implementation: &Implementation, pou: Option<&Pou>) -> Self {
+        let name = implementation.name.replace('.', "__");
+        let signature = pou.map(|pou| helper::generic_signature(&pou.generics)).unwrap_or_default();
+        let identity = match signature.is_empty() {
+            true => format!("{}{name}", name.len()),
+            false => format!("{}{name}_{}{signature}", name.len(), signature.len()),
+        };
+
+        Scope {
+            identity,
+            declared_only: implementation.linkage.is_external() || implementation.generic,
+            takes_temps: pou.is_some() && !implementation.generic,
+            retained: 0,
+            temps: Vec::new(),
+        }
+    }
+}
 
 pub struct InterfaceDispatchLowerer<'a> {
     ids: IdProvider,
@@ -187,10 +238,26 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// ```
     replacement: Option<Vec<AstNode>>,
 
+    /// Names and linkage of the fat pointers behind `VAR_IN_OUT`, `VAR_INPUT {ref}` and `REFERENCE TO`
+    /// parameters. A stateful POU keeps such a parameter between calls and any POU may save or forward
+    /// it, so they outlive the calling function and are emitted as globals of the unit being lowered
+    /// instead of statement-scoped allocations. Each is named after the implementation that binds it,
+    /// see [`Scope::identity`], so separately compiled units define the same symbol only if they define
+    /// the same POU.
+    globals: Vec<(String, LinkageType)>,
+
     /// Monotonic counter for generating unique fat-pointer temporary names
     /// (`__fatpointer_0`, `__fatpointer_1`, ...). Never reset; each call-argument wrap site
     /// gets a distinct alloca across the entire compilation unit.
     fp_counter: usize,
+
+    /// State of the implementation being lowered.
+    scope: Scope,
+
+    /// Whether the node being visited is the first thing its statement evaluates. The IF that a
+    /// short-circuit operand is lowered into is hoisted before the statement, which only preserves
+    /// the evaluation order in that position.
+    leading: bool,
 }
 
 impl<'a> InterfaceDispatchLowerer<'a> {
@@ -204,7 +271,10 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             diagnostics: Vec::new(),
             preamble: Vec::new(),
             replacement: None,
+            globals: Vec::new(),
             fp_counter: 0,
+            scope: Scope::default(),
+            leading: false,
         }
     }
 
@@ -212,7 +282,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     /// Returns any diagnostics produced by interface validation checks.
     pub fn lower(&mut self, units: &mut [CompilationUnit]) -> Vec<Diagnostic> {
         for unit in units.iter_mut() {
-            self.visit_compilation_unit(unit);
+            self.lower_unit(unit);
         }
 
         // If any interface-typed variable was encountered, inject the __FATPOINTER struct
@@ -224,6 +294,67 @@ impl<'a> InterfaceDispatchLowerer<'a> {
         }
 
         std::mem::take(&mut self.diagnostics)
+    }
+
+    /// Lowers the declarations of a unit, then every implementation paired with its declaration, and
+    /// adds the generated variables to the unit.
+    fn lower_unit(&mut self, unit: &mut CompilationUnit) {
+        for block in &mut unit.global_vars {
+            self.visit_variable_block(block);
+        }
+        for user_type in &mut unit.user_types {
+            self.visit_user_type_declaration(user_type);
+        }
+        for pou in &mut unit.pous {
+            self.visit_pou(pou);
+        }
+        for interface in &mut unit.interfaces {
+            self.visit_interface(interface);
+        }
+
+        let location = SourceLocation::internal_in_unit(unit.file.get_name());
+        for implementation in unit.implementations.iter_mut() {
+            if implementation.location.is_internal() {
+                continue;
+            }
+
+            let pou = unit.pous.iter_mut().find(|pou| {
+                pou.name == implementation.name && pou.name_location == implementation.name_location
+            });
+            self.scope = Scope::new(implementation, pou.as_deref());
+            implementation.walk(self);
+
+            // The BOOL temporaries of the body become VAR_TEMP variables of its declaration
+            let temps = std::mem::take(&mut self.scope.temps);
+            if let Some(pou) = pou.filter(|_| !temps.is_empty()) {
+                let variables =
+                    temps.iter().map(|name| helper::create_variable(name, "BOOL", &location)).collect();
+                pou.variable_blocks.push(
+                    VariableBlock::default()
+                        .with_block_type(VariableBlockType::Temp)
+                        .with_variables(variables),
+                );
+            }
+        }
+
+        // An included unit is compiled to its own object elsewhere, which defines the globals. A
+        // declaration is emitted once, however many bodies share it.
+        let (mut defined, mut declared) = (Vec::new(), Vec::new());
+        for (name, linkage) in self.globals.drain(..) {
+            match linkage {
+                LinkageType::External if !declared.contains(&name) => declared.push(name),
+                LinkageType::External => {}
+                _ => defined.push(name),
+            }
+        }
+        let linkage = if unit.linkage.is_included() { LinkageType::External } else { LinkageType::Internal };
+        for (names, linkage) in [(defined, linkage), (declared, LinkageType::External)] {
+            if names.is_empty() {
+                continue;
+            }
+            let variables = names.iter().map(|name| helper::create_global(name, &location)).collect();
+            unit.global_vars.push(VariableBlock::global().with_linkage(linkage).with_variables(variables));
+        }
     }
 }
 
@@ -239,12 +370,16 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         data_type_declaration.walk(self);
     }
 
-    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
-        if implementation.location.is_internal() {
-            return;
+    /// The bodies of a property stay on its declaration after its accessors were generated from them.
+    /// Codegen never emits those copies, so only their declarations are lowered; lowering the bodies
+    /// would bind retained globals a second time, under no scope.
+    fn visit_property(&mut self, property: &mut PropertyBlock) {
+        for implementation in &mut property.implementations {
+            self.visit_data_type_declaration(&mut implementation.datatype);
+            for block in &mut implementation.variable_blocks {
+                self.visit_variable_block(block);
+            }
         }
-
-        implementation.walk(self);
     }
 
     fn visit_statement_list(&mut self, stmts: &mut Vec<AstNode>) {
@@ -259,6 +394,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         for mut stmt in original {
             self.preamble.clear();
             self.replacement = None;
+            self.leading = true;
 
             stmt.walk(self);
 
@@ -283,8 +419,13 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             return;
         };
 
-        // Walk children first so nested calls/expressions are processed before we inspect types.
+        // Walk children first so nested calls/expressions are processed before we inspect types. The
+        // target's address is computed before the value, so the value is only evaluated first when
+        // that address needs no evaluation of its own.
+        let leading = self.leading && self.has_static_address(left);
+        self.leading = false;
         left.walk(self);
+        self.leading = leading;
         right.walk(self);
 
         // Named call arguments like `in1 := instance` are Assignment nodes too, but
@@ -366,13 +507,175 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         self.replacement = Some(vec![data_assign, table_assign]);
     }
 
+    /// A preamble is hoisted before the enclosing statement, which would run it even when AND_THEN or
+    /// OR_ELSE skips the operand that needs it, and so rebind a retained fat pointer for a call that
+    /// never happens. Such an operand is lowered into an IF that carries its preamble in the branch
+    /// that evaluates it and leaves its value in a BOOL `VAR_TEMP` of the POU. The IF is hoisted as
+    /// well, so this only applies where the short-circuit is the first thing its statement evaluates,
+    /// where both operands are BOOL so that validation still sees a wrong operand, and where the body
+    /// can take the `VAR_TEMP`, see [`Scope::takes_temps`]; elsewhere the preamble stays eager.
+    ///
+    /// ```text
+    /// // Before:
+    /// enabled AND_THEN holder.bind(instance)
+    ///
+    /// // After:
+    /// IF enabled THEN
+    ///     __fatpointer_4main_0.data := ADR(instance);
+    ///     __fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance);
+    ///     __shortcircuit_0 := holder.bind(__fatpointer_4main_0);
+    /// ELSE
+    ///     __shortcircuit_0 := FALSE;
+    /// END_IF
+    /// __shortcircuit_0
+    /// ```
+    fn visit_binary_expression(&mut self, node: &mut AstNode) {
+        let AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) = &mut node.stmt
+        else {
+            unreachable!();
+        };
+
+        let short_circuit = matches!(operator, Operator::AndThen | Operator::OrElse);
+        let conditional = short_circuit
+            && self.leading
+            && self.scope.takes_temps
+            && self.annotations.get_type_or_void(left, self.index).get_type_information().is_bool()
+            && self.annotations.get_type_or_void(right, self.index).get_type_information().is_bool();
+
+        // The left operand always runs, so its preamble stays with the enclosing statement. The right
+        // operand is never the first thing the statement evaluates.
+        self.visit(left);
+        self.leading = false;
+        if !conditional {
+            self.visit(right);
+            return;
+        }
+
+        // Collect the preamble the right operand needs on its own.
+        let outer_preamble = std::mem::take(&mut self.preamble);
+        self.visit(right);
+        let right_preamble = std::mem::replace(&mut self.preamble, outer_preamble);
+        if right_preamble.is_empty() {
+            return;
+        }
+
+        let operator = *operator;
+        let location = node.location.clone();
+        let AstStatement::BinaryExpression(BinaryExpression { left, right, .. }) =
+            std::mem::replace(&mut node.stmt, AstStatement::EmptyStatement(EmptyStatement {}))
+        else {
+            unreachable!();
+        };
+
+        let name = format!("__shortcircuit_{}", self.scope.temps.len());
+        self.scope.temps.push(name.clone());
+
+        // Only the branch that evaluates the right operand runs its preamble.
+        let mut evaluate = right_preamble;
+        evaluate.push(helper::create_assignment_to(&mut self.ids, &name, *right));
+        let skipped_value = helper::create_bool_literal(&mut self.ids, operator == Operator::OrElse);
+        let skip = vec![helper::create_assignment_to(&mut self.ids, &name, skipped_value)];
+        let (body, else_block) = match operator {
+            Operator::AndThen => (evaluate, skip),
+            _ => (skip, evaluate),
+        };
+
+        self.preamble.push(AstFactory::create_if_statement(
+            IfStatement {
+                blocks: vec![ConditionalBlock { condition: left, body }],
+                else_block,
+                end_location: SourceLocation::internal(),
+            },
+            location,
+            self.ids.next_id(),
+        ));
+        *node = helper::create_identifier_ref(&mut self.ids, &name);
+    }
+
+    /// The value of a `REF=` must be a reference, so a short-circuit there is never rewritten into a
+    /// temporary; validation rejects the expression as written.
+    fn visit_ref_assignment(&mut self, node: &mut AstNode) {
+        let AstStatement::RefAssignment(Assignment { left, right }) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        self.leading = false;
+        self.visit(left);
+        self.visit(right);
+    }
+
+    /// A base whose address needs evaluation, such as a call result or a dereferenced pointer, is
+    /// evaluated before the index or member that follows it.
+    fn visit_reference_expr(&mut self, node: &mut AstNode) {
+        let AstStatement::ReferenceExpr(ReferenceExpr { access, base }) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        if let Some(base) = base {
+            let static_base = self.has_static_address(base);
+            self.visit(base);
+            self.leading = self.leading && static_base;
+        }
+
+        match access {
+            ReferenceAccess::Member(node) | ReferenceAccess::Index(node) | ReferenceAccess::Cast(node) => {
+                self.visit(node)
+            }
+            _ => {}
+        }
+    }
+
+    /// The elements of an expression list, such as the dimensions of an array index, are evaluated in
+    /// order, so only the first one can be the first thing the statement evaluates.
+    fn visit_expression_list(&mut self, node: &mut AstNode) {
+        let AstStatement::ExpressionList(expressions) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        for expression in expressions.iter_mut() {
+            self.visit(expression);
+            self.leading = false;
+        }
+    }
+
+    /// Only the first condition of an IF and the selector of a CASE are evaluated first; a later
+    /// condition or a loop condition is not, so a short-circuit there keeps the eager preamble.
+    fn visit_control_statement(&mut self, node: &mut AstNode) {
+        let AstStatement::ControlStatement(statement) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        match statement {
+            AstControlStatement::If(statement) => {
+                for (position, block) in statement.blocks.iter_mut().enumerate() {
+                    self.leading = position == 0;
+                    self.visit(&mut block.condition);
+                    self.visit_statement_list(&mut block.body);
+                }
+                self.visit_statement_list(&mut statement.else_block);
+            }
+            AstControlStatement::Case(statement) => {
+                self.visit(&mut statement.selector);
+                self.leading = false;
+                statement.case_blocks.walk(self);
+                self.visit_statement_list(&mut statement.else_block);
+            }
+            _ => {
+                self.leading = false;
+                statement.walk(self);
+            }
+        }
+    }
+
     fn visit_call_statement(&mut self, node: &mut AstNode) {
         let AstStatement::CallStatement(CallStatement { operator, parameters }) = &mut node.stmt else {
             unreachable!();
         };
 
-        // Walk the operator first (processes nested interface method calls depth-first).
+        // Walk the operator first (processes nested interface method calls depth-first). Nothing after
+        // the call is the first thing the statement evaluates.
         operator.walk(self);
+        self.leading = false;
 
         // Walk parameters with the `in_call_args` guard active. This prevents `visit_assignment`
         // from expanding named arguments like `in1 := instance` into fat-pointer field assignments.
@@ -388,20 +691,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         // allocate a temporary fat pointer in the preamble and replace the argument in-place.
         if let Some(ref mut params) = parameters {
             let mut args = steal_expression_list(params);
+            let bindings = self.bind_arguments_to_parameters(operator, &args);
 
-            for arg in args.iter_mut() {
+            for (arg, parameter) in args.iter_mut().zip(bindings) {
                 match &mut arg.stmt {
                     // Named argument (input, output, or in-out). Inspect and potentially replace the RHS.
-                    // TODO: Add tests for output (`out1 => x`) and in-out (`inout1 := x`) argument wrapping.
                     AstStatement::Assignment(Assignment { right, .. })
                     | AstStatement::OutputAssignment(Assignment { right, .. })
                     | AstStatement::RefAssignment(Assignment { right, .. }) => {
-                        self.maybe_wrap_argument(right.as_mut());
+                        self.maybe_wrap_argument(parameter, right.as_mut());
                     }
 
                     // Positional argument. Inspect and potentially replace the whole node.
                     _ => {
-                        self.maybe_wrap_argument(arg);
+                        self.maybe_wrap_argument(parameter, arg);
                     }
                 }
             }
@@ -445,14 +748,124 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
     }
 }
 
-impl InterfaceDispatchLowerer<'_> {
+impl<'a> InterfaceDispatchLowerer<'a> {
+    /// Whether `node` names storage whose address needs no evaluation: a variable or a chain of plain
+    /// member accesses, without an index, a dereference, a call or an auto-dereferenced reference
+    /// whose pointer codegen loads first and a side effect could change.
+    fn has_static_address(&self, node: &AstNode) -> bool {
+        let static_variable = match self.annotations.get(node) {
+            Some(StatementAnnotation::Variable { auto_deref, .. }) => auto_deref.is_none(),
+            Some(StatementAnnotation::Program { .. }) => true,
+            _ => false,
+        };
+
+        match &node.stmt {
+            AstStatement::Identifier(_) => static_variable,
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) => {
+                static_variable
+                    && matches!(member.stmt, AstStatement::Identifier(_))
+                    && base.as_ref().is_none_or(|base| self.has_static_address(base))
+            }
+            _ => false,
+        }
+    }
+
+    /// Resolves the callee parameter each argument binds to. A named argument carries its declaring
+    /// POU and position in its argument annotation. A positional argument carries the callee instead,
+    /// so it is bound by slot over the callee's parameters, inherited ones included, as the validator
+    /// does, and a surplus positional argument binds to the variadic parameter. A function pointer
+    /// call passes the instance as a first argument that binds to nothing.
+    fn bind_arguments_to_parameters(
+        &self,
+        operator: &AstNode,
+        args: &[AstNode],
+    ) -> Vec<Option<&'a VariableIndexEntry>> {
+        let index = self.index;
+        let arguments: Vec<&AstNode> = args.iter().collect();
+        let callee = arguments.iter().find_map(|arg| match self.annotations.get_hint(arg) {
+            Some(StatementAnnotation::Argument { pou, .. }) if arg.get_assignment_identifier().is_none() => {
+                Some(pou.as_str())
+            }
+            _ => None,
+        });
+        let parameters = callee.map(|pou| index.get_available_parameters(pou)).unwrap_or_default();
+        let skip = usize::from(self.annotations.get(operator).is_some_and(StatementAnnotation::is_fnptr))
+            .min(arguments.len());
+        let slots = resolve_argument_slots(&arguments[skip..], parameters.iter().map(|it| it.get_name()));
+
+        let mut bindings = vec![None; skip];
+        for (arg, slot) in arguments.iter().skip(skip).zip(slots) {
+            let parameter = match self.annotations.get_hint(arg) {
+                Some(StatementAnnotation::Argument { pou, position, .. })
+                    if arg.get_assignment_identifier().is_some() =>
+                {
+                    index.find_parameter(pou, *position as u32)
+                }
+                _ => slot
+                    .and_then(|slot| parameters.get(slot))
+                    .copied()
+                    .or_else(|| callee.and_then(|pou| index.get_variadic_member(pou))),
+            };
+            bindings.push(parameter);
+        }
+
+        bindings
+    }
+
     /// Checks whether `arg` is a concrete POU being passed where an interface is expected.
     /// If so, generates a temporary fat pointer (alloca + field assignments) in `self.preamble`
     /// and replaces `arg` in-place with a reference to the temporary.
-    fn maybe_wrap_argument(&mut self, arg: &mut AstNode) {
-        let actual_type = self.annotations.get_type_or_void(arg, self.index);
-        let expected_type = self.annotations.get_hint_or_void(arg, self.index);
+    ///
+    /// `parameter` is the callee parameter `arg` binds to, see [`Self::bind_arguments_to_parameters`].
+    fn maybe_wrap_argument(&mut self, parameter: Option<&VariableIndexEntry>, arg: &mut AstNode) {
+        // An omitted argument has nothing to wrap; the callee resets the output.
+        if arg.is_empty_statement() {
+            return;
+        }
 
+        // A by-reference variable is annotated with the raw name of its target type, so resolve an alias.
+        let actual_type = self.annotations.get_type_or_void(arg, self.index);
+        let actual_type = self.index.find_effective_type(actual_type).unwrap_or(actual_type);
+
+        // An argument that binds to no parameter, such as one of a generic builtin, keeps the type the
+        // resolver hinted for it and is passed by value.
+        let Some(parameter) = parameter else {
+            let expected_type = self.annotations.get_hint_or_void(arg, self.index);
+            self.wrap_argument(arg, actual_type, expected_type, None, false);
+            return;
+        };
+
+        let parameter_type = self.index.get_effective_type_or_void_by_name(parameter.get_type_name());
+
+        // VAR_IN_OUT, VAR_INPUT {ref}, REFERENCE TO and function VAR_OUTPUT parameters are indexed as
+        // auto-deref pointers to the interface, so look through the pointer to find the interface the
+        // callee expects.
+        let (expected_type, pointer) = match parameter_type.get_type_information() {
+            DataTypeInformation::Pointer { auto_deref: Some(_), inner_type_name, .. } => {
+                (self.index.get_effective_type_or_void_by_name(inner_type_name), true)
+            }
+            _ => (parameter_type, false),
+        };
+
+        // A function block or program VAR_OUTPUT is a plain member, but the call writes through it too.
+        let by_ref = pointer || parameter.is_output();
+
+        // A stateful POU keeps a pointer-typed parameter between calls, and any POU may save or forward
+        // the reference, so the fat pointer behind a pointer-typed parameter must outlive the calling
+        // function.
+        self.wrap_argument(arg, actual_type, expected_type, by_ref.then_some(parameter), pointer);
+    }
+
+    /// Wraps `arg` for a parameter of `expected_type`. `by_ref` carries the parameter when the callee
+    /// writes through it, and `retained` whether the callee may keep the reference.
+    fn wrap_argument(
+        &mut self,
+        arg: &mut AstNode,
+        actual_type: &DataType,
+        expected_type: &DataType,
+        by_ref: Option<&VariableIndexEntry>,
+        retained: bool,
+    ) {
         // Not an interface parameter, nothing to do.
         if !expected_type.is_interface() {
             return;
@@ -462,6 +875,40 @@ impl InterfaceDispatchLowerer<'_> {
         if actual_type.is_interface() {
             let source_iface = actual_type.get_name();
             let target_iface = expected_type.get_name();
+
+            // A by-reference parameter is storage the callee writes through, so the argument is passed
+            // as is: it must be a variable, since the callee may keep its address, and the exact
+            // interface, since an upcast temporary would never reach the caller.
+            if let Some(parameter) = by_ref {
+                let diagnostic = validation::validate_byref_argument_is_variable(
+                    self.annotations,
+                    self.index,
+                    parameter,
+                    arg,
+                )
+                .or_else(|| {
+                    validation::validate_byref_interface_argument(
+                        parameter.get_name(),
+                        target_iface,
+                        source_iface,
+                        &arg.location,
+                    )
+                })
+                .or_else(|| {
+                    validation::validate_variadic_takes_argument(
+                        self.index,
+                        parameter,
+                        source_iface,
+                        target_iface,
+                        &arg.location,
+                    )
+                });
+                if let Some(diagnostic) = diagnostic {
+                    self.diagnostics.push(diagnostic);
+                }
+
+                return;
+            }
 
             if let Some(diagnostic) = validation::validate_interface_assignment(
                 self.index,
@@ -482,9 +929,34 @@ impl InterfaceDispatchLowerer<'_> {
         let pou_name = actual_type.get_name();
         let interface_name = expected_type.get_name();
 
-        if let Some(diagnostic) =
-            validation::validate_pou_implements_interface(self.index, pou_name, interface_name, &arg.location)
-        {
+        // A by-reference parameter needs a variable: a generated fat pointer would point at the temporary
+        // of a call result. Validate that here, before the argument is replaced, mirroring E031 for
+        // other by-reference parameters.
+        let diagnostic = by_ref
+            .and_then(|parameter| {
+                validation::validate_byref_argument_is_variable(self.annotations, self.index, parameter, arg)
+            })
+            .or_else(|| {
+                validation::validate_pou_implements_interface(
+                    self.index,
+                    pou_name,
+                    interface_name,
+                    &arg.location,
+                )
+            })
+            .or_else(|| {
+                by_ref.and_then(|parameter| {
+                    validation::validate_variadic_takes_argument(
+                        self.index,
+                        parameter,
+                        pou_name,
+                        interface_name,
+                        &arg.location,
+                    )
+                })
+            });
+
+        if let Some(diagnostic) = diagnostic {
             self.diagnostics.push(diagnostic);
 
             // Replace the argument with a dummy fat pointer so the call remains structurally
@@ -497,14 +969,23 @@ impl InterfaceDispatchLowerer<'_> {
             return;
         }
 
-        // Generate a unique name for the temporary fat pointer.
-        let fp_name = format!("__fatpointer_{}", self.fp_counter);
-        self.fp_counter += 1;
+        // Generate a unique name for the fat pointer and allocate it.
+        let fp_name = if retained {
+            let name = format!("__fatpointer_{}_{}", self.scope.identity, self.scope.retained);
+            self.scope.retained += 1;
+            let linkage =
+                if self.scope.declared_only { LinkageType::External } else { LinkageType::Internal };
+            self.globals.push((name.clone(), linkage));
+            name
+        } else {
+            let name = format!("__fatpointer_{}", self.fp_counter);
+            self.fp_counter += 1;
+            self.preamble.push(helper::create_alloca(&mut self.ids, &name));
+            name
+        };
 
         // Build the reference node that will replace the original argument.
         let fp_ref = helper::create_identifier_ref(&mut self.ids, &fp_name);
-        let alloca = helper::create_alloca(&mut self.ids, &fp_name);
-        self.preamble.push(alloca);
 
         if actual_type.is_interface() {
             // Upcast: actual is a different (child) interface, copy .data and read __upcast_* for .table.
@@ -790,6 +1271,45 @@ mod helper {
         }
     }
 
+    /// Creates `name := value`.
+    pub fn create_assignment_to(ids: &mut IdProvider, name: &str, value: AstNode) -> AstNode {
+        let target = create_identifier_ref(ids, name);
+        AstFactory::create_assignment(target, value, ids.next_id())
+    }
+
+    /// Creates a `TRUE` or `FALSE` literal.
+    pub fn create_bool_literal(ids: &mut IdProvider, value: bool) -> AstNode {
+        AstFactory::create_literal(AstLiteral::Bool(value), SourceLocation::internal(), ids.next_id())
+    }
+
+    /// Mangles the natures of a template's generics into an identifier, e.g. `ANY_INT_ANY_REAL` for
+    /// `<T: ANY_INT, U: ANY_REAL>`. The names of the generics do not tell templates apart: templates
+    /// that differ only in them produce the same monomorphs. Every nature starts with `ANY`, so the
+    /// sequence reads back unambiguously.
+    pub fn generic_signature(generics: &[GenericBinding]) -> String {
+        generics.iter().map(|binding| binding.nature.to_string()).collect::<Vec<_>>().join("_")
+    }
+
+    /// Creates a global `__FATPOINTER` variable with the given name, for a fat pointer that a POU may
+    /// keep beyond the call. `location` places it in the unit that defines it.
+    pub fn create_global(name: &str, location: &SourceLocation) -> Variable {
+        create_variable(name, FATPOINTER_TYPE_NAME, location)
+    }
+
+    /// Creates a variable declaration of the given type.
+    pub fn create_variable(name: &str, type_name: &str, location: &SourceLocation) -> Variable {
+        Variable {
+            name: name.to_string(),
+            data_type_declaration: DataTypeDeclaration::Reference {
+                referenced_type: type_name.to_string(),
+                location: location.clone(),
+            },
+            initializer: None,
+            address: None,
+            location: location.clone(),
+        }
+    }
+
     /// Creates a simple identifier reference node (e.g. `__fatpointer_0`).
     pub fn create_identifier_ref(ids: &mut IdProvider, name: &str) -> AstNode {
         AstFactory::create_member_reference(
@@ -881,6 +1401,24 @@ mod tests {
         }
 
         result
+    }
+
+    fn lower_and_serialize_globals(source: impl Into<SourceCode>) -> Vec<String> {
+        let (_, project) = parse_and_annotate("unit-test", vec![source.into()]).unwrap();
+        let unit = project.units[0].get_unit();
+
+        unit.global_vars
+            .iter()
+            .flat_map(|block| block.variables.iter().map(move |variable| (block, variable)))
+            .map(|(block, variable)| {
+                let linkage = if block.linkage.is_external() { " {external}" } else { "" };
+                format!(
+                    "{} : {}{linkage}",
+                    variable.name,
+                    variable.data_type_declaration.get_name().unwrap_or_default()
+                )
+            })
+            .collect()
     }
 
     mod fatpointer {
@@ -2554,6 +3092,827 @@ mod tests {
                 "__fatpointer_2.data := ADR(instance)",
                 "__fatpointer_2.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(in1 := __fatpointer_2, out1 => refOut, inout1 := refInout)",
+            ]
+            "#);
+        }
+
+        /// A concrete POU passed to a VAR_OUTPUT or VAR_IN_OUT interface parameter is wrapped in a fat
+        /// pointer, exactly like a VAR_INPUT argument. The callee may keep the reference, so the fat
+        /// pointer is a global of the unit rather than a statement-scoped allocation.
+        #[test]
+        fn concrete_pou_as_output_and_inout_argument() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_OUTPUT
+                        out1: IA;
+                    END_VAR
+
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instanceOut: FbA;
+                        instanceInout: FbA;
+                    END_VAR
+
+                    consumer(instanceOut, instanceInout);
+                    consumer(out1 => instanceOut, inout1 := instanceInout);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instanceOut)",
+                "FbA__ctor(instanceInout)",
+                "__fatpointer_4main_0.data := ADR(instanceOut)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_1.data := ADR(instanceInout)",
+                "__fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_4main_0, __fatpointer_4main_1)",
+                "__fatpointer_4main_2.data := ADR(instanceOut)",
+                "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_3.data := ADR(instanceInout)",
+                "__fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(out1 => __fatpointer_4main_2, inout1 := __fatpointer_4main_3)",
+            ]
+            "#);
+        }
+
+        /// A concrete POU passed to a `REFERENCE TO` interface parameter is wrapped in a fat pointer,
+        /// which the callee then references. The callee may save that reference, so the fat pointer is
+        /// a global of the unit rather than a statement-scoped allocation.
+        #[test]
+        fn concrete_pou_as_reference_to_argument() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        in1: REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                        reference: IA;
+                    END_VAR
+
+                    consumer(instance);
+                    consumer(in1 := instance);
+                    consumer(reference);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "__fatpointer_4main_0.data := ADR(instance)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_4main_0)",
+                "__fatpointer_4main_1.data := ADR(instance)",
+                "__fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(in1 := __fatpointer_4main_1)",
+                "consumer(reference)",
+            ]
+            "#);
+        }
+
+        /// A variable declared with an alias of an interface passes through without wrapping. A local
+        /// variable is annotated with the interface itself, a by-reference parameter with the raw alias.
+        #[test]
+        fn aliased_interface_argument_passes_through() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                TYPE AliasIA : IA; END_TYPE
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        in1: IA;
+                    END_VAR
+
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        reference: AliasIA;
+                    END_VAR
+
+                    consumer(reference, reference);
+                    consumer(in1 := reference, inout1 := reference);
+                END_FUNCTION
+
+                FUNCTION forward
+                    VAR_IN_OUT
+                        source: AliasIA;
+                    END_VAR
+
+                    consumer(source, source);
+                    consumer(in1 := source, inout1 := source);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main", "forward"]), @r#"
+            [
+                "// Statements in main",
+                "consumer(reference, reference)",
+                "consumer(in1 := reference, inout1 := reference)",
+                "// Statements in forward",
+                "consumer(source, source)",
+                "consumer(in1 := source, inout1 := source)",
+            ]
+            "#);
+        }
+
+        /// Surplus positional arguments bind to a sized variadic interface parameter: a concrete POU
+        /// is wrapped and a child interface is upcast, exactly like for a fixed parameter.
+        #[test]
+        fn variadic_interface_arguments() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        first: IA;
+                        rest: {sized} IA...;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                        refIA: IA;
+                        refIB: IB;
+                    END_VAR
+
+                    consumer(refIA, instance, refIB, refIA);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "alloca __fatpointer_1: __FATPOINTER",
+                "__fatpointer_1.data := refIB.data",
+                "__fatpointer_1.table := __itable_IB#(refIB.table^).__upcast_IA",
+                "consumer(refIA, __fatpointer_0, __fatpointer_1, refIA)",
+            ]
+            "#);
+        }
+
+        /// A stateful POU keeps a `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter between
+        /// calls, and any POU may save or forward such a parameter, so the fat pointer wrapping a
+        /// concrete instance becomes a global of the unit named after the binding implementation. Only a
+        /// by-value input, which copies the fat pointer, keeps the statement-scoped allocation.
+        #[test]
+        fn retained_arguments_use_global_fat_pointers() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbConsumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                    END_VAR
+                    VAR_INPUT {ref}
+                        in1: IA;
+                    END_VAR
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+
+                    METHOD bind
+                        VAR_INPUT
+                            other: REFERENCE TO IA;
+                        END_VAR
+                    END_METHOD
+                END_FUNCTION_BLOCK
+
+                PROGRAM progConsumer
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_PROGRAM
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                        in1: IA;
+                    END_VAR
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                        fbConsumer: FbConsumer;
+                    END_VAR
+
+                    fbConsumer(instance, instance, instance);
+                    fbConsumer(ref1 := instance, in1 := instance, inout1 := instance);
+                    progConsumer(instance);
+                    consumer(instance, instance, instance);
+                    fbConsumer.bind(instance);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "FbConsumer__ctor(fbConsumer)",
+                "__fatpointer_4main_0.data := ADR(instance)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_1.data := ADR(instance)",
+                "__fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_2.data := ADR(instance)",
+                "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
+                "fbConsumer(__fatpointer_4main_0, __fatpointer_4main_1, __fatpointer_4main_2)",
+                "__fatpointer_4main_3.data := ADR(instance)",
+                "__fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_4.data := ADR(instance)",
+                "__fatpointer_4main_4.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_5.data := ADR(instance)",
+                "__fatpointer_4main_5.table := ADR(__itable_IA_FbA_instance)",
+                "fbConsumer(ref1 := __fatpointer_4main_3, in1 := __fatpointer_4main_4, inout1 := __fatpointer_4main_5)",
+                "__fatpointer_4main_6.data := ADR(instance)",
+                "__fatpointer_4main_6.table := ADR(__itable_IA_FbA_instance)",
+                "progConsumer(__fatpointer_4main_6)",
+                "__fatpointer_4main_7.data := ADR(instance)",
+                "__fatpointer_4main_7.table := ADR(__itable_IA_FbA_instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_8.data := ADR(instance)",
+                "__fatpointer_4main_8.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_4main_7, __fatpointer_0, __fatpointer_4main_8)",
+                "__fatpointer_4main_9.data := ADR(instance)",
+                "__fatpointer_4main_9.table := ADR(__itable_IA_FbA_instance)",
+                "fbConsumer.bind(__fatpointer_4main_9)",
+            ]
+            "#);
+            insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
+            [
+                "__vtable_FbA_instance : __vtable_FbA",
+                "__vtable_FbConsumer_instance : __vtable_FbConsumer",
+                "__itable_IA_FbA_instance : __itable_IA",
+                "__fatpointer_4main_0 : __FATPOINTER",
+                "__fatpointer_4main_1 : __FATPOINTER",
+                "__fatpointer_4main_2 : __FATPOINTER",
+                "__fatpointer_4main_3 : __FATPOINTER",
+                "__fatpointer_4main_4 : __FATPOINTER",
+                "__fatpointer_4main_5 : __FATPOINTER",
+                "__fatpointer_4main_6 : __FATPOINTER",
+                "__fatpointer_4main_7 : __FATPOINTER",
+                "__fatpointer_4main_8 : __FATPOINTER",
+                "__fatpointer_4main_9 : __FATPOINTER",
+            ]
+            "#);
+        }
+
+        /// Generic templates that only differ in their generics share a name. Their retained globals carry
+        /// the generic signature and are only declared, because a template emits no code and separately
+        /// compiled libraries may contain the same template.
+        #[test]
+        fn retained_arguments_in_generic_templates() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbConsumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                VAR_GLOBAL
+                    fbConsumer: FbConsumer;
+                    instance: FbA;
+                END_VAR
+
+                FUNCTION bind<T: ANY_INT> : T
+                    VAR_INPUT
+                        value: T;
+                    END_VAR
+
+                    fbConsumer(instance);
+                    bind := value;
+                END_FUNCTION
+
+                FUNCTION bind<U: ANY_REAL> : U
+                    VAR_INPUT
+                        value: U;
+                    END_VAR
+
+                    fbConsumer(instance);
+                    bind := value;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
+            [
+                "fbConsumer : FbConsumer",
+                "instance : FbA",
+                "__vtable_FbA_instance : __vtable_FbA",
+                "__vtable_FbConsumer_instance : __vtable_FbConsumer",
+                "__itable_IA_FbA_instance : __itable_IA",
+                "__fatpointer_4bind_7ANY_INT_0 : __FATPOINTER {external}",
+                "__fatpointer_4bind_8ANY_REAL_0 : __FATPOINTER {external}",
+            ]
+            "#);
+        }
+
+        /// An implementation with external linkage keeps its body, but codegen omits it, so the retained
+        /// fat pointers it binds are only declared and the object defining the implementation defines them.
+        #[test]
+        fn retained_arguments_in_external_implementation_are_declared() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                {external}
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                {external}
+                FUNCTION_BLOCK FbConsumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                {external}
+                FUNCTION bindExt
+                    VAR_IN_OUT
+                        consumer: FbConsumer;
+                        instance: FbA;
+                    END_VAR
+
+                    consumer(instance);
+                END_FUNCTION
+
+                FUNCTION bind
+                    VAR_IN_OUT
+                        consumer: FbConsumer;
+                        instance: FbA;
+                    END_VAR
+
+                    consumer(instance);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
+            [
+                "__vtable_FbA_instance : __vtable_FbA {external}",
+                "__vtable_FbConsumer_instance : __vtable_FbConsumer {external}",
+                "__itable_IA_FbA_instance : __itable_IA {external}",
+                "__fatpointer_4bind_0 : __FATPOINTER",
+                "__fatpointer_7bindExt_0 : __FATPOINTER {external}",
+            ]
+            "#);
+        }
+
+        /// An omitted interface output is not wrapped; the callee resets it and the call discards it.
+        #[test]
+        fn omitted_output_argument_is_not_wrapped() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION consumer
+                    VAR_OUTPUT
+                        out1: IA;
+                        out2: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        refIA: IA;
+                    END_VAR
+
+                    consumer(out1 =>, out2 =>);
+                    consumer(out1 => refIA, out2 =>);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "consumer(out1 => , out2 => )",
+                "consumer(out1 => refIA, out2 => )",
+            ]
+            "#);
+        }
+
+        /// The arguments of a generic builtin bind to no indexed parameter and keep the type the resolver
+        /// hinted for them. The resolver types a builtin over interfaces as REAL, so no interface hint
+        /// exists, nothing is wrapped, and the assignment of the result cannot be lowered.
+        #[test]
+        fn generic_builtin_arguments_keep_their_hint() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                END_INTERFACE
+
+                FUNCTION main
+                    VAR
+                        refIA: IA;
+                        refIB: IB;
+                        selected: IA;
+                    END_VAR
+
+                    selected := SEL(FALSE, refIB, refIA);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "selected.data := ADR(SEL(FALSE, refIB, refIA))",
+                "selected.table := ADR(__itable_IA_REAL_instance)",
+            ]
+            "#);
+        }
+
+        /// A call result passed to a by-reference interface parameter is rejected with E031, as for any
+        /// other by-reference parameter, and replaced by an unfilled dummy. Passed by value it is wrapped.
+        #[test]
+        fn call_result_for_byref_parameter_is_rejected() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION producer : FbA
+                END_FUNCTION
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        in1: IA;
+                    END_VAR
+                    VAR_IN_OUT
+                        inout1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                    END_VAR
+
+                    consumer(producer(), instance);
+                    consumer(instance, producer());
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "alloca __producer0: FbA;",
+                "producer(__producer0);",
+                "__fatpointer_0.data := ADR(__producer0);",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_4main_0.data := ADR(instance)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_0, __fatpointer_4main_0)",
+                "alloca __fatpointer_1: __FATPOINTER",
+                "__fatpointer_1.data := ADR(instance)",
+                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
+                "alloca __fatpointer_2: __FATPOINTER",
+                "consumer(__fatpointer_1, __fatpointer_2)",
+            ]
+            "#);
+        }
+
+        /// A short-circuit operand whose call needs a preamble is lowered into an IF, so a skipped call
+        /// does not rebind the retained fat pointer of its site.
+        #[test]
+        fn short_circuit_operand_runs_preamble_only_when_evaluated() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK Holder
+                    METHOD bind : BOOL
+                        VAR_INPUT
+                            refIn : REFERENCE TO IA;
+                        END_VAR
+                    END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION main : BOOL
+                    VAR
+                        enabled : BOOL;
+                        holder : Holder;
+                        instance : FbA;
+                    END_VAR
+
+                    main := enabled AND_THEN holder.bind(instance);
+                    main := enabled OR_ELSE holder.bind(instance);
+                    main := holder.bind(instance) AND_THEN enabled;
+                    IF enabled AND_THEN holder.bind(instance) THEN
+                        main := TRUE;
+                    END_IF
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "Holder__ctor(holder)",
+                "FbA__ctor(instance)",
+                "IF enabled THEN",
+                "    __fatpointer_4main_0.data := ADR(instance)",
+                "    __fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "    __shortcircuit_0 := holder.bind(__fatpointer_4main_0)",
+                "ELSE",
+                "    __shortcircuit_0 := FALSE",
+                "END_IF",
+                "main := __shortcircuit_0",
+                "IF enabled THEN",
+                "    __shortcircuit_1 := TRUE",
+                "ELSE",
+                "    __fatpointer_4main_1.data := ADR(instance)",
+                "    __fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "    __shortcircuit_1 := holder.bind(__fatpointer_4main_1)",
+                "END_IF",
+                "main := __shortcircuit_1",
+                "__fatpointer_4main_2.data := ADR(instance)",
+                "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
+                "main := holder.bind(__fatpointer_4main_2) AND_THEN enabled",
+                "IF enabled THEN",
+                "    __fatpointer_4main_3.data := ADR(instance)",
+                "    __fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
+                "    __shortcircuit_2 := holder.bind(__fatpointer_4main_3)",
+                "ELSE",
+                "    __shortcircuit_2 := FALSE",
+                "END_IF",
+                "IF __shortcircuit_2 THEN",
+                "    main := TRUE",
+                "END_IF",
+            ]
+            "#);
+        }
+
+        /// The IF a short-circuit operand is lowered into is hoisted before the statement. Where the
+        /// short-circuit is not the first thing the statement evaluates, including the value of an
+        /// assignment whose target address must be computed first, that would reorder side effects,
+        /// so the operand keeps the eager preamble; the same holds for an operand that is not a BOOL,
+        /// which validation must still reject.
+        #[test]
+        fn short_circuit_operand_keeps_eager_preamble_outside_leading_position() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK Holder
+                    METHOD bind : BOOL
+                        VAR_INPUT
+                            refIn : REFERENCE TO IA;
+                        END_VAR
+                    END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION enable : BOOL
+                END_FUNCTION
+
+                FUNCTION consume : BOOL
+                    VAR_INPUT
+                        flag : BOOL;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION count : DINT
+                    VAR_INPUT
+                        refIn : REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION values : ARRAY[0..1] OF BOOL
+                END_FUNCTION
+
+                FUNCTION main : BOOL
+                    VAR
+                        enabled : BOOL;
+                        holder : Holder;
+                        instance : FbA;
+                        values : ARRAY[0..1] OF BOOL;
+                        matrix : ARRAY[0..1, 0..1] OF BOOL;
+                        target : REFERENCE TO BOOL;
+                        ptrs : ARRAY[0..1] OF REFERENCE TO BOOL;
+                        i : DINT;
+                    END_VAR
+
+                    main := enable() AND (enabled AND_THEN holder.bind(instance));
+                    main := consume(enabled AND_THEN holder.bind(instance));
+                    main := 1 AND_THEN holder.bind(instance);
+                    main := enabled AND_THEN count(instance);
+                    values[i] := enabled AND_THEN holder.bind(instance);
+                    main := values()[enabled AND_THEN holder.bind(instance)];
+                    main := matrix[i, enabled AND_THEN holder.bind(instance)];
+                    target := enabled AND_THEN holder.bind(instance);
+                    ptrs[i] REF= values[enabled AND_THEN holder.bind(instance)];
+                    target REF= enabled AND_THEN holder.bind(instance);
+                    IF enable() THEN
+                    ELSIF enabled AND_THEN holder.bind(instance) THEN
+                    END_IF
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "Holder__ctor(holder)",
+                "FbA__ctor(instance)",
+                "__main_values__ctor(values)",
+                "__main_matrix__ctor(matrix)",
+                "__main_target__ctor(target)",
+                "__main_ptrs__ctor(ptrs)",
+                "__fatpointer_4main_0.data := ADR(instance)",
+                "__fatpointer_4main_0.table := ADR(__itable_IA_FbA_instance)",
+                "main := enable() AND (enabled AND_THEN holder.bind(__fatpointer_4main_0))",
+                "__fatpointer_4main_1.data := ADR(instance)",
+                "__fatpointer_4main_1.table := ADR(__itable_IA_FbA_instance)",
+                "main := consume(enabled AND_THEN holder.bind(__fatpointer_4main_1))",
+                "__fatpointer_4main_2.data := ADR(instance)",
+                "__fatpointer_4main_2.table := ADR(__itable_IA_FbA_instance)",
+                "main := 1 AND_THEN holder.bind(__fatpointer_4main_2)",
+                "__fatpointer_4main_3.data := ADR(instance)",
+                "__fatpointer_4main_3.table := ADR(__itable_IA_FbA_instance)",
+                "main := enabled AND_THEN count(__fatpointer_4main_3)",
+                "__fatpointer_4main_4.data := ADR(instance)",
+                "__fatpointer_4main_4.table := ADR(__itable_IA_FbA_instance)",
+                "values[i] := enabled AND_THEN holder.bind(__fatpointer_4main_4)",
+                "__fatpointer_4main_5.data := ADR(instance)",
+                "__fatpointer_4main_5.table := ADR(__itable_IA_FbA_instance)",
+                "alloca __values0: __values_return;",
+                "values(__values0);",
+                "main := __values0[enabled AND_THEN holder.bind(__fatpointer_4main_5)];",
+                "__fatpointer_4main_6.data := ADR(instance)",
+                "__fatpointer_4main_6.table := ADR(__itable_IA_FbA_instance)",
+                "main := matrix[i, enabled AND_THEN holder.bind(__fatpointer_4main_6)]",
+                "__fatpointer_4main_7.data := ADR(instance)",
+                "__fatpointer_4main_7.table := ADR(__itable_IA_FbA_instance)",
+                "target := enabled AND_THEN holder.bind(__fatpointer_4main_7)",
+                "__fatpointer_4main_8.data := ADR(instance)",
+                "__fatpointer_4main_8.table := ADR(__itable_IA_FbA_instance)",
+                "ptrs[i] REF= values[enabled AND_THEN holder.bind(__fatpointer_4main_8)]",
+                "__fatpointer_4main_9.data := ADR(instance)",
+                "__fatpointer_4main_9.table := ADR(__itable_IA_FbA_instance)",
+                "target REF= enabled AND_THEN holder.bind(__fatpointer_4main_9)",
+                "IF enable() THEN",
+                "ELSE",
+                "    IF enabled THEN",
+                "        __fatpointer_4main_10.data := ADR(instance)",
+                "        __fatpointer_4main_10.table := ADR(__itable_IA_FbA_instance)",
+                "        __shortcircuit_0 := holder.bind(__fatpointer_4main_10)",
+                "    ELSE",
+                "        __shortcircuit_0 := FALSE",
+                "    END_IF",
+                "    IF __shortcircuit_0 THEN",
+                "    END_IF",
+                "END_IF",
+            ]
+            "#);
+        }
+
+        /// A generic template keeps the eager preamble: overloaded templates share one declaration for
+        /// member lookup, so a `VAR_TEMP` added to one of them is not found from the other.
+        #[test]
+        fn short_circuit_operand_in_generic_template_keeps_eager_preamble() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consume : BOOL
+                    VAR_INPUT
+                        in1 : IA;
+                    END_VAR
+                END_FUNCTION
+
+                VAR_GLOBAL
+                    enabled : BOOL;
+                    instance : FbA;
+                END_VAR
+
+                FUNCTION bind<T: ANY_INT> : BOOL
+                    VAR_INPUT
+                        value : T;
+                    END_VAR
+
+                    bind := enabled AND_THEN consume(instance);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["bind"]), @r#"
+            [
+                "// Statements in bind",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "bind := enabled AND_THEN consume(__fatpointer_0)",
+            ]
+            "#);
+        }
+
+        /// A property body stays on its declaration after the accessors were generated from it, so a
+        /// retained binding in a getter is emitted once, named after the accessor.
+        #[test]
+        fn retained_argument_in_property_getter_is_emitted_once() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbConsumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                VAR_GLOBAL
+                    fbConsumer: FbConsumer;
+                    instance: FbA;
+                END_VAR
+
+                FUNCTION_BLOCK Owner
+                    PROPERTY_GET value : BOOL
+                        fbConsumer(instance);
+                    END_PROPERTY
+
+                    PROPERTY_SET value : BOOL
+                        fbConsumer(instance);
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
+            [
+                "fbConsumer : FbConsumer",
+                "instance : FbA",
+                "__vtable_FbA_instance : __vtable_FbA",
+                "__vtable_FbConsumer_instance : __vtable_FbConsumer",
+                "__vtable_Owner_instance : __vtable_Owner",
+                "__itable_IA_FbA_instance : __itable_IA",
+                "__fatpointer_18Owner____get_value_0 : __FATPOINTER",
+                "__fatpointer_18Owner____set_value_0 : __FATPOINTER",
             ]
             "#);
         }
