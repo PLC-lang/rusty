@@ -1253,6 +1253,12 @@ mod interface {
                 END_VAR
             END_FUNCTION
 
+            FUNCTION consumeUnsized : DINT
+                VAR_INPUT
+                    rest : RefIA...;
+                END_VAR
+            END_FUNCTION
+
             FUNCTION main
                 VAR
                     instance : FbA;
@@ -1261,6 +1267,8 @@ mod interface {
                 consume(reference);
                 consume(instance);
                 consumeByRef(instance);
+                consumeUnsized(reference);
+                consumeUnsized(instance);
             END_FUNCTION
         "#;
 
@@ -1268,15 +1276,15 @@ mod interface {
 
         insta::assert_snapshot!(diagnostics, @"
         error[E159]: Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type IA
-           ┌─ <internal>:27:25
+           ┌─ <internal>:33:25
            │
-        27 │                 consume(reference);
+        33 │                 consume(reference);
            │                         ^^^^^^^^^ Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type IA
 
         error[E159]: Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type FbA
-           ┌─ <internal>:28:25
+           ┌─ <internal>:34:25
            │
-        28 │                 consume(instance);
+        34 │                 consume(instance);
            │                         ^^^^^^^^ Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type FbA
         ");
     }

@@ -178,7 +178,8 @@ fn is_variable_backed<T: AnnotationMap>(annotations: &T, node: &AstNode) -> bool
 
 /// Validates that nothing is passed to a sized variadic whose element type is `REFERENCE TO` the
 /// interface. The variadic stores each element by value in a pointer-sized slot, which neither an
-/// interface reference nor the fat pointer wrapping an instance fits. Returns `Some(Diagnostic)` if it is.
+/// interface reference nor the fat pointer wrapping an instance fits. An unsized variadic passes its
+/// arguments directly and is not concerned. Returns `Some(Diagnostic)` if it is.
 ///
 /// ```st
 /// consume(reference);  // error: the fat pointer does not fit the element
@@ -191,7 +192,7 @@ pub fn validate_variadic_takes_argument(
     interface_name: &str,
     location: &SourceLocation,
 ) -> Option<Diagnostic> {
-    let reference_element = parameter.is_variadic()
+    let reference_element = parameter.get_varargs().is_some_and(|it| it.is_sized())
         && index.find_effective_type_info(parameter.get_type_name()).is_some_and(|it| it.is_reference_to());
     if !reference_element {
         return None;
