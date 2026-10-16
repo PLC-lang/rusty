@@ -2260,7 +2260,9 @@ impl<'i> TypeAnnotator<'i> {
                         self.update_expected_types(result, &data.right);
                         Some(result_type.to_string())
                     } else if l_intrinsic_type.is_numerical() && r_intrinsic_type.is_numerical() {
-                        let unsigned_literal_type = if data.operator.is_comparison_operator() {
+                        let keeps_literal_unsigned = data.operator.is_comparison_operator()
+                            || matches!(data.operator, Operator::Division | Operator::Modulo);
+                        let unsigned_literal_type = if keeps_literal_unsigned {
                             get_unsigned_type_for_literal(self.index, left_type, &data.right)
                                 .or_else(|| get_unsigned_type_for_literal(self.index, right_type, &data.left))
                         } else {
@@ -3118,8 +3120,8 @@ fn to_variable_annotation(
 }
 
 /// Returns the intrinsic type of `operand_type` if it is an unsigned integer of at least DINT size and
-/// `literal` is an integer literal that fits into it, so that the literal does not make a comparison
-/// signed
+/// `literal` is an integer literal that fits into it, so that the literal does not make a comparison,
+/// a division or a MOD signed
 fn get_unsigned_type_for_literal<'i>(
     index: &'i Index,
     operand_type: &typesystem::DataType,
