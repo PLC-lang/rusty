@@ -304,6 +304,53 @@ fn const_references_to_negative_reference() {
 }
 
 #[test]
+fn negated_constant_takes_the_type_of_the_negation() {
+    // GIVEN a USINT constant that is negated into a DINT, and the negation itself
+    let (unit, index) = index(
+        "VAR_GLOBAL CONSTANT
+            c1 : USINT := 200;
+            c3 : DINT := -c1;
+        END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN c3 holds the widened value, and the folded literal carries the id of the negation, which
+    // the resolver annotates with the widened type, and not the id of c1's initializer
+    debug_assert_eq!(EMPTY, unresolvable);
+    let folded = find_constant_value(&index, "c3").unwrap();
+    debug_assert_eq!(&create_int_literal(-200), folded);
+    let negation = unit.global_vars[0].variables[1].initializer.as_ref().unwrap();
+    assert!(matches!(negation.get_stmt(), AstStatement::UnaryExpression(..)));
+    assert_eq!(negation.get_id(), folded.get_id());
+}
+
+#[test]
+fn negated_constant_that_overflows_the_target_is_not_resolved() {
+    // GIVEN a USINT constant that is negated into a SINT, which cannot hold -200
+    let (_, index) = index(
+        "VAR_GLOBAL CONSTANT
+            c1 : USINT := 200;
+            c2 : SINT := -c1;
+        END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN c2 is reported as an overflow, the same as `0 - c1`
+    let expected = UnresolvableConstant::new(global!(index, "c2"), "").with_kind(UnresolvableKind::Overflow(
+        "This will overflow for type SINT".into(),
+        SourceLocation::undefined(),
+    ));
+    debug_assert_eq!(expected.id, unresolvable[0].id);
+    debug_assert_eq!(expected.get_reason(), unresolvable[0].get_reason());
+}
+
+#[test]
 fn const_references_to_int_additions_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
     let (_, index) = index(

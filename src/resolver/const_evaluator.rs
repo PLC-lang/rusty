@@ -573,12 +573,19 @@ fn evaluate_with_target_hint(
             }
         }
         // - x
+        // The folded literal carries the id and location of the negation, not of the value it came
+        // from: a constant reference resolves to a clone of the constant's initializer, whose id is
+        // annotated with the constant's type, and the negation is annotated with the widened type the
+        // resolver gave it. With the id of the value, `-c` on a USINT constant would be generated in
+        // 8 bits and wrap.
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
             match evaluate(value, scope, index, lhs)? {
-                Some(AstNode {
-                    stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
-                }) => Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location)),
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), id, location, .. }) => {
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
+                    let lit = AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location);
+                    // re-evaluate to detect an overflow of the target
+                    evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
+                }
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), .. }) => {
                     let lit = AstNode::new(
                         AstStatement::Literal(AstLiteral::new_real(format!(
                             "{:}",

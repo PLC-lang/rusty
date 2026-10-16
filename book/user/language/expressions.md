@@ -85,6 +85,8 @@ k := i * j;   (* -5536, the same product cut down to the 16 bits of k *)
 s := i;       (* warning[E067]: Implicit downcast from 'INT' to 'SINT'. *)
 ```
 
+The operand of a unary minus is widened the same way and the result is signed, so the negation of a `USINT` holding `200` is the `DINT` `-200`, and the negation of the smallest `INT`, `-32768`, is `32768`, which no `INT` can hold. An unsigned operand that is already 32 or 64 bits wide only moves to the signed type of that width, so the negation of a `UDINT` is a `DINT` and can wrap. The sign changes the value before anything cuts it down to the width of a target.
+
 An integer and a real mix the same way, and the expression is then computed in the real type. The [basic types](basic-types.md) chapter shows what each conversion costs.
 
 

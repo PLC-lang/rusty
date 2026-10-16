@@ -633,6 +633,68 @@ fn unary_expressions_resolves_types() {
 }
 
 #[test]
+fn unary_minus_widens_narrow_integers_to_dint() {
+    let id_provider = IdProvider::default();
+    // GIVEN a unary minus on integers of every width, and on a real
+    let (unit, mut index) = index_with_ids(
+        "PROGRAM PRG
+        VAR
+            a : USINT;
+            i : INT;
+            b : BYTE;
+            d : DINT;
+            u : UDINT;
+            ul : ULINT;
+            r : REAL;
+            t : TIME;
+            dt : DATE;
+            c : CHAR;
+            bo : BOOL;
+        END_VAR
+            -a;
+            -i;
+            -b;
+            -d;
+            -u;
+            -ul;
+            -r;
+            -t;
+            -dt;
+            -c;
+            -bo;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    // THEN an integer or bit string is computed in the bigger of the signed twin and DINT, the same as
+    // `0 - x`, and an operand of another type carries that type as a hint so that codegen widens it
+    // before the negation. A duration, a date, a character and a BOOL keep their type.
+    let expected = [
+        ("USINT", DINT_TYPE, Some(DINT_TYPE)),
+        ("INT", DINT_TYPE, Some(DINT_TYPE)),
+        ("BYTE", DINT_TYPE, Some(DINT_TYPE)),
+        ("DINT", DINT_TYPE, None),
+        ("UDINT", DINT_TYPE, Some(DINT_TYPE)),
+        ("ULINT", LINT_TYPE, Some(LINT_TYPE)),
+        ("REAL", REAL_TYPE, None),
+        ("TIME", "TIME", None),
+        ("DATE", "DATE", None),
+        ("CHAR", "CHAR", None),
+        ("BOOL", BOOL_TYPE, None),
+    ];
+    for (statement, (operand_type, result_type, operand_hint)) in statements.iter().zip(expected) {
+        let AstStatement::UnaryExpression(UnaryExpression { value, .. }) = statement.get_stmt() else {
+            panic!("expected a unary expression, got {statement:?}");
+        };
+        assert_type_and_hint!(&annotations, &index, statement, result_type, None);
+        assert_type_and_hint!(&annotations, &index, value.as_ref(), operand_type, operand_hint);
+    }
+}
+
+#[test]
 fn binary_expressions_resolves_types_with_floats() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(

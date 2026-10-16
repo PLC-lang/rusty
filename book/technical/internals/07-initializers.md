@@ -94,7 +94,7 @@ pub enum UnresolvableKind {
 }
 ```
 
-Each entry also records the target type name, so that the evaluator knows in which type to fold and whether the result fits. For the example, the store holds eighteen entries: one per initializer and four for the array bounds `0`, `2`, `0`, `1`. After evaluation, the initializers read:
+Each entry also records the target type name, so that the evaluator knows in which type to fold and whether the result fits. An arithmetic expression or a negation folds to a literal that carries the id and location of the expression it replaces, so codegen reads the annotation and hint of that expression and not those of an operand: `-MAX` is typed as the negation, which for a constant narrower than `DINT` is the widened `DINT` and not the constant's own type. For the example, the store holds eighteen entries: one per initializer and four for the array bounds `0`, `2`, `0`, `1`. After evaluation, the initializers read:
 
 ```
 MAX                 DINT             Resolved(3)
