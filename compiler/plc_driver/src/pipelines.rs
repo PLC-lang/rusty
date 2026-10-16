@@ -1110,6 +1110,18 @@ impl GeneratedProject {
                 for lib in &link_options.libraries {
                     linker.add_lib(lib);
                 }
+
+                // A floating-point remainder becomes a call into libm, which a driver does not link
+                let is_final_link = matches!(
+                    link_options.format,
+                    FormatOption::Static | FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC
+                );
+                let is_linux = target_triple.as_str().to_string_lossy().contains("linux");
+                if is_final_link && is_linux && !link_options.no_libc {
+                    log::debug!("Linking libm as needed");
+                    linker.add_math_library();
+                }
+
                 if let Some(sysroot) = self.target.get_sysroot() {
                     linker.add_sysroot(sysroot);
                 }

@@ -145,6 +145,15 @@ impl Linker {
         self.add_linker_arg("--no-undefined");
     }
 
+    /// Link the C math library (`libm`) only if the output uses one of its symbols. Codegen lowers a
+    /// floating-point remainder to `fmod` or `fmodf`, and only `libm` defines them.
+    pub fn add_math_library(&mut self) {
+        self.add_linker_arg("--push-state");
+        self.add_linker_arg("--as-needed");
+        self.add_lib("m");
+        self.add_linker_arg("--pop-state");
+    }
+
     /// Add a driver-level flag.
     ///
     /// Driver linkers receive this directly (e.g. `cc -no-pie`).

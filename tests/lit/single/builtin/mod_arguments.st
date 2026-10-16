@@ -1,9 +1,8 @@
-// RUN: %COMPILE %s -lm && %RUN | %CHECK %s
+// RUN: %COMPILE %s && %RUN | %CHECK %s
 //
 // MOD gives the same result for the implicit (positional) and the explicit (named) call form, in
 // declaration order and reordered. MOD gives the same result as the `MOD` operator, for integer as
-// well as for REAL values, and for two TIME or two LTIME values. Without optimization a REAL remainder
-// calls `fmodf`, thus the test links libm.
+// well as for REAL values, and for two TIME or two LTIME values.
 
 FUNCTION main
 VAR
