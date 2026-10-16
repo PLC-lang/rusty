@@ -237,7 +237,8 @@ impl<'a> PolymorphicCallLowerer<'a> {
 
     /// Returns true if the given AST node is a candidate that needs to be lowered into a polymorphic call.
     fn is_polymorphic_call_candidate(&self, operator: &AstNode) -> bool {
-        // We do not want to lower THIS and SUPER access, e.g. {THIS,SUPER}^() or {THIS,SUPER}^.foo()
+        // We do not want to lower body calls through THIS or SUPER, e.g. {THIS,SUPER}^(), nor SUPER^.foo().
+        // A method call such as THIS^.foo() is handled by case 1 below.
         if operator.is_super_or_super_deref()
             || operator.get_base_ref_expr().is_some_and(AstNode::is_super_or_super_deref)
             || operator.is_this()
@@ -254,7 +255,7 @@ impl<'a> PolymorphicCallLowerer<'a> {
         if self.in_method_or_function_block.is_some()
             && self.annotations.get_type(operator, self.index).is_some_and(DataType::is_method)
             // Only lower something alike `THIS^.foo()` or `foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`
-            && (operator.get_base_ref_expr().is_none() || operator.get_base_ref_expr().is_some_and(|opt| opt.is_this()))
+            && operator.get_base_ref_expr().is_none_or(|base| base.is_this() || base.is_this_deref())
         {
             return true;
         }
@@ -476,7 +477,7 @@ mod tests {
     }
 
     #[test]
-    fn this_calls_are_untouched() {
+    fn this_body_calls_are_untouched_and_this_method_calls_are_lowered() {
         let source = r#"
             FUNCTION_BLOCK A
                 METHOD foo
@@ -496,10 +497,10 @@ mod tests {
         [
             "// Statements in A",
             "THIS^()",
-            "THIS^.bar()",
+            "__vtable_A#(THIS^.__vtable^).bar^(A#(THIS^))",
             "// Statements in A.foo",
             "THIS^()",
-            "THIS^.bar()",
+            "__vtable_A#(THIS^.__vtable^).bar^(A#(THIS^))",
         ]
         "#);
     }
