@@ -175,6 +175,8 @@ One more note: methods called from within other methods, or from a function bloc
  END_METHOD
 ```
 
+Only a call without a base uses the vtable of the enclosing POU. A call through a pointer inside a method or body still names the declared type of the pointer, as described above.
+
 Calls written as `THIS^.bar()` or `SUPER^.bar()` are left untouched, and so is a call on a plain instance variable, `instanceA.bar()`. In all three cases the type of the instance is exact, so the call is statically dispatched. Calls within the methods of a program are also left untouched: a program has no vtable and cannot be extended, so each call has exactly one target.
 
 One question remains about `__vtable_FbA#(refInstanceA^.__vtable^).foo^(FbA#(refInstanceA^))`: why is it safe to cast one vtable to another? The vtable layouts give the answer:
