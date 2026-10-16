@@ -25,6 +25,8 @@ pub enum FormatOption {
     Bitcode,
     /// Emit LLVM IR text (`.ll`).
     IR,
+    /// Indicates that the output format will be IEC 61131-10 open XML exchange format
+    XML,
 }
 
 impl FormatOption {
@@ -37,6 +39,7 @@ impl FormatOption {
                 | FormatOption::PIC
                 | FormatOption::NoPIC
                 | FormatOption::Relocatable
+                | FormatOption::XML
         )
     }
 }

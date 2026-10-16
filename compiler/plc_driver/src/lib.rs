@@ -12,6 +12,7 @@ use anyhow::{anyhow, Result};
 use pipelines::{
     participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
 };
+use plc_xmlgen::xml_gen::GenerationParameters;
 use std::{
     ffi::OsStr,
     fmt::{Debug, Display},
@@ -64,6 +65,7 @@ pub struct CompileOptions {
     pub debug_prefix_maps: Vec<(PathBuf, PathBuf)>,
     pub debug_compilation_dir: Option<PathBuf>,
     pub single_module: bool,
+    pub generation: GenerationParameters,
     pub constructors_only: bool,
     /// Producer string embedded in the compiled module's `llvm.ident` named
     /// metadata. Surfaces in the ELF `.comment` section post-link. `None`
@@ -85,6 +87,7 @@ impl Default for CompileOptions {
             debug_prefix_maps: vec![],
             debug_compilation_dir: None,
             single_module: false,
+            generation: GenerationParameters::new(),
             constructors_only: false,
             build_info: None,
         }

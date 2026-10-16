@@ -1563,6 +1563,7 @@ dependencies = [
  "plc_project",
  "plc_source",
  "plc_util",
+ "plc_xmlgen",
  "pretty_assertions",
  "rustc-hash",
  "serde",
@@ -1653,6 +1654,7 @@ dependencies = [
  "plc_project",
  "plc_source",
  "plc_util",
+ "plc_xmlgen",
  "pretty_assertions",
  "rayon",
  "serde",
@@ -1778,6 +1780,17 @@ name = "plc_util"
 version = "1.1.0-dev"
 dependencies = [
  "siphasher",
+]
+
+[[package]]
+name = "plc_xmlgen"
+version = "1.1.0-dev"
+dependencies = [
+ "chrono",
+ "plc_ast",
+ "plc_source",
+ "rustc-hash",
+ "xml",
 ]
 
 [[package]]
@@ -2388,6 +2401,7 @@ dependencies = [
  "plc_project",
  "plc_source",
  "plc_util",
+ "plc_xmlgen",
  "tempfile",
 ]
 
@@ -2958,6 +2972,12 @@ name = "writeable"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ffae5123b2d3fc086436f8834ae3ab053a283cfac8fe0a0b8eaae044768a4c4"
+
+[[package]]
+name = "xml"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f45bb2c13fec6a6cb4c0f76a7e94839e110a14ec803ec2940777a94c347bc52"
 
 [[package]]
 name = "yansi"
