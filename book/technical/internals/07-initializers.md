@@ -94,7 +94,7 @@ pub enum UnresolvableKind {
 }
 ```
 
-Each entry also records the target type name, so that the evaluator knows in which type to fold and whether the result fits. For the example, the store holds eighteen entries: one per initializer and four for the array bounds `0`, `2`, `0`, `1`. After evaluation, the initializers read:
+Each entry also records the target type name, so that the evaluator knows which literal to produce and whether the result fits. An arithmetic expression or a negation folds to a literal that carries the id and location of the expression it replaces, so codegen reads the annotation and hint of that expression and not those of an operand: `-MAX` is typed as the negation, which for a constant narrower than `DINT` is the widened `DINT` and not the constant's own type. A negation is also folded in that type, so it wraps and rounds as the runtime expression does: the negation of the smallest `DINT` stays the smallest `DINT`, and the negation of a `REAL` constant keeps `REAL` precision even in an `LREAL`. A `NOT` is folded in the type of its operand, which it keeps, and a unary plus hands the value on. The operand of a sign or a `NOT` is read in its own type first, so a constant whose store holds a wider value than its type counts as the value its type holds. A sign or a `NOT` whose value does not fit an integer target other than `BOOL` is then cut down to that target, as the assignment at run time cuts it down, so the initializer resolves and the validator reports the implicit downcast. A binary expression is folded in exact arithmetic and checked only against the target. A negation or a `NOT` whose operand is a binary expression is folded in exact arithmetic as well, and then cut down to the target like any other. For the example, the store holds eighteen entries: one per initializer and four for the array bounds `0`, `2`, `0`, `1`. After evaluation, the initializers read:
 
 ```
 MAX                 DINT             Resolved(3)
@@ -162,7 +162,7 @@ The [array lowerer](../participants/11-array.md) then splits the assignment `sel
 
 ### Static data
 
-Every global and every program instance gets a compile-time initial value. For a variable, codegen takes the resolved expression from the store; when there is none, the default of its type; when the type has none, zero. Unresolvable entries count as none. The instance of `main` and the globals are therefore complete before any code runs, apart from the two addresses and the array with the call:
+Every global and every program instance gets a compile-time initial value. For a variable, codegen takes the resolved expression from the store; when there is none, the default of its type; when the type has none, zero. Unresolvable entries count as none in an instance; for a global, codegen generates the stored expression as written, so an overflowing literal lands in the static data unchanged. The instance of `main` and the globals are therefore complete before any code runs, apart from the two addresses and the array with the call:
 
 ```llvm
 @MAX = unnamed_addr constant i32 3
@@ -170,7 +170,7 @@ Every global and every program instance gets a compile-time initial value. For a
 @main_instance = global %main { i32 4, i16 7, %Point { i32 1, i32 2 }, [3 x i32] [i32 1, i32 2, i32 3], %Counter { ptr null, i32 10, i32 0 }, ptr null, ptr null, [2 x i32] zeroinitializer }
 ```
 
-`i` starts at the folded value `4`, and `n` uses the `MyInt` default `7`. `p` combines the type's `x := 1` with the variable's `y := 2`. `counter` uses its variable initializer `step := 10` instead of the type default. Codegen computes struct defaults once per type and reuses them.
+`i` starts at the folded value `4`, and `n` uses the `MyInt` default `7`. `p` combines the type's `x := 1` with the variable's `y := 2`. `counter` uses its variable initializer `step := 10` instead of the type default. Codegen computes struct defaults once per type and reuses them. A use of `MAX` in a body reads the same folded `3` from the store instead of loading `@MAX`, converted from the type of the folded literal to the type of the constant (see [Annotated AST](08-annotated-ast.md#variable), Variable).
 
 For every local or temporary member of aggregate type with an initializer, codegen also emits a constant named after the member, `__main.values__init`, that holds the value. When such a variable lives on the stack, in a function or a `VAR_TEMP` block, its slot is initialized with a `memcpy` from that constant instead of element by element. For a member of a program or function block the constant is emitted but not used, because the value is already in the instance.
 

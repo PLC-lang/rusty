@@ -2348,8 +2348,31 @@ impl<'i> TypeAnnotator<'i> {
                     let inner_type =
                         self.annotation_map.get_type_or_void(&data.value, self.index).get_type_information();
 
-                    //keep the same type but switch to signed
-                    typesystem::get_signed_type(inner_type, self.index).map(|it| it.get_name().to_string())
+                    // switch to the signed twin of the operand's type
+                    let signed_type = typesystem::get_signed_type(inner_type, self.index);
+                    match signed_type.and_then(|it| self.index.get_type(it.get_name()).ok()) {
+                        // an integer or a bit string is widened to DINT before the negation, the same as
+                        // the operands of a binary expression, so `-a` on a USINT of 200 is -200 and not
+                        // a wrapped SINT. A duration, a date, a character or a BOOL keeps its type.
+                        Some(signed_type)
+                            if (signed_type.has_nature(TypeNature::Int, self.index)
+                                || signed_type.has_nature(TypeNature::Bit, self.index))
+                                && !signed_type.get_type_information().is_bool() =>
+                        {
+                            let target_type = get_bigger_type(
+                                signed_type,
+                                self.index.get_type_or_panic(DINT_TYPE),
+                                self.index,
+                            )
+                            .clone(); // clone here, so we release the borrow on self
+                            if target_type.get_name() != inner_type.get_name() {
+                                // the hint on the operand makes codegen cast before the `sub`
+                                self.update_expected_types(&target_type, &data.value);
+                            }
+                            Some(target_type.get_name().to_string())
+                        }
+                        _ => signed_type.map(|it| it.get_name().to_string()),
+                    }
                 } else {
                     let inner_type = self
                         .annotation_map

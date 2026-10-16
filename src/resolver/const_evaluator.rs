@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use plc_ast::{
     ast::{
         AstFactory, AstId, AstNode, AstStatement, BinaryExpression, MultipliedStatement, Operator,
-        ReferenceAccess, ReferenceExpr, UnaryExpression,
+        ReferenceAccess, ReferenceExpr, TypeNature, UnaryExpression,
     },
     literals::{Array, AstLiteral, StringValue},
 };
@@ -15,7 +15,10 @@ use crate::{
         const_expressions::{ConstExpression, ConstId, InitData, UnresolvableKind},
         Index, VariableIndexEntry,
     },
-    typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
+    typesystem::{
+        get_bigger_type, get_signed_type, DataType, DataTypeInformation, StringEncoding, DINT_TYPE,
+        LINT_TYPE, VOID_TYPE,
+    },
 };
 
 /// a wrapper for an unresolvable const-expression with the reason
@@ -553,18 +556,24 @@ fn evaluate_with_target_hint(
         }
 
         // NOT x
+        // The folded literal carries the id and location of the `NOT`, see the `Minus` arm below.
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Not, value }) => {
             let eval = evaluate(value, scope, index, lhs)?;
 
             match eval.as_ref() {
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), id, location, .. }) => {
-                    Some(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), *id))
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), .. }) => {
+                    Some(AstFactory::create_literal(AstLiteral::Bool(!v), location, id))
                 }
-                Some(AstNode {
-                    stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
-                }) => {
-                    evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type, lhs)?;
-                    Some(AstFactory::create_literal(AstLiteral::Integer(!v), location.clone(), *id))
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
+                    // the operand is read in its own type, and `NOT` keeps that width, so both the
+                    // operand and the result wrap to the operand's type
+                    let operand_type = get_operand_type(value, scope, index);
+                    let v = operand_type.map_or(*v, |it| wrap_to_type(*v, it));
+                    let v = operand_type.map_or(!v, |it| wrap_to_type(!v, it));
+                    let v = cut_down_to_target(v, target_type, index);
+                    let lit = AstFactory::create_literal(AstLiteral::Integer(v), location, id);
+                    // re-evaluate to range-check a target the cut-down leaves alone, such as BOOL
+                    evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
                 }
                 None => {
                     None //not yet resolvable
@@ -573,18 +582,38 @@ fn evaluate_with_target_hint(
             }
         }
         // - x
+        // The folded literal carries the id and location of the negation, not of the value it came
+        // from: a constant reference resolves to a clone of the constant's initializer, whose id is
+        // annotated with the constant's type, and the negation is annotated with the widened type the
+        // resolver gave it. With the id of the value, `-c` on a USINT constant would be generated in
+        // 8 bits and wrap.
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
+            // the value is folded in the type the negation is computed in, so that it wraps and
+            // rounds as the runtime expression does, before it is checked against the target
+            let negation_type = get_negation_type(value, scope, index);
             match evaluate(value, scope, index, lhs)? {
-                Some(AstNode {
-                    stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
-                }) => Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location)),
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), id, location, .. }) => {
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
+                    // the operand is read in its own type: a constant initialized from a wider
+                    // constant keeps the raw value in the store, `b : SINT := a` with a USINT 200
+                    // holds 200 there but is -56 wherever it is read
+                    let v = get_operand_type(value, scope, index).map_or(v, |it| wrap_to_type(v, it));
+                    let v = negation_type.map_or(-v, |it| wrap_to_type(-v, it));
+                    // an integer target cuts the value down as the assignment at run time does, so
+                    // the initializer resolves; the validator reports the implicit downcast
+                    let v = cut_down_to_target(v, target_type, index);
+                    let lit = AstNode::new(AstStatement::Literal(AstLiteral::Integer(v)), id, location);
+                    // re-evaluate to convert the literal for a target of another class
+                    evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
+                }
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), .. }) => {
+                    let v =
+                        -(v.parse::<f64>()).map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?;
+                    let v = match negation_type {
+                        Some(DataTypeInformation::Float { size: 32, .. }) => v as f32 as f64,
+                        _ => v,
+                    };
                     let lit = AstNode::new(
-                        AstStatement::Literal(AstLiteral::new_real(format!(
-                            "{:}",
-                            -(v.parse::<f64>())
-                                .map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?
-                        ))),
+                        AstStatement::Literal(AstLiteral::new_real(format!("{v:}"))),
                         id,
                         location,
                     );
@@ -596,8 +625,36 @@ fn evaluate_with_target_hint(
                 _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant Minus {value:?}"))),
             }
         }
+        // + x
+        // The literal is handed on with the id and location of the `+`, so that the hint of the
+        // target applies to it; the inner literal may carry the id of a widened negation.
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Plus, value }) => {
-            evaluate(value, scope, index, lhs)?
+            match evaluate(value, scope, index, lhs)? {
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
+                    // the operand is read in its own type, and the value is cut down to an integer
+                    // target as the assignment at run time does, like a negation
+                    let v = get_operand_type(value, scope, index).map_or(v, |it| wrap_to_type(v, it));
+                    let v = cut_down_to_target(v, target_type, index);
+                    let lit = AstNode::new(AstStatement::Literal(AstLiteral::Integer(v)), id, location);
+                    evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
+                }
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), .. }) => {
+                    // a REAL operand is read with REAL precision, as the negation reads it
+                    let v =
+                        v.parse::<f64>().map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?;
+                    let v = match get_operand_type(value, scope, index) {
+                        Some(DataTypeInformation::Float { size: 32, .. }) => v as f32 as f64,
+                        _ => v,
+                    };
+                    let lit = AstNode::new(
+                        AstStatement::Literal(AstLiteral::new_real(format!("{v:}"))),
+                        id,
+                        location,
+                    );
+                    evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
+                }
+                other => other,
+            }
         }
         AstStatement::ExpressionList(expressions) => {
             let inner_elements = expressions
@@ -707,6 +764,100 @@ fn find_member_variable<'idx>(
         segments.push(name);
         index.find_variable(scope, &segments).filter(|it| it.is_constant())
     })
+}
+
+/// The type of the operand of a unary expression, the way the resolver sees it: a constant
+/// reference has its declared type, a cast literal the cast type, and a plain integer literal is a
+/// `DINT`, or a `LINT` when it does not fit. A subrange or an enum counts as its base type, a
+/// nested `-` as its widened type, and a nested `+` or `NOT` as its operand, since neither changes
+/// the width. Returns `None` for an operand whose type the evaluator cannot tell, such as a binary
+/// expression or a plain real literal.
+fn get_operand_type<'idx>(
+    value: &AstNode,
+    scope: Option<&str>,
+    index: &'idx Index,
+) -> Option<&'idx DataTypeInformation> {
+    let operand_type = match value.get_stmt_peeled() {
+        // a nested negation is computed in its widened type, a plus or a NOT keeps the width
+        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
+            return get_negation_type(value, scope, index)
+        }
+        AstStatement::UnaryExpression(UnaryExpression {
+            operator: Operator::Plus | Operator::Not,
+            value,
+        }) => return get_operand_type(value, scope, index),
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
+            let variable =
+                find_member_variable(base.as_deref(), reference.get_flat_reference_name()?, scope, index)?;
+            index.find_effective_type_info(variable.get_type_name())?
+        }
+        AstStatement::ReferenceExpr(ReferenceExpr {
+            access: ReferenceAccess::Cast(_),
+            base: Some(type_name),
+        }) => index.find_effective_type_info(type_name.get_flat_reference_name()?)?,
+        AstStatement::Literal(AstLiteral::Integer(v)) => {
+            let name = if i32::try_from(*v).is_ok() { DINT_TYPE } else { LINT_TYPE };
+            index.find_effective_type_info(name)?
+        }
+        _ => return None,
+    };
+    Some(index.get_intrinsic_type_information(operand_type))
+}
+
+/// The type a unary minus is computed in: the type of its operand, where an integer or bit string
+/// is widened to the bigger of its signed twin and `DINT`, the rule the resolver applies. `None`
+/// when the operand's type is unknown, see [`get_operand_type`]; such a value is folded as is.
+fn get_negation_type<'idx>(
+    value: &AstNode,
+    scope: Option<&str>,
+    index: &'idx Index,
+) -> Option<&'idx DataTypeInformation> {
+    let operand_type = get_operand_type(value, scope, index)?;
+    match operand_type {
+        DataTypeInformation::Integer { .. } if !operand_type.is_bool() => {
+            let signed_type = index.get_type(get_signed_type(operand_type, index)?.get_name()).ok()?;
+            if !(signed_type.has_nature(TypeNature::Int, index)
+                || signed_type.has_nature(TypeNature::Bit, index))
+            {
+                // a duration, a date or a character keeps its type
+                return Some(operand_type);
+            }
+            Some(
+                get_bigger_type(signed_type, index.get_type_or_panic(DINT_TYPE), index)
+                    .get_type_information(),
+            )
+        }
+        _ => Some(operand_type),
+    }
+}
+
+/// Reduces a folded integer to the range of an integer target type, as the conversion of the value
+/// at run time does. A target of another class, or none, leaves the value as it is, and so does a
+/// `BOOL`, whose single bit is not what the conversion keeps; the range check reports it instead.
+fn cut_down_to_target(value: i128, target_type: Option<&str>, index: &Index) -> i128 {
+    target_type
+        .and_then(|it| index.find_effective_type_info(it))
+        .map(|it| index.get_intrinsic_type_information(it))
+        .filter(|it| matches!(it, DataTypeInformation::Integer { .. }) && !it.is_bool())
+        .map_or(value, |it| wrap_to_type(value, it))
+}
+
+/// Reduces `value` to the range of the integer type `dti`, as a two's complement cast does.
+fn wrap_to_type(value: i128, dti: &DataTypeInformation) -> i128 {
+    let DataTypeInformation::Integer { signed, size, semantic_size, .. } = dti else {
+        return value;
+    };
+    let size = semantic_size.unwrap_or(*size);
+    if size == 0 || size >= 128 {
+        return value;
+    }
+    let modulus = 1i128 << size;
+    let wrapped = value.rem_euclid(modulus);
+    if *signed && wrapped >= modulus / 2 {
+        wrapped - modulus
+    } else {
+        wrapped
+    }
 }
 
 /// Returns the names of a member chain such as `__grandparent.__parent`, or `None` if the chain

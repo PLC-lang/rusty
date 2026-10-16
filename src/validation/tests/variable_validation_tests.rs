@@ -420,7 +420,7 @@ mod overflows {
             "
         VAR_GLOBAL
             x : UINT := 1234;       // OK
-            y : UINT := NOT -1234;  // Not OK (because of -1234)
+            y : UINT := NOT -1234;  // OK, the result 1233 fits, as the same assignment in a body does
         END_VAR
         ",
         );

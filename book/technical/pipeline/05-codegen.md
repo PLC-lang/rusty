@@ -251,7 +251,7 @@ Two rules drive almost everything the expression generator does.
 
 ### A reference is an address until a value is needed
 
-`p.x` is one `getelementptr` per member step, `values[count]` a pointer computation into the array. On the left of an assignment the address is the target of a store; as an operand, its value is loaded. For `p.x := i`:
+`p.x` is one `getelementptr` per member step, `values[count]` a pointer computation into the array. On the left of an assignment the address is the target of a store; as an operand, its value is loaded, except for a scalar constant, whose folded value is used in place of the load (see [Annotated AST](../internals/08-annotated-ast.md#variable)). For `p.x := i`:
 
 ```llvm
 %x       = getelementptr inbounds nuw %Point, ptr %p, i32 0, i32 0   ; address of p.x: member 0 of p

@@ -80,6 +80,50 @@ fn unary_expressions_can_be_real() {
 }
 
 #[test]
+fn unary_minus_widens_the_operand_before_the_negation() {
+    // the operand is widened to DINT first, so the negation cannot wrap in the operand's own width
+    let result = codegen(
+        r#"
+            PROGRAM prg
+            VAR
+                a : USINT;
+                i : INT;
+                d : DINT;
+            END_VAR
+                d := -a;
+                d := -i;
+            END_PROGRAM
+        "#,
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %prg = type { i8, i16, i32 }
+
+    @prg_instance = global %prg zeroinitializer
+
+    define void @prg(ptr %0) {
+    entry:
+      %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %i = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %d = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+      %load_a = load i8, ptr %a, align [filtered]
+      %1 = zext i8 %load_a to i32
+      %tmpVar = sub i32 0, %1
+      store i32 %tmpVar, ptr %d, align [filtered]
+      %load_i = load i16, ptr %i, align [filtered]
+      %2 = sext i16 %load_i to i32
+      %tmpVar1 = sub i32 0, %2
+      store i32 %tmpVar1, ptr %d, align [filtered]
+      ret void
+    }
+    "#);
+}
+
+#[test]
 fn type_mix_in_call() {
     let result = codegen(
         "

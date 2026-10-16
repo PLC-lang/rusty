@@ -304,6 +304,154 @@ fn const_references_to_negative_reference() {
 }
 
 #[test]
+fn negated_constant_takes_the_type_of_the_negation() {
+    // GIVEN a USINT constant that is negated into a DINT, and the negation itself
+    let (unit, index) = index(
+        "VAR_GLOBAL CONSTANT
+            c1 : USINT := 200;
+            c3 : DINT := -c1;
+        END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN c3 holds the widened value, and the folded literal carries the id of the negation, which
+    // the resolver annotates with the widened type, and not the id of c1's initializer
+    debug_assert_eq!(EMPTY, unresolvable);
+    let folded = find_constant_value(&index, "c3").unwrap();
+    debug_assert_eq!(&create_int_literal(-200), folded);
+    let negation = unit.global_vars[0].variables[1].initializer.as_ref().unwrap();
+    assert!(matches!(negation.get_stmt(), AstStatement::UnaryExpression(..)));
+    assert_eq!(negation.get_id(), folded.get_id());
+}
+
+#[test]
+fn negated_constant_is_folded_in_the_type_of_the_negation() {
+    // GIVEN negations whose exact value does not fit the type the negation is computed in, on
+    // plain constants, a subrange, enums, and nested unary operands
+    let (unit, index) = index(
+        "TYPE SRd : DINT(-2147483648..0); END_TYPE
+        TYPE ED : DINT (DA := -2147483648, DB := 0); END_TYPE
+        TYPE EL : LINT (LA := -9223372036854775808, LB := 0); END_TYPE
+        VAR_GLOBAL CONSTANT
+            cd : DINT := -2147483648;
+            cr : REAL := 16777217.0;
+            ci : INT := -32768;
+            csrd : SRd := -2147483648;
+            ced : ED := ED#DA;
+            cel : EL := EL#LA;
+            w : LINT := -cd;
+            r : LREAL := -cr;
+            m : DINT := -ci;
+            s : LINT := -csrd;
+            e : LINT := -ced;
+            el : LINT := -cel;
+            nn : LINT := -(-cd);
+            np : LINT := -(+cd);
+            c1 : USINT := 200;
+            nnot : DINT := -(NOT c1);
+            notnot : USINT := NOT (NOT c1);
+            cs : SINT := -128;
+            notneg : DINT := NOT (-cs);
+            cb : SINT := c1;
+            negnarrow : DINT := -cb;
+            notnarrow : DINT := NOT cb;
+            plusneg : INT := +(-cs);
+            plusreal : LREAL := +cr;
+        END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN the value wraps and rounds as the runtime expression does: the negation of the smallest
+    // DINT is computed in DINT and wraps, a REAL cannot hold 16777217, and the negation of the
+    // smallest INT is computed in DINT and fits
+    debug_assert_eq!(EMPTY, unresolvable);
+    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "w").unwrap());
+    debug_assert_eq!(&create_real_literal(-16777216.0), find_constant_value(&index, "r").unwrap());
+    debug_assert_eq!(&create_int_literal(32768), find_constant_value(&index, "m").unwrap());
+    // a subrange and an enum are computed in their base type, and a nested sign in the type of
+    // the innermost operand
+    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "s").unwrap());
+    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "e").unwrap());
+    debug_assert_eq!(&create_int_literal(-9223372036854775808), find_constant_value(&index, "el").unwrap());
+    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "nn").unwrap());
+    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "np").unwrap());
+    // NOT keeps the width of its operand, so NOT 200 on a USINT is 55 and its negation -55
+    debug_assert_eq!(&create_int_literal(-55), find_constant_value(&index, "nnot").unwrap());
+    debug_assert_eq!(&create_int_literal(200), find_constant_value(&index, "notnot").unwrap());
+    // a nested negation is computed in the widened DINT, so the NOT around it is as well
+    debug_assert_eq!(&create_int_literal(-129), find_constant_value(&index, "notneg").unwrap());
+    // a constant initialized from a wider constant keeps the raw value 200 in the store, but it is
+    // read as the SINT -56, so the operand is cut down to its own type before the operator
+    debug_assert_eq!(&create_int_literal(56), find_constant_value(&index, "negnarrow").unwrap());
+    debug_assert_eq!(&create_int_literal(55), find_constant_value(&index, "notnarrow").unwrap());
+    // a unary plus hands its operand's literal on with its own id, so the target's hint applies
+    let folded = find_constant_value(&index, "plusneg").unwrap();
+    debug_assert_eq!(&create_int_literal(128), folded);
+    let plus = unit.global_vars[0].variables.iter().find(|it| it.name == "plusneg").unwrap();
+    assert_eq!(plus.initializer.as_ref().unwrap().get_id(), folded.get_id());
+    // a unary plus reads a REAL operand with REAL precision, as the negation does
+    debug_assert_eq!(&create_real_literal(16777216.0), find_constant_value(&index, "plusreal").unwrap());
+}
+
+#[test]
+fn negated_constant_is_cut_down_to_a_narrower_target() {
+    // GIVEN negations into targets that cannot hold the value of the negation
+    let (_, index) = index(
+        "VAR_GLOBAL CONSTANT
+            c1 : USINT := 200;
+            cd : DINT := -2147483648;
+            c2 : SINT := -c1;
+            cud : UDINT := -cd;
+            csn : SINT := NOT c1;
+        END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN the value is cut down to the target as an assignment in a body does it, so that the
+    // initializer resolves; the validator reports the implicit downcast on the operand
+    debug_assert_eq!(EMPTY, unresolvable);
+    debug_assert_eq!(&create_int_literal(56), find_constant_value(&index, "c2").unwrap());
+    debug_assert_eq!(&create_int_literal(2147483648), find_constant_value(&index, "cud").unwrap());
+    debug_assert_eq!(&create_int_literal(55), find_constant_value(&index, "csn").unwrap());
+}
+
+#[test]
+fn negated_constant_into_a_bool_is_reported_as_an_overflow() {
+    // GIVEN BOOLs initialized with the negation and the NOT of a USINT constant
+    let (_, index) = index(
+        "VAR_GLOBAL CONSTANT
+            c1 : USINT := 200;
+            cb : BOOL := -c1;
+            cn : BOOL := NOT c1;
+        END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN the values are not cut down to the single bit of a BOOL, the range check reports them
+    for (name, reported) in [("cb", &unresolvable[0]), ("cn", &unresolvable[1])] {
+        let expected =
+            UnresolvableConstant::new(global!(index, name), "").with_kind(UnresolvableKind::Overflow(
+                "This will overflow for type BOOL".into(),
+                SourceLocation::undefined(),
+            ));
+        debug_assert_eq!(expected.id, reported.id);
+        debug_assert_eq!(expected.get_reason(), reported.get_reason());
+    }
+}
+
+#[test]
 fn const_references_to_int_additions_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
     let (_, index) = index(
