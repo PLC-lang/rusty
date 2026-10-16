@@ -267,7 +267,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }) = self.annotations.get(expression)
         {
             if !self.index.get_type_information_or_void(resulting_type).is_aggregate() {
-                match self.generate_constant_expression(qualified_name, expression) {
+                match self.generate_constant_expression(qualified_name, resulting_type, expression) {
                     // We return here if constant propagation worked
                     Ok(expr) => return Ok(expr),
                     // ...and fall-back to generating the expression further down if it didn't
@@ -351,6 +351,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_constant_expression(
         &self,
         qualified_name: &str,
+        constant_type: &str,
         expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, CodegenError> {
         let const_expression = self
@@ -374,7 +375,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             })?;
 
         //  generate the resulting constant-expression (which should be a Value, no ptr-reference)
-        self.generate_expression_value(const_expression)
+        let value = self.generate_expression(const_expression)?;
+
+        // The folded literal is generated in the type of its hint, or in its own type without one,
+        // which can differ from the constant's declared type, e.g. a DINT negation folded into an
+        // LREAL constant, or the USINT literal of another constant. Convert it here with that type
+        // as the source; the caller only knows the constant's type and would convert an integer to
+        // a real as unsigned.
+        let literal_type = self.get_type_hint_for(const_expression)?;
+        let constant_type = self.index.get_effective_type_or_void_by_name(constant_type);
+        cast_if_needed!(self, constant_type, literal_type, value, None).map(ExpressionValue::RValue)
     }
 
     /// generates a binary expression (e.g. a + b, x AND y, etc.) and returns the resulting `BasicValueEnum`
