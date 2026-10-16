@@ -120,7 +120,8 @@ use plc_ast::{
         resolve_argument_slots, steal_expression_list, Allocation, Assignment, AstFactory, AstNode,
         AstStatement, BinaryExpression, CallStatement, CompilationUnit, DataType as AstDataType,
         DataTypeDeclaration, EmptyStatement, GenericBinding, Implementation, LinkageType, Operator, Pou,
-        ReferenceAccess, ReferenceExpr, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        PropertyBlock, ReferenceAccess, ReferenceExpr, UserTypeDeclaration, Variable, VariableBlock,
+        VariableBlockType,
     },
     control_statements::{AstControlStatement, ConditionalBlock, IfStatement},
     literals::AstLiteral,
@@ -143,7 +144,8 @@ const FATPOINTER_DATA_FIELD_NAME: &str = "data";
 const FATPOINTER_TABLE_FIELD_NAME: &str = "table";
 
 /// State of the implementation being lowered. The lowering loop pairs every implementation with its
-/// declaration in the unit, which the parser gives the same name location; an action has none.
+/// declaration in the unit by name and name location, since the parser gives both the same location and
+/// the accessors of a property share it; an action has no declaration.
 #[derive(Default)]
 struct Scope {
     /// Identity in retained global names: the mangled name, e.g. `FbA__foo` for the method `FbA.foo`,
@@ -316,7 +318,9 @@ impl<'a> InterfaceDispatchLowerer<'a> {
                 continue;
             }
 
-            let pou = unit.pous.iter_mut().find(|pou| pou.name_location == implementation.name_location);
+            let pou = unit.pous.iter_mut().find(|pou| {
+                pou.name == implementation.name && pou.name_location == implementation.name_location
+            });
             self.scope = Scope::new(implementation, pou.as_deref());
             implementation.walk(self);
 
@@ -364,6 +368,18 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         }
 
         data_type_declaration.walk(self);
+    }
+
+    /// The bodies of a property stay on its declaration after its accessors were generated from them.
+    /// Codegen never emits those copies, so only their declarations are lowered; lowering the bodies
+    /// would bind retained globals a second time, under no scope.
+    fn visit_property(&mut self, property: &mut PropertyBlock) {
+        for implementation in &mut property.implementations {
+            self.visit_data_type_declaration(&mut implementation.datatype);
+            for block in &mut implementation.variable_blocks {
+                self.visit_variable_block(block);
+            }
+        }
     }
 
     fn visit_statement_list(&mut self, stmts: &mut Vec<AstNode>) {
@@ -3850,6 +3866,53 @@ mod tests {
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
                 "bind := enabled AND_THEN consume(__fatpointer_0)",
+            ]
+            "#);
+        }
+
+        /// A property body stays on its declaration after the accessors were generated from it, so a
+        /// retained binding in a getter is emitted once, named after the accessor.
+        #[test]
+        fn retained_argument_in_property_getter_is_emitted_once() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbConsumer
+                    VAR_INPUT
+                        ref1: REFERENCE TO IA;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                VAR_GLOBAL
+                    fbConsumer: FbConsumer;
+                    instance: FbA;
+                END_VAR
+
+                FUNCTION_BLOCK Owner
+                    PROPERTY_GET value : BOOL
+                        fbConsumer(instance);
+                    END_PROPERTY
+
+                    PROPERTY_SET value : BOOL
+                        fbConsumer(instance);
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_globals(source), @r#"
+            [
+                "fbConsumer : FbConsumer",
+                "instance : FbA",
+                "__vtable_FbA_instance : __vtable_FbA",
+                "__vtable_FbConsumer_instance : __vtable_FbConsumer",
+                "__vtable_Owner_instance : __vtable_Owner",
+                "__itable_IA_FbA_instance : __itable_IA",
+                "__fatpointer_18Owner____get_value_0 : __FATPOINTER",
+                "__fatpointer_18Owner____set_value_0 : __FATPOINTER",
             ]
             "#);
         }
