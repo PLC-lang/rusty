@@ -49,6 +49,14 @@
 //! reference.table := ADR(__itable_IA_FbA_instance);
 //! ```
 //!
+//! When the instance may be a descendant of its type, e.g. `THIS^`, `ptr^`, or a `REFERENCE TO` variable,
+//! the itable is read from the virtual table of the instance instead, so it belongs to the actual type:
+//!
+//! ```text
+//! reference.data  := ADR(ptr^);
+//! reference.table := __vtable_FbA#(ptr^.__vtable^).__interface_IA;
+//! ```
+//!
 //! # Interface method calls
 //!
 //! Calling a method through an interface variable is transformed into an indirect call through the itable.
@@ -118,8 +126,8 @@
 use plc_ast::{
     ast::{
         steal_expression_list, Allocation, Assignment, AstFactory, AstNode, AstStatement, CallStatement,
-        CompilationUnit, DataType as AstDataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration,
-        Variable,
+        CompilationUnit, DataType as AstDataType, DataTypeDeclaration, LinkageType, ReferenceAccess,
+        ReferenceExpr, UserTypeDeclaration, Variable,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -129,7 +137,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::Index,
-    resolver::{AnnotationMap, AnnotationMapImpl},
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     typesystem::{DataType, VOID_INTERNAL_NAME},
 };
 
@@ -362,7 +370,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
         // Replace the original assignment with the two fat-pointer field assignments.
         let data_assign = helper::create_data_assignment(&mut self.ids, left, right);
-        let table_assign = helper::create_table_assignment(&mut self.ids, left, interface_name, pou_name);
+        let table_assign = self.create_table_assignment(left, right, interface_name, pou_name);
         self.replacement = Some(vec![data_assign, table_assign]);
     }
 
@@ -526,8 +534,7 @@ impl InterfaceDispatchLowerer<'_> {
             let interface_name = expected_type.get_name();
             let pou_name = actual_type.get_name();
             let data_assign = helper::create_data_assignment(&mut self.ids, &fp_ref, arg);
-            let table_assign =
-                helper::create_table_assignment(&mut self.ids, &fp_ref, interface_name, pou_name);
+            let table_assign = self.create_table_assignment(&fp_ref, arg, interface_name, pou_name);
 
             self.preamble.push(data_assign);
             self.preamble.push(table_assign);
@@ -535,6 +542,41 @@ impl InterfaceDispatchLowerer<'_> {
 
         // Replace the argument in-place with the fat pointer reference.
         *arg = fp_ref;
+    }
+
+    /// Builds the `lhs.table` assignment for a POU instance `rhs` converted to an interface. The itable
+    /// is fixed when the type of `rhs` is exact, and read from its virtual table otherwise.
+    fn create_table_assignment(
+        &mut self,
+        lhs: &AstNode,
+        rhs: &AstNode,
+        interface_name: &str,
+        pou_name: &str,
+    ) -> AstNode {
+        if self.may_be_descendant(rhs) {
+            return helper::create_dynamic_table_assignment(
+                &mut self.ids,
+                lhs,
+                rhs,
+                interface_name,
+                pou_name,
+            );
+        }
+
+        helper::create_table_assignment(&mut self.ids, lhs, interface_name, pou_name)
+    }
+
+    /// Returns true if the instance an expression evaluates to may be a descendant of its declared type.
+    /// This holds for dereferences such as `THIS^` or `ptr^` and for `REFERENCE TO` variables, the same
+    /// expressions whose method calls dispatch through the virtual table.
+    fn may_be_descendant(&self, expr: &AstNode) -> bool {
+        match &expr.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }) => true,
+            AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Member(member), ..
+            }) => self.annotations.get(member).is_some_and(StatementAnnotation::is_reference_to),
+            _ => false,
+        }
     }
 }
 
@@ -698,6 +740,54 @@ mod helper {
         );
         let adr_itable = create_adr_call(ids, itable_ref);
         AstFactory::create_assignment(lhs_table, adr_itable, ids.next_id())
+    }
+
+    /// Builds `lhs.table := __vtable_<pou>#(rhs.__vtable^).__interface_<interface>`.
+    ///
+    /// Used when the instance may be a descendant of `pou`, e.g. `THIS^` or `ptr^`: the itable is read
+    /// from the virtual table of the instance, so it belongs to the actual type rather than to `pou`.
+    pub fn create_dynamic_table_assignment(
+        ids: &mut IdProvider,
+        lhs: &AstNode,
+        rhs: &AstNode,
+        interface_name: &str,
+        pou_name: &str,
+    ) -> AstNode {
+        let lhs_table = create_member_access(ids, lhs, FATPOINTER_TABLE_FIELD_NAME);
+
+        // Build: rhs.__vtable^
+        let vtable_deref = AstFactory::create_deref_reference(
+            create_member_access(ids, rhs, "__vtable"),
+            ids.next_id(),
+            SourceLocation::internal(),
+        );
+
+        // Build: __vtable_<pou>#(rhs.__vtable^)
+        let cast_target = AstFactory::create_member_reference(
+            AstFactory::create_identifier(
+                format!("__vtable_{pou_name}"),
+                SourceLocation::internal(),
+                ids.next_id(),
+            ),
+            None,
+            ids.next_id(),
+        );
+        let casted = AstFactory::create_cast_statement(
+            cast_target,
+            AstFactory::create_paren_expression(vtable_deref, SourceLocation::internal(), ids.next_id()),
+            &SourceLocation::internal(),
+            ids.next_id(),
+        );
+
+        // Build: __vtable_<pou>#(rhs.__vtable^).__interface_<interface>
+        let field_name = itable_helper::get_interface_field_name(interface_name);
+        let itable_read = AstFactory::create_member_reference(
+            AstFactory::create_identifier(field_name, SourceLocation::internal(), ids.next_id()),
+            Some(casted),
+            ids.next_id(),
+        );
+
+        AstFactory::create_assignment(lhs_table, itable_read, ids.next_id())
     }
 
     /// Builds `lhs.data := rhs.data` — a direct member-to-member copy used for interface upcasting
@@ -1586,7 +1676,7 @@ mod tests {
                 "// Statements in main",
                 "__main_pointerToInstance__ctor(pointerToInstance)",
                 "reference.data := ADR(pointerToInstance^)",
-                "reference.table := ADR(__itable_IA_FbA_instance)",
+                "reference.table := __vtable_FbA#(pointerToInstance^.__vtable^).__interface_IA",
             ]
             "#);
         }
@@ -2283,11 +2373,11 @@ mod tests {
                 "__main_ptr__ctor(ptr)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(ptr^)",
-                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_0.table := __vtable_FbA#(ptr^.__vtable^).__interface_IA",
                 "consumer(__fatpointer_0)",
                 "alloca __fatpointer_1: __FATPOINTER",
                 "__fatpointer_1.data := ADR(ptr^)",
-                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
+                "__fatpointer_1.table := __vtable_FbA#(ptr^.__vtable^).__interface_IA",
                 "consumer(in1 := __fatpointer_1)",
             ]
             "#);
