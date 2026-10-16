@@ -184,18 +184,11 @@ impl<'a> AstVisitorMut for PolymorphicCallLowerer<'a> {
         // A call on THIS uses the virtual table of the enclosing POU, any other call that of its instance
         let unit_name = match self.in_method_or_function_block {
             Some(ref name) if self.is_method_call_on_this(operator) => name.clone(),
-            _ => match operator.get_base_ref_expr() {
-                Some(base) => {
-                    // When dealing with e.g. __main_myVariable
-                    let ty = self.annotations.get_type(base, self.index).unwrap();
-                    self.index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
-                }
-
-                None => {
-                    let ty = self.annotations.get_type(operator, self.index).unwrap();
-                    self.index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
-                }
-            },
+            _ => {
+                let instance = self.called_instance(operator).unwrap_or(operator);
+                let ty = self.annotations.get_type(instance, self.index).unwrap();
+                self.index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
+            }
         };
 
         log::trace!("lowering {}", operator.as_string());
@@ -247,13 +240,19 @@ impl<'a> PolymorphicCallLowerer<'a> {
     /// Returns true if the given call operator runs the body or a method of a program, e.g. `refProg()` or
     /// `refProg.foo()`. A program has no virtual table, so these calls stay direct.
     fn calls_into_program(&self, operator: &AstNode) -> bool {
-        let is_method = self.annotations.get_type(operator, self.index).is_some_and(DataType::is_method);
-        let instance = if is_method { operator.get_base_ref_expr() } else { Some(operator) };
-
-        instance
+        self.called_instance(operator)
             .and_then(|it| self.annotations.get_type(it, self.index))
             .and_then(|ty| self.index.find_pou(ty.get_name()))
             .is_some_and(PouIndexEntry::is_program)
+    }
+
+    /// Returns the instance a call operator runs on: the operator itself for a body call, e.g. `box.target`
+    /// in `box.target()`, otherwise the base of the method call, e.g. `ref` in `ref.foo()`.
+    fn called_instance<'b>(&self, operator: &'b AstNode) -> Option<&'b AstNode> {
+        match self.annotations.get_type(operator, self.index) {
+            Some(ty) if !ty.is_method() => Some(operator),
+            _ => operator.get_base_ref_expr(),
+        }
     }
 
     /// Returns true if the given call operator is a method call on the current instance within a method or
@@ -689,6 +688,10 @@ mod tests {
     #[test]
     fn calls_through_pointers_in_methods_use_the_virtual_table_of_the_instance() {
         let source = r#"
+            TYPE Box : STRUCT
+                target: REFERENCE TO A;
+            END_STRUCT END_TYPE
+
             FUNCTION_BLOCK A
                 METHOD foo
                 END_METHOD
@@ -701,6 +704,7 @@ mod tests {
                 VAR
                     refA: REFERENCE TO A;
                     ptrA: POINTER TO A;
+                    refBox: REFERENCE TO Box;
                     x: INT;
                 END_VAR
 
@@ -711,14 +715,23 @@ mod tests {
                     refA.foo();
                     ptrA^.foo();
                     x := ptrA^.prop;
+                    refBox.target();
                     foo();
                 END_METHOD
 
                 refA.foo();
             END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refBox: REFERENCE TO Box;
+                END_VAR
+
+                refBox.target();
+            END_FUNCTION
         "#;
 
-        insta::assert_debug_snapshot!(lower_statements(source, &["B", "B.bravo"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["B", "B.bravo", "main"]), @r#"
         [
             "// Statements in B",
             "__vtable_A#(refA.__vtable^).foo^(A#(refA))",
@@ -726,7 +739,11 @@ mod tests {
             "__vtable_A#(refA.__vtable^).foo^(A#(refA))",
             "__vtable_A#(ptrA^.__vtable^).foo^(A#(ptrA^))",
             "x := __vtable_A#(ptrA^.__vtable^).__get_prop^(A#(ptrA^))",
+            "__vtable_A#(refBox.target.__vtable^).__body^(refBox.target)",
             "__vtable_B#(THIS^.__vtable^).foo^(B#(THIS^))",
+            "// Statements in main",
+            "__main_refBox__ctor(refBox)",
+            "__vtable_A#(refBox.target.__vtable^).__body^(refBox.target)",
         ]
         "#);
     }
@@ -1158,8 +1175,8 @@ mod tests {
             "// Statements in main",
             "__main_refInstanceA__ctor(refInstanceA)",
             "__vtable_A#(refInstanceA.__vtable^).__body^(refInstanceA)",
-            "__vtable_A#(refInstanceA.refB.__vtable^).__body^(refInstanceA.refB)",
-            "__vtable_B#(refInstanceA.refB.refC.__vtable^).__body^(refInstanceA.refB.refC)",
+            "__vtable_B#(refInstanceA.refB.__vtable^).__body^(refInstanceA.refB)",
+            "__vtable_C#(refInstanceA.refB.refC.__vtable^).__body^(refInstanceA.refB.refC)",
         ]
         "#);
     }
