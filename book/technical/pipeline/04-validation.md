@@ -85,7 +85,7 @@ END_FUNCTION
 
 neither file is wrong on its own; the conflict only exists in the merged index. Global validation therefore runs once, before any unit is walked, and reads only the index. It checks that:
 
-- **Names are unique** within their group: callables, types, and global variables. Every declaration of a duplicate is reported, with the others as secondary locations. Built-in names such as `ADD` count too.
+- **Names are unique** within their group: callables, types, and global variables. Every declaration of a duplicate is reported, with the others as secondary locations. Only generic functions can share a name, as overloads; a cluster is reported when it holds a non-generic declaration. Built-in names such as `ADD` count too. A built-in declaration has no source to show, so such a collision is reported only at the user's declaration, as the name of a built-in function.
 - **Data structures are finite.** A struct that contains itself by value, an alias chain that loops, or interfaces that extend each other are reported.
 - **Template variables** (`AT %I*`) are configured exactly once in a `VAR_CONFIG` block.
 - **Overflowing constants**, such as `TOO_BIG: SINT := 300`, are reported as a warning, with the reason the index stored.
