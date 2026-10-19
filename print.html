@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-ce95f056.js";
+            window.path_to_searchindex_js = "searchindex-7758bad8.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-645c3480.js"></script>
@@ -6420,7 +6420,7 @@ END_FUNCTION
     style post_index fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
 </pre>
 
-<p>The participant acts during parsing and at <code>post_index</code>. Parsing routes <code>.cfc</code>, <code>.fbd</code>, and <code>.xml</code> files to the CFC parser. It reads the XML and parses the text declaration, then returns a compilation unit with an empty body. This lets the index register the POU and its parameters before the network is converted.</p>
+<p>The participant acts during parsing and at <code>post_index</code>. Parsing routes <code>.cfc</code>, <code>.fbd</code>, and <code>.xml</code> files to the CFC parser. It reads the XML and parses the text declaration, then returns a compilation unit with an empty body. This lets the index register the POU and its parameters before the network is converted. The locations in the declaration are offsets into the declaration text, not into the XML file. The CFC parser registers this text with the diagnostician, so diagnostics show its lines. The driver also registers it with the global context, so names in validation messages are read from it.</p>
 <p>To build the body, the participant needs the index. A block’s callee kind and output parameters determine which call and temporary variables it requires.</p>
 <p>At <code>post_index</code> the participant transpiles every CFC document against the index, replaces the unit of the parse step with the full one, and indexes the project again, so that the bodies and their temporaries are known. Then it runs the inference rounds for generic temporaries described below. Its diagnostics are collected after annotation, like those of the other participants. A project without CFC sources passes through the hook unchanged.</p>
 <h2 id="transformation"><a class="header" href="#transformation">Transformation</a></h2>
