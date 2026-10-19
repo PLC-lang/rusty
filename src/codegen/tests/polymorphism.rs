@@ -404,7 +404,7 @@ fn method_call_within_method() {
 }
 
 #[test]
-fn this_is_untouched() {
+fn this_method_calls_go_through_vtable() {
     let result = codegen(
         r#"
         FUNCTION_BLOCK A
@@ -418,14 +418,14 @@ fn this_is_untouched() {
             END_METHOD
         END_FUNCTION_BLOCK
 
-        // Only bar overridden, THIS should still point to A.foo
+        // Only bar overridden, THIS^.foo dispatches through the vtable of the instance
         FUNCTION_BLOCK B EXTENDS A
             METHOD bar
                 THIS^.foo(5);
             END_METHOD
         END_FUNCTION_BLOCK
 
-        // Both foo and bar overridden, THIS should point to B.{foo,bar}
+        // Both foo and bar overridden, THIS^.{foo,bar} dispatch through the vtable of the instance
         FUNCTION_BLOCK C EXTENDS A
             METHOD foo: INT
                 VAR_INPUT
@@ -504,7 +504,12 @@ fn this_is_untouched() {
       %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align [filtered]
       %__A1 = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
-      %call = call i16 @A__foo(ptr %__A1, i32 5)
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A1, i32 0, i32 0
+      %deref2 = load ptr, ptr %__vtable, align [filtered]
+      %foo = getelementptr inbounds nuw %__vtable_B, ptr %deref2, i32 0, i32 1
+      %1 = load ptr, ptr %foo, align [filtered]
+      %deref3 = load ptr, ptr %this, align [filtered]
+      %fnptr_call = call i16 %1(ptr %deref3, i32 5)
       ret void
     }
 
@@ -526,7 +531,13 @@ fn this_is_untouched() {
       store i32 %1, ptr %in, align [filtered]
       store i16 0, ptr %C.foo, align [filtered]
       %deref = load ptr, ptr %this, align [filtered]
-      call void @C__bar(ptr %deref)
+      %__A1 = getelementptr inbounds nuw %C, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A1, i32 0, i32 0
+      %deref2 = load ptr, ptr %__vtable, align [filtered]
+      %bar = getelementptr inbounds nuw %__vtable_C, ptr %deref2, i32 0, i32 2
+      %2 = load ptr, ptr %bar, align [filtered]
+      %deref3 = load ptr, ptr %this, align [filtered]
+      call void %2(ptr %deref3)
       %C__foo_ret = load i16, ptr %C.foo, align [filtered]
       ret i16 %C__foo_ret
     }
@@ -537,7 +548,13 @@ fn this_is_untouched() {
       store ptr %0, ptr %this, align [filtered]
       %__A = getelementptr inbounds nuw %C, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align [filtered]
-      %call = call i16 @C__foo(ptr %deref, i32 5)
+      %__A1 = getelementptr inbounds nuw %C, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A1, i32 0, i32 0
+      %deref2 = load ptr, ptr %__vtable, align [filtered]
+      %foo = getelementptr inbounds nuw %__vtable_C, ptr %deref2, i32 0, i32 1
+      %1 = load ptr, ptr %foo, align [filtered]
+      %deref3 = load ptr, ptr %this, align [filtered]
+      %fnptr_call = call i16 %1(ptr %deref3, i32 5)
       ret void
     }
 
