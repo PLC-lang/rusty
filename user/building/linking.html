@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-fc5f7116.js";
+            window.path_to_searchindex_js = "../../searchindex-736504da.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -204,6 +204,7 @@ plc main.st -o app --linker=clang     # macOS, Windows
 <pre><code class="language-bash">plc main.st -i "output/include/*.st" -L output/lib -l iec61131std -o app --linker=cc
 </code></pre>
 <p>Some language features call it as well, for example <code>**</code>, the comparison of text, and arithmetic on the date and time types, so link it whenever you are not sure.</p>
+<p>A remainder on <code>REAL</code> and <code>LREAL</code>, <code>MOD</code>, calls <code>fmod</code> from the C math library instead. On Linux the compiler links that library, <code>libm</code>, by itself when the linker is a driver, <code>cc</code> or <code>clang</code>, and the output depends on it only when it uses it. A bare linker gets no C libraries, so add <code>-l m</code> and its <code>-L</code> directory yourself when your code uses such a remainder. <code>--nolibc</code> leaves it out together with the other default libraries.</p>
 <h2 id="missing-symbols"><a class="header" href="#missing-symbols">Missing symbols</a></h2>
 <p>A shared object is linked with <code>--no-undefined</code>, so a symbol that nothing defines fails the build instead of failing later, when someone loads the library. The linker names the symbol:</p>
 <pre><code>ld.lld: error: undefined symbol: host_log
