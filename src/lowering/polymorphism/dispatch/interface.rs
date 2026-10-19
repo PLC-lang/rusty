@@ -825,7 +825,8 @@ mod helper {
 
     /// Builds the `__FATPOINTER` struct type declaration used to represent interface references
     /// at runtime. The struct contains two `POINTER TO __VOID` fields: `data` (the concrete
-    /// instance address) and `table` (the itable address).
+    /// instance address) and `table` (the itable address). Every compilation that uses interfaces
+    /// declares this type, so it is built-in: no object defines a constructor for it.
     pub fn create_fat_pointer_struct() -> UserTypeDeclaration {
         let location = SourceLocation::internal();
         UserTypeDeclaration {
@@ -839,7 +840,7 @@ mod helper {
             initializer: None,
             location,
             scope: None,
-            linkage: LinkageType::Internal,
+            linkage: LinkageType::BuiltIn,
         }
     }
 }
@@ -966,66 +967,6 @@ mod tests {
                                     name: "self",
                                     data_type: DataTypeReference {
                                         referenced_type: "__itable_IA",
-                                    },
-                                },
-                            ],
-                            variable_block_type: InOut,
-                        },
-                    ],
-                    pou_type: Init,
-                    return_type: None,
-                    interfaces: [],
-                    properties: [],
-                },
-                POU {
-                    name: "__FATPOINTER__ctor",
-                    variable_blocks: [
-                        VariableBlock {
-                            variables: [
-                                Variable {
-                                    name: "self",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "__FATPOINTER",
-                                    },
-                                },
-                            ],
-                            variable_block_type: InOut,
-                        },
-                    ],
-                    pou_type: Init,
-                    return_type: None,
-                    interfaces: [],
-                    properties: [],
-                },
-                POU {
-                    name: "____FATPOINTER_data__ctor",
-                    variable_blocks: [
-                        VariableBlock {
-                            variables: [
-                                Variable {
-                                    name: "self",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "____FATPOINTER_data",
-                                    },
-                                },
-                            ],
-                            variable_block_type: InOut,
-                        },
-                    ],
-                    pou_type: Init,
-                    return_type: None,
-                    interfaces: [],
-                    properties: [],
-                },
-                POU {
-                    name: "____FATPOINTER_table__ctor",
-                    variable_blocks: [
-                        VariableBlock {
-                            variables: [
-                                Variable {
-                                    name: "self",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "____FATPOINTER_table",
                                     },
                                 },
                             ],
@@ -1371,7 +1312,6 @@ mod tests {
             [
                 "// Statements in main",
                 "FbA__ctor(instance)",
-                "__FATPOINTER__ctor(reference)",
                 "reference.data := ADR(instance)",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1442,7 +1382,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "Container__ctor(fb)",
                 "reference.data := ADR(fb.instance)",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
@@ -1544,7 +1483,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__main_instances__ctor(instances)",
                 "reference.data := ADR(instances[1])",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
@@ -1646,7 +1584,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__main_pointerToInstance__ctor(pointerToInstance)",
                 "reference.data := ADR(pointerToInstance^)",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
@@ -1678,7 +1615,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "alloca __producer0: FbA;",
                 "producer(__producer0);",
                 "reference.data := ADR(__producer0);",
@@ -1714,7 +1650,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "Factory__ctor(fb)",
                 "alloca __producer0: FbA;",
                 "fb.producer(__producer0);",
@@ -2311,7 +2246,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "consumer(reference)",
                 "consumer(in1 := reference)",
             ]
@@ -2606,8 +2540,6 @@ mod tests {
             [
                 "// Statements in main",
                 "FbA__ctor(instance)",
-                "__FATPOINTER__ctor(refOut)",
-                "__FATPOINTER__ctor(refInout)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -2653,7 +2585,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).foo^(reference.data^)",
             ]
             "#);
@@ -2690,7 +2621,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).foo^(reference.data^, 42)",
             ]
             "#);
@@ -2729,7 +2659,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).foo^(reference.data^, 42, TRUE)",
             ]
             "#);
@@ -2761,7 +2690,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "result := __itable_IA#(reference.table^).foo^(reference.data^)",
             ]
             "#);
@@ -2793,7 +2721,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "result := __itable_IA#(reference.table^).foo^(reference.data^) + 1",
             ]
             "#);
@@ -2936,7 +2863,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).foo^(reference.data^)",
                 "__itable_IA#(reference.table^).bar^(reference.data^)",
             ]
@@ -2975,7 +2901,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).foo^(reference.data^, 42)",
                 "__itable_IA#(reference.table^).foo^(reference.data^, x := 42)",
             ]
@@ -3015,7 +2940,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
@@ -3065,8 +2989,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(a)",
-                "__FATPOINTER__ctor(b)",
                 "__itable_IA#(a.table^).bar^(a.data^, __itable_IA#(b.table^).foo^(b.data^))",
             ]
             "#);
@@ -3109,8 +3031,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(refA)",
-                "__FATPOINTER__ctor(refB)",
                 "__itable_IA#(refA.table^).foo^(refA.data^)",
                 "__itable_IB#(refB.table^).bar^(refB.data^)",
             ]
@@ -3143,7 +3063,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "result := __itable_IA#(reference.table^).produce^(reference.data^)",
             ]
             "#);
@@ -3182,9 +3101,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(a)",
-                "__FATPOINTER__ctor(b)",
-                "__FATPOINTER__ctor(c)",
                 "__itable_IA#(a.table^).foo^(a.data^, __itable_IA#(b.table^).foo^(b.data^, __itable_IA#(c.table^).foo^(c.data^, 42)))",
             ]
             "#);
@@ -3234,8 +3150,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(a)",
-                "__FATPOINTER__ctor(b)",
                 "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
@@ -3326,7 +3240,6 @@ mod tests {
             // Statements in main
             FbAlpha__ctor(alpha)
             FbBravo__ctor(bravo)
-            __FATPOINTER__ctor(reference)
             IF selector = 1 THEN
                 reference.data := ADR(alpha)
                 reference.table := ADR(__itable_IA_FbAlpha_instance)
@@ -3375,7 +3288,6 @@ mod tests {
             FbAlpha__ctor(alpha)
             FbBravo__ctor(bravo)
             FbCharlie__ctor(charlie)
-            __FATPOINTER__ctor(reference)
             CASE selector OF
                 1:
                     reference.data := ADR(alpha)
@@ -3500,8 +3412,6 @@ mod tests {
 
             insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
             // Statements in main
-            __FATPOINTER__ctor(refA)
-            __FATPOINTER__ctor(refB)
             refB := refA
             ");
         }
@@ -3628,8 +3538,6 @@ mod tests {
                 insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
                 [
                     "// Statements in main",
-                    "__FATPOINTER__ctor(refA)",
-                    "__FATPOINTER__ctor(refB)",
                     "refA.data := refB.data",
                     "refA.table := __itable_IB#(refB.table^).__upcast_IA",
                 ]
@@ -3672,8 +3580,6 @@ mod tests {
                 insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
                 [
                     "// Statements in main",
-                    "__FATPOINTER__ctor(refA)",
-                    "__FATPOINTER__ctor(refC)",
                     "refA.data := refC.data",
                     "refA.table := __itable_IC#(refC.table^).__upcast_IA",
                 ]
@@ -3705,8 +3611,6 @@ mod tests {
                 insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
                 [
                     "// Statements in main",
-                    "__FATPOINTER__ctor(refA1)",
-                    "__FATPOINTER__ctor(refA2)",
                     "refA1 := refA2",
                 ]
                 "#);
@@ -3750,7 +3654,6 @@ mod tests {
                 insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
                 [
                     "// Statements in main",
-                    "__FATPOINTER__ctor(refB)",
                     "alloca __fatpointer_0: __FATPOINTER",
                     "__fatpointer_0.data := refB.data",
                     "__fatpointer_0.table := __itable_IB#(refB.table^).__upcast_IA",
@@ -3794,7 +3697,6 @@ mod tests {
                 insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
                 [
                     "// Statements in main",
-                    "__FATPOINTER__ctor(refB)",
                     "alloca __fatpointer_0: __FATPOINTER",
                     "__fatpointer_0.data := refB.data",
                     "__fatpointer_0.table := __itable_IB#(refB.table^).__upcast_IA",
@@ -3834,7 +3736,6 @@ mod tests {
                 insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
                 [
                     "// Statements in main",
-                    "__FATPOINTER__ctor(refA)",
                     "consumer(refA)",
                     "consumer(in1 := refA)",
                 ]
@@ -3869,7 +3770,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).__get_foo^(reference.data^)",
             ]
             "#);
@@ -3902,7 +3802,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).__set_foo^(reference.data^, 5)",
             ]
             "#);
@@ -3933,7 +3832,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "result := __itable_IA#(reference.table^).__get_foo^(reference.data^)",
             ]
             "#);
@@ -3964,7 +3862,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "result := __itable_IA#(reference.table^).__get_foo^(reference.data^) + 1",
             ]
             "#);
@@ -3997,7 +3894,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).__set_foo^(reference.data^, __itable_IA#(reference.table^).__get_foo^(reference.data^))",
             ]
             "#);
@@ -4035,7 +3931,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "consumer(__itable_IA#(reference.table^).__get_foo^(reference.data^))",
             ]
             "#);
@@ -4074,7 +3969,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).bar^(reference.data^)",
                 "result := __itable_IA#(reference.table^).__get_foo^(reference.data^)",
             ]
@@ -4182,7 +4076,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "FbA__ctor(instance)",
                 "reference.data := ADR(instance)",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
@@ -4225,7 +4118,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "FbA__ctor(instanceA)",
                 "FbB__ctor(instanceB)",
                 "reference.data := ADR(instanceA)",
@@ -4273,7 +4165,6 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__FATPOINTER__ctor(reference)",
                 "__itable_IA#(reference.table^).bar^(reference.data^, __itable_IA#(reference.table^).__get_foo^(reference.data^))",
             ]
             "#);

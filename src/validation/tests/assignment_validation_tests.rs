@@ -1409,17 +1409,17 @@ fn ref_assignment_with_global_local_variables_and_aliased_types() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E099]: REFERENCE TO variables can not reference other variables
+    error[E099]: `REFERENCE TO` expects a type, but `fooLocal` is a variable
        ┌─ <internal>:17:28
        │
     17 │                 invalidA : REFERENCE TO fooLocal;
-       │                            ^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
+       │                            ^^^^^^^^^^^^^^^^^^^^^ `REFERENCE TO` expects a type, but `fooLocal` is a variable
 
-    error[E099]: REFERENCE TO variables can not reference other variables
+    error[E099]: `REFERENCE TO` expects a type, but `fooGlobal` is a variable
        ┌─ <internal>:18:28
        │
     18 │                 invalidB : REFERENCE TO fooGlobal;
-       │                            ^^^^^^^^^^^^^^^^^^^^^^ REFERENCE TO variables can not reference other variables
+       │                            ^^^^^^^^^^^^^^^^^^^^^^ `REFERENCE TO` expects a type, but `fooGlobal` is a variable
 
     error[E052]: Unknown type: AliasedDINT
        ┌─ <internal>:11:64
@@ -1451,6 +1451,32 @@ fn ref_assignment_with_global_local_variables_and_aliased_types() {
     29 │             referenceToFooFirstOfHisName  REF= stringLocal;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
     ");
+}
+
+#[test]
+fn reference_to_type_sharing_its_name_with_a_variable_is_valid() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        VAR_GLOBAL
+            myStruct : DINT;
+        END_VAR
+
+        TYPE MyStruct : STRUCT a : DINT; END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK FB
+        END_FUNCTION_BLOCK
+
+        PROGRAM mainProg
+            VAR
+                fb          : FB;
+                refFb       : REFERENCE TO FB;
+                refStruct   : REFERENCE TO MyStruct;
+            END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
 }
 
 #[test]

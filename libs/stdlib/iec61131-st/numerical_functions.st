@@ -1,15 +1,3 @@
-(**************************
- *
- *This operator returns the absolute value of a number.
- *
-*************************)
-FUNCTION ABS<T : ANY_NUM> : T
-VAR_INPUT
-    IN : T;
-END_VAR
-
-END_FUNCTION
-
 (* Specialized implementation of ABS for DINT *)
 /* FUNCTION ABS__DINT : DINT */
 FUNCTION ABS__DINT : DINT

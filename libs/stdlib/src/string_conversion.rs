@@ -135,18 +135,18 @@ mod test {
         assert_eq!(dest8[..2], [b'x', 0]);
 
         let mut dest16 = [0xAAAA_u16; 81];
-        unsafe { WCHAR_TO_WSTRING(dest16.as_mut_ptr(), u16::from('x' as u8)) };
+        unsafe { WCHAR_TO_WSTRING(dest16.as_mut_ptr(), u16::from(b'x')) };
         assert_eq!(dest16[..2], ['x' as u16, 0]);
 
         dest16.fill(0xAAAA);
-        unsafe { STRING_TO_WSTRING_EXT("ab\0".as_ptr(), dest16.as_mut_ptr()) };
+        unsafe { STRING_TO_WSTRING_EXT(c"ab".as_ptr().cast(), dest16.as_mut_ptr()) };
         assert_eq!(dest16[..3], ['a' as u16, 'b' as u16, 0]);
     }
 
     #[test]
     fn string_to_wstring_replaces_invalid_bytes() {
         let mut dest = [0xAAAA_u16; 81];
-        unsafe { STRING_TO_WSTRING_EXT(b"a\xFFb\0".as_ptr(), dest.as_mut_ptr()) };
+        unsafe { STRING_TO_WSTRING_EXT(c"a\xFFb".as_ptr().cast(), dest.as_mut_ptr()) };
 
         // converting 'a<0xFF>b' must yield "a<U+FFFD>b": the invalid byte becomes U+FFFD
         assert_eq!(dest[..4], [0x61, 0xFFFD, 0x62, 0]);

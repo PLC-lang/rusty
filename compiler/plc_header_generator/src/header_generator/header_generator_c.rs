@@ -856,12 +856,11 @@ impl GeneratedHeaderForC {
         // We generally want to skip the declaration of user types that are only internally relevant
         if let Some(data_type_name) = user_type.data_type.get_name() {
             if data_type_is_system_generated(data_type_name) {
-                if let Some(field_name) = field_name_override {
+                {
+                    let field_name = field_name_override?;
                     if data_type_is_system_generated(field_name) {
                         return None;
                     }
-                } else {
-                    return None;
                 }
             }
         }

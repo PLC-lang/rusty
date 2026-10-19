@@ -416,7 +416,6 @@ fn ids_are_assigned_to_repeat_statements() {
                     body,
                     ..
                 })),
-            id: _,
             ..
         } => {
             assert!(ids.insert(body[0].get_id()));
@@ -454,7 +453,6 @@ fn ids_are_assigned_to_case_statements() {
                     selector,
                     ..
                 })),
-            id: _,
             ..
         } => {
             //1st case block

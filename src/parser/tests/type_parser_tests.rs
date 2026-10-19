@@ -35,11 +35,11 @@ fn simple_struct_type_can_be_parsed() {
         "#,
     );
 
-    let ast_string = format!("{:#?}", &result.user_types[0]);
+    let ast_string = format!("{:#?}", result.user_types[0]);
 
     let expected_ast = format!(
         "{:#?}",
-        &UserTypeDeclaration {
+        UserTypeDeclaration {
             data_type: DataType::StructType {
                 name: Some("SampleStruct".to_string(),),
                 variables: vec!(
@@ -214,7 +214,7 @@ fn array_type_can_be_parsed_test() {
             "#,
     );
 
-    let ast_string = format!("{:#?}", &result.user_types[0]);
+    let ast_string = format!("{:#?}", result.user_types[0]);
     assert_snapshot!(ast_string);
 }
 

@@ -10,7 +10,7 @@ use crate::get_test_file;
 fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     let path = get_test_file(name);
     let mut out = env::temp_dir();
-    let out_name = format!("{}.out", &name);
+    let out_name = format!("{}.out", name);
     out.push(out_name);
     let out = out.into_os_string().into_string().unwrap();
     let mut main_args = vec!["plc", &path, "-o", &out, "-Odefault", "--target", "x86_64-linux-pc"];
