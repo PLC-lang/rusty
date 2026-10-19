@@ -46,6 +46,8 @@ plc main.st -i "output/include/*.st" -L output/lib -l iec61131std -o app --linke
 
 Some language features call it as well, for example `**`, the comparison of text, and arithmetic on the date and time types, so link it whenever you are not sure.
 
+A remainder on `REAL` and `LREAL`, `MOD`, calls `fmod` from the C math library instead. On Linux the compiler links that library, `libm`, by itself when the linker is a driver, `cc` or `clang`, and the output depends on it only when it uses it. A bare linker gets no C libraries, so add `-l m` and its `-L` directory yourself when your code uses such a remainder. `--nolibc` leaves it out together with the other default libraries.
+
 
 ## Missing symbols
 

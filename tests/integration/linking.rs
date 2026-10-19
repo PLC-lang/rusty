@@ -343,3 +343,68 @@ fn executable_link_does_not_reject_undefined_symbols() {
         "did not expect --no-undefined for executable link in {args:?}"
     );
 }
+
+/// Returns true if the arguments link libm only when the output uses it.
+fn links_libm_as_needed(args: &[String]) -> bool {
+    args.windows(4).any(|it| it == ["--push-state", "--as-needed", "-lm", "--pop-state"])
+}
+
+#[test]
+fn linux_shared_object_and_executable_link_libm_as_needed() {
+    let file = get_test_file("linking/lib.o");
+    let out = env::temp_dir().join("libm_linux.so").to_string_lossy().into_owned();
+    for format in ["--shared", "--pic"] {
+        let args =
+            captured_linker_args(&["plc", file.as_str(), format, "--target", TARGET.unwrap(), "-o", &out]);
+        assert!(links_libm_as_needed(&args), "expected libm as needed for {format} in {args:?}");
+    }
+
+    let out = env::temp_dir().join("libm_linux.out").to_string_lossy().into_owned();
+    let args = captured_linker_args(&["plc", file.as_str(), "--target", TARGET.unwrap(), "-o", &out]);
+    assert!(links_libm_as_needed(&args), "expected libm as needed for an executable in {args:?}");
+}
+
+#[test]
+fn libm_is_not_linked_without_default_libraries_or_for_a_relocatable_object() {
+    let file = get_test_file("linking/lib.o");
+    let out = env::temp_dir().join("libm_nolibc.so").to_string_lossy().into_owned();
+    let args = captured_linker_args(&[
+        "plc",
+        file.as_str(),
+        "--shared",
+        "--nolibc",
+        "--target",
+        TARGET.unwrap(),
+        "-o",
+        &out,
+    ]);
+    assert!(!args.contains(&"-lm".to_string()), "did not expect libm with --nolibc in {args:?}");
+
+    let out = env::temp_dir().join("libm_relocatable.o").to_string_lossy().into_owned();
+    let args = captured_linker_args(&[
+        "plc",
+        file.as_str(),
+        "--relocatable",
+        "--target",
+        TARGET.unwrap(),
+        "-o",
+        &out,
+    ]);
+    assert!(!args.contains(&"-lm".to_string()), "did not expect libm for a relocatable object in {args:?}");
+}
+
+#[test]
+fn libm_is_not_linked_for_a_target_other_than_linux() {
+    let file = get_test_file("linking/lib.o");
+    let out = env::temp_dir().join("libm_windows.dll").to_string_lossy().into_owned();
+    let args = captured_linker_args(&[
+        "plc",
+        file.as_str(),
+        "--shared",
+        "--target",
+        "x86_64-pc-windows-gnu",
+        "-o",
+        &out,
+    ]);
+    assert!(!args.contains(&"-lm".to_string()), "did not expect libm for a Windows target in {args:?}");
+}

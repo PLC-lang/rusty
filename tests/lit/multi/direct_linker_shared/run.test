@@ -1,0 +1,7 @@
+// REQUIRES: system-linux
+
+// A direct linker gets no C libraries and has no search path for them, so `ld.lld` gets no `-lm`.
+// A shared object that uses no C library links with it and depends on no library.
+
+RUN: %PLC --shared --linker=ld.lld %S/add_one.st -o %t.so
+RUN: readelf --dynamic %t.so | not grep NEEDED
