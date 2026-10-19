@@ -1118,7 +1118,6 @@ impl GeneratedProject {
                 );
                 let is_linux = target_triple.as_str().to_string_lossy().contains("linux");
                 if is_final_link && is_linux && !link_options.no_libc {
-                    log::debug!("Linking libm as needed");
                     linker.add_math_library();
                 }
 

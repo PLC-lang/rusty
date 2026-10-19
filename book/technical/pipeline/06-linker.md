@@ -64,7 +64,7 @@ A direct linker receives `--linker-arg` values unchanged. A compiler driver rece
 
 ## The command line
 
-The command starts with the driver and the arguments it needs itself, then the supplied and generated objects, then the `-L` paths and the `-l` libraries. For a Linux target, `libm` follows the libraries inside `--as-needed`: codegen lowers a remainder on `REAL` and `LREAL` to `fmod` and `fmodf`, which a driver does not link, and the artifact records the dependency only when it calls them. `--nolibc` and `--relocatable` leave it out. The sysroot and implicit search paths follow, then linker options, mode, and output path. For the two-file example with a library:
+The command starts with the driver and the arguments it needs itself, then the supplied and generated objects, then the `-L` paths and the `-l` libraries. For a Linux target, `libm` follows the libraries inside `--as-needed`: codegen lowers a remainder on `REAL` and `LREAL` to `fmod` and `fmodf`, which a driver does not link, and the artifact records the dependency only when it calls them. `--nolibc` and `--relocatable` leave it out, and so does a direct linker: only a driver that passed the target probe is known to find the target's C libraries. The sysroot and implicit search paths follow, then linker options, mode, and output path. For the two-file example with a library:
 
 ```
 cc -fuse-ld=lld build/scale.st-1ae933b05dc18c2b.o build/main.st-13f45988f71756e9.o -L/opt/plc/lib -liec61131std -Xlinker --push-state -Xlinker --as-needed -lm -Xlinker --pop-state -L. -Lbuild -o out
