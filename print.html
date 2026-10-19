@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-68495fc5.js";
+            window.path_to_searchindex_js = "searchindex-ce95f056.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-645c3480.js"></script>
@@ -6932,6 +6932,7 @@ refInstanceA^.foo(); // Calls FbB.foo, the closest ancestor that overrides foo
  END_METHOD
 </code></pre>
 <p>A call written as <code>THIS^.bar()</code> is lowered the same way, because <code>THIS^</code> is the actual instance, which can be a child POU. Calls written as <code>SUPER^.bar()</code> are left untouched, and so is a call on a plain instance variable, <code>instanceA.bar()</code>. In both cases the type of the instance is exact, so the call is statically dispatched. Calls within the methods of a program are also left untouched: a program has no vtable and cannot be extended, so each call has exactly one target.</p>
+<p>Only a call without a base, or through <code>THIS^</code>, uses the vtable of the enclosing POU. A call through a pointer inside a method or body still names the declared type of the pointer, as described above.</p>
 <p>One question remains about <code>__vtable_FbA#(refInstanceA^.__vtable^).foo^(FbA#(refInstanceA^))</code>: why is it safe to cast one vtable to another? The vtable layouts give the answer:</p>
 <pre><code>┌─VTable FbA─┐   ┌─VTable FbB─┐   ┌─VTable FbC─┐
 ├────────────┤   ├────────────┤   ├────────────┤
