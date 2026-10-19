@@ -322,7 +322,7 @@ fn literal_date_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let ast_string = format!("{:#?}", result.implementations[0].statements);
     let expected_ast = r#"[
     LiteralDate {
         year: 1984,
@@ -346,7 +346,7 @@ fn literal_long_date_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let ast_string = format!("{:#?}", result.implementations[0].statements);
     let expected_ast = r#"[
     LiteralDate {
         year: 1984,
@@ -373,7 +373,7 @@ fn literal_time_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let ast_string = format!("{:#?}", result.implementations[0].statements);
     let expected_ast = r#"[
     LiteralTime {
         nanos: 1036800000000000,
@@ -424,7 +424,7 @@ fn literal_long_time_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let ast_string = format!("{:#?}", result.implementations[0].statements);
     let expected_ast = r#"[
     LiteralTime {
         nanos: 1036800000000000,
@@ -452,7 +452,7 @@ fn literal_time_of_day_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let ast_string = format!("{:#?}", result.implementations[0].statements);
     let expected_ast = r#"[
     LiteralTimeOfDay {
         hour: 12,
@@ -510,7 +510,7 @@ fn literal_long_time_of_day_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let ast_string = format!("{:#?}", result.implementations[0].statements);
     let expected_ast = r#"[
     LiteralTimeOfDay {
         hour: 12,
@@ -545,7 +545,7 @@ fn literal_date_and_time_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let ast_string = format!("{:#?}", result.implementations[0].statements);
     let expected_ast = r#"[
     LiteralDateAndTime {
         year: 1984,
@@ -596,7 +596,7 @@ fn literal_long_date_and_time_test() {
         END_PROGRAM
         ";
     let result = parse(src).0;
-    let ast_string = format!("{:#?}", &result.implementations[0].statements);
+    let ast_string = format!("{:#?}", result.implementations[0].statements);
     let expected_ast = r#"[
     LiteralDateAndTime {
         year: 1984,

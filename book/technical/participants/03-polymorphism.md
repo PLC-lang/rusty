@@ -177,6 +177,8 @@ One more note: methods called from within other methods, or from a function bloc
 
 A call written as `THIS^.bar()` is lowered the same way, because `THIS^` is the actual instance, which can be a child POU. Calls written as `SUPER^.bar()` are left untouched, and so is a call on a plain instance variable, `instanceA.bar()`. In both cases the type of the instance is exact, so the call is statically dispatched. Calls within the methods of a program are also left untouched: a program has no vtable and cannot be extended, so each call has exactly one target.
 
+Only a call without a base, or through `THIS^`, uses the vtable of the enclosing POU. A call through a pointer inside a method or body still names the declared type of the pointer, as described above.
+
 One question remains about `__vtable_FbA#(refInstanceA^.__vtable^).foo^(FbA#(refInstanceA^))`: why is it safe to cast one vtable to another? The vtable layouts give the answer:
 
 ```

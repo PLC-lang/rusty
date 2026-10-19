@@ -364,7 +364,7 @@ fn array_type_initialization_with_literals_can_be_parsed_test() {
     );
 
     let initializer = &result.user_types[0].initializer;
-    let ast_string = format!("{:#?}", &initializer);
+    let ast_string = format!("{:#?}", initializer);
 
     let expected_ast = r#"Some(
     LiteralArray {
@@ -413,7 +413,7 @@ fn date_and_time_constants_can_be_parsed() {
     let (result, _) = parse(src);
 
     let vars = &result.global_vars[0].variables;
-    let ast_string = format!("{:#?}", &vars);
+    let ast_string = format!("{:#?}", vars);
     let expected_ast = r#"[
     Variable {
         name: "cT",

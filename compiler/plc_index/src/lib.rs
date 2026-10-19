@@ -60,7 +60,7 @@ impl GlobalContext {
                 return Err(Diagnostic::new(format!(
                     "Cannot read file '{}': {}'",
                     container.get_location_str(),
-                    &why
+                    why
                 ))
                 .with_error_code("E002"))
             }
