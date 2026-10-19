@@ -4,6 +4,8 @@
 // DINT initialized with `-c` on a USINT constant of 200 holds -200 and not a wrapped 56. A
 // member of a program is the case that used to abort codegen with a mismatched initializer.
 
+TYPE SRG : DINT(-2147483648..2147483647); END_TYPE
+
 VAR_GLOBAL CONSTANT
     c1 : USINT := 200;
     ci : INT := -32768;
@@ -23,6 +25,32 @@ VAR_GLOBAL CONSTANT
     cz : SINT := -c1;
     cud : UDINT := -cd;
     csn : SINT := NOT c1;
+    // a reference to an integer constant is read in the constant's type through any chain
+    cb : SINT := c1;
+    cc : DINT := cb;
+    cfrac : DINT := 1.5;
+    cnf : DINT := -cfrac;
+    // a body read of a constant uses its folded value and does not re-derive it from the source
+    // initializer, so a chain from an integer constant initialized with an out-of-range real reads
+    // the same value the static data holds
+    cmid : DINT := 3.0e9;
+    cmidl : LINT := cmid;
+    // the converted integer is generated as an integer, not through the real it came from, so a
+    // value that no REAL holds exactly is the same in the constant and in a copy of it; a subrange
+    // converts like its base type, and a real beyond any integer width wraps to zero
+    cexact : DINT := 123456789.0;
+    ccopy : DINT := cexact;
+    cmax : DINT := 2147483647.0;
+    csub : SRG := 3.0e9;
+    csubx : SRG := 123456789.0;
+    csubc : DINT := csubx;
+    chuge : LINT := 1.0e40;
+END_VAR
+
+VAR_GLOBAL
+    // an integer constant initialized with an out-of-range real holds the truncated value cut
+    // down to its type, and every read of it, static or in a body, sees that same value
+    gmid : LINT := cmid;
 END_VAR
 
 VAR_GLOBAL
@@ -46,6 +74,8 @@ FUNCTION main : DINT
     VAR
         l : DINT := -c1;
         n : DINT := -(c1 + 1);
+        lmid : LINT := cmid;
+        dmid : DINT;
     END_VAR
     prg();
     printf('%d %lld$N', g, gl);     // CHECK: -200 32768
@@ -53,4 +83,10 @@ FUNCTION main : DINT
     printf('%lld %.1f$N', gw, gr);  // CHECK: -2147483648 -16777216.0
     printf('%.1f %.1f %.1f %d$N', cf, cfr, cfi, cnot);  // CHECK: -200.0 -200.0 -5.0 -55
     printf('%.1f %lld %d %u %d$N', cfu, clu, cz, cud, csn);  // CHECK: 200.0 200 56 2147483648 55
+    printf('%d %d %d$N', cb, cc, cnf);  // CHECK: -56 -56 -1
+    printf('%lld$N', cmidl);  // CHECK: -1294967296
+    dmid := cmid;
+    printf('%d %lld %lld$N', dmid, lmid, gmid);  // CHECK: -1294967296 -1294967296 -1294967296
+    printf('%d %d %d %d %lld$N', cexact, ccopy, cmax, csub, chuge);  // CHECK: 123456789 123456789 2147483647 -1294967296 0
+    printf('%d %d$N', csubx, csubc);  // CHECK: 123456789 123456789
 END_FUNCTION

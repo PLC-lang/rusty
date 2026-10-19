@@ -262,9 +262,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         //see if this is a constant - maybe we can short curcuit this codegen
-        if let Some(StatementAnnotation::Variable {
-            qualified_name, constant: true, resulting_type, ..
-        }) = self.annotations.get(expression)
+        // The folded literal of a constant reference carries the id of that reference and with it
+        // this annotation; it is generated as the literal it is, not through the constant again.
+        if let (
+            Some(StatementAnnotation::Variable { qualified_name, constant: true, resulting_type, .. }),
+            AstStatement::ReferenceExpr(..),
+        ) = (self.annotations.get(expression), expression.get_stmt())
         {
             if !self.index.get_type_information_or_void(resulting_type).is_aggregate() {
                 match self.generate_constant_expression(qualified_name, resulting_type, expression) {
@@ -2411,11 +2414,21 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let type_hint = self.get_type_hint_for(stmt)?;
         let actual_type = self.annotations.get_type_or_void(stmt, self.index);
-        let literal_type_name = if is_same_type_class(
-            type_hint.get_type_information(),
-            actual_type.get_type_information(),
-            self.index,
-        ) {
+        // A literal whose kind matches the class of its hint is generated in the hint's type, even
+        // when its node is annotated otherwise: the constant evaluator converts a real initializer
+        // of an integer constant into an integer literal that keeps the id of the real.
+        let hint_intrinsic = self.index.get_intrinsic_type_information(type_hint.get_type_information());
+        let hint_matches_literal = match stmt.get_stmt() {
+            AstStatement::Literal(AstLiteral::Integer(_)) => hint_intrinsic.is_int(),
+            AstStatement::Literal(AstLiteral::Real(_)) => hint_intrinsic.is_float(),
+            _ => false,
+        };
+        let literal_type_name = if hint_matches_literal
+            || is_same_type_class(
+                type_hint.get_type_information(),
+                actual_type.get_type_information(),
+                self.index,
+            ) {
             type_hint.get_name()
         } else {
             actual_type.get_name()

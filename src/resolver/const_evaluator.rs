@@ -313,6 +313,19 @@ fn cast_if_necessary(statement: AstNode, target_type_name: &Option<&str>, index:
                 return AstNode::new_real(value.to_string(), id, location)
             }
 
+            // an integer target holds the integer the real is converted to at run time, truncated
+            // toward zero and cut down to the target's range, so that the static data and every
+            // read of the constant agree; a real that is not finite is kept as it is
+            AstLiteral::Real(value) => {
+                let intrinsic = index.get_intrinsic_type_information(dti);
+                if matches!(intrinsic, DataTypeInformation::Integer { .. }) && !intrinsic.is_bool() {
+                    if let Some(integer) = value.parse::<f64>().ok().and_then(real_to_integer) {
+                        let integer = wrap_to_type(integer, intrinsic);
+                        return AstFactory::create_literal(AstLiteral::Integer(integer), location, id);
+                    }
+                }
+            }
+
             AstLiteral::String(StringValue { value, is_wide: true }) if dti.is_string_utf8() => {
                 return AstNode::new_string(value, false, id, location)
             }
@@ -487,10 +500,17 @@ fn evaluate_with_target_hint(
         }
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
             if let Some(name) = reference.get_flat_reference_name() {
-                find_member_variable(base.as_deref(), name, scope, index)
+                let variable = find_member_variable(base.as_deref(), name, scope, index);
+                let resolved = variable
                     .map(|variable| resolve_const_reference(variable, name, index, target_type, scope, lhs))
                     .transpose()?
-                    .flatten()
+                    .flatten();
+                match (resolved, variable) {
+                    (Some(resolved), Some(variable)) => {
+                        read_integer_constant(resolved, variable, target_type, index, id, location)
+                    }
+                    (resolved, _) => resolved,
+                }
             } else {
                 None
             }
@@ -829,6 +849,52 @@ fn get_negation_type<'idx>(
         }
         _ => Some(operand_type),
     }
+}
+
+/// A reference to an integer constant is read in the constant's own type, as a load of the
+/// constant at run time is: the store holds the constant's initializer as it was folded, which can
+/// be a wider value, `b : SINT := a` with a USINT 200 holds 200, or a real for an integer constant
+/// initialized from one. The value is reduced to the constant's type, truncated toward zero for a
+/// real, then cut down to the target like the operand of a sign, and carried by the id and location
+/// of the reference, so that the target's hint applies to it. Any other constant is handed on as is.
+fn read_integer_constant(
+    resolved: AstNode,
+    variable: &VariableIndexEntry,
+    target_type: Option<&str>,
+    index: &Index,
+    id: AstId,
+    location: SourceLocation,
+) -> Option<AstNode> {
+    let own_type = index
+        .find_effective_type_info(variable.get_type_name())
+        .map(|it| index.get_intrinsic_type_information(it))
+        .filter(|it| matches!(it, DataTypeInformation::Integer { .. }) && !it.is_bool());
+    let Some(own_type) = own_type else {
+        return Some(resolved);
+    };
+    let value = match resolved.get_stmt() {
+        AstStatement::Literal(AstLiteral::Integer(v)) => *v,
+        AstStatement::Literal(AstLiteral::Real(v)) => match v.parse::<f64>().ok().and_then(real_to_integer) {
+            Some(v) => v,
+            None => return Some(resolved),
+        },
+        _ => return Some(resolved),
+    };
+    let value = cut_down_to_target(wrap_to_type(value, own_type), target_type, index);
+    Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(value)), id, location))
+}
+
+/// The integer a real is converted to: truncated toward zero. A real at or beyond 2^127 is a
+/// multiple of every integer width, so it counts as zero instead of saturating the cast. A real
+/// that is not finite has no integer.
+fn real_to_integer(real: f64) -> Option<i128> {
+    if !real.is_finite() {
+        return None;
+    }
+    if real.abs() >= 2f64.powi(127) {
+        return Some(0);
+    }
+    Some(real.trunc() as i128)
 }
 
 /// Reduces a folded integer to the range of an integer target type, as the conversion of the value

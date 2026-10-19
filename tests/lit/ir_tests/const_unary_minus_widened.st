@@ -12,6 +12,8 @@ VAR_GLOBAL CONSTANT
     ci : INT := -32768;
     cs : SINT := -128;
     cb : SINT := c1;
+    cc : DINT := cb;
+    cfrac : DINT := 1.5;
     cd : DINT := -2147483648;
     cr : REAL := 16777217.0;
     csrd : SRd := -2147483648;
@@ -37,6 +39,10 @@ VAR_GLOBAL
     gnneg : DINT := NOT (-cs);
     // the operand is read in its own type, so the SINT holding the raw 200 is -56
     gnarrow : DINT := -cb;
+    // a reference to an integer constant is read in the constant's type through any chain, and an
+    // integer constant initialized from a real holds the truncated integer
+    gchain : LINT := cc;
+    gfrac : DINT := -cfrac;
     gf : LREAL := -c1;
     // a constant built from an unsigned constant keeps its value in the static data too, and a
     // negation into a narrower target is cut down to that target
@@ -67,6 +73,8 @@ END_PROGRAM
 // CHECK: @gnn = global i8 -56
 // CHECK: @gnneg = global i32 -129
 // CHECK: @gnarrow = global i32 56
+// CHECK: @gchain = global i64 -56
+// CHECK: @gfrac = global i32 -1
 // CHECK: @gf = global double -2.000000e+02
 // CHECK: @gfu = global double 2.000000e+02
 // CHECK: @glu = global i64 200

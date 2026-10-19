@@ -360,6 +360,13 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
             notnarrow : DINT := NOT cb;
             plusneg : INT := +(-cs);
             plusreal : LREAL := +cr;
+            chain_c : DINT := cb;
+            chain_d : LINT := chain_c;
+            cfrac : DINT := 1.5;
+            negfrac : DINT := -cfrac;
+            plusfrac : DINT := +cfrac;
+            cmid : DINT := 3.0e9;
+            chuge : LINT := 1.0e40;
         END_VAR
         ",
     );
@@ -397,6 +404,19 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
     assert_eq!(plus.initializer.as_ref().unwrap().get_id(), folded.get_id());
     // a unary plus reads a REAL operand with REAL precision, as the negation does
     debug_assert_eq!(&create_real_literal(16777216.0), find_constant_value(&index, "plusreal").unwrap());
+    // a reference to an integer constant is read in the constant's type through any chain, and an
+    // integer constant initialized from a real holds the truncated integer
+    debug_assert_eq!(&create_int_literal(-56), find_constant_value(&index, "cb").unwrap());
+    debug_assert_eq!(&create_int_literal(-56), find_constant_value(&index, "chain_c").unwrap());
+    debug_assert_eq!(&create_int_literal(-56), find_constant_value(&index, "chain_d").unwrap());
+    debug_assert_eq!(&create_int_literal(-1), find_constant_value(&index, "negfrac").unwrap());
+    debug_assert_eq!(&create_int_literal(1), find_constant_value(&index, "plusfrac").unwrap());
+    // an integer constant initialized from a real holds the integer, truncated and cut down to
+    // its type, so that every read of the constant sees the same value
+    debug_assert_eq!(&create_int_literal(1), find_constant_value(&index, "cfrac").unwrap());
+    debug_assert_eq!(&create_int_literal(-1294967296), find_constant_value(&index, "cmid").unwrap());
+    // a real beyond any integer width is a multiple of every width, so it wraps to zero
+    debug_assert_eq!(&create_int_literal(0), find_constant_value(&index, "chuge").unwrap());
 }
 
 #[test]
