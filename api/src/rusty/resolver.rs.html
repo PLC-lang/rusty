@@ -2526,7 +2526,7 @@
 <a href=#2526 id=2526 data-nosnippet>2526</a>                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(base_type) = base.and_then(|base| <span class="self">self</span>.annotation_map.get_type(base, <span class="self">self</span>.index))
 <a href=#2527 id=2527 data-nosnippet>2527</a>                {
 <a href=#2528 id=2528 data-nosnippet>2528</a>                    <span class="comment">// if base is an enum, we need to look for members of this specific enum
-<a href=#2529 id=2529 data-nosnippet>2529</a>                    </span><span class="kw">let </span>optional_enum_qualifier = <span class="prelude-val">Some</span>(qualifier.as_str()).filter(|<span class="kw">_</span>| base_type.is_enum());
+<a href=#2529 id=2529 data-nosnippet>2529</a>                    </span><span class="kw">let </span>optional_enum_qualifier = base_type.is_enum().then_some(qualifier.as_str());
 <a href=#2530 id=2530 data-nosnippet>2530</a>                    <span class="kw">if </span>ctx.is_in_a_body() {
 <a href=#2531 id=2531 data-nosnippet>2531</a>                        accept_cast_string_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>.string_literals, base_type, target);
 <a href=#2532 id=2532 data-nosnippet>2532</a>                    }

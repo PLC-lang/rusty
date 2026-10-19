@@ -135,18 +135,18 @@
 <a href=#135 id=135 data-nosnippet>135</a>        <span class="macro">assert_eq!</span>(dest8[..<span class="number">2</span>], [<span class="string">b'x'</span>, <span class="number">0</span>]);
 <a href=#136 id=136 data-nosnippet>136</a>
 <a href=#137 id=137 data-nosnippet>137</a>        <span class="kw">let </span><span class="kw-2">mut </span>dest16 = [<span class="number">0xAAAA_u16</span>; <span class="number">81</span>];
-<a href=#138 id=138 data-nosnippet>138</a>        <span class="kw">unsafe </span>{ WCHAR_TO_WSTRING(dest16.as_mut_ptr(), u16::from(<span class="string">'x' </span><span class="kw">as </span>u8)) };
+<a href=#138 id=138 data-nosnippet>138</a>        <span class="kw">unsafe </span>{ WCHAR_TO_WSTRING(dest16.as_mut_ptr(), u16::from(<span class="string">b'x'</span>)) };
 <a href=#139 id=139 data-nosnippet>139</a>        <span class="macro">assert_eq!</span>(dest16[..<span class="number">2</span>], [<span class="string">'x' </span><span class="kw">as </span>u16, <span class="number">0</span>]);
 <a href=#140 id=140 data-nosnippet>140</a>
 <a href=#141 id=141 data-nosnippet>141</a>        dest16.fill(<span class="number">0xAAAA</span>);
-<a href=#142 id=142 data-nosnippet>142</a>        <span class="kw">unsafe </span>{ STRING_TO_WSTRING_EXT(<span class="string">"ab\0"</span>.as_ptr(), dest16.as_mut_ptr()) };
+<a href=#142 id=142 data-nosnippet>142</a>        <span class="kw">unsafe </span>{ STRING_TO_WSTRING_EXT(<span class="string">c"ab"</span>.as_ptr().cast(), dest16.as_mut_ptr()) };
 <a href=#143 id=143 data-nosnippet>143</a>        <span class="macro">assert_eq!</span>(dest16[..<span class="number">3</span>], [<span class="string">'a' </span><span class="kw">as </span>u16, <span class="string">'b' </span><span class="kw">as </span>u16, <span class="number">0</span>]);
 <a href=#144 id=144 data-nosnippet>144</a>    }
 <a href=#145 id=145 data-nosnippet>145</a>
 <a href=#146 id=146 data-nosnippet>146</a>    <span class="attr">#[test]
 <a href=#147 id=147 data-nosnippet>147</a>    </span><span class="kw">fn </span>string_to_wstring_replaces_invalid_bytes() {
 <a href=#148 id=148 data-nosnippet>148</a>        <span class="kw">let </span><span class="kw-2">mut </span>dest = [<span class="number">0xAAAA_u16</span>; <span class="number">81</span>];
-<a href=#149 id=149 data-nosnippet>149</a>        <span class="kw">unsafe </span>{ STRING_TO_WSTRING_EXT(<span class="string">b"a\xFFb\0"</span>.as_ptr(), dest.as_mut_ptr()) };
+<a href=#149 id=149 data-nosnippet>149</a>        <span class="kw">unsafe </span>{ STRING_TO_WSTRING_EXT(<span class="string">c"a\xFFb"</span>.as_ptr().cast(), dest.as_mut_ptr()) };
 <a href=#150 id=150 data-nosnippet>150</a>
 <a href=#151 id=151 data-nosnippet>151</a>        <span class="comment">// converting 'a&lt;0xFF&gt;b' must yield "a&lt;U+FFFD&gt;b": the invalid byte becomes U+FFFD
 <a href=#152 id=152 data-nosnippet>152</a>        </span><span class="macro">assert_eq!</span>(dest[..<span class="number">4</span>], [<span class="number">0x61</span>, <span class="number">0xFFFD</span>, <span class="number">0x62</span>, <span class="number">0</span>]);

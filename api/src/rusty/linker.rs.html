@@ -491,14 +491,14 @@
 <a href=#491 id=491 data-nosnippet>491</a>    }
 <a href=#492 id=492 data-nosnippet>492</a>
 <a href=#493 id=493 data-nosnippet>493</a>    <span class="kw">fn </span>get_build_command(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, LinkerError&gt; {
-<a href=#494 id=494 data-nosnippet>494</a>        <span class="kw">let </span>linker_location = which(<span class="kw-2">&amp;</span><span class="self">self</span>.linker)
-<a href=#495 id=495 data-nosnippet>495</a>            .map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">"{e} for linker: {}"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linker)))<span class="question-mark">?</span>;
+<a href=#494 id=494 data-nosnippet>494</a>        <span class="kw">let </span>linker_location =
+<a href=#495 id=495 data-nosnippet>495</a>            which(<span class="kw-2">&amp;</span><span class="self">self</span>.linker).map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">"{e} for linker: {}"</span>, <span class="self">self</span>.linker)))<span class="question-mark">?</span>;
 <a href=#496 id=496 data-nosnippet>496</a>        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">"{} {}"</span>, linker_location.to_string_lossy(), <span class="self">self</span>.command_args().join(<span class="string">" "</span>)))
 <a href=#497 id=497 data-nosnippet>497</a>    }
 <a href=#498 id=498 data-nosnippet>498</a>
 <a href=#499 id=499 data-nosnippet>499</a>    <span class="kw">fn </span>finalize(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), LinkerError&gt; {
-<a href=#500 id=500 data-nosnippet>500</a>        <span class="kw">let </span>linker_location = which(<span class="kw-2">&amp;</span><span class="self">self</span>.linker)
-<a href=#501 id=501 data-nosnippet>501</a>            .map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">"{e} for linker: {}"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linker)))<span class="question-mark">?</span>;
+<a href=#500 id=500 data-nosnippet>500</a>        <span class="kw">let </span>linker_location =
+<a href=#501 id=501 data-nosnippet>501</a>            which(<span class="kw-2">&amp;</span><span class="self">self</span>.linker).map_err(|e| LinkerError::Link(<span class="macro">format!</span>(<span class="string">"{e} for linker: {}"</span>, <span class="self">self</span>.linker)))<span class="question-mark">?</span>;
 <a href=#502 id=502 data-nosnippet>502</a>
 <a href=#503 id=503 data-nosnippet>503</a>        <span class="macro">log::debug!</span>(<span class="string">"Linker command : {}"</span>, <span class="self">self</span>.get_build_command()<span class="question-mark">?</span>);
 <a href=#504 id=504 data-nosnippet>504</a>

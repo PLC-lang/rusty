@@ -490,7 +490,7 @@
 <a href=#490 id=490 data-nosnippet>490</a>    <span class="kw">let </span>linkage = pou.linkage;
 <a href=#491 id=491 data-nosnippet>491</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(return_type) = <span class="kw-2">&amp;</span>pou.return_type {
 <a href=#492 id=492 data-nosnippet>492</a>        <span class="kw">if </span>should_generate_implicit(return_type) {
-<a href=#493 id=493 data-nosnippet>493</a>            <span class="kw">let </span>type_name = <span class="macro">format!</span>(<span class="string">"__{}_return"</span>, <span class="kw-2">&amp;</span>pou.name); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+<a href=#493 id=493 data-nosnippet>493</a>            <span class="kw">let </span>type_name = <span class="macro">format!</span>(<span class="string">"__{}_return"</span>, pou.name); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
 <a href=#494 id=494 data-nosnippet>494</a>            </span><span class="kw">let </span>type_ref = DataTypeDeclaration::Reference {
 <a href=#495 id=495 data-nosnippet>495</a>                referenced_type: type_name.clone(),
 <a href=#496 id=496 data-nosnippet>496</a>                location: return_type.get_location(),
