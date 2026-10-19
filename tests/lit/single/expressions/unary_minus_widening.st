@@ -3,8 +3,11 @@
 // operands of a binary expression. Without the widening `-a` on a USINT is computed in
 // 8 bits and wraps, and `-i` on the smallest INT stays the smallest INT.
 
+TYPE SRU64 : ULINT(0..10); END_TYPE
+
 VAR_GLOBAL CONSTANT
     ca : USINT := 200;
+    csu : SRU64 := 10;
 END_VAR
 
 FUNCTION main : DINT
@@ -19,6 +22,8 @@ FUNCTION main : DINT
         d : DINT;
         l : LINT;
         s2 : SINT;
+        su : SRU64 := 10;
+        lr : LREAL;
     END_VAR
 
     d := -a;
@@ -49,4 +54,11 @@ FUNCTION main : DINT
     // the result moves to the target afterwards, so a narrow target still cuts it down
     s2 := -s;
     printf('%d$N', s2);         // CHECK: -128
+
+    // a subrange of an unsigned 64 bit type is negated in LINT, as the plain type is, for a
+    // variable and for a folded constant alike
+    lr := -su;
+    printf('%.1f$N', lr);       // CHECK: -10.0
+    lr := -csu;
+    printf('%.1f$N', lr);       // CHECK: -10.0
 END_FUNCTION

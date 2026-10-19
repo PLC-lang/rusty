@@ -17,7 +17,7 @@ use crate::{
     },
     typesystem::{
         get_bigger_type, get_signed_type, DataType, DataTypeInformation, StringEncoding, DINT_TYPE,
-        LINT_TYPE, VOID_TYPE,
+        LINT_TYPE, UDINT_TYPE, VOID_TYPE,
     },
 };
 
@@ -315,7 +315,7 @@ fn cast_if_necessary(statement: AstNode, target_type_name: &Option<&str>, index:
 
             // an integer target holds the integer the real is converted to at run time, truncated
             // toward zero and cut down to the target's range, so that the static data and every
-            // read of the constant agree; a real that is not finite is kept as it is
+            // read of the constant agree
             AstLiteral::Real(value) => {
                 let intrinsic = index.get_intrinsic_type_information(dti);
                 if matches!(intrinsic, DataTypeInformation::Integer { .. }) && !intrinsic.is_bool() {
@@ -507,7 +507,7 @@ fn evaluate_with_target_hint(
                     .flatten();
                 match (resolved, variable) {
                     (Some(resolved), Some(variable)) => {
-                        read_integer_constant(resolved, variable, target_type, index, id, location)
+                        read_constant(resolved, variable, target_type, index, id, location)
                     }
                     (resolved, _) => resolved,
                 }
@@ -587,7 +587,7 @@ fn evaluate_with_target_hint(
                 Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
                     // the operand is read in its own type, and `NOT` keeps that width, so both the
                     // operand and the result wrap to the operand's type
-                    let operand_type = get_operand_type(value, scope, index);
+                    let operand_type = get_operand_intrinsic_type(value, scope, index);
                     let v = operand_type.map_or(*v, |it| wrap_to_type(*v, it));
                     let v = operand_type.map_or(!v, |it| wrap_to_type(!v, it));
                     let v = cut_down_to_target(v, target_type, index);
@@ -616,7 +616,8 @@ fn evaluate_with_target_hint(
                     // the operand is read in its own type: a constant initialized from a wider
                     // constant keeps the raw value in the store, `b : SINT := a` with a USINT 200
                     // holds 200 there but is -56 wherever it is read
-                    let v = get_operand_type(value, scope, index).map_or(v, |it| wrap_to_type(v, it));
+                    let v =
+                        get_operand_intrinsic_type(value, scope, index).map_or(v, |it| wrap_to_type(v, it));
                     let v = negation_type.map_or(-v, |it| wrap_to_type(-v, it));
                     // an integer target cuts the value down as the assignment at run time does, so
                     // the initializer resolves; the validator reports the implicit downcast
@@ -653,7 +654,8 @@ fn evaluate_with_target_hint(
                 Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
                     // the operand is read in its own type, and the value is cut down to an integer
                     // target as the assignment at run time does, like a negation
-                    let v = get_operand_type(value, scope, index).map_or(v, |it| wrap_to_type(v, it));
+                    let v =
+                        get_operand_intrinsic_type(value, scope, index).map_or(v, |it| wrap_to_type(v, it));
                     let v = cut_down_to_target(v, target_type, index);
                     let lit = AstNode::new(AstStatement::Literal(AstLiteral::Integer(v)), id, location);
                     evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
@@ -662,7 +664,7 @@ fn evaluate_with_target_hint(
                     // a REAL operand is read with REAL precision, as the negation reads it
                     let v =
                         v.parse::<f64>().map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?;
-                    let v = match get_operand_type(value, scope, index) {
+                    let v = match get_operand_intrinsic_type(value, scope, index) {
                         Some(DataTypeInformation::Float { size: 32, .. }) => v as f32 as f64,
                         _ => v,
                     };
@@ -790,8 +792,9 @@ fn find_member_variable<'idx>(
 /// reference has its declared type, a cast literal the cast type, and a plain integer literal is a
 /// `DINT`, or a `LINT` when it does not fit. A subrange or an enum counts as its base type, a
 /// nested `-` as its widened type, and a nested `+` or `NOT` as its operand, since neither changes
-/// the width. Returns `None` for an operand whose type the evaluator cannot tell, such as a binary
-/// expression or a plain real literal.
+/// the width. A binary expression has the promoted type of its operands when both are known.
+/// Returns `None` for an operand whose type the evaluator cannot tell, such as a plain real literal.
+/// The type is the declared, effective one; see [`get_operand_intrinsic_type`] for its shape.
 fn get_operand_type<'idx>(
     value: &AstNode,
     scope: Option<&str>,
@@ -819,9 +822,50 @@ fn get_operand_type<'idx>(
             let name = if i32::try_from(*v).is_ok() { DINT_TYPE } else { LINT_TYPE };
             index.find_effective_type_info(name)?
         }
+        // a binary expression has the promoted type of its operands, the rule the resolver
+        // applies: two bit strings keep the wider bit string, two unsigned integers promote to
+        // at least UDINT, anything else to at least DINT; an operand of another class or of
+        // unknown type leaves the type unknown
+        AstStatement::BinaryExpression(BinaryExpression { left, right, operator })
+            if !operator.is_comparison_operator() =>
+        {
+            // the declared types decide, as in the resolver: a subrange or an enum over a bit
+            // string has integer nature and is no bit string here
+            let left = index.get_type(get_operand_type(left, scope, index)?.get_name()).ok()?;
+            let right = index.get_type(get_operand_type(right, scope, index)?.get_name()).ok()?;
+            let l_intrinsic = index.get_intrinsic_type_information(left.get_type_information());
+            let r_intrinsic = index.get_intrinsic_type_information(right.get_type_information());
+            if !(matches!(l_intrinsic, DataTypeInformation::Integer { .. })
+                && matches!(r_intrinsic, DataTypeInformation::Integer { .. })
+                && !l_intrinsic.is_bool()
+                && !r_intrinsic.is_bool())
+            {
+                return None;
+            }
+            let floor = if left.is_bit() && right.is_bit() {
+                right
+            } else if l_intrinsic.is_unsigned_int() && r_intrinsic.is_unsigned_int() {
+                index.get_type_or_panic(UDINT_TYPE)
+            } else {
+                index.get_type_or_panic(DINT_TYPE)
+            };
+            return Some(
+                get_bigger_type(get_bigger_type(left, right, index), floor, index).get_type_information(),
+            );
+        }
         _ => return None,
     };
-    Some(index.get_intrinsic_type_information(operand_type))
+    Some(operand_type)
+}
+
+/// The shape of the operand's type, see [`get_operand_type`]: a subrange or an enum counts as its
+/// base type, which is what the operand's value wraps to.
+fn get_operand_intrinsic_type<'idx>(
+    value: &AstNode,
+    scope: Option<&str>,
+    index: &'idx Index,
+) -> Option<&'idx DataTypeInformation> {
+    get_operand_type(value, scope, index).map(|it| index.get_intrinsic_type_information(it))
 }
 
 /// The type a unary minus is computed in: the type of its operand, where an integer or bit string
@@ -832,7 +876,7 @@ fn get_negation_type<'idx>(
     scope: Option<&str>,
     index: &'idx Index,
 ) -> Option<&'idx DataTypeInformation> {
-    let operand_type = get_operand_type(value, scope, index)?;
+    let operand_type = get_operand_intrinsic_type(value, scope, index)?;
     match operand_type {
         DataTypeInformation::Integer { .. } if !operand_type.is_bool() => {
             let signed_type = index.get_type(get_signed_type(operand_type, index)?.get_name()).ok()?;
@@ -851,13 +895,15 @@ fn get_negation_type<'idx>(
     }
 }
 
-/// A reference to an integer constant is read in the constant's own type, as a load of the
-/// constant at run time is: the store holds the constant's initializer as it was folded, which can
-/// be a wider value, `b : SINT := a` with a USINT 200 holds 200, or a real for an integer constant
-/// initialized from one. The value is reduced to the constant's type, truncated toward zero for a
-/// real, then cut down to the target like the operand of a sign, and carried by the id and location
-/// of the reference, so that the target's hint applies to it. Any other constant is handed on as is.
-fn read_integer_constant(
+/// A reference to a constant is read in the constant's own type, as a load of the constant at
+/// run time is. The store holds the constant's initializer as it was folded, which can be a wider
+/// value, `b : SINT := a` with a USINT 200 holds 200, a real for an integer constant initialized
+/// from one, or a real with more precision than a `REAL` holds. An integer constant's value is
+/// reduced to the constant's type, truncated toward zero for a real, then cut down to the target
+/// like the operand of a sign; a `REAL` constant's value is rounded to `REAL` precision. The
+/// literal is carried by the id and location of the reference, so that the target's hint applies
+/// to it. Any other constant is handed on as is.
+fn read_constant(
     resolved: AstNode,
     variable: &VariableIndexEntry,
     target_type: Option<&str>,
@@ -867,31 +913,38 @@ fn read_integer_constant(
 ) -> Option<AstNode> {
     let own_type = index
         .find_effective_type_info(variable.get_type_name())
-        .map(|it| index.get_intrinsic_type_information(it))
-        .filter(|it| matches!(it, DataTypeInformation::Integer { .. }) && !it.is_bool());
-    let Some(own_type) = own_type else {
-        return Some(resolved);
-    };
-    let value = match resolved.get_stmt() {
-        AstStatement::Literal(AstLiteral::Integer(v)) => *v,
-        AstStatement::Literal(AstLiteral::Real(v)) => match v.parse::<f64>().ok().and_then(real_to_integer) {
-            Some(v) => v,
-            None => return Some(resolved),
-        },
-        _ => return Some(resolved),
-    };
-    let value = cut_down_to_target(wrap_to_type(value, own_type), target_type, index);
-    Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(value)), id, location))
+        .map(|it| index.get_intrinsic_type_information(it));
+    match (own_type, resolved.get_stmt()) {
+        (Some(own_type @ DataTypeInformation::Integer { .. }), AstStatement::Literal(literal))
+            if !own_type.is_bool() =>
+        {
+            let value = match literal {
+                AstLiteral::Integer(v) => *v,
+                AstLiteral::Real(v) => match v.parse::<f64>().ok().and_then(real_to_integer) {
+                    Some(v) => v,
+                    None => return Some(resolved),
+                },
+                _ => return Some(resolved),
+            };
+            let value = cut_down_to_target(wrap_to_type(value, own_type), target_type, index);
+            Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(value)), id, location))
+        }
+        (Some(DataTypeInformation::Float { size, .. }), AstStatement::Literal(AstLiteral::Real(v))) => {
+            let Ok(value) = v.parse::<f64>() else {
+                return Some(resolved);
+            };
+            let value = if *size == 32 { value as f32 as f64 } else { value };
+            Some(AstNode::new(AstStatement::Literal(AstLiteral::new_real(format!("{value:}"))), id, location))
+        }
+        _ => Some(resolved),
+    }
 }
 
 /// The integer a real is converted to: truncated toward zero. A real at or beyond 2^127 is a
-/// multiple of every integer width, so it counts as zero instead of saturating the cast. A real
-/// that is not finite has no integer.
+/// multiple of every integer width, so it counts as zero instead of saturating the cast, and so
+/// does an infinity, which lies beyond it, or a NaN, which has no integer at all.
 fn real_to_integer(real: f64) -> Option<i128> {
-    if !real.is_finite() {
-        return None;
-    }
-    if real.abs() >= 2f64.powi(127) {
+    if !real.is_finite() || real.abs() >= 2f64.powi(127) {
         return Some(0);
     }
     Some(real.trunc() as i128)

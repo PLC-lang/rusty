@@ -2348,8 +2348,12 @@ impl<'i> TypeAnnotator<'i> {
                     let inner_type =
                         self.annotation_map.get_type_or_void(&data.value, self.index).get_type_information();
 
-                    // switch to the signed twin of the operand's type
-                    let signed_type = typesystem::get_signed_type(inner_type, self.index);
+                    // switch to the signed twin of the operand's type; a subrange or an enum counts
+                    // as its base type, so a subrange of ULINT is negated in LINT like a plain ULINT
+                    let signed_type = typesystem::get_signed_type(
+                        self.index.get_intrinsic_type_information(inner_type),
+                        self.index,
+                    );
                     match signed_type.and_then(|it| self.index.get_type(it.get_name()).ok()) {
                         // an integer or a bit string is widened to DINT before the negation, the same as
                         // the operands of a binary expression, so `-a` on a USINT of 200 is -200 and not

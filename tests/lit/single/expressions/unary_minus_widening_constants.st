@@ -5,6 +5,7 @@
 // member of a program is the case that used to abort codegen with a mismatched initializer.
 
 TYPE SRG : DINT(-2147483648..2147483647); END_TYPE
+TYPE SB : BYTE(0..255); END_TYPE
 
 VAR_GLOBAL CONSTANT
     c1 : USINT := 200;
@@ -45,6 +46,17 @@ VAR_GLOBAL CONSTANT
     csubx : SRG := 123456789.0;
     csubc : DINT := csubx;
     chuge : LINT := 1.0e40;
+    // a reference to a REAL constant is read with REAL precision, and a binary operand has the
+    // promoted type of its operands, so NOT over two BYTEs is computed in BYTE
+    xr : DINT := cr;
+    yr : DINT := xr;
+    bnot : DINT := NOT (BYTE#200 AND BYTE#255);
+    // a subrange over a bit string has integer nature, so its binary expressions are computed in
+    // UDINT like the resolver does; a REAL beyond f32 range counts as zero for an integer
+    csb : SB := 200;
+    snot : DINT := NOT (csb AND BYTE#255);
+    rover : REAL := 3.5e38;
+    kinf : DINT := rover;
 END_VAR
 
 VAR_GLOBAL
@@ -89,4 +101,6 @@ FUNCTION main : DINT
     printf('%d %lld %lld$N', dmid, lmid, gmid);  // CHECK: -1294967296 -1294967296 -1294967296
     printf('%d %d %d %d %lld$N', cexact, ccopy, cmax, csub, chuge);  // CHECK: 123456789 123456789 2147483647 -1294967296 0
     printf('%d %d$N', csubx, csubc);  // CHECK: 123456789 123456789
+    printf('%d %d %d$N', xr, yr, bnot);  // CHECK: 16777216 16777216 55
+    printf('%d %d$N', snot, kinf);  // CHECK: -201 0
 END_FUNCTION

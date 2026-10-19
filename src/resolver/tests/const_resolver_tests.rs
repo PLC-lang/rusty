@@ -335,6 +335,8 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
         "TYPE SRd : DINT(-2147483648..0); END_TYPE
         TYPE ED : DINT (DA := -2147483648, DB := 0); END_TYPE
         TYPE EL : LINT (LA := -9223372036854775808, LB := 0); END_TYPE
+        TYPE SB : BYTE(0..255); END_TYPE
+        TYPE EB : BYTE (BA := 200, BB := 255); END_TYPE
         VAR_GLOBAL CONSTANT
             cd : DINT := -2147483648;
             cr : REAL := 16777217.0;
@@ -367,6 +369,17 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
             plusfrac : DINT := +cfrac;
             cmid : DINT := 3.0e9;
             chuge : LINT := 1.0e40;
+            xr : DINT := cr;
+            yr : DINT := xr;
+            byte_not : DINT := NOT (BYTE#200 AND BYTE#255);
+            byte_neg : DINT := -(BYTE#200 AND BYTE#255);
+            dint_neg : LINT := -(cd + 0);
+            csb : SB := 200;
+            ceb : EB := EB#BA;
+            sub_not : DINT := NOT (csb AND BYTE#255);
+            enum_not : DINT := NOT (ceb AND BYTE#255);
+            rover : REAL := 3.5e38;
+            kinf : DINT := rover;
         END_VAR
         ",
     );
@@ -417,6 +430,21 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
     debug_assert_eq!(&create_int_literal(-1294967296), find_constant_value(&index, "cmid").unwrap());
     // a real beyond any integer width is a multiple of every width, so it wraps to zero
     debug_assert_eq!(&create_int_literal(0), find_constant_value(&index, "chuge").unwrap());
+    // a reference to a REAL constant is read with REAL precision, so the integer it is converted
+    // to and a copy of that integer agree
+    debug_assert_eq!(&create_int_literal(16777216), find_constant_value(&index, "xr").unwrap());
+    debug_assert_eq!(&create_int_literal(16777216), find_constant_value(&index, "yr").unwrap());
+    // a binary operand has the promoted type of its operands: two bit strings keep the wider bit
+    // string, integers promote to DINT, so the NOT and the sign wrap in that type
+    debug_assert_eq!(&create_int_literal(55), find_constant_value(&index, "byte_not").unwrap());
+    debug_assert_eq!(&create_int_literal(-200), find_constant_value(&index, "byte_neg").unwrap());
+    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "dint_neg").unwrap());
+    // a subrange or an enum over a bit string has integer nature, so the resolver computes its
+    // binary expressions in UDINT and not in the bit string; a REAL beyond f32 range is infinite
+    // and counts as zero for an integer
+    debug_assert_eq!(&create_int_literal(-201), find_constant_value(&index, "sub_not").unwrap());
+    debug_assert_eq!(&create_int_literal(-201), find_constant_value(&index, "enum_not").unwrap());
+    debug_assert_eq!(&create_int_literal(0), find_constant_value(&index, "kinf").unwrap());
 }
 
 #[test]

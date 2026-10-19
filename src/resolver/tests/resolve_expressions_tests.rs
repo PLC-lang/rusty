@@ -637,7 +637,10 @@ fn unary_minus_widens_narrow_integers_to_dint() {
     let id_provider = IdProvider::default();
     // GIVEN a unary minus on integers of every width, and on a real
     let (unit, mut index) = index_with_ids(
-        "PROGRAM PRG
+        "TYPE SRU64 : ULINT(0..10); END_TYPE
+        TYPE EU64 : ULINT (EA := 10, EB := 11); END_TYPE
+        TYPE SRD : DINT(-10..10); END_TYPE
+        PROGRAM PRG
         VAR
             a : USINT;
             i : INT;
@@ -650,6 +653,9 @@ fn unary_minus_widens_narrow_integers_to_dint() {
             dt : DATE;
             c : CHAR;
             bo : BOOL;
+            su : SRU64;
+            eu : EU64;
+            sd : SRD;
         END_VAR
             -a;
             -i;
@@ -662,6 +668,9 @@ fn unary_minus_widens_narrow_integers_to_dint() {
             -dt;
             -c;
             -bo;
+            -su;
+            -eu;
+            -sd;
         END_PROGRAM",
         id_provider.clone(),
     );
@@ -684,6 +693,10 @@ fn unary_minus_widens_narrow_integers_to_dint() {
         ("DATE", "DATE", None),
         ("CHAR", "CHAR", None),
         ("BOOL", BOOL_TYPE, None),
+        // a subrange or an enum is negated in the signed twin of its base type
+        ("SRU64", LINT_TYPE, Some(LINT_TYPE)),
+        ("EU64", LINT_TYPE, Some(LINT_TYPE)),
+        ("SRD", DINT_TYPE, Some(DINT_TYPE)),
     ];
     for (statement, (operand_type, result_type, operand_hint)) in statements.iter().zip(expected) {
         let AstStatement::UnaryExpression(UnaryExpression { value, .. }) = statement.get_stmt() else {

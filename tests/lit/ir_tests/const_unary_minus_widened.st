@@ -43,6 +43,11 @@ VAR_GLOBAL
     // integer constant initialized from a real holds the truncated integer
     gchain : LINT := cc;
     gfrac : DINT := -cfrac;
+    // a reference to a REAL constant is read with REAL precision; a binary operand has the
+    // promoted type of its operands
+    gxr : DINT := cr;
+    gbnot : DINT := NOT (BYTE#200 AND BYTE#255);
+    gbneg : LINT := -(cd + 0);
     gf : LREAL := -c1;
     // a constant built from an unsigned constant keeps its value in the static data too, and a
     // negation into a narrower target is cut down to that target
@@ -75,6 +80,9 @@ END_PROGRAM
 // CHECK: @gnarrow = global i32 56
 // CHECK: @gchain = global i64 -56
 // CHECK: @gfrac = global i32 -1
+// CHECK: @gxr = global i32 16777216
+// CHECK: @gbnot = global i32 55
+// CHECK: @gbneg = global i64 -2147483648
 // CHECK: @gf = global double -2.000000e+02
 // CHECK: @gfu = global double 2.000000e+02
 // CHECK: @glu = global i64 200

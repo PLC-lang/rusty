@@ -140,7 +140,7 @@ Visualized:
                          ^^^^^^^        { kind: Variable, qualified_name: "main.dintVar", resulting_type: "DINT", hint: None }
 ```
 
-A unary minus is promoted like a binary expression with one operand. An integer or bit string operand is moved to its signed type and widened to `DINT` when it is narrower, and the result takes that type: `-sintVar` is a `DINT` value, and `sintVar` carries the hint `DINT`, so codegen widens it before the subtraction. An operand that already has the result type gets no hint. A real, a duration, a date, a character, or a `BOOL` is not promoted; `-realVar` is a `REAL` without a hint, and a negated `TIME` stays a `TIME`.
+A unary minus is promoted like a binary expression with one operand. An integer or bit string operand is moved to its signed type and widened to `DINT` when it is narrower, a subrange or an enum counting as its base type, and the result takes that type: `-sintVar` is a `DINT` value, and `sintVar` carries the hint `DINT`, so codegen widens it before the subtraction. An operand that already has the result type gets no hint. A real, a duration, a date, a character, or a `BOOL` is not promoted; `-realVar` is a `REAL` without a hint, and a negated `TIME` stays a `TIME`.
 
 
 ## Calls
