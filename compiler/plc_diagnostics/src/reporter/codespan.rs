@@ -78,6 +78,10 @@ impl CodeSpanDiagnosticReporter {
         codespan_reporting::term::emit(&mut self.writer, &self.config, &self.files, &diag)
     }
 
+    fn has_file(&self, handle: usize) -> bool {
+        self.files.get(handle).is_ok()
+    }
+
     fn file_name(&self, handle: usize) -> String {
         use codespan_reporting::files::Files;
         self.files.name(handle).map(|name| name.to_string()).unwrap_or_default()
@@ -141,12 +145,15 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                 },
             }
 
+            // A location in an unregistered file, e.g. a built-in declaration, has no snippet to show
             if let Some(additional_locations) = &d.additional_locations {
-                labels.extend(additional_locations.iter().filter_map(|it| {
-                    it.span
-                        .to_range()
-                        .map(|range| Label::secondary(it.file_handle, range).with_message("see also"))
-                }));
+                labels.extend(
+                    additional_locations.iter().filter(|it| self.has_file(it.file_handle)).filter_map(|it| {
+                        it.span
+                            .to_range()
+                            .map(|range| Label::secondary(it.file_handle, range).with_message("see also"))
+                    }),
+                );
             }
 
             let diag = diagnostic_factory
@@ -171,5 +178,43 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
             Writer::Buffer(buffer) => Some(String::from_utf8_lossy(buffer.as_slice()).to_string()),
             Writer::Stream(_) => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use plc_source::source_location::{CodeSpan, TextLocation};
+
+    use super::CodeSpanDiagnosticReporter;
+    use crate::diagnostics::Severity;
+    use crate::reporter::{DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation};
+
+    fn first_line(start: usize, end: usize) -> CodeSpan {
+        CodeSpan::Range(TextLocation::new(0, start, start)..TextLocation::new(0, end, end))
+    }
+
+    #[test]
+    fn secondary_location_in_unregistered_file_is_dropped() {
+        let mut reporter = CodeSpanDiagnosticReporter::buffered();
+        let handle = reporter.register("main.st".to_string(), "FUNCTION ABS : DINT".to_string());
+
+        reporter.report(&[ResolvedDiagnostics {
+            code: "E004".to_string(),
+            message: "ABS: Duplicate symbol.".to_string(),
+            severity: Severity::Error,
+            main_location: ResolvedLocation { file_handle: handle, span: first_line(9, 12) },
+            additional_locations: Some(vec![ResolvedLocation {
+                file_handle: usize::MAX,
+                span: first_line(0, 3),
+            }]),
+        }]);
+
+        insta::assert_snapshot!(reporter.buffer().unwrap(), @r"
+        error[E004]: ABS: Duplicate symbol.
+          ┌─ main.st:1:10
+          │
+        1 │ FUNCTION ABS : DINT
+          │          ^^^ ABS: Duplicate symbol.
+        ");
     }
 }
