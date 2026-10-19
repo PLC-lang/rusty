@@ -1197,4 +1197,67 @@ mod tests {
         ]
         "#);
     }
+
+    #[test]
+    fn calls_through_pointers_in_methods_use_the_virtual_table_of_the_instance() {
+        let source = r#"
+            TYPE Box : STRUCT
+                target: REFERENCE TO A;
+            END_STRUCT END_TYPE
+
+            FUNCTION_BLOCK A
+                METHOD foo
+                END_METHOD
+
+                PROPERTY_GET prop: INT
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B
+                VAR
+                    refA: REFERENCE TO A;
+                    ptrA: POINTER TO A;
+                    refBox: REFERENCE TO Box;
+                    x: INT;
+                END_VAR
+
+                METHOD foo
+                END_METHOD
+
+                METHOD bravo
+                    refA.foo();
+                    ptrA^.foo();
+                    x := ptrA^.prop;
+                    refBox.target();
+                    foo();
+                END_METHOD
+
+                refA.foo();
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refBox: REFERENCE TO Box;
+                END_VAR
+
+                refBox.target();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_statements(source, &["B", "B.bravo", "main"]), @r#"
+        [
+            "// Statements in B",
+            "__vtable_A#(refA.__vtable^).foo^(A#(refA))",
+            "// Statements in B.bravo",
+            "__vtable_A#(refA.__vtable^).foo^(A#(refA))",
+            "__vtable_A#(ptrA^.__vtable^).foo^(A#(ptrA^))",
+            "x := __vtable_A#(ptrA^.__vtable^).__get_prop^(A#(ptrA^))",
+            "__vtable_A#(refBox.target.__vtable^).__body^(refBox.target)",
+            "__vtable_B#(THIS^.__vtable^).foo^(B#(THIS^))",
+            "// Statements in main",
+            "__main_refBox__ctor(refBox)",
+            "__vtable_A#(refBox.target.__vtable^).__body^(refBox.target)",
+        ]
+        "#);
+    }
 }
