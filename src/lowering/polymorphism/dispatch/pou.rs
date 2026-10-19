@@ -181,20 +181,8 @@ impl<'a> AstVisitorMut for PolymorphicCallLowerer<'a> {
             return;
         };
 
-        let unit_name = match self.in_method_or_function_block {
-            Some(ref name) => name.clone(),
-            None => match operator.get_base_ref_expr() {
-                Some(base) => {
-                    // When dealing with e.g. __main_myVariable
-                    let ty = self.annotations.get_type(base, self.index).unwrap();
-                    self.index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
-                }
-
-                None => {
-                    let ty = self.annotations.get_type(operator, self.index).unwrap();
-                    self.index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
-                }
-            },
+        let Some(unit_name) = self.get_vtable_owner(operator) else {
+            return;
         };
 
         log::trace!("lowering {}", operator.as_string());
@@ -246,13 +234,33 @@ impl<'a> PolymorphicCallLowerer<'a> {
     /// Returns true if the given call operator runs the body or a method of a program, e.g. `refProg()` or
     /// `refProg.foo()`. A program has no virtual table, so these calls stay direct.
     fn calls_into_program(&self, operator: &AstNode) -> bool {
-        let is_method = self.annotations.get_type(operator, self.index).is_some_and(DataType::is_method);
-        let instance = if is_method { operator.get_base_ref_expr() } else { Some(operator) };
-
-        instance
+        self.get_call_instance(operator)
             .and_then(|it| self.annotations.get_type(it, self.index))
             .and_then(|ty| self.index.find_pou(ty.get_name()))
             .is_some_and(PouIndexEntry::is_program)
+    }
+
+    /// Returns the instance the given call operator runs on, e.g. `ref^` in `ref^.foo()` and `ref^()`, or
+    /// `None` for a method call without a base such as `foo()`.
+    fn get_call_instance<'b>(&self, operator: &'b AstNode) -> Option<&'b AstNode> {
+        let is_method = self.annotations.get_type(operator, self.index).is_some_and(DataType::is_method);
+        if is_method {
+            operator.get_base_ref_expr()
+        } else {
+            Some(operator)
+        }
+    }
+
+    /// Returns the name of the POU whose virtual table the given call goes through. This is the type of the
+    /// instance the call runs on, e.g. `A` for `refA^.foo()` with `refA: REF_TO A`, or the enclosing POU
+    /// for a method call without a base such as `foo()`.
+    fn get_vtable_owner(&self, operator: &AstNode) -> Option<String> {
+        let Some(instance) = self.get_call_instance(operator) else {
+            return self.in_method_or_function_block.clone();
+        };
+
+        let ty = self.annotations.get_type(instance, self.index)?;
+        Some(self.index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string())
     }
 
     /// Returns true if the given AST node is a candidate that needs to be lowered into a polymorphic call.
@@ -1108,8 +1116,147 @@ mod tests {
             "// Statements in main",
             "__main_refInstanceA__ctor(refInstanceA)",
             "__vtable_A#(refInstanceA.__vtable^).__body^(refInstanceA)",
-            "__vtable_A#(refInstanceA.refB.__vtable^).__body^(refInstanceA.refB)",
-            "__vtable_B#(refInstanceA.refB.refC.__vtable^).__body^(refInstanceA.refB.refC)",
+            "__vtable_B#(refInstanceA.refB.__vtable^).__body^(refInstanceA.refB)",
+            "__vtable_C#(refInstanceA.refB.refC.__vtable^).__body^(refInstanceA.refB.refC)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn polymorphic_calls_through_pointers_in_function_blocks_use_the_pointer_target_vtable() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD alpha
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B
+                VAR
+                    refToA: REF_TO A;
+                    pointerToA: POINTER TO A;
+                    referenceToA: REFERENCE TO A;
+                END_VAR
+
+                METHOD bravo
+                    refToA^.alpha();
+                    pointerToA^.alpha();
+                    referenceToA.alpha();
+                    referenceToA();
+                    bravo();
+                END_METHOD
+
+                refToA^.alpha();
+                pointerToA^.alpha();
+                referenceToA.alpha();
+                refToA^();
+                bravo();
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(lower_statements(source, &["B", "B.bravo"]), @r#"
+        [
+            "// Statements in B",
+            "__vtable_A#(refToA^.__vtable^).alpha^(A#(refToA^))",
+            "__vtable_A#(pointerToA^.__vtable^).alpha^(A#(pointerToA^))",
+            "__vtable_A#(referenceToA.__vtable^).alpha^(A#(referenceToA))",
+            "__vtable_A#(refToA^.__vtable^).__body^(refToA^)",
+            "__vtable_B#(THIS^.__vtable^).bravo^(B#(THIS^))",
+            "// Statements in B.bravo",
+            "__vtable_A#(refToA^.__vtable^).alpha^(A#(refToA^))",
+            "__vtable_A#(pointerToA^.__vtable^).alpha^(A#(pointerToA^))",
+            "__vtable_A#(referenceToA.__vtable^).alpha^(A#(referenceToA))",
+            "__vtable_A#(referenceToA.__vtable^).__body^(referenceToA)",
+            "__vtable_B#(THIS^.__vtable^).bravo^(B#(THIS^))",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn polymorphic_calls_through_pointers_in_class_methods_use_the_pointer_target_vtable() {
+        let source = r#"
+            CLASS A
+                METHOD alpha
+                END_METHOD
+            END_CLASS
+
+            CLASS B
+                VAR
+                    refToA: REF_TO A;
+                END_VAR
+
+                METHOD bravo
+                    refToA^.alpha();
+                END_METHOD
+            END_CLASS
+        "#;
+
+        insta::assert_debug_snapshot!(lower_statements(source, &["B.bravo"]), @r#"
+        [
+            "// Statements in B.bravo",
+            "__vtable_A#(refToA^.__vtable^).alpha^(A#(refToA^))",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn calls_through_pointers_in_methods_use_the_virtual_table_of_the_instance() {
+        let source = r#"
+            TYPE Box : STRUCT
+                target: REFERENCE TO A;
+            END_STRUCT END_TYPE
+
+            FUNCTION_BLOCK A
+                METHOD foo
+                END_METHOD
+
+                PROPERTY_GET prop: INT
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B
+                VAR
+                    refA: REFERENCE TO A;
+                    ptrA: POINTER TO A;
+                    refBox: REFERENCE TO Box;
+                    x: INT;
+                END_VAR
+
+                METHOD foo
+                END_METHOD
+
+                METHOD bravo
+                    refA.foo();
+                    ptrA^.foo();
+                    x := ptrA^.prop;
+                    refBox.target();
+                    foo();
+                END_METHOD
+
+                refA.foo();
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refBox: REFERENCE TO Box;
+                END_VAR
+
+                refBox.target();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_statements(source, &["B", "B.bravo", "main"]), @r#"
+        [
+            "// Statements in B",
+            "__vtable_A#(refA.__vtable^).foo^(A#(refA))",
+            "// Statements in B.bravo",
+            "__vtable_A#(refA.__vtable^).foo^(A#(refA))",
+            "__vtable_A#(ptrA^.__vtable^).foo^(A#(ptrA^))",
+            "x := __vtable_A#(ptrA^.__vtable^).__get_prop^(A#(ptrA^))",
+            "__vtable_A#(refBox.target.__vtable^).__body^(refBox.target)",
+            "__vtable_B#(THIS^.__vtable^).foo^(B#(THIS^))",
+            "// Statements in main",
+            "__main_refBox__ctor(refBox)",
+            "__vtable_A#(refBox.target.__vtable^).__body^(refBox.target)",
         ]
         "#);
     }
