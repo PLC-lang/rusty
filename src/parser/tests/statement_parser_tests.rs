@@ -81,7 +81,7 @@ fn inline_struct_declaration_can_be_parsed() {
         "#,
     );
 
-    let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
+    let ast_string = format!("{:#?}", result.global_vars[0].variables[0]);
     let expected_ast = r#"Variable {
     name: "my_struct",
     data_type: DataTypeDefinition {
@@ -124,7 +124,7 @@ fn inline_enum_declaration_can_be_parsed() {
         "#,
     );
 
-    let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
+    let ast_string = format!("{:#?}", result.global_vars[0].variables[0]);
 
     let v = Variable {
         name: "my_enum".to_string(),
@@ -145,7 +145,7 @@ fn inline_enum_declaration_can_be_parsed() {
         address: None,
         location: SourceLocation::internal(),
     };
-    let expected_ast = format!("{:#?}", &v);
+    let expected_ast = format!("{:#?}", v);
     assert_eq!(ast_string, expected_ast);
 }
 
@@ -164,7 +164,7 @@ fn multilevel_inline_struct_and_enum_declaration_can_be_parsed() {
         "#,
     );
 
-    let ast_string = format!("{:#?}", &result.global_vars[0].variables[0]);
+    let ast_string = format!("{:#?}", result.global_vars[0].variables[0]);
     insta::assert_snapshot!(ast_string);
 }
 
@@ -263,7 +263,7 @@ fn empty_parameter_assignments_in_call_statement() {
 
     assert_eq!(diagnostics, vec![]);
 
-    let ast_string = format!("{:#?}", &result);
+    let ast_string = format!("{:#?}", result);
     insta::assert_snapshot!(ast_string);
 }
 
