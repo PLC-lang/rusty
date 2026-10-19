@@ -530,6 +530,7 @@ fn enum_61131_standard_style_type_before_list() {
                     },
                 ],
             },
+            numeric_type_is_default: false,
         },
         initializer: Some(
             ReferenceExpr {
@@ -658,6 +659,7 @@ fn enum_codesys_style_type_after_list() {
                     },
                 ],
             },
+            numeric_type_is_default: false,
         },
         initializer: Some(
             ReferenceExpr {
@@ -733,6 +735,7 @@ fn enum_with_default_value_no_type_specified() {
                     },
                 ],
             },
+            numeric_type_is_default: true,
         },
         initializer: Some(
             ReferenceExpr {
@@ -808,6 +811,7 @@ fn enum_61131_style_with_byte_type_and_default() {
                     },
                 ],
             },
+            numeric_type_is_default: false,
         },
         initializer: Some(
             ReferenceExpr {
@@ -883,6 +887,7 @@ fn enum_codesys_style_with_int_type_and_default() {
                     },
                 ],
             },
+            numeric_type_is_default: false,
         },
         initializer: Some(
             ReferenceExpr {
@@ -952,6 +957,7 @@ fn enum_with_no_elements_produces_syntax_error() {
             ),
             numeric_type: "INT",
             elements: EmptyStatement,
+            numeric_type_is_default: false,
         },
         initializer: None,
         scope: None,
