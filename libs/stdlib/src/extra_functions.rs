@@ -183,9 +183,9 @@ mod test {
         assert_eq!(-1000, LREAL_TO_LTIME(-1000.0));
         assert_eq!(-4_294_967_296, LREAL_TO_LTIME(-4_294_967_296.0));
         assert_eq!(10_000_000_000, LREAL_TO_LTIME(1.0e10));
-        assert_eq!(9_223_371_487_098_961_920, LREAL_TO_LTIME(9.223_371_487_098_961_920e18));
+        assert_eq!(9_223_371_487_098_961_920, LREAL_TO_LTIME(9.223_371_487_098_962e18));
         assert_eq!(i64::MIN, LREAL_TO_LTIME(9_223_372_036_854_775_808.0));
-        assert_eq!(18_446_742_974_197_923_840_u64 as i64, LREAL_TO_LTIME(1.844_674_297_419_792_384e19));
+        assert_eq!(18_446_742_974_197_923_840_u64 as i64, LREAL_TO_LTIME(1.844_674_297_419_792_4e19));
         assert_eq!(0, LREAL_TO_LTIME(18_446_744_073_709_551_616.0));
         assert_eq!(4_096, LREAL_TO_LTIME(18_446_744_073_709_555_712.0));
     }

@@ -6963,11 +6963,7 @@ fn array_literal_passed_to_function_var_input_gets_type_hint_propagated() {
 // assignment resolution (variable wins) must be preserved.
 
 /// Helper: extract the base of the operator of a CallStatement at `unit.implementations[impl_idx].statements[stmt_idx]`.
-fn call_operator_base<'a>(
-    unit: &'a plc_ast::ast::CompilationUnit,
-    impl_idx: usize,
-    stmt_idx: usize,
-) -> &'a AstNode {
+fn call_operator_base(unit: &plc_ast::ast::CompilationUnit, impl_idx: usize, stmt_idx: usize) -> &AstNode {
     let stmt = &unit.implementations[impl_idx].statements[stmt_idx];
     let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
         panic!("expected CallStatement, got {:?}", stmt);
@@ -6981,11 +6977,7 @@ fn call_operator_base<'a>(
 }
 
 /// Helper: extract the operator of a CallStatement at `unit.implementations[impl_idx].statements[stmt_idx]`.
-fn call_operator<'a>(
-    unit: &'a plc_ast::ast::CompilationUnit,
-    impl_idx: usize,
-    stmt_idx: usize,
-) -> &'a AstNode {
+fn call_operator(unit: &plc_ast::ast::CompilationUnit, impl_idx: usize, stmt_idx: usize) -> &AstNode {
     let stmt = &unit.implementations[impl_idx].statements[stmt_idx];
     let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
         panic!("expected CallStatement, got {:?}", stmt);
