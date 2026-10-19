@@ -206,10 +206,10 @@ impl GlobalValidator {
         });
 
         for (name, cluster) in pou_clusters {
-            // A built-in declaration has no source the user can see, so only the non-generic
+            // A built-in declaration has no source the user can see, so only the user's non-generic
             // declarations that collide with it are reported.
             if cluster.iter().any(|p| p.is_builtin()) {
-                for pou in cluster.iter().filter(|p| !p.is_generic()) {
+                for pou in cluster.iter().filter(|p| !p.is_builtin() && !p.is_generic()) {
                     self.push_diagnostic(
                         Diagnostic::new(format!("`{}` is the name of a built-in function", pou.get_name()))
                             .with_error_code("E004")

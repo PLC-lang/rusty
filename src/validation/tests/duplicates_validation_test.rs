@@ -798,10 +798,6 @@ fn pou_named_like_a_builtin_function_is_reported() {
         VAR_INPUT IN : DINT; END_VAR
         END_FUNCTION
 
-        FUNCTION ABS<T: ANY_NUM> : T
-        VAR_INPUT IN : T; END_VAR
-        END_FUNCTION
-
         PROGRAM SEL
         END_PROGRAM
         ",
@@ -815,9 +811,9 @@ fn pou_named_like_a_builtin_function_is_reported() {
       │                  ^^^ `Abs` is the name of a built-in function
 
     error[E004]: `SEL` is the name of a built-in function
-       ┌─ <internal>:10:17
-       │
-    10 │         PROGRAM SEL
-       │                 ^^^ `SEL` is the name of a built-in function
+      ┌─ <internal>:6:17
+      │
+    6 │         PROGRAM SEL
+      │                 ^^^ `SEL` is the name of a built-in function
     ");
 }

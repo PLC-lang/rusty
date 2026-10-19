@@ -1,6 +1,5 @@
 // RUN: not %COMPILE %s --error-format clang 2>&1 | %CHECK %s
 // A POU that takes the name of a built-in function is rejected with a message that names the collision.
-// The generic ABS of the standard library is an overload of the built-in and is not reported.
 
 // CHECK: {{.*}}error[E004]: `ABS` is the name of a built-in function
 FUNCTION ABS : DINT
