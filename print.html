@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-7758bad8.js";
+            window.path_to_searchindex_js = "searchindex-fc5f7116.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-645c3480.js"></script>
@@ -451,7 +451,7 @@ END_PROGRAM
 FUNCTION main: DINT    (* error[E004]: main: Duplicate symbol. *)
 END_FUNCTION
 </code></pre>
-<p>A keyword cannot be a name, and because names are not case-sensitive, <code>type</code> is the keyword <code>TYPE</code>. The names of the <a href="#built-in-functions">built-in functions</a> are taken as well: a function of your own called <code>Add</code> collides with the built-in <code>ADD</code> and is rejected.</p>
+<p>A keyword cannot be a name, and because names are not case-sensitive, <code>type</code> is the keyword <code>TYPE</code>. The names of the <a href="#built-in-functions">built-in functions</a> are taken as well: a function of your own called <code>Add</code> collides with the built-in <code>ADD</code> and is rejected with <code>error[E004]: `Add` is the name of a built-in function</code>. Only a <a href="#generic-functions">generic function</a> of your own can share the name of a generic built-in function, because generic functions with the same name do not collide.</p>
 <p>Names that start with two underscores belong to the compiler. It generates names such as <code>__vtable_Pump</code> and <code>__PI_0_0</code>. It does not reject a name of yours with the same prefix, so a program that declares <code>__level</code> is accepted and only collides later, with a message that points somewhere else. Do not start a name with two underscores.</p>
 <h2 id="where-a-name-is-visible"><a class="header" href="#where-a-name-is-visible">Where a name is visible</a></h2>
 <p>A variable declared in a POU is visible in that POU and in its methods and actions. A variable declared in <code>VAR_GLOBAL</code> is visible in the whole project, without a declaration in the POU that uses it.</p>
@@ -5851,7 +5851,7 @@ END_FUNCTION
 </code></pre>
 <p>neither file is wrong on its own; the conflict only exists in the merged index. Global validation therefore runs once, before any unit is walked, and reads only the index. It checks that:</p>
 <ul>
-<li><strong>Names are unique</strong> within their group: callables, types, and global variables. Every declaration of a duplicate is reported, with the others as secondary locations. Built-in names such as <code>ADD</code> count too.</li>
+<li><strong>Names are unique</strong> within their group: callables, types, and global variables. Every declaration of a duplicate is reported, with the others as secondary locations. Only generic functions can share a name, as overloads; a cluster is reported when it holds a non-generic declaration. Built-in names such as <code>ADD</code> count too. A built-in declaration has no source to show, so such a collision is reported only at the user’s declaration, as the name of a built-in function.</li>
 <li><strong>Data structures are finite.</strong> A struct that contains itself by value, an alias chain that loops, or interfaces that extend each other are reported.</li>
 <li><strong>Template variables</strong> (<code>AT %I*</code>) are configured exactly once in a <code>VAR_CONFIG</code> block.</li>
 <li><strong>Overflowing constants</strong>, such as <code>TOO_BIG: SINT := 300</code>, are reported as a warning, with the reason the index stored.</li>
