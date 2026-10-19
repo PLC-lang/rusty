@@ -637,12 +637,13 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
 
     // Assert that the referenced type is no variable reference
     let qualifier = context.qualifier.unwrap_or_default();
+    let inner_ty_is_type = context.index.find_type(inner_ty_name).is_some();
     let inner_ty_is_local_var = context.index.find_member(qualifier, inner_ty_name).is_some();
     let inner_ty_is_global_var = context.index.find_global_variable(inner_ty_name).is_some();
 
-    if inner_ty_is_local_var || inner_ty_is_global_var {
+    if !inner_ty_is_type && (inner_ty_is_local_var || inner_ty_is_global_var) {
         validator.push_diagnostic(
-            Diagnostic::new("REFERENCE TO variables can not reference other variables")
+            Diagnostic::new(format!("`REFERENCE TO` expects a type, but `{inner_ty_name}` is a variable"))
                 .with_location(&variable_ty.location)
                 .with_error_code("E099"),
         );

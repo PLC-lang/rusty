@@ -51,6 +51,9 @@
 //! second `refInstanceA^.printName()` call. Lowering the call to `printName` would result in
 //! `printf('name = %s$N', ADR(__vtable_A#(THIS^.__vtable^).getName^(THIS^))`.
 //!
+//! Method calls within methods of a program are not lowered. A program cannot be extended, so each of its
+//! method calls has exactly one target and remains a direct call.
+//!
 //! # 2. Method calls through a pointer variable pointing to a class or function block
 //! Essentially what is illustrated in 1. within the main function, consider:
 //!
@@ -117,7 +120,7 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::Index,
+    index::{Index, PouIndexEntry},
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     typesystem::{DataType, DataTypeInformation},
 };
@@ -139,7 +142,7 @@ impl<'a> AstVisitorMut for PolymorphicCallLowerer<'a> {
 
         self.in_method_or_function_block = match &implementation.pou_type {
             PouType::FunctionBlock => Some(implementation.name.clone()),
-            PouType::Method { parent, .. } => Some(parent.clone()),
+            PouType::Method { parent, .. } if self.has_virtual_table(parent) => Some(parent.clone()),
             _ => None,
         };
 
@@ -174,7 +177,7 @@ impl<'a> AstVisitorMut for PolymorphicCallLowerer<'a> {
             parameters.walk(self);
         }
 
-        if !self.is_polymorphic_call_candidate(operator) {
+        if self.calls_into_program(operator) || !self.is_polymorphic_call_candidate(operator) {
             return;
         };
 
@@ -233,6 +236,23 @@ impl<'a> PolymorphicCallLowerer<'a> {
         for unit in units {
             self.visit_compilation_unit(unit);
         }
+    }
+
+    /// Returns true if the given POU is a function block or class, the only POUs with a virtual table.
+    fn has_virtual_table(&self, pou_name: &str) -> bool {
+        self.index.find_pou(pou_name).is_some_and(|pou| pou.is_function_block() || pou.is_class())
+    }
+
+    /// Returns true if the given call operator runs the body or a method of a program, e.g. `refProg()` or
+    /// `refProg.foo()`. A program has no virtual table, so these calls stay direct.
+    fn calls_into_program(&self, operator: &AstNode) -> bool {
+        let is_method = self.annotations.get_type(operator, self.index).is_some_and(DataType::is_method);
+        let instance = if is_method { operator.get_base_ref_expr() } else { Some(operator) };
+
+        instance
+            .and_then(|it| self.annotations.get_type(it, self.index))
+            .and_then(|ty| self.index.find_pou(ty.get_name()))
+            .is_some_and(PouIndexEntry::is_program)
     }
 
     /// Returns true if the given AST node is a candidate that needs to be lowered into a polymorphic call.
@@ -586,6 +606,77 @@ mod tests {
             "// Statements in B.bravo",
             "instanceA()",
             "instanceA.alpha()",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn method_calls_in_program_methods_are_untouched() {
+        let source = r#"
+            PROGRAM mainProg
+                METHOD alpha
+                    VAR_INPUT
+                        in1, in2: DINT;
+                    END_VAR
+                END_METHOD
+
+                METHOD bravo
+                    alpha(1, 2);
+                    alpha(in1 := 1, in2 := 2);
+                END_METHOD
+            END_PROGRAM
+        "#;
+
+        insta::assert_debug_snapshot!(lower_statements(source, &["mainProg.bravo"]), @r#"
+        [
+            "// Statements in mainProg.bravo",
+            "alpha(1, 2)",
+            "alpha(in1 := 1, in2 := 2)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn only_function_block_calls_through_program_reference_are_lowered() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD bravo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            PROGRAM mainProg
+                VAR_INPUT
+                    in: DINT;
+                END_VAR
+
+                VAR
+                    refA: REFERENCE TO A;
+                END_VAR
+
+                METHOD alpha
+                END_METHOD
+            END_PROGRAM
+
+            FUNCTION main
+                VAR
+                    refProg: REFERENCE TO mainProg;
+                END_VAR
+
+                refProg();
+                refProg(in := 1);
+                refProg.alpha();
+                refProg.refA.bravo();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__main_refProg__ctor(refProg)",
+            "refProg()",
+            "refProg(in := 1)",
+            "refProg.alpha()",
+            "__vtable_A#(refProg.refA.__vtable^).bravo^(A#(refProg.refA))",
         ]
         "#);
     }
