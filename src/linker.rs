@@ -491,14 +491,14 @@ impl LinkerInterface for CcLinker {
     }
 
     fn get_build_command(&self) -> Result<String, LinkerError> {
-        let linker_location = which(&self.linker)
-            .map_err(|e| LinkerError::Link(format!("{e} for linker: {}", &self.linker)))?;
+        let linker_location =
+            which(&self.linker).map_err(|e| LinkerError::Link(format!("{e} for linker: {}", self.linker)))?;
         Ok(format!("{} {}", linker_location.to_string_lossy(), self.command_args().join(" ")))
     }
 
     fn finalize(&mut self) -> Result<(), LinkerError> {
-        let linker_location = which(&self.linker)
-            .map_err(|e| LinkerError::Link(format!("{e} for linker: {}", &self.linker)))?;
+        let linker_location =
+            which(&self.linker).map_err(|e| LinkerError::Link(format!("{e} for linker: {}", self.linker)))?;
 
         log::debug!("Linker command : {}", self.get_build_command()?);
 
