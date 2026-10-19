@@ -835,11 +835,9 @@ fn get_operand_type<'idx>(
             let right = index.get_type(get_operand_type(right, scope, index)?.get_name()).ok()?;
             let l_intrinsic = index.get_intrinsic_type_information(left.get_type_information());
             let r_intrinsic = index.get_intrinsic_type_information(right.get_type_information());
-            if !(matches!(l_intrinsic, DataTypeInformation::Integer { .. })
-                && matches!(r_intrinsic, DataTypeInformation::Integer { .. })
-                && !l_intrinsic.is_bool()
-                && !r_intrinsic.is_bool())
-            {
+            let is_integer =
+                |it: &DataTypeInformation| matches!(it, DataTypeInformation::Integer { .. }) && !it.is_bool();
+            if !is_integer(l_intrinsic) || !is_integer(r_intrinsic) {
                 return None;
             }
             let floor = if left.is_bit() && right.is_bit() {
