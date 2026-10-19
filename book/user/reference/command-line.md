@@ -20,8 +20,9 @@ Most options are global, so they work with a subcommand as well. `plc -h` prints
 | `config diagnostics` | Print the severity of every diagnostic code |
 | `explain <code>` | Print the explanation of a diagnostic code |
 | `generate [plc.json] headers` | Generate C headers for a project |
+| `format <files>...` | Reformat Structured Text source files, see [Format File](format-file.md) |
 
-`config` prints JSON. `generate headers` accepts `--header-language`, where `c` is the implemented language, `--header-output`, and `--header-prefix`.
+`config` prints JSON. `generate headers` accepts `--header-language`, where `c` is the implemented language, `--header-output`, and `--header-prefix`. `format` accepts `--check` (report which files would change, write nothing, exit non-zero if any would), `--stdout` (write the formatted result to standard output instead of in place), `--config <file>` (use this configuration instead of discovering one), and `--dump-config` (print the effective configuration and exit).
 
 
 ## Input
