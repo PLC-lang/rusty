@@ -60,6 +60,11 @@ pub fn parse_file(
     }
 }
 
+// The text that the file's text locations point into, or `None` for a malformed file.
+pub fn declaration_text(source: &SourceCode) -> Option<String> {
+    Pou::parse(&source.source).ok().map(|pou| st::declaration(&pou))
+}
+
 pub fn transpile_file(
     source: &SourceCode,
     index: &Index,

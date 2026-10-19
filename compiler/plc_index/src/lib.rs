@@ -23,6 +23,10 @@ pub struct GlobalContext {
     /// the relative file path and the value some [`SourceCode`]
     sources: FxHashMap<&'static str, SourceCode>,
 
+    /// Text that slices read instead of a file's raw source, for files whose text locations point
+    /// into a derived text, e.g. a CFC file's locations point into its embedded declaration
+    texts: FxHashMap<&'static str, String>,
+
     /// [`IdProvider`] used during the parsing session
     provider: IdProvider,
     error_fmt: ErrorFormat,
@@ -90,9 +94,20 @@ impl GlobalContext {
         self.generate_external_constructors
     }
 
+    /// Registers the text that slices of the given file read instead of its raw source
+    pub fn register_text(&mut self, path: &'static str, text: String) {
+        self.texts.insert(path, text);
+    }
+
     /// Returns some [`SourceCode`] based on the given key
     pub fn get(&self, key: &str) -> Option<&SourceCode> {
         self.sources.get(key)
+    }
+
+    /// Returns the text that locations of the given file point into, i.e. its registered text if any,
+    /// otherwise its raw source
+    fn text(&self, path: &str) -> Option<&str> {
+        self.texts.get(path).or_else(|| self.sources.get(path).map(|code| &code.source)).map(String::as_str)
     }
 
     /// Returns an iterator over every registered CFC (XML) [`SourceCode`]
@@ -120,10 +135,10 @@ impl GlobalContext {
     pub fn slice_raw(&self, location: &SourceLocation) -> &str {
         let path = location.get_file_name().unwrap_or("<internal>");
 
-        let Some(code) = self.sources.get(path) else { return "" };
+        let Some(code) = self.text(path) else { return "" };
         let Some(span) = location.get_span().to_range() else { return "" };
 
-        &code.source[span]
+        &code[span]
     }
 
     // TODO: This is a proof-of-concept version how we could use the GlobalContext to handle
@@ -140,7 +155,7 @@ impl GlobalContext {
         //       (assume) we always have a valid file name and location
         let location = diagnostic.get_location();
         let name = location.get_file_name().unwrap_or("<internal>");
-        let Some(code) = &self.sources.get(name) else { return String::new() };
+        let Some(code) = self.text(name) else { return String::new() };
         let Some(location) = &diagnostic.get_location().get_span().to_range() else { return String::new() };
         let secondary_locations = diagnostic
             .get_secondary_locations()
@@ -150,7 +165,7 @@ impl GlobalContext {
             .map(|it| annotate_snippets::AnnotationKind::Context.span(it).label("see also"))
             .collect::<Vec<_>>();
 
-        let snippet = annotate_snippets::Snippet::source(&code.source)
+        let snippet = annotate_snippets::Snippet::source(code)
             .line_start(diagnostic.get_location().get_line())
             .path(name)
             .fold(true)
@@ -262,6 +277,31 @@ mod tests {
           |          --- see also
         1 |     bar := 1;
           |     ^^^ undefined variable `bar`
+        ");
+    }
+
+    #[test]
+    fn registered_text_replaces_raw_source() {
+        let input = SourceCode::from("<xml>FUNCTION foo</xml>");
+        let mut ctxt = GlobalContext::new();
+        ctxt.insert(&input, None).unwrap();
+        ctxt.register_text("<internal>", "FUNCTION foo".to_string());
+
+        let factory = SourceLocationFactory::default();
+        let location = factory.create_range(9..12);
+        assert_eq!(ctxt.slice(&location), "foo");
+
+        let diagnostic = plc_diagnostics::diagnostics::Diagnostic::new("invalid name")
+            .with_error_code("E001")
+            .with_location(location);
+
+        ctxt.with_error_fmt(crate::ErrorFormat::Null);
+        insta::assert_snapshot!(ctxt.handle_as_str(&diagnostic), @r"
+        error: invalid name
+         --> <internal>:0:10
+          |
+        0 | FUNCTION foo
+          |          ^^^ invalid name
         ");
     }
 }

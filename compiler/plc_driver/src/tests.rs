@@ -138,11 +138,11 @@ where
     let mut diagnostician = Diagnostician::null_diagnostician();
     //Create a project
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
-    let ctxt = GlobalContext::new()
+    let mut ctxt = GlobalContext::new()
         .with_source(project.get_sources(), None)?
         .with_source(project.get_includes(), None)?;
     //TODO: participants
-    pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
+    pipelines::ParsedProject::parse(&mut ctxt, &project, &mut diagnostician)?
         //Index
         .index(ctxt.provider())
         //Resolve

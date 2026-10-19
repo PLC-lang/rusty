@@ -79,7 +79,7 @@ flowchart LR
     style post_index fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
 ```
 
-The participant acts during parsing and at `post_index`. Parsing routes `.cfc`, `.fbd`, and `.xml` files to the CFC parser. It reads the XML and parses the text declaration, then returns a compilation unit with an empty body. This lets the index register the POU and its parameters before the network is converted.
+The participant acts during parsing and at `post_index`. Parsing routes `.cfc`, `.fbd`, and `.xml` files to the CFC parser. It reads the XML and parses the text declaration, then returns a compilation unit with an empty body. This lets the index register the POU and its parameters before the network is converted. The locations in the declaration are offsets into the declaration text, not into the XML file. The CFC parser registers this text with the diagnostician, so diagnostics show its lines. The driver also registers it with the global context, so names in validation messages are read from it.
 
 To build the body, the participant needs the index. A block's callee kind and output parameters determine which call and temporary variables it requires.
 
