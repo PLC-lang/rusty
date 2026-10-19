@@ -380,6 +380,10 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
             enum_not : DINT := NOT (ceb AND BYTE#255);
             rover : REAL := 3.5e38;
             kinf : DINT := rover;
+            typed_real : DINT := REAL#1.99999999;
+            typed_lreal : DINT := LREAL#1.99999999;
+            real_sum_neg : LREAL := -(REAL#16777216.0 + REAL#1.0);
+            real_sum_plus : LREAL := +(REAL#16777216.0 + REAL#1.0);
         END_VAR
         ",
     );
@@ -445,6 +449,12 @@ fn negated_constant_is_folded_in_the_type_of_the_negation() {
     debug_assert_eq!(&create_int_literal(-201), find_constant_value(&index, "sub_not").unwrap());
     debug_assert_eq!(&create_int_literal(-201), find_constant_value(&index, "enum_not").unwrap());
     debug_assert_eq!(&create_int_literal(0), find_constant_value(&index, "kinf").unwrap());
+    // a typed REAL literal holds REAL precision, so REAL#1.99999999 is 2.0; an LREAL stays exact;
+    // a sign over a REAL binary expression is computed in REAL, so the exact sum rounds
+    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "typed_real").unwrap());
+    debug_assert_eq!(&create_int_literal(1), find_constant_value(&index, "typed_lreal").unwrap());
+    debug_assert_eq!(&create_real_literal(-16777216.0), find_constant_value(&index, "real_sum_neg").unwrap());
+    debug_assert_eq!(&create_real_literal(16777216.0), find_constant_value(&index, "real_sum_plus").unwrap());
 }
 
 #[test]

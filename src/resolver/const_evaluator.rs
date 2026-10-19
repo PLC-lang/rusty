@@ -792,7 +792,8 @@ fn find_member_variable<'idx>(
 /// reference has its declared type, a cast literal the cast type, and a plain integer literal is a
 /// `DINT`, or a `LINT` when it does not fit. A subrange or an enum counts as its base type, a
 /// nested `-` as its widened type, and a nested `+` or `NOT` as its operand, since neither changes
-/// the width. A binary expression has the promoted type of its operands when both are known.
+/// the width. A binary expression has the promoted type of its operands when both are known, a
+/// real one when either side is real.
 /// Returns `None` for an operand whose type the evaluator cannot tell, such as a plain real literal.
 /// The type is the declared, effective one; see [`get_operand_intrinsic_type`] for its shape.
 fn get_operand_type<'idx>(
@@ -837,8 +838,14 @@ fn get_operand_type<'idx>(
             let r_intrinsic = index.get_intrinsic_type_information(right.get_type_information());
             let is_integer =
                 |it: &DataTypeInformation| matches!(it, DataTypeInformation::Integer { .. }) && !it.is_bool();
-            if !is_integer(l_intrinsic) || !is_integer(r_intrinsic) {
+            let is_number = |it: &DataTypeInformation| is_integer(it) || it.is_float();
+            if !is_number(l_intrinsic) || !is_number(r_intrinsic) {
                 return None;
+            }
+            if l_intrinsic.is_float() || r_intrinsic.is_float() {
+                // a real operand makes the expression real: REAL, or LREAL when either side is
+                // wider than 32 bits, which is the resolver's wider-type rule
+                return Some(get_bigger_type(left, right, index).get_type_information());
             }
             let floor = if left.is_bit() && right.is_bit() {
                 right
@@ -1070,7 +1077,7 @@ fn get_cast_statement_literal(
             Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")))
         }
 
-        Some(DataTypeInformation::Float { .. }) => {
+        Some(DataTypeInformation::Float { size, .. }) => {
             let evaluated = evaluate(cast_statement, scope, index, lhs)?;
             let value = match evaluated.as_ref().map(|it| it.get_stmt()) {
                 Some(AstStatement::Literal(AstLiteral::Integer(value))) => Some(*value as f64),
@@ -1087,6 +1094,8 @@ fn get_cast_statement_literal(
                     "cannot resolve constant: {type_name}#{cast_statement:?}"
                 )));
             };
+            // the literal holds the value in the precision of its type, `REAL#1.99999999` is 2.0
+            let value = if *size == 32 { value as f32 as f64 } else { value };
 
             Ok(AstNode::new(
                 AstStatement::Literal(AstLiteral::new_real(value.to_string())),

@@ -57,6 +57,11 @@ VAR_GLOBAL CONSTANT
     snot : DINT := NOT (csb AND BYTE#255);
     rover : REAL := 3.5e38;
     kinf : DINT := rover;
+    // a typed REAL literal holds REAL precision, and a sign over a REAL binary expression is
+    // computed in REAL
+    treal : DINT := REAL#1.99999999;
+    tlreal : DINT := LREAL#1.99999999;
+    rsum : LREAL := -(REAL#16777216.0 + REAL#1.0);
 END_VAR
 
 VAR_GLOBAL
@@ -103,4 +108,5 @@ FUNCTION main : DINT
     printf('%d %d$N', csubx, csubc);  // CHECK: 123456789 123456789
     printf('%d %d %d$N', xr, yr, bnot);  // CHECK: 16777216 16777216 55
     printf('%d %d$N', snot, kinf);  // CHECK: -201 0
+    printf('%d %d %.1f$N', treal, tlreal, rsum);  // CHECK: 2 1 -16777216.0
 END_FUNCTION

@@ -48,6 +48,8 @@ VAR_GLOBAL
     gxr : DINT := cr;
     gbnot : DINT := NOT (BYTE#200 AND BYTE#255);
     gbneg : LINT := -(cd + 0);
+    gtreal : DINT := REAL#1.99999999;
+    grsum : LREAL := -(REAL#16777216.0 + REAL#1.0);
     gf : LREAL := -c1;
     // a constant built from an unsigned constant keeps its value in the static data too, and a
     // negation into a narrower target is cut down to that target
@@ -83,6 +85,8 @@ END_PROGRAM
 // CHECK: @gxr = global i32 16777216
 // CHECK: @gbnot = global i32 55
 // CHECK: @gbneg = global i64 -2147483648
+// CHECK: @gtreal = global i32 2
+// CHECK: @grsum = global double 0xC170000000000000
 // CHECK: @gf = global double -2.000000e+02
 // CHECK: @gfu = global double 2.000000e+02
 // CHECK: @glu = global i64 200
