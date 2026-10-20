@@ -304,292 +304,6 @@ fn const_references_to_negative_reference() {
 }
 
 #[test]
-fn negated_constant_takes_the_type_of_the_negation() {
-    // GIVEN a USINT constant that is negated into a DINT, and the negation itself
-    let (unit, index) = index(
-        "VAR_GLOBAL CONSTANT
-            c1 : USINT := 200;
-            c3 : DINT := -c1;
-        END_VAR
-        ",
-    );
-
-    // WHEN compile-time evaluation is applied
-    let (index, unresolvable) = evaluate_constants(index);
-
-    // THEN c3 holds the widened value, and the folded literal carries the id of the negation, which
-    // the resolver annotates with the widened type, and not the id of c1's initializer
-    debug_assert_eq!(EMPTY, unresolvable);
-    let folded = find_constant_value(&index, "c3").unwrap();
-    debug_assert_eq!(&create_int_literal(-200), folded);
-    let negation = unit.global_vars[0].variables[1].initializer.as_ref().unwrap();
-    assert!(matches!(negation.get_stmt(), AstStatement::UnaryExpression(..)));
-    assert_eq!(negation.get_id(), folded.get_id());
-}
-
-#[test]
-fn negated_constant_is_folded_in_the_type_of_the_negation() {
-    // GIVEN negations whose exact value does not fit the type the negation is computed in, on
-    // plain constants, a subrange, enums, and nested unary operands
-    let (unit, index) = index(
-        "TYPE SRd : DINT(-2147483648..0); END_TYPE
-        TYPE ED : DINT (DA := -2147483648, DB := 0); END_TYPE
-        TYPE EL : LINT (LA := -9223372036854775808, LB := 0); END_TYPE
-        TYPE SB : BYTE(0..255); END_TYPE
-        TYPE EB : BYTE (BA := 200, BB := 255); END_TYPE
-        TYPE MyL : LREAL := 1.1 + 2.2; END_TYPE
-        TYPE MyJ : DINT := 1.99999999; END_TYPE
-        TYPE S : STRUCT x : LREAL; END_STRUCT END_TYPE
-        TYPE Outer : STRUCT inner : S; arr : ARRAY[0..1] OF LREAL; END_STRUCT END_TYPE
-        VAR_GLOBAL CONSTANT
-            cd : DINT := -2147483648;
-            cr : REAL := 16777217.0;
-            ci : INT := -32768;
-            csrd : SRd := -2147483648;
-            ced : ED := ED#DA;
-            cel : EL := EL#LA;
-            w : LINT := -cd;
-            r : LREAL := -cr;
-            m : DINT := -ci;
-            s : LINT := -csrd;
-            e : LINT := -ced;
-            el : LINT := -cel;
-            nn : LINT := -(-cd);
-            np : LINT := -(+cd);
-            c1 : USINT := 200;
-            nnot : DINT := -(NOT c1);
-            notnot : USINT := NOT (NOT c1);
-            cs : SINT := -128;
-            notneg : DINT := NOT (-cs);
-            cb : SINT := c1;
-            negnarrow : DINT := -cb;
-            notnarrow : DINT := NOT cb;
-            plusneg : INT := +(-cs);
-            plusreal : LREAL := +cr;
-            chain_c : DINT := cb;
-            chain_d : LINT := chain_c;
-            cfrac : DINT := 1.5;
-            negfrac : DINT := -cfrac;
-            plusfrac : DINT := +cfrac;
-            cmid : DINT := 3.0e9;
-            chuge : LINT := 1.0e40;
-            xr : DINT := cr;
-            yr : DINT := xr;
-            byte_not : DINT := NOT (BYTE#200 AND BYTE#255);
-            byte_neg : DINT := -(BYTE#200 AND BYTE#255);
-            dint_neg : LINT := -(cd + 0);
-            csb : SB := 200;
-            ceb : EB := EB#BA;
-            sub_not : DINT := NOT (csb AND BYTE#255);
-            enum_not : DINT := NOT (ceb AND BYTE#255);
-            rover : REAL := 3.5e38;
-            kinf : DINT := rover;
-            typed_real : DINT := REAL#1.99999999;
-            typed_lreal : DINT := LREAL#1.99999999;
-            real_sum_neg : LREAL := -(REAL#16777216.0 + REAL#1.0);
-            real_sum_plus : LREAL := +(REAL#16777216.0 + REAL#1.0);
-            plain_real : DINT := 1.99999999;
-            paren_real : DINT := (1.99999999);
-            neg_real : DINT := -(1.99999999);
-            lreal_const : LREAL := 1.99999999;
-            from_lreal : DINT := lreal_const;
-            neg_lreal : DINT := -lreal_const;
-            lreal_sum : LINT := LREAL#123456789.0 + 0.0;
-            real_sum_int : DINT := REAL#16777216.0 + REAL#1.0;
-            real_sum_lreal : LREAL := REAL#16777216.0 + REAL#1.0;
-            plain_sum : DINT := 1.99999999 + 0.0;
-            lit_sum : LREAL := 1.1 + 2.2;
-            lit_sum_real : REAL := 1.1 + 2.2;
-            wide_sum : DINT := REAL#1.0 + 16777217;
-            diff_sum : DINT := 2.9999999 - 1.0;
-            huge_sum : LREAL := 1.0e40 + 1.0;
-            huge_neg : LREAL := -(1.0e40);
-            pi_half : LREAL := 3.14159265358979 / 2.0;
-            nested : LREAL := 3.14159265358979 * 2.0 / 4.0;
-            nested_neg : LREAL := -(1.1 + 2.2);
-            listed : ARRAY[0..1] OF LREAL := [1.1 + 2.2, 1.1 + 2.2];
-            multiplied : ARRAY[0..1] OF LREAL := [2(1.1 + 2.2)];
-            type_default : MyL;
-            member : S := (x := 1.1 + 2.2);
-            int_default : MyJ;
-            outer : Outer := (inner := (x := 1.1 + 2.2), arr := [1.1 + 2.2, 1.1 + 2.2]);
-        END_VAR
-        ",
-    );
-
-    // WHEN compile-time evaluation is applied
-    let (index, unresolvable) = evaluate_constants(index);
-
-    // THEN the value wraps and rounds as the runtime expression does: the negation of the smallest
-    // DINT is computed in DINT and wraps, a REAL cannot hold 16777217, and the negation of the
-    // smallest INT is computed in DINT and fits
-    debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "w").unwrap());
-    debug_assert_eq!(&create_real_literal(-16777216.0), find_constant_value(&index, "r").unwrap());
-    debug_assert_eq!(&create_int_literal(32768), find_constant_value(&index, "m").unwrap());
-    // a subrange and an enum are computed in their base type, and a nested sign in the type of
-    // the innermost operand
-    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "s").unwrap());
-    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "e").unwrap());
-    debug_assert_eq!(&create_int_literal(-9223372036854775808), find_constant_value(&index, "el").unwrap());
-    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "nn").unwrap());
-    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "np").unwrap());
-    // NOT keeps the width of its operand, so NOT 200 on a USINT is 55 and its negation -55
-    debug_assert_eq!(&create_int_literal(-55), find_constant_value(&index, "nnot").unwrap());
-    debug_assert_eq!(&create_int_literal(200), find_constant_value(&index, "notnot").unwrap());
-    // a nested negation is computed in the widened DINT, so the NOT around it is as well
-    debug_assert_eq!(&create_int_literal(-129), find_constant_value(&index, "notneg").unwrap());
-    // a constant initialized from a wider constant keeps the raw value 200 in the store, but it is
-    // read as the SINT -56, so the operand is cut down to its own type before the operator
-    debug_assert_eq!(&create_int_literal(56), find_constant_value(&index, "negnarrow").unwrap());
-    debug_assert_eq!(&create_int_literal(55), find_constant_value(&index, "notnarrow").unwrap());
-    // a unary plus hands its operand's literal on with its own id, so the target's hint applies
-    let folded = find_constant_value(&index, "plusneg").unwrap();
-    debug_assert_eq!(&create_int_literal(128), folded);
-    let plus = unit.global_vars[0].variables.iter().find(|it| it.name == "plusneg").unwrap();
-    assert_eq!(plus.initializer.as_ref().unwrap().get_id(), folded.get_id());
-    // a unary plus reads a REAL operand with REAL precision, as the negation does
-    debug_assert_eq!(&create_real_literal(16777216.0), find_constant_value(&index, "plusreal").unwrap());
-    // a reference to an integer constant is read in the constant's type through any chain, and an
-    // integer constant initialized from a real holds the truncated integer
-    debug_assert_eq!(&create_int_literal(-56), find_constant_value(&index, "cb").unwrap());
-    debug_assert_eq!(&create_int_literal(-56), find_constant_value(&index, "chain_c").unwrap());
-    debug_assert_eq!(&create_int_literal(-56), find_constant_value(&index, "chain_d").unwrap());
-    debug_assert_eq!(&create_int_literal(-1), find_constant_value(&index, "negfrac").unwrap());
-    debug_assert_eq!(&create_int_literal(1), find_constant_value(&index, "plusfrac").unwrap());
-    // an integer constant initialized from a real holds the integer, truncated and cut down to
-    // its type, so that every read of the constant sees the same value
-    debug_assert_eq!(&create_int_literal(1), find_constant_value(&index, "cfrac").unwrap());
-    debug_assert_eq!(&create_int_literal(-1294967296), find_constant_value(&index, "cmid").unwrap());
-    // a real beyond any integer width is a multiple of every width, so it wraps to zero
-    debug_assert_eq!(&create_int_literal(0), find_constant_value(&index, "chuge").unwrap());
-    // a reference to a REAL constant is read with REAL precision, so the integer it is converted
-    // to and a copy of that integer agree
-    debug_assert_eq!(&create_int_literal(16777216), find_constant_value(&index, "xr").unwrap());
-    debug_assert_eq!(&create_int_literal(16777216), find_constant_value(&index, "yr").unwrap());
-    // a binary operand has the promoted type of its operands: two bit strings keep the wider bit
-    // string, integers promote to DINT, so the NOT and the sign wrap in that type
-    debug_assert_eq!(&create_int_literal(55), find_constant_value(&index, "byte_not").unwrap());
-    debug_assert_eq!(&create_int_literal(-200), find_constant_value(&index, "byte_neg").unwrap());
-    debug_assert_eq!(&create_int_literal(-2147483648), find_constant_value(&index, "dint_neg").unwrap());
-    // a subrange or an enum over a bit string has integer nature, so the resolver computes its
-    // binary expressions in UDINT and not in the bit string; a REAL beyond f32 range is infinite
-    // and counts as zero for an integer
-    debug_assert_eq!(&create_int_literal(-201), find_constant_value(&index, "sub_not").unwrap());
-    debug_assert_eq!(&create_int_literal(-201), find_constant_value(&index, "enum_not").unwrap());
-    debug_assert_eq!(&create_int_literal(0), find_constant_value(&index, "kinf").unwrap());
-    // a typed REAL literal holds REAL precision, so REAL#1.99999999 is 2.0; an LREAL stays exact;
-    // a sign over a REAL binary expression is computed in REAL, so the exact sum rounds
-    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "typed_real").unwrap());
-    debug_assert_eq!(&create_int_literal(1), find_constant_value(&index, "typed_lreal").unwrap());
-    debug_assert_eq!(&create_real_literal(-16777216.0), find_constant_value(&index, "real_sum_neg").unwrap());
-    debug_assert_eq!(&create_real_literal(16777216.0), find_constant_value(&index, "real_sum_plus").unwrap());
-    // a plain real literal is a REAL, as the resolver types it, so it is rounded through REAL
-    // before an integer target truncates it, plain, in parentheses and under a sign; an LREAL
-    // constant keeps its exact value and truncates to 1
-    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "plain_real").unwrap());
-    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "paren_real").unwrap());
-    debug_assert_eq!(&create_int_literal(-2), find_constant_value(&index, "neg_real").unwrap());
-    debug_assert_eq!(&create_int_literal(1), find_constant_value(&index, "from_lreal").unwrap());
-    // a value the evaluator folded itself is checked against the target, not rounded like a source
-    // literal: an LREAL result keeps its precision
-    debug_assert_eq!(&create_int_literal(-1), find_constant_value(&index, "neg_lreal").unwrap());
-    debug_assert_eq!(&create_int_literal(123456789), find_constant_value(&index, "lreal_sum").unwrap());
-    // a binary expression of REAL operands is folded in REAL, so the exact sum rounds before any
-    // target sees it, as the body computes it
-    debug_assert_eq!(&create_int_literal(16777216), find_constant_value(&index, "real_sum_int").unwrap());
-    debug_assert_eq!(
-        &create_real_literal(16777216.0),
-        find_constant_value(&index, "real_sum_lreal").unwrap()
-    );
-    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "plain_sum").unwrap());
-    // a plain real literal has the type the resolver gives it: the target's float type in a float
-    // initializer, otherwise REAL when it fits a finite f32 and LREAL when it does not. An LREAL
-    // initializer therefore keeps its precision, a REAL one computes in REAL with every operand a
-    // REAL first, and an integer target sees REAL arithmetic as the body does
-    debug_assert_eq!(&create_real_literal(1.1 + 2.2), find_constant_value(&index, "lit_sum").unwrap());
-    debug_assert_eq!(
-        &create_real_literal((1.1f32 + 2.2f32) as f64),
-        find_constant_value(&index, "lit_sum_real").unwrap()
-    );
-    debug_assert_eq!(&create_int_literal(16777216), find_constant_value(&index, "wide_sum").unwrap());
-    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "diff_sum").unwrap());
-    debug_assert_eq!(&create_real_literal(1.0e40 + 1.0), find_constant_value(&index, "huge_sum").unwrap());
-    debug_assert_eq!(&create_real_literal(-1.0e40), find_constant_value(&index, "huge_neg").unwrap());
-    debug_assert_eq!(
-        &create_real_literal(3.14159265358979 / 2.0),
-        find_constant_value(&index, "pi_half").unwrap()
-    );
-    // the declared float type reaches every literal of the initializer: nested operands, both
-    // spellings of an array literal, a type default and a struct member assignment
-    debug_assert_eq!(
-        &create_real_literal(3.14159265358979 * 2.0 / 4.0),
-        find_constant_value(&index, "nested").unwrap()
-    );
-    debug_assert_eq!(&create_real_literal(-(1.1 + 2.2)), find_constant_value(&index, "nested_neg").unwrap());
-    let exact = format!("{:}", 1.1 + 2.2);
-    for name in ["listed", "multiplied", "type_default", "member", "outer"] {
-        let folded = format!("{:?}", find_constant_value(&index, name).unwrap());
-        assert!(folded.contains(&exact), "{name} does not hold the exact sum: {folded}");
-        assert!(!folded.contains("3.3000001907"), "{name} holds the REAL sum: {folded}");
-    }
-    // the default of a type is its initializer as the type's own constant expression folds it
-    debug_assert_eq!(&create_int_literal(2), find_constant_value(&index, "int_default").unwrap());
-}
-
-#[test]
-fn negated_constant_is_cut_down_to_a_narrower_target() {
-    // GIVEN negations into targets that cannot hold the value of the negation
-    let (_, index) = index(
-        "VAR_GLOBAL CONSTANT
-            c1 : USINT := 200;
-            cd : DINT := -2147483648;
-            c2 : SINT := -c1;
-            cud : UDINT := -cd;
-            csn : SINT := NOT c1;
-        END_VAR
-        ",
-    );
-
-    // WHEN compile-time evaluation is applied
-    let (index, unresolvable) = evaluate_constants(index);
-
-    // THEN the value is cut down to the target as an assignment in a body does it, so that the
-    // initializer resolves; the validator reports the implicit downcast on the operand
-    debug_assert_eq!(EMPTY, unresolvable);
-    debug_assert_eq!(&create_int_literal(56), find_constant_value(&index, "c2").unwrap());
-    debug_assert_eq!(&create_int_literal(2147483648), find_constant_value(&index, "cud").unwrap());
-    debug_assert_eq!(&create_int_literal(55), find_constant_value(&index, "csn").unwrap());
-}
-
-#[test]
-fn negated_constant_into_a_bool_is_reported_as_an_overflow() {
-    // GIVEN BOOLs initialized with the negation and the NOT of a USINT constant
-    let (_, index) = index(
-        "VAR_GLOBAL CONSTANT
-            c1 : USINT := 200;
-            cb : BOOL := -c1;
-            cn : BOOL := NOT c1;
-        END_VAR
-        ",
-    );
-
-    // WHEN compile-time evaluation is applied
-    let (index, unresolvable) = evaluate_constants(index);
-
-    // THEN the values are not cut down to the single bit of a BOOL, the range check reports them
-    for (name, reported) in [("cb", &unresolvable[0]), ("cn", &unresolvable[1])] {
-        let expected =
-            UnresolvableConstant::new(global!(index, name), "").with_kind(UnresolvableKind::Overflow(
-                "This will overflow for type BOOL".into(),
-                SourceLocation::undefined(),
-            ));
-        debug_assert_eq!(expected.id, reported.id);
-        debug_assert_eq!(expected.get_reason(), reported.get_reason());
-    }
-}
-
-#[test]
 fn const_references_to_int_additions_compile_time_evaluation() {
     // GIVEN some INT index used as initializers
     let (_, index) = index(
@@ -809,8 +523,6 @@ fn const_references_int_float_type_behavior_evaluation() {
     let (index, _) = evaluate_constants(index);
 
     // THEN some type mixed comparisons could not be resolved (note that real == real or real <> real also dont work)
-    // A binary expression with a real side is folded in its promoted type, REAL here: every operand
-    // is a REAL first and the operation is carried out in REAL, which is what the body computes.
     let mut expected = vec![
         "real_eq_real",
         "real_neq_real",
@@ -860,68 +572,26 @@ fn const_references_int_float_type_behavior_evaluation() {
     debug_assert_eq!(&create_bool_literal(false), find_constant_value(&index, "int_l_int").unwrap());
     debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "int_le_int").unwrap());
     // INT - REAL
-    debug_assert_eq!(
-        &create_real_literal((4.1f32) as f64),
-        find_constant_value(&index, "int_plus_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((3.0f32 - 1.1f32) as f64),
-        find_constant_value(&index, "int_minus_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((3.0f32 * 1.1f32) as f64),
-        find_constant_value(&index, "int_mul_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((5.0f32 / 2.1f32) as f64),
-        find_constant_value(&index, "int_div_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((5.0f32 % 2.1f32) as f64),
-        find_constant_value(&index, "int_mod_real").unwrap()
-    );
+    debug_assert_eq!(&create_real_literal(4.1), find_constant_value(&index, "int_plus_real").unwrap());
+    debug_assert_eq!(&create_real_literal(3.0 - 1.1), find_constant_value(&index, "int_minus_real").unwrap());
+    debug_assert_eq!(&create_real_literal(3.0 * 1.1), find_constant_value(&index, "int_mul_real").unwrap());
+    debug_assert_eq!(&create_real_literal(5.0 / 2.1), find_constant_value(&index, "int_div_real").unwrap());
+    debug_assert_eq!(&create_real_literal(5.0 % 2.1), find_constant_value(&index, "int_mod_real").unwrap());
     // REAL - INT
-    debug_assert_eq!(
-        &create_real_literal((4.3f32) as f64),
-        find_constant_value(&index, "real_plus_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((2.3f32) as f64),
-        find_constant_value(&index, "real_minus_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((6.6f32) as f64),
-        find_constant_value(&index, "real_mul_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((5.2f32 / 2.0f32) as f64),
-        find_constant_value(&index, "real_div_int").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((5.2f32 % 2.0f32) as f64),
-        find_constant_value(&index, "real_mod_int").unwrap()
-    );
+    debug_assert_eq!(&create_real_literal(4.3), find_constant_value(&index, "real_plus_int").unwrap());
+    debug_assert_eq!(&create_real_literal(2.3), find_constant_value(&index, "real_minus_int").unwrap());
+    debug_assert_eq!(&create_real_literal(6.6), find_constant_value(&index, "real_mul_int").unwrap());
+    debug_assert_eq!(&create_real_literal(5.2 / 2.0), find_constant_value(&index, "real_div_int").unwrap());
+    debug_assert_eq!(&create_real_literal(5.2 % 2.0), find_constant_value(&index, "real_mod_int").unwrap());
     // REAL - REAL
+    debug_assert_eq!(&create_real_literal(4.4), find_constant_value(&index, "real_plus_real").unwrap());
     debug_assert_eq!(
-        &create_real_literal((4.4f32) as f64),
-        find_constant_value(&index, "real_plus_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((3.3f32 - 1.1f32) as f64),
+        &create_real_literal(3.3 - 1.1),
         find_constant_value(&index, "real_minus_real").unwrap()
     );
-    debug_assert_eq!(
-        &create_real_literal((3.3f32 * 1.1f32) as f64),
-        find_constant_value(&index, "real_mul_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((5.3f32 / 2.1f32) as f64),
-        find_constant_value(&index, "real_div_real").unwrap()
-    );
-    debug_assert_eq!(
-        &create_real_literal((5.3f32 % 2.1f32) as f64),
-        find_constant_value(&index, "real_mod_real").unwrap()
-    );
+    debug_assert_eq!(&create_real_literal(3.3 * 1.1), find_constant_value(&index, "real_mul_real").unwrap());
+    debug_assert_eq!(&create_real_literal(5.3 / 2.1), find_constant_value(&index, "real_div_real").unwrap());
+    debug_assert_eq!(&create_real_literal(5.3 % 2.1), find_constant_value(&index, "real_mod_real").unwrap());
     // BOOL - BOOL
     debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "bool_and_bool").unwrap());
     debug_assert_eq!(&create_bool_literal(true), find_constant_value(&index, "bool_or_bool").unwrap());

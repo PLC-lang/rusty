@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use plc_ast::{
     ast::{
         AstFactory, AstId, AstNode, AstStatement, BinaryExpression, MultipliedStatement, Operator,
-        ReferenceAccess, ReferenceExpr, TypeNature, UnaryExpression,
+        ReferenceAccess, ReferenceExpr, UnaryExpression,
     },
     literals::{Array, AstLiteral, StringValue},
 };
@@ -15,10 +15,7 @@ use crate::{
         const_expressions::{ConstExpression, ConstId, InitData, UnresolvableKind},
         Index, VariableIndexEntry,
     },
-    typesystem::{
-        get_bigger_type, get_signed_type, DataType, DataTypeInformation, StringEncoding, DINT_TYPE,
-        LINT_TYPE, LREAL_TYPE, REAL_TYPE, UDINT_TYPE, VOID_TYPE,
-    },
+    typesystem::{DataType, DataTypeInformation, StringEncoding, VOID_TYPE},
 };
 
 /// a wrapper for an unresolvable const-expression with the reason
@@ -261,15 +258,7 @@ fn get_default_initializer(
     location: &SourceLocation,
 ) -> Result<Option<AstNode>, UnresolvableKind> {
     if let Some(init) = index.get_initial_value_for_type(target_type) {
-        // the default of a type is its initializer as the type's own constant expression folds it,
-        // with the type as the target; while that expression is not resolved yet, the default is
-        // not resolvable yet either and is tried again later. An unresolvable one is evaluated here
-        // as before, so that it is reported once.
-        match index.find_initial_value_expression_for_type(target_type) {
-            Some(ConstExpression::Resolved(statement)) => Ok(Some(statement.clone())),
-            Some(ConstExpression::Unresolved { .. }) => Ok(None),
-            _ => evaluate(init, None, index, None), //TODO do we ave a scope here?
-        }
+        evaluate(init, None, index, None) //TODO do we ave a scope here?
     } else {
         let dt = index.get_type_information_or_void(target_type);
         let init = match dt {
@@ -319,19 +308,6 @@ fn cast_if_necessary(statement: AstNode, target_type_name: &Option<&str>, index:
         match literal {
             AstLiteral::Integer(value) if dti.is_float() => {
                 return AstNode::new_real(value.to_string(), id, location)
-            }
-
-            // an integer target holds the integer the real is converted to at run time, truncated
-            // toward zero and cut down to the target's range, so that the static data and every
-            // read of the constant agree
-            AstLiteral::Real(value) => {
-                let intrinsic = index.get_intrinsic_type_information(dti);
-                if matches!(intrinsic, DataTypeInformation::Integer { .. }) && !intrinsic.is_bool() {
-                    if let Some(integer) = value.parse::<f64>().ok().and_then(real_to_integer) {
-                        let integer = wrap_to_type(integer, intrinsic);
-                        return AstFactory::create_literal(AstLiteral::Integer(integer), location, id);
-                    }
-                }
             }
 
             AstLiteral::String(StringValue { value, is_wide: true }) if dti.is_string_utf8() => {
@@ -461,25 +437,6 @@ fn evaluate_with_target_hint(
                     ));
                 }
 
-                // a plain real literal that fits a REAL is a REAL, as the resolver types it, so an
-                // integer target sees it rounded to REAL precision before the conversion, like the
-                // assignment in a body: `d : DINT := 1.99999999` is 2
-                if let (AstLiteral::Real(value), Some(dti)) = (kind, dti) {
-                    let intrinsic = index.get_intrinsic_type_information(dti);
-                    if matches!(intrinsic, DataTypeInformation::Integer { .. })
-                        && real_literal_type(value) == REAL_TYPE
-                    {
-                        if let Ok(real) = value.parse::<f64>() {
-                            let real = real as f32 as f64;
-                            return Ok(Some(AstNode::new(
-                                AstStatement::Literal(AstLiteral::new_real(format!("{real:}"))),
-                                id,
-                                location,
-                            )));
-                        }
-                    }
-                }
-
                 return Ok(Some(initial.clone()));
             }
 
@@ -527,27 +484,16 @@ fn evaluate_with_target_hint(
         }
         AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
             if let Some(name) = reference.get_flat_reference_name() {
-                let variable = find_member_variable(base.as_deref(), name, scope, index);
-                let resolved = variable
+                find_member_variable(base.as_deref(), name, scope, index)
                     .map(|variable| resolve_const_reference(variable, name, index, target_type, scope, lhs))
                     .transpose()?
-                    .flatten();
-                match (resolved, variable) {
-                    (Some(resolved), Some(variable)) => {
-                        read_constant(resolved, variable, target_type, index, id, location)
-                    }
-                    (resolved, _) => resolved,
-                }
+                    .flatten()
             } else {
                 None
             }
         }
         AstStatement::BinaryExpression(BinaryExpression { left, right, operator }) => {
-            // the declared float type reaches every literal of the initializer, as the resolver's
-            // left-hand-side context does; an integer target is not handed down, the operands
-            // would be cut down and range-checked where only the result must be
-            let operand_target = float_target(target_type, index);
-            let eval_left = evaluate_with_target_hint(left, scope, index, operand_target, lhs)?;
+            let eval_left = evaluate(left, scope, index, lhs)?;
 
             // Short-circuit on a known boolean LHS — applies equally to AND/AND_THEN
             // and OR/OR_ELSE. Side-stepping the RHS in const-eval prevents spurious
@@ -564,24 +510,9 @@ fn evaluate_with_target_hint(
                 }
             }
 
-            let eval_right = evaluate_with_target_hint(right, scope, index, operand_target, lhs)?;
+            let eval_right = evaluate(right, scope, index, lhs)?;
 
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
-                // an expression computed in REAL converts each operand to REAL first, as the body
-                // does, so a plain real literal and a wide integer are rounded before the operation;
-                // the single rounding of the result below is then exact
-                let computed_in_real = matches!(
-                    get_operand_type(initial, scope, index, target_type),
-                    Some(DataTypeInformation::Float { size: 32, .. })
-                );
-                let (left_real, right_real);
-                let (left, right) = if computed_in_real {
-                    left_real = as_real_operand(left);
-                    right_real = as_real_operand(right);
-                    (&left_real, &right_real)
-                } else {
-                    (left, right)
-                };
                 let evalualted = match operator {
                     Operator::Plus => arithmetic_expression!(left, +, right, "+", id)?,
                     Operator::Minus => arithmetic_expression!(left, -, right, "-", id)?,
@@ -614,52 +545,26 @@ fn evaluate_with_target_hint(
                     }
                 };
 
-                // a real result is folded in the promoted type of the operands, so a sum of REALs
-                // rounds to REAL as the body computes it; an integer result stays exact
-                let rounded = if let (
-                    AstStatement::Literal(AstLiteral::Real(v)),
-                    Some(DataTypeInformation::Float { size: 32, .. }),
-                ) =
-                    (evalualted.get_stmt(), get_operand_type(initial, scope, index, target_type))
-                {
-                    v.parse::<f64>().ok().map(|real| {
-                        AstNode::new(
-                            AstStatement::Literal(AstLiteral::new_real(format!("{:}", real as f32 as f64))),
-                            evalualted.get_id(),
-                            evalualted.get_location(),
-                        )
-                    })
-                } else {
-                    None
-                };
-                let evalualted = rounded.unwrap_or(evalualted);
-
-                // the result is checked against the target, an integer that does not fit is an overflow
-                check_target(evalualted, target_type, index)?
+                // We have to re-evaluate to detect overflows
+                evaluate_with_target_hint(&evalualted, scope, index, target_type, lhs)?
             } else {
                 None //not all operators can be resolved
             }
         }
 
         // NOT x
-        // The folded literal carries the id and location of the `NOT`, see the `Minus` arm below.
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Not, value }) => {
-            let eval = evaluate_with_target_hint(value, scope, index, float_target(target_type, index), lhs)?;
+            let eval = evaluate(value, scope, index, lhs)?;
 
             match eval.as_ref() {
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), .. }) => {
-                    Some(AstFactory::create_literal(AstLiteral::Bool(!v), location, id))
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), id, location, .. }) => {
+                    Some(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), *id))
                 }
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
-                    // the operand is read in its own type, and `NOT` keeps that width, so both the
-                    // operand and the result wrap to the operand's type
-                    let operand_type = get_operand_intrinsic_type(value, scope, index, target_type);
-                    let v = operand_type.map_or(*v, |it| wrap_to_type(*v, it));
-                    let v = operand_type.map_or(!v, |it| wrap_to_type(!v, it));
-                    let v = cut_down_to_target(v, target_type, index);
-                    let lit = AstFactory::create_literal(AstLiteral::Integer(v), location, id);
-                    // the result is checked against a target the cut-down leaves alone, such as BOOL
-                    check_target(lit, target_type, index)?
+                Some(AstNode {
+                    stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
+                }) => {
+                    evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type, lhs)?;
+                    Some(AstFactory::create_literal(AstLiteral::Integer(!v), location.clone(), *id))
                 }
                 None => {
                     None //not yet resolvable
@@ -668,43 +573,22 @@ fn evaluate_with_target_hint(
             }
         }
         // - x
-        // The folded literal carries the id and location of the negation, not of the value it came
-        // from: a constant reference resolves to a clone of the constant's initializer, whose id is
-        // annotated with the constant's type, and the negation is annotated with the widened type the
-        // resolver gave it. With the id of the value, `-c` on a USINT constant would be generated in
-        // 8 bits and wrap.
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
-            // the value is folded in the type the negation is computed in, so that it wraps and
-            // rounds as the runtime expression does, before it is checked against the target
-            let negation_type = get_negation_type(value, scope, index, target_type);
-            match evaluate_with_target_hint(value, scope, index, float_target(target_type, index), lhs)? {
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
-                    // the operand is read in its own type: a constant initialized from a wider
-                    // constant keeps the raw value in the store, `b : SINT := a` with a USINT 200
-                    // holds 200 there but is -56 wherever it is read
-                    let v = get_operand_intrinsic_type(value, scope, index, target_type)
-                        .map_or(v, |it| wrap_to_type(v, it));
-                    let v = negation_type.map_or(-v, |it| wrap_to_type(-v, it));
-                    // an integer target cuts the value down as the assignment at run time does, so
-                    // the initializer resolves; the validator reports the implicit downcast
-                    let v = cut_down_to_target(v, target_type, index);
-                    let lit = AstNode::new(AstStatement::Literal(AstLiteral::Integer(v)), id, location);
-                    // the result is checked against a target the cut-down leaves alone, such as BOOL
-                    check_target(lit, target_type, index)?
-                }
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), .. }) => {
-                    let v =
-                        -(v.parse::<f64>()).map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?;
-                    let v = match negation_type {
-                        Some(DataTypeInformation::Float { size: 32, .. }) => v as f32 as f64,
-                        _ => v,
-                    };
+            match evaluate(value, scope, index, lhs)? {
+                Some(AstNode {
+                    stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
+                }) => Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location)),
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), id, location, .. }) => {
                     let lit = AstNode::new(
-                        AstStatement::Literal(AstLiteral::new_real(format!("{v:}"))),
+                        AstStatement::Literal(AstLiteral::new_real(format!(
+                            "{:}",
+                            -(v.parse::<f64>())
+                                .map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?
+                        ))),
                         id,
                         location,
                     );
-                    check_target(lit, target_type, index)?
+                    evaluate_with_target_hint(&lit, scope, index, target_type, lhs)?
                 }
                 None => {
                     None //not yet resolvable
@@ -712,42 +596,13 @@ fn evaluate_with_target_hint(
                 _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant Minus {value:?}"))),
             }
         }
-        // + x
-        // The literal is handed on with the id and location of the `+`, so that the hint of the
-        // target applies to it; the inner literal may carry the id of a widened negation.
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Plus, value }) => {
-            match evaluate_with_target_hint(value, scope, index, float_target(target_type, index), lhs)? {
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), .. }) => {
-                    // the operand is read in its own type, and the value is cut down to an integer
-                    // target as the assignment at run time does, like a negation
-                    let v = get_operand_intrinsic_type(value, scope, index, target_type)
-                        .map_or(v, |it| wrap_to_type(v, it));
-                    let v = cut_down_to_target(v, target_type, index);
-                    let lit = AstNode::new(AstStatement::Literal(AstLiteral::Integer(v)), id, location);
-                    check_target(lit, target_type, index)?
-                }
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), .. }) => {
-                    // a REAL operand is read with REAL precision, as the negation reads it
-                    let v =
-                        v.parse::<f64>().map_err(|err| UnresolvableKind::Misc(format!("{err:}: {v:}")))?;
-                    let v = match get_operand_intrinsic_type(value, scope, index, target_type) {
-                        Some(DataTypeInformation::Float { size: 32, .. }) => v as f32 as f64,
-                        _ => v,
-                    };
-                    let lit = AstNode::new(
-                        AstStatement::Literal(AstLiteral::new_real(format!("{v:}"))),
-                        id,
-                        location,
-                    );
-                    check_target(lit, target_type, index)?
-                }
-                other => other,
-            }
+            evaluate(value, scope, index, lhs)?
         }
         AstStatement::ExpressionList(expressions) => {
             let inner_elements = expressions
                 .iter()
-                .map(|e| evaluate_with_target_hint(e, scope, index, target_type, lhs))
+                .map(|e| evaluate(e, scope, index, lhs))
                 .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
                 .into_iter()
                 .collect::<Option<Vec<AstNode>>>();
@@ -756,15 +611,9 @@ fn evaluate_with_target_hint(
             inner_elements.map(|ie| AstNode::new(AstStatement::ExpressionList(ie), id, location))
         }
         AstStatement::MultipliedStatement(MultipliedStatement { element, multiplier }) => {
-            // a parenthesized entry keeps its parentheses, as in the array arm, so that several
-            // structs in one multiplied element stay several structs
             let inner_elements = AstNode::get_as_list(element.as_ref())
                 .iter()
-                .map(|e| {
-                    evaluate_with_target_hint(e, scope, index, target_type, lhs).map(|folded| {
-                        folded.map(|it| restore_struct_reference_parens(e, restore_element_parens(e, it)))
-                    })
-                })
+                .map(|e| evaluate(e, scope, index, lhs))
                 .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
                 .into_iter()
                 .collect::<Option<Vec<AstNode>>>();
@@ -784,21 +633,8 @@ fn evaluate_with_target_hint(
             })
         }
         AstStatement::Assignment(data) => {
-            // the right side sees the member's type, as a variable initializer sees the variable's:
-            // a nested struct or array hands it on to the literals inside, a float member makes
-            // them that float, an integer member is range-checked
-            let member_target = target_type
-                .and_then(|it| index.find_effective_type_info(it))
-                .and_then(|it| match it {
-                    DataTypeInformation::Struct { name, .. } => {
-                        data.left.get_flat_reference_name().map(|m| (name, m))
-                    }
-                    _ => None,
-                })
-                .and_then(|(qualifier, member)| index.find_member(qualifier, member))
-                .map(|member| member.get_type_name());
             //Right needs evaluation
-            match evaluate_with_target_hint(&data.right, scope, index, member_target, lhs) {
+            match evaluate(&data.right, scope, index, lhs) {
                 Ok(Some(value)) => Ok(Some(AstFactory::create_assignment(*data.left.clone(), value, id))),
                 Ok(None) => Ok(Some(initial.clone())),
                 Err(UnresolvableKind::Address(mut init)) => {
@@ -848,23 +684,6 @@ fn evaluate_with_target_hint(
 /// Folding drops parentheses, but inside an array literal they mark an element as a struct
 /// initializer, e.g. `[(a := 1, b := 2)]` against `[a, b]`. Restores the wrapper on every
 /// element that was declared with one.
-/// A struct constant folds to its bare member assignments, which in a multiplied element look like
-/// the member list of one struct literal: `2(ca, cb)` would read as `2((a := 1, b := 2))`. An entry
-/// written as a reference that folds to member assignments is therefore wrapped in parentheses, the
-/// marker a written struct literal keeps, so that it stays one struct.
-fn restore_struct_reference_parens(raw: &AstNode, folded: AstNode) -> AstNode {
-    let is_reference = matches!(raw.get_stmt(), AstStatement::ReferenceExpr(..));
-    let is_member_assignments = match folded.get_stmt() {
-        AstStatement::Assignment(..) => true,
-        AstStatement::ExpressionList(expressions) => expressions.iter().all(|it| it.is_assignment()),
-        _ => false,
-    };
-    if is_reference && is_member_assignments {
-        return AstFactory::create_paren_expression(folded, raw.get_location(), raw.get_id());
-    }
-    folded
-}
-
 fn restore_element_parens(raw: &AstNode, folded: AstNode) -> AstNode {
     if raw.is_paren() && !folded.is_paren() {
         return AstFactory::create_paren_expression(folded, raw.get_location(), raw.get_id());
@@ -888,276 +707,6 @@ fn find_member_variable<'idx>(
         segments.push(name);
         index.find_variable(scope, &segments).filter(|it| it.is_constant())
     })
-}
-
-/// The type of the operand of a unary expression, the way the resolver sees it: a constant
-/// reference has its declared type, a cast literal the cast type, and a plain integer literal is a
-/// `DINT`, or a `LINT` when it does not fit, and a plain real literal has the declared float type in
-/// a float initializer and otherwise `REAL`, or `LREAL` when it does not fit. A subrange or an
-/// enum counts as its base type, a
-/// nested `-` as its widened type, and a nested `+` or `NOT` as its operand, since neither changes
-/// the width. A binary expression has the promoted type of its operands when both are known, a
-/// real one when either side is real.
-/// Returns `None` for an operand whose type the evaluator cannot tell, such as a string.
-/// The type is the declared, effective one; see [`get_operand_intrinsic_type`] for its shape.
-fn get_operand_type<'idx>(
-    value: &AstNode,
-    scope: Option<&str>,
-    index: &'idx Index,
-    target_type: Option<&str>,
-) -> Option<&'idx DataTypeInformation> {
-    let operand_type = match value.get_stmt_peeled() {
-        // a nested negation is computed in its widened type, a plus or a NOT keeps the width
-        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
-            return get_negation_type(value, scope, index, target_type)
-        }
-        AstStatement::UnaryExpression(UnaryExpression {
-            operator: Operator::Plus | Operator::Not,
-            value,
-        }) => return get_operand_type(value, scope, index, target_type),
-        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(reference), base }) => {
-            let variable =
-                find_member_variable(base.as_deref(), reference.get_flat_reference_name()?, scope, index)?;
-            index.find_effective_type_info(variable.get_type_name())?
-        }
-        AstStatement::ReferenceExpr(ReferenceExpr {
-            access: ReferenceAccess::Cast(_),
-            base: Some(type_name),
-        }) => index.find_effective_type_info(type_name.get_flat_reference_name()?)?,
-        AstStatement::Literal(AstLiteral::Integer(v)) => {
-            let name = if i32::try_from(*v).is_ok() { DINT_TYPE } else { LINT_TYPE };
-            index.find_effective_type_info(name)?
-        }
-        // a plain real literal has the type the resolver gives it: the declared float type in a
-        // float initializer, otherwise REAL when it fits a finite f32 and LREAL when it does not
-        AstStatement::Literal(AstLiteral::Real(value)) => {
-            let target = target_type
-                .and_then(|it| index.find_effective_type_info(it))
-                .map(|it| index.get_intrinsic_type_information(it));
-            match target {
-                Some(float @ DataTypeInformation::Float { .. }) => float,
-                _ => index.find_effective_type_info(real_literal_type(value))?,
-            }
-        }
-        // a binary expression has the promoted type of its operands, the rule the resolver
-        // applies: two bit strings keep the wider bit string, two unsigned integers promote to
-        // at least UDINT, anything else to at least DINT; an operand of another class or of
-        // unknown type leaves the type unknown
-        AstStatement::BinaryExpression(BinaryExpression { left, right, operator })
-            if !operator.is_comparison_operator() =>
-        {
-            // the declared types decide, as in the resolver: a subrange or an enum over a bit
-            // string has integer nature and is no bit string here
-            let left = index.get_type(get_operand_type(left, scope, index, target_type)?.get_name()).ok()?;
-            let right =
-                index.get_type(get_operand_type(right, scope, index, target_type)?.get_name()).ok()?;
-            let l_intrinsic = index.get_intrinsic_type_information(left.get_type_information());
-            let r_intrinsic = index.get_intrinsic_type_information(right.get_type_information());
-            let is_integer =
-                |it: &DataTypeInformation| matches!(it, DataTypeInformation::Integer { .. }) && !it.is_bool();
-            let is_number = |it: &DataTypeInformation| is_integer(it) || it.is_float();
-            if !is_number(l_intrinsic) || !is_number(r_intrinsic) {
-                return None;
-            }
-            if l_intrinsic.is_float() || r_intrinsic.is_float() {
-                // a real operand makes the expression real: REAL, or LREAL when either side is
-                // wider than 32 bits, which is the resolver's wider-type rule
-                return Some(get_bigger_type(left, right, index).get_type_information());
-            }
-            let floor = if left.is_bit() && right.is_bit() {
-                right
-            } else if l_intrinsic.is_unsigned_int() && r_intrinsic.is_unsigned_int() {
-                index.get_type_or_panic(UDINT_TYPE)
-            } else {
-                index.get_type_or_panic(DINT_TYPE)
-            };
-            return Some(
-                get_bigger_type(get_bigger_type(left, right, index), floor, index).get_type_information(),
-            );
-        }
-        _ => return None,
-    };
-    Some(operand_type)
-}
-
-/// The shape of the operand's type, see [`get_operand_type`]: a subrange or an enum counts as its
-/// base type, which is what the operand's value wraps to.
-fn get_operand_intrinsic_type<'idx>(
-    value: &AstNode,
-    scope: Option<&str>,
-    index: &'idx Index,
-    target_type: Option<&str>,
-) -> Option<&'idx DataTypeInformation> {
-    get_operand_type(value, scope, index, target_type).map(|it| index.get_intrinsic_type_information(it))
-}
-
-/// The type a unary minus is computed in: the type of its operand, where an integer or bit string
-/// is widened to the bigger of its signed twin and `DINT`, the rule the resolver applies. `None`
-/// when the operand's type is unknown, see [`get_operand_type`]; such a value is folded as is.
-fn get_negation_type<'idx>(
-    value: &AstNode,
-    scope: Option<&str>,
-    index: &'idx Index,
-    target_type: Option<&str>,
-) -> Option<&'idx DataTypeInformation> {
-    let operand_type = get_operand_intrinsic_type(value, scope, index, target_type)?;
-    match operand_type {
-        DataTypeInformation::Integer { .. } if !operand_type.is_bool() => {
-            let signed_type = index.get_type(get_signed_type(operand_type, index)?.get_name()).ok()?;
-            if !(signed_type.has_nature(TypeNature::Int, index)
-                || signed_type.has_nature(TypeNature::Bit, index))
-            {
-                // a duration, a date or a character keeps its type
-                return Some(operand_type);
-            }
-            Some(
-                get_bigger_type(signed_type, index.get_type_or_panic(DINT_TYPE), index)
-                    .get_type_information(),
-            )
-        }
-        _ => Some(operand_type),
-    }
-}
-
-/// A reference to a constant is read in the constant's own type, as a load of the constant at
-/// run time is. The store holds the constant's initializer as it was folded, which can be a wider
-/// value, `b : SINT := a` with a USINT 200 holds 200, a real for an integer constant initialized
-/// from one, or a real with more precision than a `REAL` holds. An integer constant's value is
-/// reduced to the constant's type, truncated toward zero for a real, then cut down to the target
-/// like the operand of a sign; a `REAL` constant's value is rounded to `REAL` precision. The
-/// literal is carried by the id and location of the reference, so that the target's hint applies
-/// to it. Any other constant is handed on as is.
-fn read_constant(
-    resolved: AstNode,
-    variable: &VariableIndexEntry,
-    target_type: Option<&str>,
-    index: &Index,
-    id: AstId,
-    location: SourceLocation,
-) -> Option<AstNode> {
-    let own_type = index
-        .find_effective_type_info(variable.get_type_name())
-        .map(|it| index.get_intrinsic_type_information(it));
-    match (own_type, resolved.get_stmt()) {
-        (Some(own_type @ DataTypeInformation::Integer { .. }), AstStatement::Literal(literal))
-            if !own_type.is_bool() =>
-        {
-            let value = match literal {
-                AstLiteral::Integer(v) => *v,
-                AstLiteral::Real(v) => match v.parse::<f64>().ok().and_then(real_to_integer) {
-                    Some(v) => v,
-                    None => return Some(resolved),
-                },
-                _ => return Some(resolved),
-            };
-            let value = cut_down_to_target(wrap_to_type(value, own_type), target_type, index);
-            Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(value)), id, location))
-        }
-        (Some(DataTypeInformation::Float { size, .. }), AstStatement::Literal(AstLiteral::Real(v))) => {
-            let Ok(value) = v.parse::<f64>() else {
-                return Some(resolved);
-            };
-            let value = if *size == 32 { value as f32 as f64 } else { value };
-            Some(AstNode::new(AstStatement::Literal(AstLiteral::new_real(format!("{value:}"))), id, location))
-        }
-        _ => Some(resolved),
-    }
-}
-
-/// The integer a real is converted to: truncated toward zero. A real at or beyond 2^127 is a
-/// multiple of every integer width, so it counts as zero instead of saturating the cast, and so
-/// does an infinity, which lies beyond it, or a NaN, which has no integer at all.
-fn real_to_integer(real: f64) -> Option<i128> {
-    if !real.is_finite() || real.abs() >= 2f64.powi(127) {
-        return Some(0);
-    }
-    Some(real.trunc() as i128)
-}
-
-/// The target type when it is a float, the type that reaches the literals inside an initializer the
-/// way the resolver's left-hand-side context does; `None` for any other target.
-fn float_target<'t>(target_type: Option<&'t str>, index: &Index) -> Option<&'t str> {
-    target_type.filter(|it| {
-        index
-            .find_effective_type_info(it)
-            .map(|it| index.get_intrinsic_type_information(it))
-            .is_some_and(|it| it.is_float())
-    })
-}
-
-/// The type of a plain real literal outside a float initializer, the resolver's rule: REAL when the
-/// value fits a finite f32, LREAL otherwise.
-fn real_literal_type(value: &str) -> &'static str {
-    match value.parse::<f32>() {
-        Ok(parsed) if parsed.is_finite() => REAL_TYPE,
-        _ => LREAL_TYPE,
-    }
-}
-
-/// The operand of an expression computed in REAL, rounded to REAL: a real literal through f32 and
-/// an integer literal as the conversion to REAL rounds it. Any other node is handed on as it is.
-fn as_real_operand(node: &AstNode) -> AstNode {
-    let value = match node.get_stmt() {
-        AstStatement::Literal(AstLiteral::Real(v)) => v.parse::<f64>().ok().map(|v| v as f32 as f64),
-        AstStatement::Literal(AstLiteral::Integer(v)) => Some(*v as f32 as f64),
-        _ => None,
-    };
-    match value {
-        Some(v) => AstNode::new(
-            AstStatement::Literal(AstLiteral::new_real(format!("{v:}"))),
-            node.get_id(),
-            node.get_location(),
-        ),
-        None => node.clone(),
-    }
-}
-
-/// Checks a literal the evaluator folded itself against the target type: an integer that does not
-/// fit is an overflow. The literal is handed on as it is, since it was folded in its own type and
-/// must not be rounded again like a source literal, see the literal arm of
-/// [`evaluate_with_target_hint`].
-fn check_target(
-    literal: AstNode,
-    target_type: Option<&str>,
-    index: &Index,
-) -> Result<Option<AstNode>, UnresolvableKind> {
-    let dti = target_type.and_then(|it| index.find_effective_type_info(it));
-    if does_overflow(&literal, dti) {
-        return Err(UnresolvableKind::Overflow(
-            format!("This will overflow for type {}", dti.unwrap().get_name()),
-            literal.get_location(),
-        ));
-    }
-    Ok(Some(literal))
-}
-
-/// Reduces a folded integer to the range of an integer target type, as the conversion of the value
-/// at run time does. A target of another class, or none, leaves the value as it is, and so does a
-/// `BOOL`, whose single bit is not what the conversion keeps; the range check reports it instead.
-fn cut_down_to_target(value: i128, target_type: Option<&str>, index: &Index) -> i128 {
-    target_type
-        .and_then(|it| index.find_effective_type_info(it))
-        .map(|it| index.get_intrinsic_type_information(it))
-        .filter(|it| matches!(it, DataTypeInformation::Integer { .. }) && !it.is_bool())
-        .map_or(value, |it| wrap_to_type(value, it))
-}
-
-/// Reduces `value` to the range of the integer type `dti`, as a two's complement cast does.
-fn wrap_to_type(value: i128, dti: &DataTypeInformation) -> i128 {
-    let DataTypeInformation::Integer { signed, size, semantic_size, .. } = dti else {
-        return value;
-    };
-    let size = semantic_size.unwrap_or(*size);
-    if size == 0 || size >= 128 {
-        return value;
-    }
-    let modulus = 1i128 << size;
-    let wrapped = value.rem_euclid(modulus);
-    if *signed && wrapped >= modulus / 2 {
-        wrapped - modulus
-    } else {
-        wrapped
-    }
 }
 
 /// Returns the names of a member chain such as `__grandparent.__parent`, or `None` if the chain
@@ -1253,7 +802,7 @@ fn get_cast_statement_literal(
             Err(UnresolvableKind::Misc(format!("Cannot resolve constant: {type_name}#{cast_statement:?}")))
         }
 
-        Some(DataTypeInformation::Float { size, .. }) => {
+        Some(DataTypeInformation::Float { .. }) => {
             let evaluated = evaluate(cast_statement, scope, index, lhs)?;
             let value = match evaluated.as_ref().map(|it| it.get_stmt()) {
                 Some(AstStatement::Literal(AstLiteral::Integer(value))) => Some(*value as f64),
@@ -1270,8 +819,6 @@ fn get_cast_statement_literal(
                     "cannot resolve constant: {type_name}#{cast_statement:?}"
                 )));
             };
-            // the literal holds the value in the precision of its type, `REAL#1.99999999` is 2.0
-            let value = if *size == 32 { value as f32 as f64 } else { value };
 
             Ok(AstNode::new(
                 AstStatement::Literal(AstLiteral::new_real(value.to_string())),

@@ -21,7 +21,7 @@ use crate::{
 };
 
 use self::{
-    const_expressions::{ConstExpression, ConstExpressions, ConstId},
+    const_expressions::{ConstExpressions, ConstId},
     instance_iterator::InstanceIterator,
     symbol::SymbolMap,
 };
@@ -1994,17 +1994,6 @@ impl Index {
     /// If the given data type has no initial value and it is an Alias or SubRange (referencing another type),
     /// this method tries to obtain the default value from the referenced type.
     pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstNode> {
-        self.get_initial_value(&self.find_initial_value_id_for_type(type_name))
-    }
-
-    /// The state of the constant expression that is the type's initial value, through aliases and
-    /// subranges: resolved to a value, not resolved yet, or unresolvable.
-    pub fn find_initial_value_expression_for_type(&self, type_name: &str) -> Option<&ConstExpression> {
-        self.find_initial_value_id_for_type(type_name)
-            .and_then(|id| self.get_const_expressions().find_const_expression(&id))
-    }
-
-    fn find_initial_value_id_for_type(&self, type_name: &str) -> Option<ConstId> {
         let mut dt = self.type_index.find_type(type_name);
         let mut initial_value = dt.and_then(|it| it.initial_value);
 
@@ -2019,7 +2008,7 @@ impl Index {
             dt = dt.and_then(|it| self.get_aliased_target_type(&it.information));
             initial_value = dt.and_then(|it| it.initial_value);
         }
-        initial_value
+        self.get_initial_value(&initial_value)
     }
 
     pub fn find_return_variable(&self, pou_name: &str) -> Option<&VariableIndexEntry> {

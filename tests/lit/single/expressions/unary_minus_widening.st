@@ -56,7 +56,7 @@ FUNCTION main : DINT
     printf('%d$N', s2);         // CHECK: -128
 
     // a subrange of an unsigned 64 bit type is negated in LINT, as the plain type is, for a
-    // variable and for a folded constant alike
+    // variable and for a constant alike
     lr := -su;
     printf('%.1f$N', lr);       // CHECK: -10.0
     lr := -csu;

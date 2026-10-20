@@ -4,7 +4,7 @@
 use crate::{
     codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
     index::{Index, PouIndexEntry, VariableIndexEntry},
-    resolver::{AstAnnotations, Dependency},
+    resolver::{AnnotationMap, AstAnnotations, Dependency},
 };
 use inkwell::{module::Module, values::GlobalValue};
 use plc_ast::ast::LinkageType;
@@ -148,9 +148,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 //see if this value was compile-time evaluated ...
                 let value = expr_generator.generate_expression(initializer)?;
                 let target_type = self.global_index.get_effective_type_or_void_by_name(type_name);
-                // the value has the type of the initializer's hint, or its own type without one;
-                // the folded literal of another constant keeps that constant's hint
-                let value_type = expr_generator.get_type_hint_for(initializer)?;
+                let value_type = self.annotations.get_type_or_void(initializer, self.global_index);
                 Some(cast_if_needed!(expr_generator, target_type, value_type, value, None)?)
             } else {
                 None
