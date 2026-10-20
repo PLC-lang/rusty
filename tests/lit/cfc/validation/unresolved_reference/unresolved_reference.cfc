@@ -73,6 +73,46 @@
                         <ppx:Connection refConnectionPointOutId="8"/>
                     </ppx:ConnectionPointIn>
                 </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSource" identifier="(.parenGlobal)" globalId="10">
+                    <ppx:RelPosition x="350" y="340"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointOut connectionPointOutId="11">
+                        <ppx:RelPosition x="80" y="10"/>
+                    </ppx:ConnectionPointOut>
+                </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSink" identifier="x" globalId="12">
+                    <ppx:AddData>
+                        <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
+                            <EvaluationPriority priorityInNetwork="4"/>
+                        </ppx:Data>
+                    </ppx:AddData>
+                    <ppx:RelPosition x="690" y="340"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointIn>
+                        <ppx:RelPosition x="0" y="10"/>
+                        <ppx:Connection refConnectionPointOutId="11"/>
+                    </ppx:ConnectionPointIn>
+                </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSource" identifier="([parenElement])" globalId="13">
+                    <ppx:RelPosition x="350" y="380"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointOut connectionPointOutId="14">
+                        <ppx:RelPosition x="80" y="10"/>
+                    </ppx:ConnectionPointOut>
+                </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSink" identifier="values" globalId="15">
+                    <ppx:AddData>
+                        <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
+                            <EvaluationPriority priorityInNetwork="5"/>
+                        </ppx:Data>
+                    </ppx:AddData>
+                    <ppx:RelPosition x="690" y="380"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointIn>
+                        <ppx:RelPosition x="0" y="10"/>
+                        <ppx:Connection refConnectionPointOutId="14"/>
+                    </ppx:ConnectionPointIn>
+                </ppx:FbdObject>
             </ppx:Network>
         </ppx:BodyContent>
     </ppx:MainBody>

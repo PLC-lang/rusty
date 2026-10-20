@@ -19,18 +19,19 @@ impl AstVisitorMut for Relocate {
     fn visit(&mut self, node: &mut AstNode) {
         node.location = self.0.clone();
 
-        // The walker skips the name of `.foo` and the elements of `[foo]`.
+        // The walker walks the operand of `(foo)` without visiting it, and skips
+        // the name of `.foo` and the elements of `[foo]`.
         match &mut node.stmt {
+            AstStatement::ParenExpression(operand) => self.visit(operand),
             AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Global(name), .. }) => {
-                self.visit(name)
+                self.visit(name);
+                node.walk(self)
             }
             AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) => {
                 self.visit(elements)
             }
-            _ => {}
+            _ => node.walk(self),
         }
-
-        node.walk(self)
     }
 }
 
