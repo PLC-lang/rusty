@@ -4,8 +4,8 @@ use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
 use plc_ast::ast::{
-    flatten_expression_list, AstFactory, AstNode, AstStatement, BinaryExpression, ReferenceAccess,
-    ReferenceExpr, UnaryExpression,
+    AstFactory, AstNode, AstStatement, BinaryExpression, MultipliedStatement, ReferenceAccess, ReferenceExpr,
+    UnaryExpression,
 };
 use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
@@ -662,10 +662,9 @@ fn trace<'model>(start: Option<usize>, survey: &Survey<'model>) -> Trace<'model>
 // assignment acts, and a list, a range or an empty text is no single value.
 fn is_value(node: &AstNode) -> bool {
     match node.get_stmt() {
-        // Each element of an array literal is a value of its own.
-        AstStatement::Literal(AstLiteral::Array(Array { elements })) => elements
-            .as_deref()
-            .is_none_or(|elements| flatten_expression_list(elements).into_iter().all(is_value)),
+        AstStatement::Literal(AstLiteral::Array(Array { elements })) => {
+            elements.as_deref().is_none_or(are_values)
+        }
 
         AstStatement::Literal(_)
         | AstStatement::Identifier(_)
@@ -676,8 +675,7 @@ fn is_value(node: &AstNode) -> bool {
         // in `f()^`, must be a value as well.
         AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
             let access = match access {
-                // Each index of a multidimensional access, e.g. `grid[i, j]`, is a value of its own.
-                ReferenceAccess::Index(inner) => flatten_expression_list(inner).into_iter().all(is_value),
+                ReferenceAccess::Index(inner) => are_values(inner),
                 ReferenceAccess::Member(inner)
                 | ReferenceAccess::Cast(inner)
                 | ReferenceAccess::Global(inner) => is_value(inner),
@@ -694,6 +692,18 @@ fn is_value(node: &AstNode) -> bool {
         }
         AstStatement::ParenExpression(inner) => is_value(inner),
         _ => false,
+    }
+}
+
+// Each element of a list is a value of its own, e.g. the indices of
+// `grid[i, j]` or the elements of `[1, 2(0)]`. A repetition such as `2(0)` is
+// checked once, without expanding it.
+fn are_values(list: &AstNode) -> bool {
+    match list.get_stmt() {
+        AstStatement::ExpressionList(elements) => elements.iter().all(are_values),
+        AstStatement::MultipliedStatement(MultipliedStatement { element, .. }) => are_values(element),
+        AstStatement::ParenExpression(inner) => are_values(inner),
+        _ => is_value(list),
     }
 }
 
@@ -1461,6 +1471,9 @@ mod tests {
 
             error[E083]: Unsupported CFC expression: `grid[f(), 1]`
              = unsupported_source.cfc, diagram unsupported_source, execution order 12
+
+            error[E083]: Unsupported CFC expression: `1 + [4294967295(f())]`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 13
             ");
         }
 
