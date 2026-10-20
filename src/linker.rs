@@ -145,6 +145,23 @@ impl Linker {
         self.add_linker_arg("--no-undefined");
     }
 
+    /// Link the C math library (`libm`) only if the output uses one of its symbols. Codegen lowers a
+    /// floating-point remainder to `fmod` or `fmodf`, and only `libm` defines them.
+    ///
+    /// Only a compiler driver gets `libm`: it passed the target probe, so the target's C libraries
+    /// are available. A direct linker links no C libraries and has no search path for them.
+    pub fn add_math_library(&mut self) {
+        if !self.linker.is_driver() {
+            log::debug!("Not linking libm, the linker is not a compiler driver");
+            return;
+        }
+        log::debug!("Linking libm as needed");
+        self.add_linker_arg("--push-state");
+        self.add_linker_arg("--as-needed");
+        self.add_lib("m");
+        self.add_linker_arg("--pop-state");
+    }
+
     /// Add a driver-level flag.
     ///
     /// Driver linkers receive this directly (e.g. `cc -no-pie`).
@@ -424,6 +441,10 @@ impl LinkerInterface for CcLinker {
         self.args.push(value)
     }
 
+    fn is_driver(&self) -> bool {
+        self.driver_mode
+    }
+
     fn set_fuse_ld(&mut self, linker: &str) {
         if self.driver_mode {
             log::debug!("Applying custom driver backend linker: -fuse-ld={linker}");
@@ -559,6 +580,10 @@ impl LinkerInterface for MockLinker {
         self.args.lock().unwrap().push(value)
     }
 
+    fn is_driver(&self) -> bool {
+        true
+    }
+
     fn get_build_command(&self) -> Result<String, LinkerError> {
         Ok(format!("ld.lld {}", self.args.lock()?.join(" ")))
     }
@@ -573,6 +598,9 @@ trait LinkerInterface {
     fn add_arg(&mut self, value: String);
     fn get_build_command(&self) -> Result<String, LinkerError>;
     fn finalize(&mut self) -> Result<(), LinkerError>;
+    fn is_driver(&self) -> bool {
+        false
+    }
     fn set_fuse_ld(&mut self, _linker: &str) {}
     fn set_no_crt(&mut self) {}
     fn set_no_libc(&mut self) {}
@@ -829,7 +857,11 @@ fn quote_response_file_arg(arg: &str, style: ResponseFileStyle) -> String {
 
 #[cfg(test)]
 mod test {
-    use crate::linker::{probe_args, resolve_external_linker, CcLinker, Linker, LinkerInterface, LinkerType};
+    use std::sync::{Arc, Mutex};
+
+    use crate::linker::{
+        probe_args, resolve_external_linker, CcLinker, Linker, LinkerInterface, LinkerType, MockLinker,
+    };
 
     #[test]
     fn windows_target_triple_should_result_in_ok() {
@@ -886,6 +918,22 @@ mod test {
         let mut linker = CcLinker::new("ld.lld");
         linker.add_driver_flag("-no-pie".to_string());
         assert_eq!(linker.command_args(), vec!["--no-pie"]);
+    }
+
+    #[test]
+    fn only_a_driver_linker_is_a_driver() {
+        assert!(CcLinker::new_driver("clang", Vec::new()).is_driver());
+        assert!(!CcLinker::new("ld.lld").is_driver());
+    }
+
+    #[test]
+    fn math_library_is_linked_as_needed_for_a_driver_linker() {
+        let args = Arc::new(Mutex::new(Vec::new()));
+        let mut linker =
+            Linker::new("x86_64-linux-gnu", None, LinkerType::Test(MockLinker { args: args.clone() }))
+                .unwrap();
+        linker.add_math_library();
+        assert_eq!(*args.lock().unwrap(), vec!["--push-state", "--as-needed", "-lm", "--pop-state"]);
     }
 
     #[test]
