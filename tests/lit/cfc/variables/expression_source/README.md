@@ -1,0 +1,15 @@
+What: sources that hold expressions over literals and references feed sinks
+directly, and the last sink writes through an index expression. The bubble on
+`a = b` negates the whole comparison, not only `a`. `main` runs one cycle and
+checks every result (`a = 3`, `b = 4`, `i = 1`, `flag = TRUE`).
+
+Illustrated:
+```
+a + 1          --> sum (1)
+(a - b) * 2    --> scaled (2)
+a > 2 AND flag --> ready (3)
+NOT flag       --> idle (4)
+a = b         o--> differs (5)
+arr[i + 1]     --> item (6)
+a              --> arr[i + 1] (7)
+```

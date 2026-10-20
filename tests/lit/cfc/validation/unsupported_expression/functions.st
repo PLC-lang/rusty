@@ -1,0 +1,7 @@
+FUNCTION f : DINT
+    f := 1;
+END_FUNCTION
+
+FUNCTION isReady : BOOL
+    isReady := TRUE;
+END_FUNCTION

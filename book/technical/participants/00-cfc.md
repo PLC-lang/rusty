@@ -97,7 +97,7 @@ Each element is classified by its `xsi:type`:
 
 | Element | Role | Result |
 |---|---|---|
-| `DataSource` | a value: a variable or literal, read by others | nothing on its own |
+| `DataSource` | a value: a variable, a literal, or an expression over them, read by others | nothing on its own |
 | `DataSink` | a variable that receives a value | one assignment |
 | `Block` | a call of a function, function block, program, or action | one call |
 | `Connector`, `Continuation` | a named wire break: the connector receives, continuations of the same label re-emit | nothing; wires pass through |
@@ -115,7 +115,7 @@ The rest of this section takes one element kind at a time. Each example shows th
 
 ### Data source
 
-A data source supplies a variable or literal through its output pin. It produces no statement by itself. Each consumer follows the wire independently, so a source connected to two sinks produces two assignments:
+A data source supplies a value through its output pin. It produces no statement by itself. Each consumer follows the wire independently, so a source connected to two sinks produces two assignments:
 
 ```
 foo --+--> bar (1)
@@ -137,7 +137,9 @@ A literal source works in the same way. The identifier goes through the compiler
 foo := 5;
 ```
 
-The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as `in1 + 1` is rejected (E083), because a diagram models arithmetic as blocks. Parentheses are looked through, so `(in1)` is a reference. A source may also negate its value with a unary minus, as in `-in1` or `-(in1)`, which the parser gives as a unary expression; a sink may not, because `-in1` is no assignment target. The condition of a return or a jump is the exception and accepts any expression.
+The parser accepts more than the element may hold. A source holds a value: literals and references, combined by operators and parentheses, such as `-in1`, `in1 + 1` or `arr[i + 1] > 5`. A call or an assignment is rejected at any depth (E083), also inside an index, behind a dereference, or in an array literal. Both act, and in a diagram only blocks call and only sinks write. A source is also evaluated again by every consumer of its wire, so a call in it would run once per consumer. The parser turns `a ** b` into a call of `EXPT`, so the power operator is rejected as well. A list, a range, `*`, an empty text, and a hardware address such as `%IX1.0` are no single value and are rejected too. The condition of a return or a jump is a source like any other and follows the same rule.
+
+A sink is written to, so it holds what Structured Text can assign to, without a call: `in1` and `arr[i + 1]` are sinks, but `-in1`, `in1 + 1`, `5`, `(in1)`, and `arr[f()]` are rejected (E083).
 
 A negation bubble on the pin wraps the value in a `NOT`:
 
@@ -407,7 +409,7 @@ The participant checks the diagram before pins and wires disappear from the AST.
 |---|---|
 | E081 | a connector label claimed twice |
 | E082 | a continuation with no connector |
-| E083 | an expression where only a name or a literal (negated, for a source) is allowed |
+| E083 | a source that is no value (a call or an assignment at any depth, a list, a range), or a sink that is no assignment target |
 | E084 | an element that is placed but not wired |
 | E085 | a return without a condition |
 | E086 | a connector without an input |

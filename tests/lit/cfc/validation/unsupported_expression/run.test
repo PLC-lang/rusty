@@ -1,0 +1,7 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+A call is rejected at any depth: inside the index of a source, and as the
+condition of a jump. Each fault is located at the consuming element.
+CHECK: {{.*}}unsupported_expression.cfc.unsupported_expression:1: error[E083]: Unsupported CFC expression: `arr[f()]`
+CHECK: {{.*}}unsupported_expression.cfc.unsupported_expression:2: error[E083]: Unsupported CFC expression: `isReady()`
+CHECK: error: Compilation aborted due to critical errors

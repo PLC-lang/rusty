@@ -1,0 +1,10 @@
+{
+	"name" : "cfc_unsupported_expression",
+	"files" : [
+		"unsupported_expression.cfc",
+		"functions.st"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

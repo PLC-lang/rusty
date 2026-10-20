@@ -3,7 +3,11 @@
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
-use plc_ast::ast::{AstFactory, AstNode, AstStatement, Operator, UnaryExpression};
+use plc_ast::ast::{
+    flatten_expression_list, AstFactory, AstNode, AstStatement, BinaryExpression, ReferenceAccess,
+    ReferenceExpr, UnaryExpression,
+};
+use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
@@ -125,7 +129,7 @@ impl<'index> Resolver<'index> {
                     // The traced source becomes the sink's assigned value,
                     // negated once more by the sink's own inversion bubble.
                     Trace::Reached(source) => {
-                        let sink = self.expression(object, &location, is_supported);
+                        let sink = self.expression(object, &location, is_target);
                         let source = self.value(&source, &location);
                         let source = self.negate_if(source, &location, object.in_negated());
 
@@ -468,9 +472,9 @@ impl<'index> Resolver<'index> {
     ) -> AstNode {
         let node = self.parse(object, location);
 
-        // A variable element may only hold a literal or a reference, which a
-        // source may negate; anything else (a call, arithmetic) must be
-        // modeled as a block element instead.
+        // A variable element holds a value, which a sink must be able to
+        // store; a call or an assignment acts and must be modeled as a block
+        // or a sink element instead.
         if !is_supported(&node) {
             let text = object.identifier().unwrap_or_default();
             self.diagnostics.push(Diagnostic::unsupported_cfc_expression(text, location.clone()));
@@ -485,7 +489,7 @@ impl<'index> Resolver<'index> {
     fn value(&mut self, source: &Source, location: &SourceLocation) -> AstNode {
         match source {
             Source::Variable { object, negated } => {
-                let node = self.expression(object, location, is_supported_source);
+                let node = self.expression(object, location, is_value);
                 let node = self.negate_if(node, location, object.out_negated());
                 self.negate_if(node, location, *negated)
             }
@@ -496,19 +500,10 @@ impl<'index> Resolver<'index> {
         }
     }
 
-    // Creates an AST node, wrapped in a NOT expression for each inversion
-    // bubble on the wire: the producer's, then the consumer's on top.
+    // The source's value, wrapped in a NOT expression for the consumer's
+    // inversion bubble on top.
     fn condition(&mut self, consumer: &FbdObject, source: &Source, location: &SourceLocation) -> AstNode {
-        let node = match source {
-            // Unvetted; a condition may be any ST expression.
-            Source::Variable { object, negated } => {
-                let node = self.parse(object, location);
-                let node = self.negate_if(node, location, object.out_negated());
-                self.negate_if(node, location, *negated)
-            }
-            Source::Output { .. } => self.value(source, location),
-        };
-
+        let node = self.value(source, location);
         self.negate_if(node, location, consumer.in_negated())
     }
 
@@ -662,20 +657,49 @@ fn trace<'model>(start: Option<usize>, survey: &Survey<'model>) -> Trace<'model>
     }
 }
 
-// Sees through parentheses, e.g. `(foo)` or `((5))`.
-fn is_supported(node: &AstNode) -> bool {
-    matches!(node.get_stmt_peeled(), AstStatement::Literal(_) | AstStatement::ReferenceExpr(_))
+// A value: operators over literals and references, e.g. `-foo`, `a + 1` or
+// `arr[i + 1] > 5`. Anything else, at any depth, is rejected: a call or an
+// assignment acts, and a list, a range or an empty text is no single value.
+fn is_value(node: &AstNode) -> bool {
+    match node.get_stmt() {
+        // Each element of an array literal is a value of its own.
+        AstStatement::Literal(AstLiteral::Array(Array { elements })) => elements
+            .as_deref()
+            .is_none_or(|elements| flatten_expression_list(elements).into_iter().all(is_value)),
+
+        AstStatement::Literal(_)
+        | AstStatement::Identifier(_)
+        | AstStatement::This
+        | AstStatement::Super(_) => true,
+
+        // `a.b`, `arr[i]`, `p^`, `.global`, `Color#Red`; the base, e.g. `f()`
+        // in `f()^`, must be a value as well.
+        AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
+            let access = match access {
+                ReferenceAccess::Member(inner)
+                | ReferenceAccess::Index(inner)
+                | ReferenceAccess::Cast(inner)
+                | ReferenceAccess::Global(inner) => is_value(inner),
+                ReferenceAccess::Deref | ReferenceAccess::Address => true,
+            };
+
+            access && base.as_deref().is_none_or(is_value)
+        }
+
+        AstStatement::DirectAccess(access) => is_value(&access.index),
+        AstStatement::UnaryExpression(UnaryExpression { value, .. }) => is_value(value),
+        AstStatement::BinaryExpression(BinaryExpression { left, right, .. }) => {
+            is_value(left) && is_value(right)
+        }
+        AstStatement::ParenExpression(inner) => is_value(inner),
+        _ => false,
+    }
 }
 
-// A source may also negate its value, e.g. `-foo` or `-(5)`; a sink may not,
-// because `-foo` is no assignment target.
-fn is_supported_source(node: &AstNode) -> bool {
-    match node.get_stmt_peeled() {
-        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
-            is_supported(value)
-        }
-        _ => is_supported(node),
-    }
+// A sink is written to: whatever Structured Text can assign to, as long as it
+// holds no action, e.g. `foo` or `arr[i + 1]`, but not `-foo` or `arr[f()]`.
+fn is_target(node: &AstNode) -> bool {
+    node.can_be_assigned_to() && is_value(node)
 }
 
 // Classification, naming, and call-target helpers for block elements.
@@ -941,6 +965,19 @@ mod tests {
         }
 
         #[test]
+        fn expression_source() {
+            insta::assert_snapshot!(resolve_project("variables/valid/expression_source"), @r"
+            sum := a + 1
+            scaled := (a - b) * 2
+            ready := a > 5 AND flag
+            idle := NOT flag
+            differs := NOT a = b
+            item := arr[i + 1]
+            arr[i + 1] := a
+            ");
+        }
+
+        #[test]
         fn indexed_assignment() {
             insta::assert_snapshot!(resolve_project("variables/valid/indexed_assignment"), @"values[1] := source");
         }
@@ -1043,6 +1080,11 @@ mod tests {
         #[test]
         fn conditional_return() {
             insta::assert_snapshot!(resolve_project("returns/valid/conditional_return"), @"RETURN myCondition");
+        }
+
+        #[test]
+        fn expression_condition() {
+            insta::assert_snapshot!(resolve_project("returns/valid/expression_condition"), @"RETURN count > 5 AND enabled");
         }
 
         #[test]
@@ -1379,10 +1421,73 @@ mod tests {
         }
 
         #[test]
-        fn binary_expression() {
-            insta::assert_snapshot!(diagnostics("variables/invalid/binary_expression"), @r"
-            error[E083]: Unsupported CFC expression: `foo + 1`
-             = binary_expression.cfc, diagram binary_expression, execution order 1
+        fn unsupported_source() {
+            insta::assert_snapshot!(diagnostics("variables/invalid/unsupported_source"), @r"
+            error[E083]: Unsupported CFC expression: `arr[f()]`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 1
+
+            error[E083]: Unsupported CFC expression: `fp()^`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 2
+
+            error[E083]: Unsupported CFC expression: `[f(), 1]`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 3
+
+            error[E083]: Unsupported CFC expression: `a ** 2`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 4
+
+            error[E083]: Unsupported CFC expression: `a := 1`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 5
+
+            error[E083]: Unsupported CFC expression: `1 + (a := 1)`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 6
+
+            error[E083]: Unsupported CFC expression: `a, r`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 7
+
+            error[E083]: Unsupported CFC expression: `1..5`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 8
+
+            error[E083]: Unsupported CFC expression: `*`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 9
+
+            error[E083]: Unsupported CFC expression: ``
+             = unsupported_source.cfc, diagram unsupported_source, execution order 10
+
+            error[E083]: Unsupported CFC expression: `%IX1.0`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 11
+            ");
+        }
+
+        #[test]
+        fn unsupported_sink() {
+            insta::assert_snapshot!(diagnostics("variables/invalid/unsupported_sink"), @r"
+            error[E083]: Unsupported CFC expression: `5`
+             = unsupported_sink.cfc, diagram unsupported_sink, execution order 1
+
+            error[E083]: Unsupported CFC expression: `r + 1`
+             = unsupported_sink.cfc, diagram unsupported_sink, execution order 2
+
+            error[E083]: Unsupported CFC expression: `arr[f()]`
+             = unsupported_sink.cfc, diagram unsupported_sink, execution order 3
+
+            error[E083]: Unsupported CFC expression: `(r)`
+             = unsupported_sink.cfc, diagram unsupported_sink, execution order 4
+            ");
+        }
+
+        #[test]
+        fn return_call_condition() {
+            insta::assert_snapshot!(diagnostics("returns/invalid/call_condition"), @r"
+            error[E083]: Unsupported CFC expression: `isReady()`
+             = call_condition.cfc, diagram call_condition, execution order 1
+            ");
+        }
+
+        #[test]
+        fn jump_call_condition() {
+            insta::assert_snapshot!(diagnostics("jumps/invalid/call_condition"), @r"
+            error[E083]: Unsupported CFC expression: `isReady()`
+             = call_condition.cfc, diagram call_condition, execution order 1
             ");
         }
 

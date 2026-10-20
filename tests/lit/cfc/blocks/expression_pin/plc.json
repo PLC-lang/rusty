@@ -2,7 +2,9 @@
 	"name" : "cfc_expression_pin",
 	"files" : [
 		"expression_pin.cfc",
-		"myAdd.st"
+		"counter.st",
+		"main.st",
+		"../../../util/printf.pli"
 	],
 	"compile_type" : "Static",
 	"output" : "app",
