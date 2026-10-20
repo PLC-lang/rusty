@@ -86,7 +86,8 @@ fn constant_expressions_used_as_initial_values() {
     let mut main = MainType::default();
     let _: i32 = compile_and_run(src, &mut main);
 
-    //THEN we expec the globals to have the constant's values
+    //THEN we expect the globals to have the constant's values. The real literal in an LREAL
+    // initializer is an LREAL, so the sum keeps its precision.
     assert_eq!(main, MainType { i: 10, b: true, f: 32.1543 },);
 }
 

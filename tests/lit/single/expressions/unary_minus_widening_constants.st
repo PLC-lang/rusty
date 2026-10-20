@@ -6,6 +6,10 @@
 
 TYPE SRG : DINT(-2147483648..2147483647); END_TYPE
 TYPE SB : BYTE(0..255); END_TYPE
+TYPE MyL : LREAL := 1.1 + 2.2; END_TYPE
+TYPE MyJ : DINT := 1.99999999; END_TYPE
+TYPE S : STRUCT x : LREAL; END_STRUCT END_TYPE
+TYPE Outer : STRUCT inner : S; arr : ARRAY[0..1] OF LREAL; END_STRUCT END_TYPE
 
 VAR_GLOBAL CONSTANT
     c1 : USINT := 200;
@@ -37,13 +41,15 @@ VAR_GLOBAL CONSTANT
     cmid : DINT := 3.0e9;
     cmidl : LINT := cmid;
     // the converted integer is generated as an integer, not through the real it came from, so a
-    // value that no REAL holds exactly is the same in the constant and in a copy of it; a subrange
-    // converts like its base type, and a real beyond any integer width wraps to zero
-    cexact : DINT := 123456789.0;
+    // value that no REAL holds exactly is the same in the constant and in a copy of it; a plain
+    // real literal is a REAL and rounds to 123456792 first, as the assignment in a body does; a
+    // subrange converts like its base type, and a real beyond any integer width wraps to zero
+    cexact : DINT := LREAL#123456789.0;
     ccopy : DINT := cexact;
-    cmax : DINT := 2147483647.0;
+    creal : DINT := 123456789.0;
+    cmax : DINT := LREAL#2147483647.0;
     csub : SRG := 3.0e9;
-    csubx : SRG := 123456789.0;
+    csubx : SRG := LREAL#123456789.0;
     csubc : DINT := csubx;
     chuge : LINT := 1.0e40;
     // a reference to a REAL constant is read with REAL precision, and a binary operand has the
@@ -62,6 +68,38 @@ VAR_GLOBAL CONSTANT
     treal : DINT := REAL#1.99999999;
     tlreal : DINT := LREAL#1.99999999;
     rsum : LREAL := -(REAL#16777216.0 + REAL#1.0);
+    // a plain real literal is a REAL, so it is rounded through REAL before an integer target
+    // truncates it, as the same assignment in a body does
+    plain : DINT := 1.99999999;
+    negplain : DINT := -(1.99999999);
+    // a value the evaluator folded itself keeps its own precision: an LREAL result into an
+    // integer target truncates the exact value, as the body does
+    lc : LREAL := 1.99999999;
+    neglc : DINT := -lc;
+    lsum : LINT := LREAL#123456789.0 + 0.0;
+    // a binary expression of REAL operands is folded in REAL, as the body computes it
+    bsum : DINT := REAL#16777216.0 + REAL#1.0;
+    bsuml : LREAL := REAL#16777216.0 + REAL#1.0;
+    psum : DINT := 1.99999999 + 0.0;
+    // a plain real literal has the type the resolver gives it: the target's float type in a float
+    // initializer, otherwise REAL; so an LREAL sum of literals keeps its precision, a REAL one
+    // computes in REAL, and an integer target sees REAL arithmetic as the body does
+    litsum : LREAL := 1.1 + 2.2;
+    litsumr : REAL := 1.1 + 2.2;
+    widesum : DINT := REAL#1.0 + 16777217;
+    diffsum : DINT := 2.9999999 - 1.0;
+    hugesum : LREAL := 1.0e40 + 1.0;
+    // the declared float type reaches every literal of the initializer: nested operands, both
+    // spellings of an array literal, a type default and a struct member assignment
+    nested : LREAL := 3.14159265358979 * 2.0 / 4.0;
+    listed : ARRAY[0..1] OF LREAL := [1.1 + 2.2, 1.1 + 2.2];
+    multiplied : ARRAY[0..1] OF LREAL := [2(1.1 + 2.2)];
+    tdef : MyL;
+    member : S := (x := 1.1 + 2.2);
+    // the default of a type is its initializer as the type's own constant expression folds it,
+    // and a member of struct or array type hands its type on to the literals inside
+    idef : MyJ;
+    outer : Outer := (inner := (x := 1.1 + 2.2), arr := [1.1 + 2.2, 1.1 + 2.2]);
 END_VAR
 
 VAR_GLOBAL
@@ -104,9 +142,15 @@ FUNCTION main : DINT
     printf('%lld$N', cmidl);  // CHECK: -1294967296
     dmid := cmid;
     printf('%d %lld %lld$N', dmid, lmid, gmid);  // CHECK: -1294967296 -1294967296 -1294967296
-    printf('%d %d %d %d %lld$N', cexact, ccopy, cmax, csub, chuge);  // CHECK: 123456789 123456789 2147483647 -1294967296 0
+    printf('%d %d %d %d %d %lld$N', cexact, ccopy, creal, cmax, csub, chuge);  // CHECK: 123456789 123456789 123456792 2147483647 -1294967296 0
     printf('%d %d$N', csubx, csubc);  // CHECK: 123456789 123456789
     printf('%d %d %d$N', xr, yr, bnot);  // CHECK: 16777216 16777216 55
     printf('%d %d$N', snot, kinf);  // CHECK: -201 0
     printf('%d %d %.1f$N', treal, tlreal, rsum);  // CHECK: 2 1 -16777216.0
+    printf('%d %d$N', plain, negplain);  // CHECK: 2 -2
+    printf('%d %lld$N', neglc, lsum);  // CHECK: -1 123456789
+    printf('%d %.1f %d$N', bsum, bsuml, psum);  // CHECK: 16777216 16777216.0 2
+    printf('%.16f %.10f %d %d %.3e$N', litsum, litsumr, widesum, diffsum, hugesum);  // CHECK: 3.3000000000000003 3.3000001907 16777216 2 1.000e+40
+    printf('%.16f %.16f %.16f %.16f %.16f$N', nested, listed[1], multiplied[1], tdef, member.x);  // CHECK: 1.5707963267948950 3.3000000000000003 3.3000000000000003 3.3000000000000003 3.3000000000000003
+    printf('%d %.16f %.16f$N', idef, outer.inner.x, outer.arr[1]);  // CHECK: 2 3.3000000000000003 3.3000000000000003
 END_FUNCTION

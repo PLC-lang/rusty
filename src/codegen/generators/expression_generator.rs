@@ -140,6 +140,38 @@ impl<'ink> ExpressionValue<'ink> {
     }
 }
 
+/// The struct initializers of an array literal of structs, one node per element. Every entry of
+/// the list is one struct, whatever its shape: parentheses, the member assignments one folds to,
+/// or the single member assignment a one-member struct constant folds to. A multiplied entry
+/// `2((a := 1))` gives its struct repeated, and `2((a := 1), (b := 2))`, a list of parenthesized
+/// structs, each of them repeated. A multiplied entry that is not expanded here would be handed
+/// back to the literal generator as one element and recurse.
+fn struct_elements(elements: &AstNode) -> Vec<&AstNode> {
+    match elements.get_stmt() {
+        AstStatement::ExpressionList(expressions) => expressions.iter().flat_map(struct_entry).collect(),
+        _ => struct_entry(elements),
+    }
+}
+
+/// One entry of the list of an array literal of structs, see [`struct_elements`].
+fn struct_entry(entry: &AstNode) -> Vec<&AstNode> {
+    match entry.get_stmt() {
+        AstStatement::MultipliedStatement(plc_ast::ast::MultipliedStatement { multiplier, element }) => {
+            // several parenthesized structs, or one struct in whatever shape
+            let structs: Vec<&AstNode> = match element.get_stmt() {
+                AstStatement::ExpressionList(expressions)
+                    if !expressions.iter().all(|it| it.is_assignment()) =>
+                {
+                    expressions.iter().flat_map(struct_entry).collect()
+                }
+                _ => vec![element.as_ref()],
+            };
+            std::iter::repeat_n(structs, *multiplier as usize).flatten().collect()
+        }
+        _ => vec![entry],
+    }
+}
+
 impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// creates a new expression generator
     ///
@@ -2640,9 +2672,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     /// generates a struct literal value with the given value assignments (ExpressionList)
     fn generate_literal_struct(&self, assignments: &AstNode) -> Result<ExpressionValue<'ink>, CodegenError> {
-        let DataTypeInformation::Struct { name: struct_name, members, .. } =
-            self.get_type_hint_info_for(assignments)?
-        else {
+        self.generate_literal_struct_of(assignments, self.get_type_hint_info_for(assignments)?)
+    }
+
+    /// generates the struct literal `assignments` as a value of the struct type `struct_info`; the
+    /// element of an array of structs is generated this way, since an element the constant
+    /// evaluator expanded from a multiplied one carries the array's hint and not the struct's
+    fn generate_literal_struct_of(
+        &self,
+        assignments: &AstNode,
+        struct_info: &DataTypeInformation,
+    ) -> Result<ExpressionValue<'ink>, CodegenError> {
+        let DataTypeInformation::Struct { name: struct_name, members, .. } = struct_info else {
             return Err(Diagnostic::codegen_error(
                 format!("Expected Struct-literal, got {assignments:#?}"),
                 assignments,
@@ -2672,6 +2713,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 &member_assignments,
                 assignments,
             )
+    }
+
+    /// returns true if the node is written as a struct literal: member assignments, alone, listed
+    /// or in parentheses
+    fn is_struct_literal_shape(node: &AstNode) -> bool {
+        match node.get_stmt() {
+            AstStatement::Assignment(..) => true,
+            AstStatement::ExpressionList(expressions) => expressions.iter().all(|it| it.is_assignment()),
+            AstStatement::ParenExpression(inner) => Self::is_struct_literal_shape(inner),
+            _ => false,
+        }
     }
 
     /// returns true if the struct literal value consists of literals only, including nested struct literals
@@ -2856,15 +2908,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // flatten_expression_list will will return a vec of only assignments
         let elements =
             if self.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
-                match elements.get_stmt() {
-                    // ExpressionList of struct initializers: [(a:=1), (b:=2)] or [(a:=1, b:=2), (c:=3, d:=4)]
-                    AstStatement::ExpressionList(expressions) => expressions.iter().collect(),
-                    // Single struct initializer wrapped in parentheses: [(a := 1, b := 2)]
-                    // The ParenExpression represents ONE struct, not multiple elements
-                    AstStatement::ParenExpression(_) => vec![elements],
-                    // Single struct initializer without parentheses
-                    _ => vec![elements],
-                }
+                struct_elements(elements)
             } else {
                 flatten_expression_list(elements)
             };
@@ -2882,9 +2926,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.annotations,
             self.llvm_index,
         );
+        let inner_info =
+            self.index.get_effective_type_or_void_by_name(inner_type.get_name()).get_type_information();
         for e in elements {
             //generate with correct type hint using context-free generator
-            let value = ctx_free_gen.generate_literal(e)?.get_basic_value_enum();
+            let value = if inner_info.is_struct() && Self::is_struct_literal_shape(e) {
+                // the element of an array of structs is a struct literal of the array's element type
+                ctx_free_gen.generate_literal_struct_of(e, inner_info)?.get_basic_value_enum()
+            } else {
+                ctx_free_gen.generate_literal(e)?.get_basic_value_enum()
+            };
             // numeric literals take the type of the array element, e.g. `1.5` in an ARRAY OF INT
             let value = match value {
                 BasicValueEnum::IntValue(_) | BasicValueEnum::FloatValue(_) => cast_if_needed!(
