@@ -207,8 +207,8 @@ impl<'index> Resolver<'index> {
                     self.diagnostics.push(Diagnostic::unknown_block_type(name, location));
                 }
 
-                // Stateless blocks (functions and sort of methods); temporaries for outputs
-                Role::Block if block::is_stateless(object, self.index) => {
+                // Outputs that vanish with the call (functions, methods); temporaries capture them
+                Role::Block if block::captures_outputs(object, self.index) => {
                     let variadic = block::is_variadic(object, self.index);
                     let enable = self.enable(object, &survey, &mut broken, &location);
 
@@ -279,7 +279,8 @@ impl<'index> Resolver<'index> {
                     statements.push((object.priority(), statement));
                 }
 
-                // A stateful call passes only its wired inputs; outputs read back as members.
+                // Outputs kept in the instance (function blocks, programs, actions): the call passes
+                // only its wired inputs, and outputs read back as members.
                 Role::Block => {
                     let enable = self.enable(object, &survey, &mut broken, &location);
 
@@ -688,9 +689,12 @@ mod block {
         block.type_name().and_then(|name| index.find_pou(name)).is_none()
     }
 
-    pub(super) fn is_stateless(block: &FbdObject, index: &Index) -> bool {
-        block.instance_name.is_none()
-            && block.type_name().and_then(|name| index.find_pou(name)).is_some_and(|pou| pou.is_function())
+    // A function's or method's outputs do not survive the call, so a reader needs them captured.
+    pub(super) fn captures_outputs(block: &FbdObject, index: &Index) -> bool {
+        block
+            .type_name()
+            .and_then(|name| index.find_pou(name))
+            .is_some_and(|pou| pou.is_function() || pou.is_method())
     }
 
     pub(super) fn is_variadic(block: &FbdObject, index: &Index) -> bool {
@@ -710,8 +714,9 @@ mod block {
         }
     }
 
+    // A qualified callee (`counter.add`) is no identifier; its dots become underscores.
     pub(super) fn temp_name(block: &FbdObject, pin: &Pin) -> String {
-        format!("__out_{}_{}", pin_name(block, pin), block.global_id)
+        format!("__out_{}_{}", pin_name(block, pin).replace('.', "_"), block.global_id)
     }
 
     // The pin's position on the block's input side: the inputs first, then the in-outs.
@@ -734,9 +739,9 @@ mod block {
             .filter(move |pin| !en.is_some_and(|en| std::ptr::eq(en, *pin)))
     }
 
-    // The captured temporary (stateless) or instance member (stateful).
+    // The captured temporary, or the instance member for outputs the instance keeps.
     pub(super) fn read_target(block: &FbdObject, pin: &Pin, index: &Index) -> String {
-        match is_stateless(block, index) {
+        match captures_outputs(block, index) {
             true => temp_name(block, pin),
             false => format!("{}.{}", instance(block).unwrap_or_default(), pin.parameter_name),
         }
@@ -755,11 +760,11 @@ mod block {
         Some(information.get_inner_name().to_string())
     }
 
-    // The call operator: `inst`, or `inst.act` for an action.
+    // The call operator: `inst`, or `inst.member` for an action or a method.
     pub(super) fn call_target(block: &FbdObject) -> String {
         let instance = instance(block).unwrap_or_default();
-        match action(block) {
-            Some(action) => format!("{instance}.{action}"),
+        match member(block) {
+            Some(member) => format!("{instance}.{member}"),
             None => instance.to_string(),
         }
     }
@@ -769,14 +774,14 @@ mod block {
         block.instance_name.as_deref().or_else(|| owner(block))
     }
 
-    // Everything before an action suffix (`MyFb.act` -> `MyFb`).
+    // Everything before an action or method suffix (`MyFb.act` -> `MyFb`).
     fn owner(block: &FbdObject) -> Option<&str> {
         block.type_name().map(|name| name.rsplit_once('.').map_or(name, |(owner, _)| owner))
     }
 
-    // The suffix of a qualified `typeName` (`owner.action`), if any.
-    fn action(block: &FbdObject) -> Option<&str> {
-        block.type_name().and_then(|name| name.rsplit_once('.').map(|(_, action)| action))
+    // The suffix of a qualified `typeName` (`owner.action`, `owner.method`), if any.
+    fn member(block: &FbdObject) -> Option<&str> {
+        block.type_name().and_then(|name| name.rsplit_once('.').map(|(_, member)| member))
     }
 }
 
@@ -1250,6 +1255,21 @@ mod tests {
             insta::assert_snapshot!(resolve_project("blocks/valid/action_program"), @r"
             P.bump(step := localIn)
             localOut := P.out");
+        }
+
+        #[test]
+        fn method_fb() {
+            insta::assert_snapshot!(resolve_project("blocks/valid/method_fb"), @r"
+            __out_counter_add_3 := inst.add(in := localIn, doubled => __out_doubled_3)
+            localOut := __out_counter_add_3
+            localDoubled := __out_doubled_3");
+        }
+
+        #[test]
+        fn method_program() {
+            insta::assert_snapshot!(resolve_project("blocks/valid/method_program"), @r"
+            __out_P_bump_3 := P.bump(step := localIn)
+            localOut := __out_P_bump_3");
         }
     }
 

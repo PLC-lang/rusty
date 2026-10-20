@@ -28,7 +28,7 @@ The body is the network: the elements and the wires between them. The compiler t
 |---|---|
 | Input | Reads a variable or a literal, optionally negated with a minus, and feeds it into a wire |
 | Output | Writes the value of its wire into a variable |
-| Block | Calls a function, a function block instance, a program, or an action |
+| Block | Calls a function, a function block instance, a program, an action, or a method |
 | Connector and continuation | A named break in a wire, to avoid drawing across the whole sheet |
 | Jump and label | A conditional jump, and the place it jumps to |
 | Return | Leaves the POU when its condition is true |
@@ -55,7 +55,7 @@ This matters when two blocks write the same variable, or when one block reads a 
 
 What a block call does with the values on its pins depends on what the block calls.
 
-A block that calls a **function** has no memory, so every output that a wire reads is stored in a hidden variable during the call. An input that no wire feeds uses the default value of the parameter.
+A block that calls a **function** or a **method** loses its outputs when the call ends, so every output that a wire reads is stored in a hidden variable during the call. A method changes the data of its instance, but its own variables, its return value included, do not survive the call. An input that no wire feeds uses the default value of the parameter.
 
 A block that calls a **function block instance**, a program, or an action keeps its outputs in the instance, and a wire that reads such an output reads the member afterwards. Two blocks that read each other are therefore allowed: the priority decides which one runs first, and that one reads the value the other left in the previous evaluation.
 

@@ -11,16 +11,17 @@
 //!       +--------------------+
 //! ```
 //!
-//! There are two ways to fix this: (1) When dealing with stateful POUs directly access the member fields or
-//! (2) when dealing with stateless POUs (functions, methods) create a "temporary" variable, persist the
-//! return/output value in there and pass it to the consumers.
+//! There are two ways to fix this: (1) When the POU keeps its outputs (function blocks, programs, actions)
+//! directly access the member fields or (2) when its outputs vanish with the call (functions, methods)
+//! create a "temporary" variable, persist the return/output value in there and pass it to the consumers.
 //!
-//! This case distinction is necessary because a stateful POU persists its outputs, they live in the
-//! instance and can be read back as `instance.member` at any time. A stateless POU has no instance thus its
-//! outputs vanish the moment the call returns, and calling it once per consumer instead would duplicate
-//! side effects (and possibly yield different results). So the caller has to persist the value itself.
+//! This case distinction is necessary because a function block or program persists its outputs, they live
+//! in the instance and can be read back as `instance.member` at any time. A function has no instance, and a
+//! method's own variables do not survive the call even though it works on an instance, thus their outputs
+//! vanish the moment the call returns, and calling it once per consumer instead would duplicate side effects
+//! (and possibly yield different results). So the caller has to persist the value itself.
 //!
-//! However, the stateless approach brings its own challenges. Let's inspect a simple example first to get
+//! However, the temporary approach brings its own challenges. Let's inspect a simple example first to get
 //! an understanding of the "temporary" variable creation:
 //! ```text
 //!         myAdd (0)

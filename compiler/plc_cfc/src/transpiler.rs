@@ -851,6 +851,42 @@ mod tests {
             inst.reset();
         END_PROGRAM");
         }
+
+        #[test]
+        fn method_fb() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/method_fb").unwrap(), @r"
+        PROGRAM method_fb
+        VAR
+            inst : counter;
+            localIn : DINT;
+            localOut : DINT;
+            localDoubled : DINT;
+        END_VAR
+        VAR
+            __out_counter_add_3 : DINT;
+            __out_doubled_3 : DINT;
+        END_VAR
+            __out_counter_add_3 := inst.add(in := localIn, doubled => __out_doubled_3);
+            localOut := __out_counter_add_3;
+            localDoubled := __out_doubled_3;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn method_program() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/method_program").unwrap(), @r"
+        PROGRAM method_program
+        VAR
+            localIn : DINT;
+            localOut : DINT;
+        END_VAR
+        VAR
+            __out_P_bump_3 : DINT;
+        END_VAR
+            __out_P_bump_3 := P.bump(step := localIn);
+            localOut := __out_P_bump_3;
+        END_PROGRAM");
+        }
     }
 
     mod functions {

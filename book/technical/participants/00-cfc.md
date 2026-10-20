@@ -99,7 +99,7 @@ Each element is classified by its `xsi:type`:
 |---|---|---|
 | `DataSource` | a value: a variable or literal, read by others | nothing on its own |
 | `DataSink` | a variable that receives a value | one assignment |
-| `Block` | a call of a function, function block, program, or action | one call |
+| `Block` | a call of a function, function block, program, action, or method | one call |
 | `Connector`, `Continuation` | a named wire break: the connector receives, continuations of the same label re-emit | nothing; wires pass through |
 | `Return` | a conditional return | one `RETURN` with a condition |
 | `CfcJump`, `CfcLabel` | a conditional jump and its target | one jump, one label |
@@ -300,7 +300,7 @@ bar := foo;
 
 ## Blocks
 
-The index decides how a block is rendered. A callee that is a function and has no instance name is stateless: its outputs exist only during the call. Every output that a consumer reads is therefore captured into a temporary named `__out_<pin>_<globalId>`, declared in a `VAR` block of the POU with the type the callee declares for that output. The return pin carries no parameter name, so it contributes the name of the callee (`__out_myAdd_1` below); it is captured by an assignment of the call, every other output with `=>`. A fan-out then calls once and reads twice:
+The index decides how a block is rendered. A callee that is a function or a method has outputs that exist only during the call. Every output that a consumer reads is therefore captured into a temporary named `__out_<pin>_<globalId>`, declared in a `VAR` block of the POU with the type the callee declares for that output. The return pin carries no parameter name, so it contributes the name of the callee (`__out_myAdd_1` below); it is captured by an assignment of the call, every other output with `=>`. A fan-out then calls once and reads twice:
 
 ```
         myAdd (1)
@@ -317,9 +317,24 @@ x := __out_myAdd_1;
 y := __out_myAdd_1;
 ```
 
-An unwired function input is passed as an empty argument, `in2 := `, to use the callee's default. An unread output uses an empty `=>`, as with `myAddDoubled` above. Variadic calls such as `ADD` receive positional values in pin order and omit unwired pins. Feedback from the block's own output reads the previous temporary value because capture follows the call.
+An unwired input of a function or a method is passed as an empty argument, `in2 := `, to use the callee's default. An unread output uses an empty `=>`, as with `myAddDoubled` above. Variadic calls such as `ADD` receive positional values in pin order and omit unwired pins. Feedback from the block's own output reads the previous temporary value because capture follows the call.
 
-A callee with state, a function block instance or a program, keeps its outputs in the instance, so no temporaries are necessary: the call passes the wired inputs only, and a consumer of an output reads the member. The [Block](#block) example above shows the plain case. An action is called through its owner, and its outputs are the members of the owner, not of the action:
+A method works on its instance, but its own variables, its return value included, do not survive the call, so its outputs are captured like those of a function. The call goes through the instance as `inst.add`, and the dots of the qualified callee become underscores in the name of the return temporary:
+
+```
+localIn --> in [inst : counter.add] (1) --> localOut (2)
+                                doubled --> localDoubled (3)
+```
+
+```iecst
+__out_counter_add_3 := inst.add(in := localIn, doubled => __out_doubled_3);
+localOut := __out_counter_add_3;
+localDoubled := __out_doubled_3;
+```
+
+A method of a program has no instance name and is called through the program, `P.bump`.
+
+A function block instance, a program, or an action keeps its outputs in the instance, so no temporaries are necessary: the call passes the wired inputs only, and a consumer of an output reads the member. The [Block](#block) example above shows the plain case. An action is called through its owner, and its outputs are the members of the owner, not of the action:
 
 ```
 localIn --> in [inst : counter.increment] out (1) --> localOut (2)
