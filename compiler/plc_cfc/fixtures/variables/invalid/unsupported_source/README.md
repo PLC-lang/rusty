@@ -4,7 +4,8 @@ dereference, in an array literal or in a repetition such as `3(f())`; `**` is
 a call to `EXPT`. A list, a range, `*`, an empty text and a hardware address
 are no value. Each one is rejected with an "unsupported CFC expression" error
 (E083). A repetition is checked once, so even a huge count is rejected without
-expanding it.
+expanding it. Text that the parser cannot read in full is rejected too, because
+its error recovery would turn it into a different expression.
 
 Illustrated:
 ```
@@ -21,4 +22,6 @@ a, r                  --> r (7)     (list, rejected)
 %IX1.0                --> r (11)    (hardware address, rejected)
 grid[f(), 1]          --> r (12)    (call in one of several indices, rejected)
 1 + [4294967295(f())] --> r (13)    (call in a repetition, rejected)
+a + / r               --> r (14)    (stray operator, rejected)
+a garbage             --> r (15)    (trailing text, rejected)
 ```

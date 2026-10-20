@@ -10,13 +10,6 @@ use plc_source::{SourceCode, SourceContainer};
 
 use crate::model::{Pou, PouKind};
 
-pub fn parse_expression(text: &str, ids: IdProvider) -> AstNode {
-    let factory = SourceLocationFactory::internal(text);
-    let mut session = lexer::lex_with_ids(text, ids, factory);
-
-    expressions_parser::parse_expression(&mut session)
-}
-
 // Whether `text` is a single operator keyword that names a builtin function, e.g. `AND`.
 pub fn is_operator_function(text: &str) -> bool {
     let session = lexer::lex_with_ids(text, IdProvider::default(), SourceLocationFactory::internal(text));
@@ -26,9 +19,25 @@ pub fn is_operator_function(text: &str) -> bool {
 // A parsed expression relocated to where the network places it, so
 // diagnostics point at the diagram element rather than the parsed text.
 pub fn parse_expression_at(text: &str, ids: IdProvider, location: &SourceLocation) -> AstNode {
-    let mut node = parse_expression(text, ids);
+    parse_checked_expression_at(text, ids, location).0
+}
+
+// The relocated expression, and whether the parser read all of `text` without
+// an error. Its error recovery skips what it cannot read and still yields a
+// well-formed tree, e.g. `a + b` for `a + / b`, or `a` for `a b`.
+pub fn parse_checked_expression_at(
+    text: &str,
+    ids: IdProvider,
+    location: &SourceLocation,
+) -> (AstNode, bool) {
+    let factory = SourceLocationFactory::internal(text);
+    let mut session = lexer::lex_with_ids(text, ids, factory);
+
+    let mut node = expressions_parser::parse_expression(&mut session);
     node.location = location.clone();
-    node
+
+    let complete = session.diagnostics.is_empty() && session.token == Token::End;
+    (node, complete)
 }
 
 // The declaration text as the IDE's text editor shows it, completed by the

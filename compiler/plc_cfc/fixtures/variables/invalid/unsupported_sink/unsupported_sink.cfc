@@ -113,6 +113,26 @@ END_VAR</bmx:TextDeclaration>
                         <ppx:Connection refConnectionPointOutId="14"/>
                     </ppx:ConnectionPointIn>
                 </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSource" identifier="a" globalId="16">
+                    <ppx:RelPosition x="250" y="340"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointOut connectionPointOutId="17">
+                        <ppx:RelPosition x="80" y="10"/>
+                    </ppx:ConnectionPointOut>
+                </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSink" identifier="r extra" globalId="18">
+                    <ppx:AddData>
+                        <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
+                            <EvaluationPriority priorityInNetwork="6"/>
+                        </ppx:Data>
+                    </ppx:AddData>
+                    <ppx:RelPosition x="360" y="340"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointIn>
+                        <ppx:RelPosition x="0" y="10"/>
+                        <ppx:Connection refConnectionPointOutId="17"/>
+                    </ppx:ConnectionPointIn>
+                </ppx:FbdObject>
             </ppx:Network>
         </ppx:BodyContent>
     </ppx:MainBody>

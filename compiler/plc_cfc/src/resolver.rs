@@ -470,13 +470,14 @@ impl<'index> Resolver<'index> {
         location: &SourceLocation,
         is_supported: fn(&AstNode) -> bool,
     ) -> AstNode {
-        let node = self.parse(object, location);
+        let text = object.identifier().unwrap_or_default();
+        let (node, complete) = st::parse_checked_expression_at(text, self.ids.clone(), location);
 
         // A variable element holds a value, which a sink must be able to
         // store; a call or an assignment acts and must be modeled as a block
-        // or a sink element instead.
-        if !is_supported(&node) {
-            let text = object.identifier().unwrap_or_default();
+        // or a sink element instead. Text the parser could not read in full
+        // is rejected too, as its recovered tree differs from what was written.
+        if !complete || !is_supported(&node) {
             self.diagnostics.push(Diagnostic::unsupported_cfc_expression(text, location.clone()));
         }
 
@@ -561,10 +562,6 @@ impl<'index> Resolver<'index> {
             true => AstFactory::create_not_expression(node, location.clone(), self.ids.next_id()),
             false => node,
         }
-    }
-
-    fn parse(&mut self, object: &FbdObject, location: &SourceLocation) -> AstNode {
-        st::parse_expression_at(object.identifier().unwrap_or_default(), self.ids.clone(), location)
     }
 }
 
@@ -1474,6 +1471,12 @@ mod tests {
 
             error[E083]: Unsupported CFC expression: `1 + [4294967295(f())]`
              = unsupported_source.cfc, diagram unsupported_source, execution order 13
+
+            error[E083]: Unsupported CFC expression: `a + / r`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 14
+
+            error[E083]: Unsupported CFC expression: `a garbage`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 15
             ");
         }
 
@@ -1494,6 +1497,9 @@ mod tests {
 
             error[E083]: Unsupported CFC expression: `grid[f(), 1]`
              = unsupported_sink.cfc, diagram unsupported_sink, execution order 5
+
+            error[E083]: Unsupported CFC expression: `r extra`
+             = unsupported_sink.cfc, diagram unsupported_sink, execution order 6
             ");
         }
 
