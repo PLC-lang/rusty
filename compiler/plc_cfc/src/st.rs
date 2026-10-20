@@ -2,7 +2,8 @@
 
 use plc::lexer::{self, Token, TokenClass};
 use plc::parser::{self, expressions_parser};
-use plc_ast::ast::{AstNode, CompilationUnit, LinkageType};
+use plc_ast::ast::{AstNode, AstStatement, CompilationUnit, LinkageType, ReferenceAccess, ReferenceExpr};
+use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::mut_visitor::{AstVisitorMut, WalkerMut};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -17,6 +18,18 @@ struct Relocate(SourceLocation);
 impl AstVisitorMut for Relocate {
     fn visit(&mut self, node: &mut AstNode) {
         node.location = self.0.clone();
+
+        // The walker skips the name of `.foo` and the elements of `[foo]`.
+        match &mut node.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Global(name), .. }) => {
+                self.visit(name)
+            }
+            AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) => {
+                self.visit(elements)
+            }
+            _ => {}
+        }
+
         node.walk(self)
     }
 }
