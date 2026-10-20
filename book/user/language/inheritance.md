@@ -86,6 +86,8 @@ sensor := analog;
 value := sensor.Read();
 ```
 
+This also holds when the instance is seen through a base block. In a method of a base, `sensor := THIS^` reaches the methods of the derived block when the instance is a derived one, and so does `sensor := ptr^` when `ptr` is a `REF_TO` the base.
+
 A parameter of an interface type is the usual way to write code that works with every implementation:
 
 ```iecst

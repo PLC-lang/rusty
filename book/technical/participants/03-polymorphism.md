@@ -198,7 +198,7 @@ The order of the function pointers is stable: the pointers of the parent types c
 
 **Putting it all together**, the compiler does the following to achieve dynamic dispatch for classes and function blocks:
 
-1. Generate a vtable struct for every class and function block, populated with function pointers for every method these POUs define or inherit
+1. Generate a vtable struct for every class and function block, populated with function pointers for every method these POUs define or inherit, and with a pointer to the itable of every interface they implement (see Interface polymorphism)
 2. Generate a global variable instance for each vtable, filled with the correct addresses at construction time
 3. Generate and inject a `__vtable` member field of type `POINTER TO __VOID` into every non-extended class or function block, initialized by the init participant to the address of the global instance
 4. Transform **method** calls to use the lookup table, where the
@@ -359,11 +359,34 @@ A POU gets one instance per interface in its hierarchy. `FbA` implements `IA` al
 
 While verbose, this solves the layout incompatibility problem entirely. There is no need to upcast one itable to another. Instead the itable pointer is swapped to the address of the correct global instance. Each interface has its own consistent layout, and each POU gets its own instance with the correct function pointers. Like the vtable instances, itable instances of external POUs are declared in an `{external}` global block.
 
-Two additional cases are worth calling out:
+Three additional cases are worth calling out:
 
 **POU inheritance**: When a POU extends another POU that implements an interface, the child POU inherits the interface obligation. For example, if `FbB EXTENDS FbA` and `FbA IMPLEMENTS IA`, then `FbB` also gets an `__itable_IA_FbB_instance`. If `FbB` overrides a method, its itable instance points to the override; otherwise it points to the inherited implementation.
 
 **Method resolution**: When filling an itable instance, the compiler walks the inheritance chain of the POU to find the most derived implementation of each method. For example, if `FbA` defines `foo`, `FbB EXTENDS FbA` overrides `foo`, and `FbC EXTENDS FbB` does not, then the itable of `FbC` points `foo` to `FbB.foo`.
+
+**Itable pointers in the vtable**: An instance seen through its base type, for example `THIS^` in a method of `FbA` or `ptr^` with `ptr: POINTER TO FbA`, can be an `FbB`. The type of the instance is then only known at run time, so the vtable also points to the itables of its POU. Each vtable gets one `__interface_<Interface>` field per interface the POU implements, initialized to the itable instance of that POU:
+
+```diff
+ TYPE __vtable_FbA:
+     STRUCT
+         __body: __FPOINTER TO FbA := ADR(FbA);
+         foo: __FPOINTER TO FbA.foo := ADR(FbA.foo);
++        __interface_IA: POINTER TO __VOID := ADR(__itable_IA_FbA_instance);
+     END_STRUCT
+ END_TYPE
+
+ TYPE __vtable_FbB:
+     STRUCT
+         __body: __FPOINTER TO FbB := ADR(FbB);
+         foo: __FPOINTER TO FbB.foo := ADR(FbB.foo);
++        __interface_IA: POINTER TO __VOID := ADR(__itable_IA_FbB_instance);
++        __interface_IB: POINTER TO __VOID := ADR(__itable_IB_FbB_instance);
+     END_STRUCT
+ END_TYPE
+```
+
+The fields keep the vtable of a POU a strict prefix of the vtables of its descendants. Each level of the inheritance chain adds its new methods first and then a field for each interface it adds, sorted by name. A re-implemented interface keeps the position of its ancestor, like an overridden method. A hierarchy without interfaces has no such fields, so its vtables do not change.
 
 #### The fat pointer
 
@@ -432,6 +455,14 @@ This also works with array elements:
 ```
 
 The compiler determines the itable instance name from the type annotations: the type of the right-hand side gives the POU name, and the type hint (the expected type on the left) gives the interface name.
+
+When the right-hand side may hold a descendant of its type, the itable comes from the vtable of the instance instead. This applies to a dereference such as `THIS^` or `ptr^` and to a `REFERENCE TO` variable, the same expressions whose method calls go through the vtable:
+
+```diff
+-reference := ptrToFbA^;
++reference.data := ADR(ptrToFbA^);
++reference.table := __vtable_FbA#(ptrToFbA^.__vtable^).__interface_IA;
+```
 
 **Method calls**: When a method is called on an interface variable, the compiler transforms it into an indirect call through the itable. The transformation has four steps:
 
@@ -520,7 +551,7 @@ Multiple interface arguments in a single call each get their own temporary; the 
 +consumer(__fatpointer_0, __fatpointer_1, __fatpointer_2);
 ```
 
-The preamble (allocations and assignments) is hoisted before the call. When the call is nested inside another statement, for example `result := consumer(instance)` or the condition of an `IF`, the preamble is hoisted above that whole statement, so that the fat pointer is fully constructed before the call executes.
+The preamble (allocations and assignments) is hoisted before the call. When the call is nested inside another statement, for example `result := consumer(instance)` or the condition of an `IF`, the preamble is hoisted above that whole statement, so that the fat pointer is fully constructed before the call executes. The table pointer of the temporary follows the same rule as an assignment: for an argument such as `THIS^` or `ptr^` it is read from the vtable of the instance.
 
 **Interface upcasting**: When a child interface variable is assigned to a parent interface variable (for example `refIA := refIB` where `IB EXTENDS IA`), both sides are already fat pointers. The `.data` field can be copied directly; it still points to the same concrete POU instance. However, the `.table` field points to an `__itable_IB_*` instance but must point to the corresponding `__itable_IA_*` instance for the same POU. Since the concrete POU is only known at run time, the correct itable instance cannot be determined statically.
 

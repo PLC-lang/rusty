@@ -51,6 +51,12 @@
 //! END_TYPE
 //! ```
 //!
+//! A POU that implements interfaces also gets one `__interface_<Interface>: POINTER TO __VOID` field per
+//! interface, initialized to the address of its itable instance (see [`super::interface`]). Each level of the
+//! inheritance chain adds its new methods first and then the fields of the interfaces it adds, so a vtable
+//! stays a strict prefix of the vtables of its descendants. These fields let an instance seen through its
+//! base type, e.g. `THIS^`, be converted to an interface with the itable of its actual type.
+//!
 //! # 3. Global Virtual Table Instances
 //! The newly created `__vtable` member fields need to point to some instance of the corresponding virtual
 //! table. For that we will create one global variable for each virtual table. Deriving from the previous
@@ -74,12 +80,26 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashSet;
 
-use crate::{index::Index, typesystem::VOID_INTERNAL_NAME};
+use super::interface::helper as itable_helper;
+use crate::{
+    index::{FxIndexMap, Index, PouIndexEntry},
+    typesystem::VOID_INTERNAL_NAME,
+};
 
 pub struct VirtualTableGenerator {
     pub ids: IdProvider,
     pub generate_external_constructors: bool,
+}
+
+/// A member field of a virtual table, following the optional `__body` entry of function blocks.
+enum VirtualTableSlot<'idx> {
+    /// A function pointer to the most derived implementation of a method.
+    Method(&'idx PouIndexEntry),
+
+    /// A pointer to the itable of an interface the POU implements, see [`collect_slots_in_fixed_order`].
+    Interface(&'idx str),
 }
 
 impl VirtualTableGenerator {
@@ -188,21 +208,33 @@ impl VirtualTableGenerator {
             members.push(member);
         }
 
-        // Iterate over all methods and create function pointer member fields for them
-        for method in index.get_methods_in_fixed_order(&pou.name) {
-            let member = Variable {
-                name: method.get_call_name().to_string(),
-                data_type_declaration: DataTypeDeclaration::Definition {
-                    data_type: Box::new(helper::create_function_pointer(
-                        method.get_name().into(),
-                        method.get_location().into(),
-                    )),
+        // Create function pointer member fields for all methods and itable pointer fields for all interfaces
+        for slot in collect_slots_in_fixed_order(index, &pou.name) {
+            let member = match slot {
+                VirtualTableSlot::Method(method) => Variable {
+                    name: method.get_call_name().to_string(),
+                    data_type_declaration: DataTypeDeclaration::Definition {
+                        data_type: Box::new(helper::create_function_pointer(
+                            method.get_name().into(),
+                            method.get_location().into(),
+                        )),
+                        location: location.clone(),
+                        scope: None,
+                    },
+                    initializer: Some(self.generate_initalizer(method.get_name())),
+                    address: None,
                     location: location.clone(),
-                    scope: None,
                 },
-                initializer: Some(self.generate_initalizer(method.get_name())),
-                address: None,
-                location: location.clone(),
+
+                VirtualTableSlot::Interface(interface_name) => {
+                    let mut member = itable_helper::create_void_pointer_field(
+                        &itable_helper::get_interface_field_name(interface_name),
+                        &location,
+                    );
+                    let itable_instance = itable_helper::get_itable_instance_name(interface_name, &pou.name);
+                    member.initializer = Some(self.generate_initalizer(&itable_instance));
+                    member
+                }
             };
 
             members.push(member);
@@ -277,6 +309,47 @@ impl VirtualTableGenerator {
             SourceLocation::internal(),
         )
     }
+}
+
+/// Returns the virtual table slots of a POU in a layout that every descendant extends as a strict prefix.
+///
+/// The inheritance chain is walked root first. Each level appends the methods it adds, then a pointer
+/// field for each interface it adds, sorted by name. An overriding method or a re-implemented interface
+/// keeps the position of its ancestor. Without interfaces this is the order of
+/// [`Index::get_methods_in_fixed_order`].
+fn collect_slots_in_fixed_order<'idx>(index: &'idx Index, pou_name: &str) -> Vec<VirtualTableSlot<'idx>> {
+    // Inheritance chain, root first
+    let mut chain = Vec::new();
+    let mut visited = FxHashSet::default();
+    let mut current = index.find_pou(pou_name);
+    while let Some(pou) = current {
+        if !visited.insert(pou.get_name()) {
+            break;
+        }
+
+        chain.push(pou);
+        current = pou.get_super_class().and_then(|name| index.find_pou(name));
+    }
+    chain.reverse();
+
+    // Slots per level, methods before interfaces
+    let mut slots: FxIndexMap<String, VirtualTableSlot<'idx>> = FxIndexMap::default();
+    for level in chain {
+        for method in index.get_methods_in_fixed_order(level.get_name()) {
+            slots.insert(method.get_call_name().to_string(), VirtualTableSlot::Method(method));
+        }
+
+        let mut interfaces =
+            itable_helper::collect_interfaces_for_pou(index, level).into_iter().collect::<Vec<_>>();
+        interfaces.sort_unstable();
+        for interface in interfaces {
+            slots
+                .entry(itable_helper::get_interface_field_name(interface))
+                .or_insert(VirtualTableSlot::Interface(interface));
+        }
+    }
+
+    slots.into_values().collect()
 }
 
 mod helper {
@@ -1317,6 +1390,93 @@ mod tests {
             "__vtable_ClassA: one, two, three",
             "__vtable_ClassB: one, two, three, four, five",
             "__vtable_ClassC: one, two, three, four, five, six",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn interface_fields_follow_the_methods_of_the_level_that_adds_them() {
+        let ids = IdProvider::default();
+        let (unit, index) = index_with_ids(
+            r"
+            INTERFACE IA
+                METHOD a
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD b
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IC
+                METHOD c
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD a
+                END_METHOD
+
+                METHOD one
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB EXTENDS FbA IMPLEMENTS IC, IB
+                METHOD c
+                END_METHOD
+
+                METHOD a
+                END_METHOD
+
+                METHOD b
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbC EXTENDS FbB IMPLEMENTS IA
+                METHOD two
+                END_METHOD
+            END_FUNCTION_BLOCK
+            ",
+            ids.clone(),
+        );
+
+        let mut units = vec![unit];
+        let mut generator = VirtualTableGenerator::new(ids, false);
+        generator.generate(&index, &mut units);
+
+        let mut types = Vec::new();
+        for ty in &units[0].user_types {
+            let DataType::StructType { name: Some(name), variables } = &ty.data_type else { unreachable!() };
+            let var_names = variables.iter().map(|var| &var.name).join(", ");
+
+            types.push(format!("{name}: {var_names}"));
+        }
+
+        // Each level appends its new methods, then the interfaces it adds (sorted by name). Overridden methods
+        // and re-implemented interfaces keep the position of the ancestor, so every vtable is a strict prefix
+        // of the vtables of its descendants.
+        insta::assert_debug_snapshot!(types, @r#"
+        [
+            "__vtable_FbA: __body, a, one, __interface_IA",
+            "__vtable_FbB: __body, a, one, __interface_IA, c, b, __interface_IB, __interface_IC",
+            "__vtable_FbC: __body, a, one, __interface_IA, c, b, __interface_IB, __interface_IC, two",
+        ]
+        "#);
+
+        let fb_c = units[0].user_types.iter().find(|ty| ty.data_type.get_name() == Some("__vtable_FbC"));
+        let DataType::StructType { variables, .. } = &fb_c.unwrap().data_type else { unreachable!() };
+        let initializers = variables
+            .iter()
+            .filter(|var| var.name.starts_with("__interface_"))
+            .map(|var| format!("{} := {}", var.name, var.initializer.as_ref().unwrap().as_string()))
+            .collect::<Vec<_>>();
+
+        insta::assert_debug_snapshot!(initializers, @r#"
+        [
+            "__interface_IA := ADR(__itable_IA_FbC_instance)",
+            "__interface_IB := ADR(__itable_IB_FbC_instance)",
+            "__interface_IC := ADR(__itable_IC_FbC_instance)",
         ]
         "#);
     }
