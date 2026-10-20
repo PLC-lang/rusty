@@ -676,8 +676,9 @@ fn is_value(node: &AstNode) -> bool {
         // in `f()^`, must be a value as well.
         AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
             let access = match access {
+                // Each index of a multidimensional access, e.g. `grid[i, j]`, is a value of its own.
+                ReferenceAccess::Index(inner) => flatten_expression_list(inner).into_iter().all(is_value),
                 ReferenceAccess::Member(inner)
-                | ReferenceAccess::Index(inner)
                 | ReferenceAccess::Cast(inner)
                 | ReferenceAccess::Global(inner) => is_value(inner),
                 ReferenceAccess::Deref | ReferenceAccess::Address => true,
@@ -974,6 +975,8 @@ mod tests {
             differs := NOT a = b
             item := arr[i + 1]
             arr[i + 1] := a
+            grid[i, i + 1] := a
+            cell := grid[1, 2] * 2
             ");
         }
 
@@ -1455,6 +1458,9 @@ mod tests {
 
             error[E083]: Unsupported CFC expression: `%IX1.0`
              = unsupported_source.cfc, diagram unsupported_source, execution order 11
+
+            error[E083]: Unsupported CFC expression: `grid[f(), 1]`
+             = unsupported_source.cfc, diagram unsupported_source, execution order 12
             ");
         }
 
@@ -1472,6 +1478,9 @@ mod tests {
 
             error[E083]: Unsupported CFC expression: `(r)`
              = unsupported_sink.cfc, diagram unsupported_sink, execution order 4
+
+            error[E083]: Unsupported CFC expression: `grid[f(), 1]`
+             = unsupported_sink.cfc, diagram unsupported_sink, execution order 5
             ");
         }
 

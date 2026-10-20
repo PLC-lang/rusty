@@ -5,8 +5,9 @@ CFC expression" error (E083).
 
 Illustrated:
 ```
-a --> 5        (1)    (literal, rejected)
-a --> r + 1    (2)    (expression, rejected)
-a --> arr[f()] (3)    (call in an index, rejected)
-a --> (r)      (4)    (parentheses, rejected)
+a --> 5            (1)    (literal, rejected)
+a --> r + 1        (2)    (expression, rejected)
+a --> arr[f()]     (3)    (call in an index, rejected)
+a --> (r)          (4)    (parentheses, rejected)
+a --> grid[f(), 1] (5)    (call in one of several indices, rejected)
 ```

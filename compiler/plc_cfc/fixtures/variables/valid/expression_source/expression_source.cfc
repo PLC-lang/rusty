@@ -5,7 +5,8 @@
             <bmx:TextDeclaration>PROGRAM expression_source
 VAR
     a, b, i : DINT;
-    sum, scaled, item : DINT;
+    sum, scaled, item, cell : DINT;
+    grid : ARRAY[0..2, 0..2] OF DINT;
     flag, ready, idle, differs : BOOL;
     arr : ARRAY[0..5] OF DINT;
 END_VAR</bmx:TextDeclaration>
@@ -157,6 +158,46 @@ END_VAR</bmx:TextDeclaration>
                     <ppx:ConnectionPointIn>
                         <ppx:RelPosition x="0" y="10"/>
                         <ppx:Connection refConnectionPointOutId="20"/>
+                    </ppx:ConnectionPointIn>
+                </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSource" identifier="a" globalId="22">
+                    <ppx:RelPosition x="250" y="420"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointOut connectionPointOutId="23">
+                        <ppx:RelPosition x="80" y="10"/>
+                    </ppx:ConnectionPointOut>
+                </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSink" identifier="grid[i, i + 1]" globalId="24">
+                    <ppx:AddData>
+                        <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
+                            <EvaluationPriority priorityInNetwork="8"/>
+                        </ppx:Data>
+                    </ppx:AddData>
+                    <ppx:RelPosition x="360" y="420"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointIn>
+                        <ppx:RelPosition x="0" y="10"/>
+                        <ppx:Connection refConnectionPointOutId="23"/>
+                    </ppx:ConnectionPointIn>
+                </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSource" identifier="grid[1, 2] * 2" globalId="25">
+                    <ppx:RelPosition x="250" y="460"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointOut connectionPointOutId="26">
+                        <ppx:RelPosition x="80" y="10"/>
+                    </ppx:ConnectionPointOut>
+                </ppx:FbdObject>
+                <ppx:FbdObject xsi:type="ppx:DataSink" identifier="cell" globalId="27">
+                    <ppx:AddData>
+                        <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
+                            <EvaluationPriority priorityInNetwork="9"/>
+                        </ppx:Data>
+                    </ppx:AddData>
+                    <ppx:RelPosition x="360" y="460"/>
+                    <ppx:Size x="80" y="20"/>
+                    <ppx:ConnectionPointIn>
+                        <ppx:RelPosition x="0" y="10"/>
+                        <ppx:Connection refConnectionPointOutId="26"/>
                     </ppx:ConnectionPointIn>
                 </ppx:FbdObject>
             </ppx:Network>

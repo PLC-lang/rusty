@@ -17,4 +17,5 @@ a, r         --> r (7)     (list, rejected)
 *            --> r (9)     (no value, rejected)
              --> r (10)    (empty, rejected)
 %IX1.0       --> r (11)    (hardware address, rejected)
+grid[f(), 1] --> r (12)    (call in one of several indices, rejected)
 ```
