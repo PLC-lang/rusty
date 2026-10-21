@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A range label that crosses the signed midpoint never matches, also through an alias or subrange type.
+// A range label that crosses the signed midpoint matches every value between its bounds, also through an alias or subrange type.
 TYPE
     Level : USINT;
     Small : UINT(0..60000);

@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A range label that crosses the signed midpoint of the LWORD selector never matches.
+// A range label that crosses the signed midpoint of the LWORD selector matches every value between its bounds.
 FUNCTION branch : DINT
     VAR_INPUT
         x : LWORD;
