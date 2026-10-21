@@ -355,7 +355,7 @@ continue:
 
 ### `CASE`
 
-`CASE` becomes a `switch` for literal labels and a chain of comparisons for range labels. The enum variants are constants, so both labels end up in the switch:
+`CASE` becomes a `switch` for literal labels and a chain of comparisons for range labels. A range label compares the selector with its bounds by the signedness of the selector's type, so `11..254` on a `USINT` uses `icmp uge` and `icmp ule`. The enum variants are constants, so both labels end up in the switch:
 
 ```llvm
   switch i32 %load_speed, label %else [   ; no label matched: ELSE (empty here)
