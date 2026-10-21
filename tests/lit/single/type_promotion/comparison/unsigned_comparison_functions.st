@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// The comparison functions compare two UDINT values signed, as the operators do.
+// The comparison functions compare two UDINT values unsigned, as the operators do.
 FUNCTION main : DINT
     VAR
         hi : UDINT := 4000000000;

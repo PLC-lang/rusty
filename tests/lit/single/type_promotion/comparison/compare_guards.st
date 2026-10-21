@@ -26,7 +26,7 @@ FUNCTION main : DINT
 
     // Small unsigned values
     printf('UDINT 5 < 10 = %d$N', ud5 < 10);                // CHECK-NEXT: UDINT 5 < 10 = 1
-    printf('UDINT 5 < UDINT 4e9 = %d$N', ud5 < ud);         // CHECK-NEXT: UDINT 5 < UDINT 4e9 = 0
+    printf('UDINT 5 < UDINT 4e9 = %d$N', ud5 < ud);         // CHECK-NEXT: UDINT 5 < UDINT 4e9 = 1
 
     // A wider signed operand holds both values
     printf('UDINT 4e9 > LINT 1 = %d$N', ud > l1);           // CHECK-NEXT: UDINT 4e9 > LINT 1 = 1

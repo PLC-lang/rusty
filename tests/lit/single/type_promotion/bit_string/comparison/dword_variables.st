@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A relational compare of two DWORD values is signed, so a value from the signed midpoint on compares as negative.
+// A relational compare of two DWORD values is unsigned, so a value from the signed midpoint on compares as large.
 FUNCTION main : DINT
     VAR
         hi : DWORD := 16#FFFF_FFFF;
