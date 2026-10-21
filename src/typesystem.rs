@@ -1591,27 +1591,26 @@ pub fn get_bigger_type<'t, T: DataTypeInformationProvider<'t> + std::convert::Fr
     left_type
 }
 
-/// returns the signed version of the given data_type if its a signed int-type
-/// returns the original type if it is no signed int-type
-pub fn get_signed_type<'t>(
-    data_type: &'t DataTypeInformation,
-    index: &'t Index,
-) -> Option<&'t DataTypeInformation> {
-    if data_type.is_int() {
-        let signed_type = match data_type.get_name() {
-            BYTE_TYPE => SINT_TYPE,
-            USINT_TYPE => SINT_TYPE,
-            WORD_TYPE => INT_TYPE,
-            UINT_TYPE => INT_TYPE,
-            DWORD_TYPE => DINT_TYPE,
-            UDINT_TYPE => DINT_TYPE,
-            ULINT_TYPE => LINT_TYPE,
-            LWORD_TYPE => LINT_TYPE,
-            _ => data_type.get_name(),
-        };
-        return index.get_type(signed_type).ok().map(|t| t.get_type_information());
+/// Returns the type of the negation `-value` for a value of the given type. An integer is widened to a
+/// signed type that holds the negation of its values: `DINT` for the types narrower than 32 bits, `LINT`
+/// for the unsigned 32-bit and 64-bit types. Signed types of 32 bits or more and all other types stay
+/// as they are.
+pub fn get_negated_type<'t>(data_type: &'t DataType, index: &'t Index) -> &'t DataType {
+    let intrinsic = index.get_intrinsic_type_by_name(data_type.get_name()).get_type_information();
+    let DataTypeInformation::Integer { signed, size, semantic_size: None, .. } = intrinsic else {
+        return data_type;
+    };
+    if intrinsic.is_character() || intrinsic.is_date_or_time_type() {
+        return data_type;
     }
-    Some(data_type)
+
+    if *size < DINT_SIZE {
+        index.get_type_or_panic(DINT_TYPE)
+    } else if *signed {
+        data_type
+    } else {
+        index.get_type_or_panic(LINT_TYPE)
+    }
 }
 
 /**
