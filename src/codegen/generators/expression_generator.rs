@@ -2300,7 +2300,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
 
             Operator::Less | Operator::Greater | Operator::LessOrEqual | Operator::GreaterOrEqual => {
-                let predicate = match (operator, is_signed.unwrap_or(true)) {
+                let Some(is_signed) = is_signed else {
+                    return Err(CodegenError::GenericError(
+                        "Sign information is required for integer comparison!".to_string(),
+                        SourceLocation::undefined(),
+                    ));
+                };
+
+                let predicate = match (operator, is_signed) {
                     (Operator::Less, true) => IntPredicate::SLT,
                     (Operator::Less, false) => IntPredicate::ULT,
                     (Operator::Greater, true) => IntPredicate::SGT,
