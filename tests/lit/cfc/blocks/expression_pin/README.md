@@ -5,6 +5,13 @@ runs two cycles and checks the accumulators (`a = 4, b = 44` from `sa = 1`,
 
 Illustrated:
 ```
-sa + 1        --> step [a : counter] total --> outA (0, 1)
-(sa + sb) * 2 --> step [b : counter] total --> outB (2, 3)
+                    a : counter (1)
+                  +--------------+
+       sa + 1 --> | step   total | --> outA (2)
+                  +--------------+
+
+                    b : counter (3)
+                  +--------------+
+(sa + sb) * 2 --> | step   total | --> outB (4)
+                  +--------------+
 ```
