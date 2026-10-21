@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-736504da.js";
+            window.path_to_searchindex_js = "../../searchindex-709ffb21.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -231,7 +231,7 @@ IF failed OR_ELSE check() THEN     (* check() runs only when failed is FALSE *)
 </div>
 <p>So <code>a + b * c</code> multiplies first, and <code>x &lt; 1 AND y &gt; 2</code> compares first. A sign is part of the base of a power, so <code>-2 ** 2</code> is <code>4</code>. Parentheses override every rule and are worth writing wherever a reader would have to think.</p>
 <h2 id="mixed-types"><a class="header" href="#mixed-types">Mixed types</a></h2>
-<p>Precedence says how an expression is grouped. The types of its operands say in which type it is computed, and that type does not come from the target of the assignment. Every integer narrower than <code>DINT</code> is widened to <code>DINT</code> first, and a pair of different types is computed in the wider of the two. The result then moves to the target: a move to a wider type is silent, and a move to a narrower one compiles with a warning, because the value can change.</p>
+<p>Precedence says how an expression is grouped. The types of its operands say in which type it is computed, and that type does not come from the target of the assignment. Every integer narrower than <code>DINT</code> is widened to 32 bits first, to <code>UDINT</code> when both operands are unsigned and to <code>DINT</code> otherwise, and a pair of different types is computed in the wider of the two. An integer literal without a type prefix takes the type of the other operand when that type has 32 bits or more and the value fits it, so for a <code>UDINT</code> variable <code>u</code>, <code>u / 2</code> and <code>u &gt; 5</code> are computed as <code>UDINT</code>. A literal too large for <code>DINT</code>, as in <code>u + 3000000000</code>, moves the operation to <code>ULINT</code>. A unary <code>-</code> widens its operand to a signed type: <code>-a</code> for a <code>USINT</code> <code>a</code> of 200 is the <code>DINT</code> -200, and the negation of an unsigned type of 32 bits or more is a <code>LINT</code>. The result then moves to the target: a move to a wider type is silent, and a move to a narrower one compiles with a warning, because the value can change.</p>
 <pre><code class="language-iecst">VAR
     i: INT := 300;
     j: INT := 200;

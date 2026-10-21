@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-736504da.js";
+            window.path_to_searchindex_js = "../../searchindex-709ffb21.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -202,7 +202,7 @@
 </tbody>
 </table>
 </div>
-<p><code>DINT</code> is the type to reach for. It is the type that the compiler gives to a whole-number literal, and only a literal too large for 32 bits becomes a <code>LINT</code>.</p>
+<p><code>DINT</code> is the type to reach for. It is the type that the compiler gives to a whole-number literal, and only a literal too large for 32 bits becomes a <code>LINT</code>. Next to an operand of another type, a literal can take that operand’s type instead; see <a href="expressions.html#mixed-types">mixed types</a>.</p>
 <p>A literal can be written in another base, and <code>_</code> between two digits groups them:</p>
 <pre><code class="language-iecst">i1: DINT := 42;
 i2: DINT := 2#101010;     (* binary *)

@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-736504da.js";
+            window.path_to_searchindex_js = "../../searchindex-709ffb21.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -418,7 +418,7 @@ store i32 2, ptr %deref
 store i8 %2, ptr %sintVar                ; write sintVar
 </code></pre>
 <p>Literals are created directly in the hinted type, so <code>factor := 3</code> for an <code>INT</code> parameter produces <code>i16 3</code> and no cast.</p>
-<p>Binary and unary expressions become the matching integer or float instruction. Comparisons produce an <code>i1</code>, which is widened to <code>i8</code> because that is the width of <code>BOOL</code>; where a branch needs a condition, the <code>i8</code> is compared against zero to get an <code>i1</code> back. For <code>overflow := scale &gt; 100</code>:</p>
+<p>Binary and unary expressions become the matching integer or float instruction. For <code>/</code>, <code>MOD</code>, and the relational operators the integer instruction depends on the signedness of the promoted operand type: a signed type gives <code>sdiv</code>, <code>srem</code>, and <code>icmp sgt</code>, an unsigned type, such as <code>UDINT</code> or <code>DWORD</code>, gives <code>udiv</code>, <code>urem</code>, and <code>icmp ugt</code>. Comparisons produce an <code>i1</code>, which is widened to <code>i8</code> because that is the width of <code>BOOL</code>; where a branch needs a condition, the <code>i8</code> is compared against zero to get an <code>i1</code> back. For <code>overflow := scale &gt; 100</code>:</p>
 <pre><code class="language-llvm">%tmpVar5 = icmp sgt i32 %load_scale4, 100   ; scale &gt; 100, as i1
 %5       = zext i1 %tmpVar5 to i8           ; widen to the width of BOOL
 store i8 %5, ptr %deref3                    ; write overflow through the output pointer
@@ -456,7 +456,7 @@ continue:
   ret void
 </code></pre>
 <h3 id="case"><a class="header" href="#case"><code>CASE</code></a></h3>
-<p><code>CASE</code> becomes a <code>switch</code> for literal labels and a chain of comparisons for range labels. The enum variants are constants, so both labels end up in the switch:</p>
+<p><code>CASE</code> becomes a <code>switch</code> for literal labels and a chain of comparisons for range labels. A range label compares the selector with its bounds by the signedness of the selector’s type, so <code>11..254</code> on a <code>USINT</code> uses <code>icmp uge</code> and <code>icmp ule</code>. The enum variants are constants, so both labels end up in the switch:</p>
 <pre><code class="language-llvm">  switch i32 %load_speed, label %else [   ; no label matched: ELSE (empty here)
     i32 0, label %case                    ; Slow
     i32 1, label %case3                   ; Fast

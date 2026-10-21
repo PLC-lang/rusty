@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-736504da.js";
+            window.path_to_searchindex_js = "searchindex-709ffb21.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-645c3480.js"></script>
@@ -573,7 +573,7 @@ END_VAR
 </tbody>
 </table>
 </div>
-<p><code>DINT</code> is the type to reach for. It is the type that the compiler gives to a whole-number literal, and only a literal too large for 32 bits becomes a <code>LINT</code>.</p>
+<p><code>DINT</code> is the type to reach for. It is the type that the compiler gives to a whole-number literal, and only a literal too large for 32 bits becomes a <code>LINT</code>. Next to an operand of another type, a literal can take that operand’s type instead; see <a href="#mixed-types">mixed types</a>.</p>
 <p>A literal can be written in another base, and <code>_</code> between two digits groups them:</p>
 <pre><code class="language-iecst">i1: DINT := 42;
 i2: DINT := 2#101010;     (* binary *)
@@ -999,7 +999,7 @@ IF failed OR_ELSE check() THEN     (* check() runs only when failed is FALSE *)
 </div>
 <p>So <code>a + b * c</code> multiplies first, and <code>x &lt; 1 AND y &gt; 2</code> compares first. A sign is part of the base of a power, so <code>-2 ** 2</code> is <code>4</code>. Parentheses override every rule and are worth writing wherever a reader would have to think.</p>
 <h2 id="mixed-types"><a class="header" href="#mixed-types">Mixed types</a></h2>
-<p>Precedence says how an expression is grouped. The types of its operands say in which type it is computed, and that type does not come from the target of the assignment. Every integer narrower than <code>DINT</code> is widened to <code>DINT</code> first, and a pair of different types is computed in the wider of the two. The result then moves to the target: a move to a wider type is silent, and a move to a narrower one compiles with a warning, because the value can change.</p>
+<p>Precedence says how an expression is grouped. The types of its operands say in which type it is computed, and that type does not come from the target of the assignment. Every integer narrower than <code>DINT</code> is widened to 32 bits first, to <code>UDINT</code> when both operands are unsigned and to <code>DINT</code> otherwise, and a pair of different types is computed in the wider of the two. An integer literal without a type prefix takes the type of the other operand when that type has 32 bits or more and the value fits it, so for a <code>UDINT</code> variable <code>u</code>, <code>u / 2</code> and <code>u &gt; 5</code> are computed as <code>UDINT</code>. A literal too large for <code>DINT</code>, as in <code>u + 3000000000</code>, moves the operation to <code>ULINT</code>. A unary <code>-</code> widens its operand to a signed type: <code>-a</code> for a <code>USINT</code> <code>a</code> of 200 is the <code>DINT</code> -200, and the negation of an unsigned type of 32 bits or more is a <code>LINT</code>. The result then moves to the target: a move to a wider type is silent, and a move to a narrower one compiles with a warning, because the value can change.</p>
 <pre><code class="language-iecst">VAR
     i: INT := 300;
     j: INT := 200;
@@ -5720,6 +5720,7 @@ END_PROGRAM
                ^^^^^^^                  { kind: Variable, qualified_name: "main.sintVar", resulting_type: "SINT", hint: "DINT" }
                          ^^^^^^^        { kind: Variable, qualified_name: "main.dintVar", resulting_type: "DINT", hint: None }
 </code></pre>
+<p>Integers narrower than 32 bits are widened to 32 bits: to <code>UDINT</code> when both operands are unsigned, so <code>UINT * UINT</code> cannot overflow, and to <code>DINT</code> otherwise. Two bit strings are the exception and keep the wider bit string type, so <code>BYTE + WORD</code> is a <code>WORD</code>. An integer literal without a type prefix takes the type of the other operand when that type has 32 bits or more and the value fits it: <code>udintVar / 2</code> divides two <code>UDINT</code> values, while <code>udintVar / -2</code> keeps the literal’s <code>DINT</code>. A literal too large for <code>DINT</code> next to a <code>UDINT</code> or <code>DWORD</code> moves both operands to <code>ULINT</code> or <code>LWORD</code>, so <code>udintVar + 3000000000</code> does not wrap. A unary <code>-</code> gives its operand the hint of a signed type that holds the negation, <code>DINT</code> for the types narrower than 32 bits and <code>LINT</code> for <code>UDINT</code>, <code>ULINT</code>, <code>DWORD</code>, and <code>LWORD</code>, so codegen widens the operand before it negates it.</p>
 <h2 id="calls-1"><a class="header" href="#calls-1">Calls</a></h2>
 <p>In</p>
 <pre><code class="language-iecst">FUNCTION scale: DINT
@@ -5754,7 +5755,7 @@ END_PROGRAM
 <p>For a function block call, the operator is a variable of the block’s type. Arguments match that block’s parameters, and the call has no result type. Built-ins such as <code>REF</code>, array bound functions, and generic arithmetic functions have special annotation rules because their types depend on the arguments. They match arguments to parameters by the same rule, and the ones that an operator expression replaces then drop the argument hints again; see <a href="#argument">Annotated AST</a>.</p>
 <p>Arithmetic with a date or time operand is typed by the table of combinations the standard defines (<code>get_date_time_arithmetic</code> in <code>src/typesystem.rs</code>) and, like a comparison of strings, replaced by the call of the standard library function that carries it out: <code>stamp + cycle</code> becomes <code>ADD_DT_TIME(stamp, cycle)</code>, <code>day1 - day2</code> becomes <code>SUB_DATE_DATE(day1, day2)</code>, and <code>2 * cycle</code> becomes <code>MUL_TIME__LINT(cycle, 2)</code>, the implementation for the kind of number with the duration first. A chain such as <code>stamp + cycle + cycle</code> is replaced from the inside out, each call taking the replaced expression as its argument. A duration combined with a bare integer keeps the duration’s type and stays an integer operation, the integer hinted with that type. A combination the table does not define, or one whose function is not declared, is left as written for the validator.</p>
 <h2 id="literals-and-generated-types"><a class="header" href="#literals-and-generated-types">Literals and generated types</a></h2>
-<p>Integer literals use <code>DINT</code> if they fit 32 bits and <code>LINT</code> otherwise. Real literals use <code>REAL</code> or <code>LREAL</code> by the same size rule. Typed literals use their prefix, as in <code>INT#5</code>. String literals get types sized to their contents: <code>'hello'</code> has type <code>__STRING_5</code>, a <code>STRING[5]</code>, even when it is assigned to a <code>STRING</code> that was declared without a size.</p>
+<p>Integer literals use <code>DINT</code> if they fit 32 bits and <code>LINT</code> otherwise; next to an operand of a binary expression they can take that operand’s type instead (see <a href="#promotion">Promotion</a>). Real literals use <code>REAL</code> or <code>LREAL</code> by the same size rule. Typed literals use their prefix, as in <code>INT#5</code>. String literals get types sized to their contents: <code>'hello'</code> has type <code>__STRING_5</code>, a <code>STRING[5]</code>, even when it is assigned to a <code>STRING</code> that was declared without a size.</p>
 <p>That sized type does not exist in the index, so the resolver registers it in a small index of its own. After all units are annotated, these generated types, together with the on-demand pointer types, are imported into the global index, where codegen finds them like any declared type. String literals found in bodies are also collected per unit, because codegen emits them as global constants. For</p>
 <pre><code class="language-iecst">PROGRAM main
     VAR
@@ -6177,7 +6178,7 @@ store i32 2, ptr %deref
 store i8 %2, ptr %sintVar                ; write sintVar
 </code></pre>
 <p>Literals are created directly in the hinted type, so <code>factor := 3</code> for an <code>INT</code> parameter produces <code>i16 3</code> and no cast.</p>
-<p>Binary and unary expressions become the matching integer or float instruction. Comparisons produce an <code>i1</code>, which is widened to <code>i8</code> because that is the width of <code>BOOL</code>; where a branch needs a condition, the <code>i8</code> is compared against zero to get an <code>i1</code> back. For <code>overflow := scale &gt; 100</code>:</p>
+<p>Binary and unary expressions become the matching integer or float instruction. For <code>/</code>, <code>MOD</code>, and the relational operators the integer instruction depends on the signedness of the promoted operand type: a signed type gives <code>sdiv</code>, <code>srem</code>, and <code>icmp sgt</code>, an unsigned type, such as <code>UDINT</code> or <code>DWORD</code>, gives <code>udiv</code>, <code>urem</code>, and <code>icmp ugt</code>. Comparisons produce an <code>i1</code>, which is widened to <code>i8</code> because that is the width of <code>BOOL</code>; where a branch needs a condition, the <code>i8</code> is compared against zero to get an <code>i1</code> back. For <code>overflow := scale &gt; 100</code>:</p>
 <pre><code class="language-llvm">%tmpVar5 = icmp sgt i32 %load_scale4, 100   ; scale &gt; 100, as i1
 %5       = zext i1 %tmpVar5 to i8           ; widen to the width of BOOL
 store i8 %5, ptr %deref3                    ; write overflow through the output pointer
@@ -6215,7 +6216,7 @@ continue:
   ret void
 </code></pre>
 <h3 id="case-1"><a class="header" href="#case-1"><code>CASE</code></a></h3>
-<p><code>CASE</code> becomes a <code>switch</code> for literal labels and a chain of comparisons for range labels. The enum variants are constants, so both labels end up in the switch:</p>
+<p><code>CASE</code> becomes a <code>switch</code> for literal labels and a chain of comparisons for range labels. A range label compares the selector with its bounds by the signedness of the selector’s type, so <code>11..254</code> on a <code>USINT</code> uses <code>icmp uge</code> and <code>icmp ule</code>. The enum variants are constants, so both labels end up in the switch:</p>
 <pre><code class="language-llvm">  switch i32 %load_speed, label %else [   ; no label matched: ELSE (empty here)
     i32 0, label %case                    ; Slow
     i32 1, label %case3                   ; Fast

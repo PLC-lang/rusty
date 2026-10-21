@@ -1,5 +1,5 @@
 (function() {
-    const implementors = Object.fromEntries([["rustix",[]],["same_file",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.97.1/std/os/fd/raw/trait.IntoRawFd.html\" title=\"trait std::os::fd::raw::IntoRawFd\">IntoRawFd</a> for <a class=\"struct\" href=\"same_file/struct.Handle.html\" title=\"struct same_file::Handle\">Handle</a>",0]]]]);
+    const implementors = Object.fromEntries([["rustix",[]],["same_file",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.99.0/std/os/fd/raw/trait.IntoRawFd.html\" title=\"trait std::os::fd::raw::IntoRawFd\">IntoRawFd</a> for <a class=\"struct\" href=\"same_file/struct.Handle.html\" title=\"struct same_file::Handle\">Handle</a>",0]]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {
