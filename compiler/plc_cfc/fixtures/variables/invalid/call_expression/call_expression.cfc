@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ppx:Function xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="call_expression">
+<ppx:Function xmlns:bmx="http://www.bachmann.at/xml/PLC" xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="call_expression">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
             <bmx:TextDeclaration>FUNCTION call_expression : INT
