@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// The negation of a BYTE or WORD runs in the operand's own width, so a value from the signed midpoint on wraps.
+// The negation of a BYTE or WORD is computed in DINT, so a value from the signed midpoint on gives the negative value.
 FUNCTION main : DINT
     VAR
         b : BYTE := 16#FF;

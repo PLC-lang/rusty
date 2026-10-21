@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A negated narrow constant keeps the constant's width, so the folded value wraps.
+// A negated narrow constant is widened to DINT before the negation, so the folded value does not wrap.
 VAR_GLOBAL CONSTANT
     cu : USINT := 200;
     ci : INT := -32768;

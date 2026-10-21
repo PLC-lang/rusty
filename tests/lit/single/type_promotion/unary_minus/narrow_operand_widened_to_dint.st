@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// The negation runs in the operand's own width, so a result outside that width wraps.
+// The operand of a negation is widened to DINT first, so a result outside the operand's width does not wrap.
 FUNCTION main : DINT
     VAR
         s : SINT := -128;
