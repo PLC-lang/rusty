@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// The negation of a DWORD is DINT, so a value from 2^31 on wraps instead of giving the negative value.
+// The negation of a DWORD is LINT, so a value from 2^31 on gives the negative value.
 FUNCTION main : DINT
     VAR
         dw : DWORD := 16#FFFF_FFFF;

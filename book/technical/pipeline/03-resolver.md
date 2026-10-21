@@ -140,7 +140,7 @@ Visualized:
                          ^^^^^^^        { kind: Variable, qualified_name: "main.dintVar", resulting_type: "DINT", hint: None }
 ```
 
-Integers narrower than 32 bits are widened to `DINT`, also when both are unsigned. Two unsigned operands of which one has 32 bits or more stay unsigned, so `UINT` and `UDINT` give `UDINT`. An integer literal without a type prefix takes the type of the other operand when that type has 32 bits or more and the value fits it: `udintVar / 2` divides two `UDINT` values, while `udintVar / -2` keeps the literal's `DINT`.
+Integers narrower than 32 bits are widened to `DINT`, also when both are unsigned. Two unsigned operands of which one has 32 bits or more stay unsigned, so `UINT` and `UDINT` give `UDINT`. An integer literal without a type prefix takes the type of the other operand when that type has 32 bits or more and the value fits it: `udintVar / 2` divides two `UDINT` values, while `udintVar / -2` keeps the literal's `DINT`. A unary `-` gives its operand the hint of a signed type that holds the negation, `DINT` for the types narrower than 32 bits and `LINT` for `UDINT`, `ULINT`, `DWORD`, and `LWORD`, so codegen widens the operand before it negates it.
 
 
 ## Calls

@@ -2362,11 +2362,16 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, &data.value);
 
                 let statement_type = if data.operator == Operator::Minus {
-                    let inner_type =
-                        self.annotation_map.get_type_or_void(&data.value, self.index).get_type_information();
+                    let inner_type = self.annotation_map.get_type_or_void(&data.value, self.index);
+                    let negated_type = typesystem::get_negated_type(inner_type, self.index);
+                    let needs_widening = negated_type != inner_type;
+                    let negated_type = negated_type.clone(); // clone here, so we release the borrow on self
 
-                    //keep the same type but switch to signed
-                    typesystem::get_signed_type(inner_type, self.index).map(|it| it.get_name().to_string())
+                    // widen the operand before the negation, so that `-usint_value` cannot wrap
+                    if needs_widening {
+                        self.update_expected_types(&negated_type, &data.value);
+                    }
+                    Some(negated_type.get_name().to_string())
                 } else {
                     let inner_type = self
                         .annotation_map
