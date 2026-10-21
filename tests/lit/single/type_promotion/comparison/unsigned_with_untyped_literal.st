@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// An untyped integer literal is DINT, so a compare with a UDINT or ULINT value is signed.
+// An untyped integer literal takes the type of a UDINT or ULINT operand, so the compare is unsigned.
 FUNCTION main : DINT
     VAR
         ud : UDINT := 4000000000;

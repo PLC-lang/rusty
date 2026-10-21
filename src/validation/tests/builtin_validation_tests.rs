@@ -158,7 +158,7 @@ fn abs_on_unsigned_arguments_reports_a_warning() {
             ABS(b);
             ABS(c);
             ABS(d);
-            ABS(b - UINT#10);
+            ABS(c - UDINT#10);
         END_FUNCTION
        ",
     ));
@@ -191,7 +191,7 @@ fn abs_on_unsigned_arguments_reports_a_warning() {
     warning[E150]: ABS on a value of unsigned type 'UDINT' has no effect
        ┌─ <internal>:19:13
        │
-    19 │             ABS(b - UINT#10);
+    19 │             ABS(c - UDINT#10);
        │             ^^^ ABS on a value of unsigned type 'UDINT' has no effect
     ");
 }

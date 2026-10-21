@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// Compares, divisions and MOD on UDINT constants follow the same signed rules as on variables.
+// Compares, divisions and MOD on UDINT constants follow the same unsigned rules as on variables.
 VAR_GLOBAL CONSTANT
     big : UDINT := 4000000000;
     small : UDINT := 5;

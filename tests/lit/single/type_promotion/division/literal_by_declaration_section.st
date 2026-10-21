@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A UDINT operand divided by an untyped literal is converted to DINT, wherever the operand is declared.
+// A UDINT operand divided by an untyped literal stays UDINT, wherever the operand is declared.
 VAR_GLOBAL
     g : UDINT := 4294967295;
 END_VAR

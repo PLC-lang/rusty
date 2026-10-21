@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// Compares and divisions on DWORD constants follow the same signed rules as on variables.
+// Compares and divisions on DWORD constants follow the same unsigned rules as on variables.
 VAR_GLOBAL CONSTANT
     mask : DWORD := 16#FFFF_FFFF;
 END_VAR

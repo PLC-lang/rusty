@@ -888,8 +888,41 @@ fn resolve_binary_expressions() {
 
     // We expect promoted unsigned types to hold sign information
     let expected_types = vec![
-        "BYTE", "WORD", "DWORD", "LWORD", "DINT", "UDINT", "DINT", "UDINT", "DINT", "UDINT", "LINT", "ULINT",
+        "BYTE", "WORD", "DWORD", "LWORD", "DINT", "DINT", "DINT", "DINT", "DINT", "UDINT", "LINT", "ULINT",
     ];
+    let type_names: Vec<&str> =
+        statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
+
+    assert_eq!(format!("{expected_types:?}"), format!("{type_names:?}"));
+}
+
+#[test]
+fn untyped_integer_literal_takes_the_type_of_a_wide_operand() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        VAR_GLOBAL
+            usi : USINT;
+            udi : UDINT;
+            uli : ULINT;
+            dw : DWORD;
+        END_VAR
+
+        PROGRAM PRG
+            udi / 2;
+            2 / udi;
+            uli MOD 3000000000;
+            dw / 16#10;
+            udi / -2;
+            udi / 5000000000;
+            usi / 2;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types = vec!["UDINT", "UDINT", "ULINT", "DWORD", "DINT", "LINT", "DINT"];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
 
