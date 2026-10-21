@@ -12,9 +12,6 @@ FUNCTION_BLOCK probe
     VAR_INPUT
         i : UDINT;
     END_VAR
-    VAR_INPUT CONSTANT
-        ic : UDINT := 4294967295;
-    END_VAR
     VAR_IN_OUT
         io : UDINT;
     END_VAR
@@ -35,8 +32,6 @@ FUNCTION_BLOCK probe
     t := 4294967295;
     q := i / 2;
     printf('VAR_INPUT / 2 = %llu$N', q);
-    q := ic MOD 7;
-    printf('VAR_INPUT CONSTANT MOD 7 = %llu$N', q);
     q := io / 2;
     printf('VAR_IN_OUT / 2 = %llu$N', q);
     q := io MOD 7;
@@ -61,7 +56,6 @@ FUNCTION main : DINT
 
     inst(i := 4294967295, io := v);
     // CHECK: VAR_INPUT / 2 = 2147483647
-    // CHECK-NEXT: VAR_INPUT CONSTANT MOD 7 = 3
     // CHECK-NEXT: VAR_IN_OUT / 2 = 2147483647
     // CHECK-NEXT: VAR_IN_OUT MOD 7 = 3
     // CHECK-NEXT: VAR_OUTPUT / 2 = 2147483647

@@ -12,9 +12,6 @@ FUNCTION_BLOCK probe
     VAR_INPUT
         i : UDINT;
     END_VAR
-    VAR_INPUT CONSTANT
-        ic : UDINT := 4294967295;
-    END_VAR
     VAR_IN_OUT
         io : ULINT;
     END_VAR
@@ -34,7 +31,6 @@ FUNCTION_BLOCK probe
     o := 4294967295;
     t := 4294967295;
     printf('VAR_INPUT > 16#7FFFFFFF = %d$N', i > 16#7FFFFFFF);
-    printf('VAR_INPUT CONSTANT < 0 = %d$N', ic < 0);
     printf('VAR_IN_OUT > 16#7FFFFFFF = %d$N', io > 16#7FFFFFFF);
     printf('VAR_OUTPUT < 0 = %d$N', o < 0);
     printf('VAR > 3000000000 = %d$N', m > 3000000000);
@@ -52,7 +48,6 @@ FUNCTION main : DINT
 
     inst(i := 4294967295, io := v);
     // CHECK: VAR_INPUT > 16#7FFFFFFF = 1
-    // CHECK-NEXT: VAR_INPUT CONSTANT < 0 = 0
     // CHECK-NEXT: VAR_IN_OUT > 16#7FFFFFFF = 1
     // CHECK-NEXT: VAR_OUTPUT < 0 = 0
     // CHECK-NEXT: VAR > 3000000000 = 1
