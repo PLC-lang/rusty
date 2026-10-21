@@ -4,6 +4,10 @@ pin cannot be typed, so the block is rejected (E147).
 
 Illustrated:
 ```
-a --> in1 [myAdd] myAdd
-b --> in2  (1)    oldDoubled? (stale) --> result (2)
+        myAdd (1)
+      +------------------+
+a --> | in1        myAdd |
+b --> | in2   oldDoubled | --> result (2)
+      +------------------+
+      (stale: myAdd does not declare oldDoubled)
 ```

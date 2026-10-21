@@ -5,7 +5,9 @@ persistent member, so no ordering fix-up or temporary is needed.
 
 Illustrated:
 ```
-   +--> in [inst : counter] out (1) --+
-   |                                  |
-   +----------------------------------+
+            inst : counter (1)
+          +-------------------+
+   .----> | in            out | --.
+   |      +-------------------+   |
+   '------------------------------'   [out feeds back into in]
 ```

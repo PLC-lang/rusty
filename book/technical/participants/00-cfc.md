@@ -190,7 +190,10 @@ A negation bubble has no meaning on a reference assignment and is rejected (E154
 A block is a call. Its `typeName` names the callee, its input pins are the parameters, and its output pins are the outputs of the callee. A callee with state keeps its outputs in its own instance, so the network needs nothing more than the call and a read of the member:
 
 ```
-localIn --> in [inst : counter] out (1) --> localOut (2)
+              inst : counter (1)
+            +-----------+
+localIn --> | in    out | --> localOut (2)
+            +-----------+
 ```
 
 ```iecst
@@ -322,7 +325,10 @@ An unwired function input is passed as an empty argument, `in2 := `, to use the 
 A callee with state, a function block instance or a program, keeps its outputs in the instance, so no temporaries are necessary: the call passes the wired inputs only, and a consumer of an output reads the member. The [Block](#block) example above shows the plain case. An action is called through its owner, and its outputs are the members of the owner, not of the action:
 
 ```
-localIn --> in [inst : counter.increment] out (1) --> localOut (2)
+              inst : counter.increment (1)
+            +--------------------------+
+localIn --> | in                   out | --> localOut (2)
+            +--------------------------+
 ```
 
 ```iecst
@@ -335,7 +341,7 @@ A program is read in the same way through the name of its one instance, `counter
 Execution control adds `EN` and `ENO` pins. `EN` becomes an `IF` around the call and its output capture; a skipped call leaves temporaries unchanged. `ENO` refers to the `EN` source rather than a result of the callee. Thus `done := trigger` reads the same source as the guard. A chain of these pins produces a sequence of `IF trigger` guards:
 
 ```
-                  myAdd (1)
+              myAdd (1)
             +--------------------+
 trigger --> | EN             ENO | --> done (3)
       a --> | in1          myAdd | --> sum (2)

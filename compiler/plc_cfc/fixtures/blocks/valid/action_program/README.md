@@ -6,5 +6,8 @@ falls back to the owner when no instance is declared.
 
 Illustrated:
 ```
-localIn --> step [P.bump] out (1) --> localOut (2)
+              P.bump (1)
+            +------------+
+localIn --> | step   out | --> localOut (2)
+            +------------+
 ```

@@ -6,5 +6,8 @@ the action's). Owner/action come from `rsplit_once('.')` on `typeName`.
 
 Illustrated:
 ```
-localIn --> in [inst : counter.increment] out (1) --> localOut (2)
+              inst : counter.increment (1)
+            +-----------------------------+
+localIn --> | in                      out | --> localOut (2)
+            +-----------------------------+
 ```

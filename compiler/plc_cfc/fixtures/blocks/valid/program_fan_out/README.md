@@ -4,6 +4,8 @@ sink is an independent member access — no temporary is introduced.
 
 Illustrated:
 ```
-seed --> in [counter] out (1) --+--> a (2)
-                                +--> b (3)
+           counter (1)
+         +------------+
+seed --> | in     out | --+--> a (2)
+         +------------+   +--> b (3)
 ```

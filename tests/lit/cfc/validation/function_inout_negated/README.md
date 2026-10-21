@@ -6,6 +6,10 @@ failure.
 
 Illustrated:
 ```
-a1 ------> delta [addInto] addInto --> b1 (0, 1)
-acc1 o---o acc
+              addInto (1)
+            +---------------------+
+  a1 -----> | delta       addInto | --> b1 (2)
+acc1 o<-->o | acc                 |
+            +---------------------+
+            (o = negated pin; acc1 is also negated on the source side)
 ```

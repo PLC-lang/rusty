@@ -4,5 +4,9 @@ classified and is rejected (E146).
 
 Illustrated:
 ```
-countIn --> in [counter?] out (1) --> countOut (2)
+              counter (1)
+            +-----------+
+countIn --> | in    out | --> countOut (2)
+            +-----------+
+            (unknown type: no POU named counter is declared)
 ```

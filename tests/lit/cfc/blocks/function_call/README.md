@@ -5,6 +5,9 @@ doubledOut => doubled)`) and checks `result = 7, doubled = 14`.
 
 Illustrated:
 ```
-in1 --> in1 [myAdd] myAdd        --> function_call (0, 1)
-in2 --> in2         myAddDoubled --> doubledOut    (3)
+          myAdd (1)
+        +--------------------+
+in1 --> | in1          myAdd | --> function_call (2)
+in2 --> | in2   myAddDoubled | --> doubledOut (3)
+        +--------------------+
 ```

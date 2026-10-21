@@ -5,8 +5,10 @@ the exact sum (`acc = 50331651`) proves no floating-point promotion happened.
 
 Illustrated:
 ```
-     +--<-- ADD <--+
-     |             |
-     +--> [ADD]----+--> acc (0, 1)
-seed ---->
+              ADD (1)
+            +-----------+
+     .----> | IN1   ADD | --+--> acc (2)
+seed -----> |           |   |
+            +-----------+   |
+     '----------------------'   [return feeds back into IN1]
 ```

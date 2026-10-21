@@ -5,5 +5,8 @@ degenerate case for programs becomes meaningful here.
 
 Illustrated:
 ```
-seed --> in [a : counter] out (1) --> in [b : counter] out (2) --> result (3)
+           a : counter (1)        b : counter (2)
+         +----------------+     +----------------+
+seed --> | in         out | --> | in         out | --> result (3)
+         +----------------+     +----------------+
 ```
