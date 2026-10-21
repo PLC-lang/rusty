@@ -17,13 +17,11 @@ FUNCTION main : DINT
         l : LINT;
     END_VAR
 
-    // Unsigned difference in DINT
+    // Unsigned difference stored in DINT
     d := a - b;
     printf('DINT := USINT 5 - USINT 7 = %d$N', d);          // CHECK: DINT := USINT 5 - USINT 7 = -2
     d := ua - ub;
     printf('DINT := UINT 5 - UINT 7 = %d$N', d);            // CHECK-NEXT: DINT := UINT 5 - UINT 7 = -2
-    printf('USINT 5 - USINT 7 < 0 = %d$N', a - b < 0);      // CHECK-NEXT: USINT 5 - USINT 7 < 0 = 1
-    printf('UINT 5 - UINT 7 < 0 = %d$N', ua - ub < 0);      // CHECK-NEXT: UINT 5 - UINT 7 < 0 = 1
 
     // Results beyond the operand width
     d := big + big2;
@@ -36,12 +34,18 @@ FUNCTION main : DINT
     // A signed operand makes the operation signed
     l := a - s7;
     printf('LINT := USINT 5 - SINT 7 = %lld$N', l);         // CHECK-NEXT: LINT := USINT 5 - SINT 7 = -2
+
+    // Two narrow unsigned operands are computed as UDINT, so a negative difference wraps in 32 bits
+    printf('USINT 5 - USINT 7 < 0 = %d$N', a - b < 0);      // CHECK-NEXT: USINT 5 - USINT 7 < 0 = 0
+    printf('UINT 5 - UINT 7 < 0 = %d$N', ua - ub < 0);      // CHECK-NEXT: UINT 5 - UINT 7 < 0 = 0
     l := (a - b) * 2;
-    printf('LINT := (USINT 5 - USINT 7) * 2 = %lld$N', l);  // CHECK-NEXT: LINT := (USINT 5 - USINT 7) * 2 = -4
+    printf('LINT := (USINT 5 - USINT 7) * 2 = %lld$N', l);  // CHECK-NEXT: LINT := (USINT 5 - USINT 7) * 2 = 4294967292
 
     // An untyped literal next to a UDINT takes the UDINT type, so the difference wraps in 32 bits
     l := u2 - 3;
     printf('LINT := UDINT 2 - 3 = %lld$N', l);              // CHECK-NEXT: LINT := UDINT 2 - 3 = 4294967295
     l := 1 - u2;
     printf('LINT := 1 - UDINT 2 = %lld$N', l);              // CHECK-NEXT: LINT := 1 - UDINT 2 = 4294967295
+    d := u2 - 3;
+    printf('DINT := UDINT 2 - 3 = %d$N', d);                // CHECK-NEXT: DINT := UDINT 2 - 3 = -1
 END_FUNCTION

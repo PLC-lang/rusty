@@ -39,7 +39,7 @@ use crate::{
 };
 use crate::{
     index::{FxIndexMap, FxIndexSet, InterfaceIndexEntry},
-    typesystem::UDINT_TYPE,
+    typesystem::{UDINT_TYPE, ULINT_TYPE},
 };
 
 pub mod const_evaluator;
@@ -2294,22 +2294,16 @@ impl<'i> TypeAnnotator<'i> {
                                 get_literal_operand_type(self.index, &data.left, left_type, right_type);
                             let right_operand =
                                 get_literal_operand_type(self.index, &data.right, right_type, left_type);
-                            let intrinsic = |operand: &typesystem::DataType| {
+                            let is_unsigned = |operand: &typesystem::DataType| {
                                 self.index
                                     .get_intrinsic_type_by_name(operand.get_name())
                                     .get_type_information()
-                            };
-                            let (left_info, right_info) = (intrinsic(left_operand), intrinsic(right_operand));
-                            let is_wide = |info: &DataTypeInformation| {
-                                info.get_size_in_bits(self.index).unwrap_or_default() >= DINT_SIZE
+                                    .is_unsigned_int()
                             };
 
                             let ty = if left_operand.is_bit() && right_operand.is_bit() {
                                 right_operand
-                            } else if left_info.is_unsigned_int()
-                                && right_info.is_unsigned_int()
-                                && (is_wide(left_info) || is_wide(right_info))
-                            {
+                            } else if is_unsigned(left_operand) && is_unsigned(right_operand) {
                                 self.index.get_type_or_panic(UDINT_TYPE)
                             } else {
                                 self.index.get_type_or_panic(DINT_TYPE)
@@ -3137,8 +3131,11 @@ fn to_variable_annotation(
     }
 }
 
-/// Returns the type of `other_type` if `operand` is an untyped integer literal whose value fits it, so that
-/// `udint_value / 2` stays unsigned. Next to a type narrower than `DINT` the literal keeps its own type.
+/// Returns the type an untyped integer literal `operand` takes next to `other_type`, which must have 32 bits
+/// or more. A literal that fits `DINT` takes the other type when its value fits it, so `udint_value / 2` stays
+/// unsigned. A larger literal moves to the 64-bit type of the same kind as the other type, so that
+/// `udint_value + 3000000000` is computed as `ULINT`. Next to a type narrower than `DINT`, or when the value
+/// does not fit, the literal keeps its own type.
 fn get_literal_operand_type<'i>(
     index: &'i Index,
     operand: &AstNode,
@@ -3151,20 +3148,37 @@ fn get_literal_operand_type<'i>(
 
     let other = index.get_intrinsic_type_by_name(other_type.get_name());
     let other_info = other.get_type_information();
-    let DataTypeInformation::Integer { signed, size, semantic_size: None, .. } = other_info else {
+    let DataTypeInformation::Integer { size: other_size, semantic_size: None, .. } = other_info else {
         return operand_type;
     };
-    if *size < DINT_SIZE || other_info.is_character() || other_info.is_date_or_time_type() {
+    if *other_size < DINT_SIZE || other_info.is_character() || other_info.is_date_or_time_type() {
         return operand_type;
     }
 
+    // a literal wider than the other type takes the 64-bit type of the other type's kind
+    let literal_size = operand_type.get_type_information().get_size_in_bits(index).unwrap_or(DINT_SIZE);
+    let target = if literal_size <= *other_size {
+        other
+    } else {
+        match other.get_name() {
+            UDINT_TYPE => index.get_type_or_panic(ULINT_TYPE),
+            DWORD_TYPE => index.get_type_or_panic(LWORD_TYPE),
+            _ => return operand_type,
+        }
+    };
+    let DataTypeInformation::Integer { signed, size, .. } = target.get_type_information() else {
+        return operand_type;
+    };
+
+    // `1 << n` is 2 to the power of n: a signed 32-bit type holds -2147483648 (-(1 << 31)) up to
+    // 2147483647 ((1 << 31) - 1), an unsigned one 0 up to 4294967295 ((1 << 32) - 1)
     let (min, max) = if *signed {
         (-(1_i128 << (size - 1)), (1_i128 << (size - 1)) - 1)
     } else {
         (0, (1_i128 << size) - 1)
     };
     if (min..=max).contains(value) {
-        other
+        target
     } else {
         operand_type
     }
