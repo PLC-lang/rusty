@@ -1,7 +1,6 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
 // A bit string next to an unsigned integer or another bit string of a different width is promoted to the wider 32-bit or 64-bit type
-// and then compared signed.
+// and then compared unsigned.
 FUNCTION main : DINT
     VAR
         us5 : USINT := 5;

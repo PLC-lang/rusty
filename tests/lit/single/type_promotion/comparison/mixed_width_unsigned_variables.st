@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// Two unsigned operands of different widths are promoted to the wider UDINT or ULINT and then compared signed.
+// Two unsigned operands of different widths are promoted to the wider UDINT or ULINT and then compared unsigned.
 FUNCTION main : DINT
     VAR
         us5 : USINT := 5;

@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A relational compare of two ULINT values is signed, so a value from the signed midpoint on compares as negative.
+// A relational compare of two ULINT values is unsigned, so a value from the signed midpoint on compares as large.
 FUNCTION main : DINT
     VAR
         hi : ULINT := 18446744073709551615;

@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// TIME, DATE and DT are unsigned 32-bit values, but they compare signed, so values from 2^31 on compare as negative.
+// TIME, DATE and DT are unsigned 32-bit values and compare unsigned, so values from 2^31 on compare as large.
 FUNCTION main : DINT
     VAR
         long_time : TIME := T#25d;

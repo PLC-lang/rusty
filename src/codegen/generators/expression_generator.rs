@@ -2299,20 +2299,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.llvm.builder.build_int_compare(IntPredicate::NE, int_lvalue, int_rvalue, "tmpVar")?
             }
 
-            Operator::Less => {
-                self.llvm.builder.build_int_compare(IntPredicate::SLT, int_lvalue, int_rvalue, "tmpVar")?
-            }
-
-            Operator::Greater => {
-                self.llvm.builder.build_int_compare(IntPredicate::SGT, int_lvalue, int_rvalue, "tmpVar")?
-            }
-
-            Operator::LessOrEqual => {
-                self.llvm.builder.build_int_compare(IntPredicate::SLE, int_lvalue, int_rvalue, "tmpVar")?
-            }
-
-            Operator::GreaterOrEqual => {
-                self.llvm.builder.build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar")?
+            Operator::Less | Operator::Greater | Operator::LessOrEqual | Operator::GreaterOrEqual => {
+                let predicate = match (operator, is_signed.unwrap_or(true)) {
+                    (Operator::Less, true) => IntPredicate::SLT,
+                    (Operator::Less, false) => IntPredicate::ULT,
+                    (Operator::Greater, true) => IntPredicate::SGT,
+                    (Operator::Greater, false) => IntPredicate::UGT,
+                    (Operator::LessOrEqual, true) => IntPredicate::SLE,
+                    (Operator::LessOrEqual, false) => IntPredicate::ULE,
+                    (_, true) => IntPredicate::SGE,
+                    (_, false) => IntPredicate::UGE,
+                };
+                self.llvm.builder.build_int_compare(predicate, int_lvalue, int_rvalue, "tmpVar")?
             }
             Operator::Xor => self.llvm.builder.build_xor(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::And => self.llvm.builder.build_and(int_lvalue, int_rvalue, "tmpVar")?,

@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A relational compare of two UDINT values is signed, so a value from the signed midpoint on compares as negative.
+// A relational compare of two UDINT values is unsigned, so a value from the signed midpoint on compares as large.
 FUNCTION main : DINT
     VAR
         hi : UDINT := 4000000000;

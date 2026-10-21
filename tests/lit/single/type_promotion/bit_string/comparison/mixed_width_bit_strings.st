@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A BYTE and a WORD operand keep the wider bit string type and compare signed, so a value from the signed midpoint on compares as negative.
+// A BYTE and a WORD operand keep the wider bit string type and compare unsigned, so a value from the signed midpoint on compares as large.
 FUNCTION main : DINT
     VAR
         b5 : BYTE := 16#05;
