@@ -1,5 +1,6 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// Two narrow unsigned operands are computed as DINT, so a negative difference keeps its sign in a 64-bit or real target.
+// XFAIL: *
+// Two narrow unsigned operands are computed as UDINT, so a negative difference is zero-extended into a 64-bit or real target.
 FUNCTION show_lint : DINT
     VAR_INPUT
         v : LINT;

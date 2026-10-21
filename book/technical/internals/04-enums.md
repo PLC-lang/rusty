@@ -120,8 +120,8 @@ A variant in a body resolves to its variable entry, and the annotation records t
                     ^^^^^    { kind: Variable, qualified_name: "Color.Green",  resulting_type: "Color", hint: None,    constant: true }
 
     flag := state <> Idle;
-            ^^^^^            { kind: Variable, qualified_name: "main.state",   resulting_type: "State", hint: "DINT" }
-                     ^^^^    { kind: Variable, qualified_name: "State.Idle",   resulting_type: "State", hint: "DINT", constant: true }
+            ^^^^^            { kind: Variable, qualified_name: "main.state",   resulting_type: "State", hint: "UDINT" }
+                     ^^^^    { kind: Variable, qualified_name: "State.Idle",   resulting_type: "State", hint: "UDINT", constant: true }
 ```
 
 The example uses three forms of variant access: `Color#Red`, `Color.Green`, and the unqualified `Closed`.
@@ -130,7 +130,7 @@ The example uses three forms of variant access: `Color#Red`, `Color.Green`, and 
 
 `Closed` without a qualifier goes through the normal name lookup (see [Resolver](../pipeline/03-resolver.md), Walking a unit): a member of the current POU first, then a global. Inside a POU the member lookup also searches the variants of every enum type one of the POU's variables has. That is why `Closed` in `main` finds `State.Closed` and not `Door.Closed`: `main` has a variable of type `State` and none of type `Door`. Without such a variable, the global lookup takes the first variant of that name in declaration order.
 
-Comparisons are promoted through the underlying type. `paint = Green` compares two `DINT` values and needs no hints. `state <> Idle` compares two `BYTE` values, and the resolver widens both to `DINT`, as it does for every pair of integers narrower than 32 bits. The argument `paint` in `isGreen(paint)` is hinted to the parameter type `Color` like any argument, and the variant initializers are annotated too, with the underlying type as hint, so the values of `State` are hinted `BYTE`.
+Comparisons are promoted through the underlying type. `paint = Green` compares two `DINT` values and needs no hints. `state <> Idle` compares two `BYTE` values, and the resolver widens both to 32 bits; the promoted type is `UDINT` because `BYTE` is unsigned. The argument `paint` in `isGreen(paint)` is hinted to the parameter type `Color` like any argument, and the variant initializers are annotated too, with the underlying type as hint, so the values of `State` are hinted `BYTE`.
 
 > [!NOTE]
 > Names are case-insensitive, so a variable `color: Color` shadows the type name in `Color.Green`: the base resolves to the variable `main.color`, and the variant is then found through the variable's type. The result is the same entry, which is why the example uses `paint` for the variable.
