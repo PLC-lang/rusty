@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// An untyped integer literal is DINT, so a DWORD divided by it is converted to DINT and the division is signed.
+// An untyped integer literal takes the type of a DWORD operand, so the division is unsigned.
 FUNCTION main : DINT
     VAR
         w : DWORD := 16#FFFF_FFFF;

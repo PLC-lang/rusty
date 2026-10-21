@@ -39,9 +39,9 @@ FUNCTION main : DINT
     l := (a - b) * 2;
     printf('LINT := (USINT 5 - USINT 7) * 2 = %lld$N', l);  // CHECK-NEXT: LINT := (USINT 5 - USINT 7) * 2 = -4
 
-    // An untyped literal next to a UDINT
+    // An untyped literal next to a UDINT takes the UDINT type, so the difference wraps in 32 bits
     l := u2 - 3;
-    printf('LINT := UDINT 2 - 3 = %lld$N', l);              // CHECK-NEXT: LINT := UDINT 2 - 3 = -1
+    printf('LINT := UDINT 2 - 3 = %lld$N', l);              // CHECK-NEXT: LINT := UDINT 2 - 3 = 4294967295
     l := 1 - u2;
-    printf('LINT := 1 - UDINT 2 = %lld$N', l);              // CHECK-NEXT: LINT := 1 - UDINT 2 = -1
+    printf('LINT := 1 - UDINT 2 = %lld$N', l);              // CHECK-NEXT: LINT := 1 - UDINT 2 = 4294967295
 END_FUNCTION

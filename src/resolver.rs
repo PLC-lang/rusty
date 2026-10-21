@@ -31,8 +31,9 @@ use crate::{
     typesystem::{
         self, get_bigger_type, get_date_time_arithmetic, DataTypeInformation, DateTimeArithmetic,
         InternalType, StringEncoding, StructSource, BOOL_TYPE, BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE,
-        DINT_TYPE, DWORD_TYPE, LINT_TYPE, LONG_DATE_AND_TIME_TYPE, LONG_DATE_TYPE, LONG_TIME_OF_DAY_TYPE,
-        LONG_TIME_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        DINT_SIZE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LONG_DATE_AND_TIME_TYPE, LONG_DATE_TYPE,
+        LONG_TIME_OF_DAY_TYPE, LONG_TIME_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, TIME_OF_DAY_TYPE,
+        TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 use crate::{
@@ -2262,16 +2263,32 @@ impl<'i> TypeAnnotator<'i> {
                         let bigger_type = if l_intrinsic_type.is_bool() && r_intrinsic_type.is_bool() {
                             left_type
                         } else {
-                            let ty = if left_type.is_bit() && right_type.is_bit() {
-                                right_type
-                            } else if l_intrinsic_type.is_unsigned_int() && r_intrinsic_type.is_unsigned_int()
+                            let left_operand =
+                                get_literal_operand_type(self.index, &data.left, left_type, right_type);
+                            let right_operand =
+                                get_literal_operand_type(self.index, &data.right, right_type, left_type);
+                            let intrinsic = |operand: &typesystem::DataType| {
+                                self.index
+                                    .get_intrinsic_type_by_name(operand.get_name())
+                                    .get_type_information()
+                            };
+                            let (left_info, right_info) = (intrinsic(left_operand), intrinsic(right_operand));
+                            let is_wide = |info: &DataTypeInformation| {
+                                info.get_size_in_bits(self.index).unwrap_or_default() >= DINT_SIZE
+                            };
+
+                            let ty = if left_operand.is_bit() && right_operand.is_bit() {
+                                right_operand
+                            } else if left_info.is_unsigned_int()
+                                && right_info.is_unsigned_int()
+                                && (is_wide(left_info) || is_wide(right_info))
                             {
                                 self.index.get_type_or_panic(UDINT_TYPE)
                             } else {
                                 self.index.get_type_or_panic(DINT_TYPE)
                             };
                             get_bigger_type(
-                                get_bigger_type(left_type, right_type, self.index),
+                                get_bigger_type(left_operand, right_operand, self.index),
                                 ty,
                                 self.index,
                             )
@@ -3104,6 +3121,39 @@ fn to_variable_annotation(
         constant: v.is_constant() || constant_override,
         argument_type: v.get_declaration_type(),
         auto_deref: kind,
+    }
+}
+
+/// Returns the type of `other_type` if `operand` is an untyped integer literal whose value fits it, so that
+/// `udint_value / 2` stays unsigned. Next to a type narrower than `DINT` the literal keeps its own type.
+fn get_literal_operand_type<'i>(
+    index: &'i Index,
+    operand: &AstNode,
+    operand_type: &'i typesystem::DataType,
+    other_type: &'i typesystem::DataType,
+) -> &'i typesystem::DataType {
+    let AstStatement::Literal(AstLiteral::Integer(value)) = operand.get_stmt() else {
+        return operand_type;
+    };
+
+    let other = index.get_intrinsic_type_by_name(other_type.get_name());
+    let other_info = other.get_type_information();
+    let DataTypeInformation::Integer { signed, size, semantic_size: None, .. } = other_info else {
+        return operand_type;
+    };
+    if *size < DINT_SIZE || other_info.is_character() || other_info.is_date_or_time_type() {
+        return operand_type;
+    }
+
+    let (min, max) = if *signed {
+        (-(1_i128 << (size - 1)), (1_i128 << (size - 1)) - 1)
+    } else {
+        (0, (1_i128 << size) - 1)
+    };
+    if (min..=max).contains(value) {
+        other
+    } else {
+        operand_type
     }
 }
 

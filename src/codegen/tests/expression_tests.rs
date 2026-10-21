@@ -1443,14 +1443,14 @@ fn division_of_unsigned_types_should_use_udiv() {
       %0 = zext i8 %load_varUSIntX to i32
       %load_varUSIntY = load i8, ptr %varUSIntY, align [filtered]
       %1 = zext i8 %load_varUSIntY to i32
-      %tmpVar = udiv i32 %0, %1
+      %tmpVar = sdiv i32 %0, %1
       %2 = trunc i32 %tmpVar to i8
       store i8 %2, ptr %varUSIntR, align [filtered]
       %load_varUIntX = load i16, ptr %varUIntX, align [filtered]
       %3 = zext i16 %load_varUIntX to i32
       %load_varUIntY = load i16, ptr %varUIntY, align [filtered]
       %4 = zext i16 %load_varUIntY to i32
-      %tmpVar1 = udiv i32 %3, %4
+      %tmpVar1 = sdiv i32 %3, %4
       %5 = trunc i32 %tmpVar1 to i16
       store i16 %5, ptr %varUIntR, align [filtered]
       %load_varUDIntX = load i32, ptr %varUDIntX, align [filtered]
@@ -1686,14 +1686,14 @@ fn modulo_of_unsigned_types_should_use_urem() {
       %0 = zext i8 %load_varUSIntX to i32
       %load_varUSIntY = load i8, ptr %varUSIntY, align [filtered]
       %1 = zext i8 %load_varUSIntY to i32
-      %tmpVar = urem i32 %0, %1
+      %tmpVar = srem i32 %0, %1
       %2 = trunc i32 %tmpVar to i8
       store i8 %2, ptr %varUSIntR, align [filtered]
       %load_varUIntX = load i16, ptr %varUIntX, align [filtered]
       %3 = zext i16 %load_varUIntX to i32
       %load_varUIntY = load i16, ptr %varUIntY, align [filtered]
       %4 = zext i16 %load_varUIntY to i32
-      %tmpVar1 = urem i32 %3, %4
+      %tmpVar1 = srem i32 %3, %4
       %5 = trunc i32 %tmpVar1 to i16
       store i16 %5, ptr %varUIntR, align [filtered]
       %load_varUDIntX = load i32, ptr %varUDIntX, align [filtered]

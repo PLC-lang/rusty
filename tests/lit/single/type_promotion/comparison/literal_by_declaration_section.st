@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A compare of a UDINT or ULINT operand with an untyped literal is signed, wherever the operand is declared.
+// A compare of a UDINT or ULINT operand with an untyped literal is unsigned, wherever the operand is declared.
 VAR_GLOBAL
     g : UDINT := 4294967295;
 END_VAR

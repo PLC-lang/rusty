@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// Two narrow unsigned operands are computed as UDINT, so a negative difference is zero-extended into a 64-bit or real target.
+// Two narrow unsigned operands are computed as DINT, so a negative difference keeps its sign in a 64-bit or real target.
 FUNCTION show_lint : DINT
     VAR_INPUT
         v : LINT;
@@ -32,6 +31,7 @@ FUNCTION main : DINT
     printf('LINT := USINT 5 - USINT 7 = %lld$N', l);        // CHECK: LINT := USINT 5 - USINT 7 = -2
     l := ua - ub;
     printf('LINT := UINT 5 - UINT 7 = %lld$N', l);          // CHECK-NEXT: LINT := UINT 5 - UINT 7 = -2
+    l := (a - b) * 2;
     printf('LINT := (USINT 5 - USINT 7) * 2 = %lld$N', l);  // CHECK-NEXT: LINT := (USINT 5 - USINT 7) * 2 = -4
     r := a - b;
     printf('LREAL := USINT 5 - USINT 7 = %f$N', r);         // CHECK-NEXT: LREAL := USINT 5 - USINT 7 = -2.000000

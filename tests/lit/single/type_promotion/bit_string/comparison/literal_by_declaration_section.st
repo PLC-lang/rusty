@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A compare of a DWORD or LWORD operand with an untyped literal is signed, wherever the operand is declared.
+// A compare of a DWORD or LWORD operand with an untyped literal is unsigned, wherever the operand is declared.
 VAR_GLOBAL
     g : DWORD := 16#FFFF_FFFF;
 END_VAR

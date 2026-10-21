@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// A DWORD operand divided by an untyped literal is converted to DINT, wherever the operand is declared.
+// A DWORD operand divided by an untyped literal stays DWORD, wherever the operand is declared.
 VAR_GLOBAL
     g : DWORD := 16#FFFF_FFFF;
 END_VAR

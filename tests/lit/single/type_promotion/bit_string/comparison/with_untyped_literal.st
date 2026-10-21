@@ -1,6 +1,5 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
-// XFAIL: *
-// An untyped integer literal is DINT, so a compare with a DWORD or LWORD value is signed.
+// An untyped integer literal takes the type of a DWORD or LWORD operand, so the compare is unsigned.
 FUNCTION main : DINT
     VAR
         dw : DWORD := 16#FFFF_FFFF;
