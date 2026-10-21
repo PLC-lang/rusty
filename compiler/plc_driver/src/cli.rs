@@ -503,6 +503,27 @@ pub enum SubCommands {
         #[clap(subcommand)]
         option: GenerateOption,
     },
+
+    /// Formats Structured Text source files.
+    Format {
+        #[clap(help = "Files or glob patterns to format")]
+        files: Vec<String>,
+
+        #[clap(
+            long,
+            help = "Check formatting without writing; exit non-zero and list files that would change"
+        )]
+        check: bool,
+
+        #[clap(name = "config", long, help = "Explicit path to a .plcformat.yaml config file")]
+        config_path: Option<String>,
+
+        #[clap(long, help = "Print the effective configuration as YAML and exit")]
+        dump_config: bool,
+
+        #[clap(long, help = "Write formatted output to stdout instead of rewriting the file in place")]
+        stdout: bool,
+    },
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
@@ -804,6 +825,7 @@ impl CompileParameters {
                 build_config.is_some() || super::get_config(&current_dir).exists()
             }
             Some(SubCommands::Generate { build_config, .. }) => build_config.is_some(),
+            Some(SubCommands::Format { .. }) => false,
         };
         Ok(res)
     }
