@@ -9,6 +9,6 @@ Illustrated:
           addInto (1)
         +--------------------+
   5 --> | delta      addInto | --> result (2)
-   (unwired) acc             |
+        | acc (unwired)      |
         +--------------------+
 ```

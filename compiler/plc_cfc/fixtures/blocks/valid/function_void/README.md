@@ -6,5 +6,8 @@ Its consumed output is captured into a typed temporary, not read as `myVoid.out`
 
 Illustrated:
 ```
-localIn --> in [myVoid] out (1) --> localOut (2)
+              myVoid (1)
+            +-----------+
+localIn --> | in    out | --> localOut (2)
+            +-----------+
 ```

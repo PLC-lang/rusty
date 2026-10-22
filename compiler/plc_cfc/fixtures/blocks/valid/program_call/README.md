@@ -4,5 +4,8 @@ output is consumed as a member access on the program's global.
 
 Illustrated:
 ```
-countIn --> in [counter] out (1) --> countOut (2)
+              counter (1)
+            +------------+
+countIn --> | in     out | --> countOut (2)
+            +------------+
 ```

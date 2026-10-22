@@ -4,6 +4,10 @@ cannot be matched to anything; the block is rejected (E155).
 
 Illustrated:
 ```
-a --> in1 [myAdd] (return)
-b --> in2  (1)    (return)? (duplicate) --> result (2)
+        myAdd (1)
+      +-------------+
+a --> | in1   myAdd |
+b --> | in2   myAdd | --> result (2)
+      +-------------+
+      (both output pins are unnamed; the second is a duplicate return pin)
 ```

@@ -5,9 +5,9 @@ cycles — the persistent-variable analogue of a supplied in_out.
 
 Illustrated:
 ```
-          addInto (1)
-        +--------------------+
-  5 --> | delta      addInto | --> result (2)
-total <=> acc                |
-        +--------------------+
+             addInto (1)
+           +--------------------+
+     5 --> | delta      addInto | --> result (2)
+total <--> | acc                |
+           +--------------------+
 ```

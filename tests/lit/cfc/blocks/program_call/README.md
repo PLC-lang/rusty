@@ -4,6 +4,9 @@ the inout writes back into the caller's variable. `main` runs two cycles with
 
 Illustrated:
 ```
-stepValue -------> step [accumulator] doubled --> result (0, 1)
-runningTotal <--> total
+                    accumulator (1)
+                  +--------------------+
+    stepValue --> | step       doubled | --> result (2)
+runningTotal <--> | total              |
+                  +--------------------+
 ```

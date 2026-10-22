@@ -5,9 +5,11 @@ values pass by pin order. Verbatim IDE export.
 
 Illustrated:
 ```
-           +------ ADD ------+
-a1 o-------| IN1             |
-a2 ------o-|             ADD |--------> b1 (2)
-a3 o-----o-|                 |
-           +-----------------+ (1)
+          ADD (1)
+        +---------------+
+a1 o--> | IN1       ADD | --> b1 (2)
+a2 ---o |               |
+a3 o--o |               |
+        +---------------+
+        (o = negated pin)
 ```

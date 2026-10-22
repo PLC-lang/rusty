@@ -293,7 +293,7 @@ store i8 %2, ptr %sintVar                ; write sintVar
 
 Literals are created directly in the hinted type, so `factor := 3` for an `INT` parameter produces `i16 3` and no cast.
 
-Binary and unary expressions become the matching integer or float instruction. Comparisons produce an `i1`, which is widened to `i8` because that is the width of `BOOL`; where a branch needs a condition, the `i8` is compared against zero to get an `i1` back. For `overflow := scale > 100`:
+Binary and unary expressions become the matching integer or float instruction. For `/`, `MOD`, and the relational operators the integer instruction depends on the signedness of the promoted operand type: a signed type gives `sdiv`, `srem`, and `icmp sgt`, an unsigned type, such as `UDINT` or `DWORD`, gives `udiv`, `urem`, and `icmp ugt`. Comparisons produce an `i1`, which is widened to `i8` because that is the width of `BOOL`; where a branch needs a condition, the `i8` is compared against zero to get an `i1` back. For `overflow := scale > 100`:
 
 ```llvm
 %tmpVar5 = icmp sgt i32 %load_scale4, 100   ; scale > 100, as i1
@@ -355,7 +355,7 @@ continue:
 
 ### `CASE`
 
-`CASE` becomes a `switch` for literal labels and a chain of comparisons for range labels. The enum variants are constants, so both labels end up in the switch:
+`CASE` becomes a `switch` for literal labels and a chain of comparisons for range labels. A range label compares the selector with its bounds by the signedness of the selector's type, so `11..254` on a `USINT` uses `icmp uge` and `icmp ule`. The enum variants are constants, so both labels end up in the switch:
 
 ```llvm
   switch i32 %load_speed, label %else [   ; no label matched: ELSE (empty here)

@@ -4,7 +4,9 @@ lowers to `counter(in := counter.out)` with no ordering fix-up or temporary.
 
 Illustrated:
 ```
-   +--> in [counter] out (1) --+
-   |                           |
-   +---------------------------+
+            counter (1)
+          +------------+
+   .----> | in     out | --.
+   |      +------------+   |
+   '-----------------------'   [out feeds back into in]
 ```

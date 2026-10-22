@@ -4,9 +4,33 @@ diagram twice and checks each result against its ST operator.
 
 Illustrated:
 ```
-a, b, c --> [AND] --> and_result (1, 6)
-a, b    --> [OR]  --> or_result  (2, 7)
-a, b    --> [XOR] --> xor_result (3, 8)
-x, y    --> [MOD] --> mod_result (4, 9)
-a       --> [NOT] --> not_result (5, 10)
+        AND (1)
+      +-----------+
+a --> | IN1   AND | --> and_result (6)
+b --> |           |
+c --> |           |
+      +-----------+
+
+        OR (2)
+      +-----------+
+a --> | IN1    OR | --> or_result (7)
+b --> |           |
+      +-----------+
+
+        XOR (3)
+      +-----------+
+a --> | IN1   XOR | --> xor_result (8)
+b --> |           |
+      +-----------+
+
+        MOD (4)
+      +-----------+
+x --> | IN1   MOD | --> mod_result (9)
+y --> | IN2       |
+      +-----------+
+
+        NOT (5)
+      +-----------+
+a --> | IN    NOT | --> not_result (10)
+      +-----------+
 ```

@@ -4,8 +4,10 @@ captured temporary carries last cycle's value. `main` runs two cycles with
 
 Illustrated:
 ```
-     +--<-- myAdd <--+
-     |               |
-     +--> in1 [myAdd]+--> acc (0, 1)
-seed ---> in2
+              myAdd (1)
+            +--------------------+
+     .----> | in1          myAdd | --+--> acc (2)
+seed -----> | in2   myAddDoubled |   |
+            +--------------------+   |
+     '-------------------------------'   [return feeds back into in1]
 ```

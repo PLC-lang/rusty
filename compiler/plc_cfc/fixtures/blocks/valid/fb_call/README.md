@@ -6,5 +6,8 @@ the singleton type name.
 
 Illustrated:
 ```
-localIn --> in [inst : counter] out (1) --> localOut (2)
+              inst : counter (1)
+            +-------------------+
+localIn --> | in            out | --> localOut (2)
+            +-------------------+
 ```

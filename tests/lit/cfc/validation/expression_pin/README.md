@@ -6,7 +6,10 @@ enters through: `expression_pin.cfc.expression_pin:1:0`.
 
 Illustrated:
 ```
-a1 + 1 --> IN1 [myAdd] myAdd        --> b1 (3)
-a2     --> IN2         myAddDoubled --> b2 (2)
-                  (1)
+             myAdd (1)
+           +--------------------+
+a1 + 1 --o | IN1          myAdd | o--> b1 (3)
+    a2 --> | IN2   myAddDoubled | o--> b2 (2)
+           +--------------------+
+           (o = negated pin; the expression source a1 + 1 is rejected)
 ```
