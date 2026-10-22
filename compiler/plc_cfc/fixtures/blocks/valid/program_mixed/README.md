@@ -5,6 +5,10 @@ reads precede the call, so `r` observes last cycle's output. Confirms `Call` and
 
 Illustrated:
 ```
-seed --> in [counter] out (3) --> r (2)
+           counter (3)
+         +------------+
+seed --> | in     out | --> r (2)
+         +------------+
+
 p --> q (1)
 ```

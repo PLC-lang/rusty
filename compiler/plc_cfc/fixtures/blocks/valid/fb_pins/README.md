@@ -4,7 +4,9 @@ member read. Verbatim IDE export.
 
 Illustrated:
 ```
-           +---- inst : counter ----+
-a1 ------o-| in                 out |-o------> b1 (2)
-           +------------------------+ (1)
+         inst : counter (1)
+       +------------------+
+a1 --o | in           out | o--> b1 (2)
+       +------------------+
+       (o = negated pin)
 ```

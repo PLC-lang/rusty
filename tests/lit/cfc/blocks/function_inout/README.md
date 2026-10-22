@@ -5,6 +5,9 @@ callee reads and writes `total` through the pin, and the return value lands in
 
 Illustrated:
 ```
-5 -------> delta [addInto] addInto --> result (0, 1)
-total <--> acc
+             addInto (1)
+           +--------------------+
+     5 --> | delta      addInto | --> result (2)
+total <--> | acc                |
+           +--------------------+
 ```

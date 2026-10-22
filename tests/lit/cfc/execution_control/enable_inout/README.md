@@ -5,7 +5,7 @@ inout and the captured return value.
 
 Illustrated:
 ```
-               addInto (1)
+              addInto (1)
             +---------------------+
 trigger --> | EN                  |
       5 --> | delta       addInto | --> result (2)

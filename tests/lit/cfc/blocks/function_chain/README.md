@@ -4,6 +4,10 @@ call's input, captured through a temporary. `main` checks the chained sum
 
 Illustrated:
 ```
-seed --> in1 [myAdd] --> in1 [myAdd] --> result (0, 1, 2)
-k ------> in2         k --> in2
+           myAdd (1)                      myAdd (2)
+         +--------------------+         +--------------------+
+seed --> | in1          myAdd | ------> | in1          myAdd | --> result (3)
+   k --> | in2   myAddDoubled |   k --> | in2   myAddDoubled |
+         +--------------------+         +--------------------+
+         (myAddDoubled unread on both blocks)
 ```

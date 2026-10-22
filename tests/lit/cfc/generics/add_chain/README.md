@@ -4,6 +4,9 @@ resolves through generic inference. `main` checks the chained sum
 
 Illustrated:
 ```
-a --> [ADD] --> [ADD] --> result (0, 1, 2)
-b -->      c -->
+        ADD (1)             ADD (2)
+      +-----------+       +-----------+
+a --> | IN1   ADD | ----> | IN1   ADD | --> result (3)
+b --> |           | c --> |           |
+      +-----------+       +-----------+
 ```

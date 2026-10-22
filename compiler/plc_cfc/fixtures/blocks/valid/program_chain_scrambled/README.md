@@ -6,5 +6,8 @@ the scramble stays valid without reordering.
 
 Illustrated:
 ```
-seed --> in [a] out (3) --> in [b] out (4) --> in [c] out (1) --> result (2)
+           a (3)            b (4)            c (1)
+         +----------+     +----------+     +----------+
+seed --> | in   out | --> | in   out | --> | in   out | --> result (2)
+         +----------+     +----------+     +----------+
 ```

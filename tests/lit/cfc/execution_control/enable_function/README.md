@@ -5,7 +5,7 @@ TRUE), even after the inputs change.
 
 Illustrated:
 ```
-                  myAdd (1)
+              myAdd (1)
             +--------------------+
 trigger --> | EN             ENO | --> done (3)
       a --> | in1          myAdd | --> sum (2)

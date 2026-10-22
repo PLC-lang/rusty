@@ -4,7 +4,7 @@ free like any block-output read.
 
 Illustrated:
 ```
-  g : gate (1)          inst : counter (2)
+  g : gate (1)           inst : counter (2)
 +-------------+        +-------------------+
 |          ok | -----> | EN                |
 +-------------+        |                   |

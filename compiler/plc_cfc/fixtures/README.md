@@ -25,9 +25,11 @@ companion `.st` files when a case needs them). Name the `.cfc` after the fixture
 ## Fixture README format
 
 Lean: a `What:` description, then an `Illustrated:` ASCII sketch of the network
-in a fenced block. Draw `source --> sink`, mark sink execution order with `(n)`,
-and skip element borders — the names, arrows and order carry the meaning.
-(Borders earn their place only later, for real multi-pin blocks.)
+in a fenced block. Draw `source --> sink` and mark the execution order of each
+element with `(n)`, taken from its `priorityInNetwork`. Draw a block as a
+`+---+` box with its input pins on the left, its output pins on the right, and
+`name (n)` above it; draw every other element without a border. A bubble `o`
+on a wire end marks a negated pin.
 
 ```
 What: one or two sentences on what the network does and why it exists.
@@ -36,5 +38,11 @@ Illustrated:
 ​```
 foo --+--> bar (1)
       +--> baz (2)
+
+          myAdd (3)
+        +--------------------+
+in1 --> | in1          myAdd | --> result (4)
+in2 --> | in2   myAddDoubled |
+        +--------------------+
 ​```
 ```

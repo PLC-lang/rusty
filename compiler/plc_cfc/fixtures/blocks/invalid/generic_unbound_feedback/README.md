@@ -11,10 +11,11 @@ silently wrap at 255.)
 
 Illustrated:
 ```
-        myGenScale<T: ANY_NUM> : T     (a : DINT decides nothing for T)
-       +---------------------+
-seed-->| a        myGenScale | --+--> acc
-  .--> | b                   |   |
-  |    +---------------------+   |
-  '------------------------------'
+           myGenScale (1)
+         +---------------------+
+seed --> | a        myGenScale | --+--> acc (2)
+   .---> | b                   |   |
+   |     +---------------------+   |
+   '-------------------------------'
+         (a : DINT decides nothing for T)
 ```

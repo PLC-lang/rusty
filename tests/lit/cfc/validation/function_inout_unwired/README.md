@@ -4,6 +4,9 @@ RUN line asserts the failure.
 
 Illustrated:
 ```
-5 --> delta [addInto] addInto --> result (0, 1)
-      acc (unwired)
+        addInto (1)
+      +---------------------+
+5 --> | delta       addInto | --> result (2)
+      | acc (unwired)       |
+      +---------------------+
 ```

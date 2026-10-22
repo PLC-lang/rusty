@@ -5,5 +5,8 @@ the call arguments.
 
 Illustrated:
 ```
-seed --> in [counter] out (1) --> in [doubler] out (2) --> result (3)
+           counter (1)        doubler (2)
+         +------------+     +------------+
+seed --> | in     out | --> | in     out | --> result (3)
+         +------------+     +------------+
 ```

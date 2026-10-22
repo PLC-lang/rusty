@@ -6,6 +6,10 @@ argument must be a reference). This fixture is therefore transpile-only.
 
 Illustrated:
 ```
-localIn    --> in    (¬) [program_0] out (¬) (1) --> localOut (2)
-localInOut --> inout (¬)
+                   program_0 (1)
+                 +--------------+
+     localIn --o | in       out | o--> localOut (2)
+localInOut <-->o | inout        |
+                 +--------------+
+                 (o = negated pin)
 ```
