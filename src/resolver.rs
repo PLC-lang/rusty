@@ -2527,7 +2527,16 @@ impl<'i> TypeAnnotator<'i> {
             // function whose return value is itself dotted into (e.g. `someGlobalFn().m`).
             // Leaf resolution below still inherits `ctx`, preserving the call/assignment
             // asymmetry encoded in `call_operator_scopes`.
-            let base_ctx = ctx.with_resolving_strategy(ResolvingStrategy::default_scopes());
+            // The base of a cast (`Error#Timeout`) names a type, so types are tried first;
+            // otherwise a same-named enum variant (`Status.Error`) would win.
+            let scopes = if matches!(access, ast::ReferenceAccess::Cast(_)) {
+                let mut scopes = vec![ResolvingStrategy::DataType];
+                scopes.extend(ResolvingStrategy::default_scopes());
+                scopes
+            } else {
+                ResolvingStrategy::default_scopes()
+            };
+            let base_ctx = ctx.with_resolving_strategy(scopes);
             self.visit_statement(&base_ctx, base);
         };
 

@@ -183,6 +183,43 @@ fn cast_expressions_of_enum_with_resolves_types() {
 }
 
 #[test]
+fn cast_base_resolves_to_enum_type_before_same_named_variant() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "TYPE Status : (Ok, Error); END_TYPE
+        TYPE Error : (NoError, Timeout); END_TYPE
+        PROGRAM PRs
+            Error#Timeout;
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[0].statements[0];
+    assert_type_and_hint!(&annotations, &index, statement, "Error", None);
+
+    let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(access), base }) =
+        statement.get_stmt()
+    else {
+        unreachable!()
+    };
+    assert_eq!(
+        annotations.get(base.as_deref().unwrap()),
+        Some(&StatementAnnotation::Type { type_name: "Error".to_string() })
+    );
+    assert_eq!(
+        annotations.get(access),
+        Some(&StatementAnnotation::Variable {
+            resulting_type: "Error".to_string(),
+            qualified_name: "Error.Timeout".to_string(),
+            constant: true,
+            argument_type: ArgumentType::ByVal(VariableType::Global),
+            auto_deref: None,
+        })
+    );
+}
+
+#[test]
 fn cast_expressions_of_enum_with_direct_access_resolves_types() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
