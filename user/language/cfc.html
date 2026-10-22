@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-709ffb21.js";
+            window.path_to_searchindex_js = "../../searchindex-e9b53052.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -215,8 +215,10 @@
 <h2 id="execution-order"><a class="header" href="#execution-order">Execution order</a></h2>
 <p>The wires say where a value goes, not when. The order of the statements is the order of the <strong>evaluation priority</strong> that you give the elements in the tool. It is not the order of the wires and not the position on the sheet:</p>
 <pre><code>        Add (1)             Scale (2)
- a --&gt; | in1   out | --&gt; | in    out | --&gt; result (3)
- b --&gt; | in2       |
+      +-----------+       +-----------+
+a --&gt; | in1   out | --&gt; | in    out | --&gt; result (3)
+b --&gt; | in2       |     +-----------+
+      +-----------+
 </code></pre>
 <p>The numbers in parentheses are the priorities. They start at 1; the tool never writes a 0, so an element with priority 0 is rejected (E158). An element without a priority runs after every element that has one, in the order in which the file stores it.</p>
 <p>This matters when two blocks write the same variable, or when one block reads a value that another one produces: the priority decides what happens first. Give a priority to every element that becomes a statement: an output, a block, a jump, a label, and a return.</p>

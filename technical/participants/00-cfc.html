@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-709ffb21.js";
+            window.path_to_searchindex_js = "../../searchindex-e9b53052.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -317,7 +317,10 @@ baz := foo;
 <p>A negation bubble has no meaning on a reference assignment and is rejected (E154).</p>
 <h3 id="block"><a class="header" href="#block">Block</a></h3>
 <p>A block is a call. Its <code>typeName</code> names the callee, its input pins are the parameters, and its output pins are the outputs of the callee. A callee with state keeps its outputs in its own instance, so the network needs nothing more than the call and a read of the member:</p>
-<pre><code>localIn --&gt; in [inst : counter] out (1) --&gt; localOut (2)
+<pre><code>              inst : counter (1)
+            +-----------+
+localIn --&gt; | in    out | --&gt; localOut (2)
+            +-----------+
 </code></pre>
 <pre><code class="language-iecst">inst(in := localIn);
 localOut := inst.out;
@@ -395,14 +398,17 @@ y := __out_myAdd_1;
 </code></pre>
 <p>An unwired function input is passed as an empty argument, <code>in2 := </code>, to use the callee’s default. An unread output uses an empty <code>=&gt;</code>, as with <code>myAddDoubled</code> above. Variadic calls such as <code>ADD</code> receive positional values in pin order and omit unwired pins. Feedback from the block’s own output reads the previous temporary value because capture follows the call.</p>
 <p>A callee with state, a function block instance or a program, keeps its outputs in the instance, so no temporaries are necessary: the call passes the wired inputs only, and a consumer of an output reads the member. The <a href="#block">Block</a> example above shows the plain case. An action is called through its owner, and its outputs are the members of the owner, not of the action:</p>
-<pre><code>localIn --&gt; in [inst : counter.increment] out (1) --&gt; localOut (2)
+<pre><code>              inst : counter.increment (1)
+            +--------------------------+
+localIn --&gt; | in                   out | --&gt; localOut (2)
+            +--------------------------+
 </code></pre>
 <pre><code class="language-iecst">inst.increment(in := localIn);
 localOut := inst.out;
 </code></pre>
 <p>A program is read in the same way through the name of its one instance, <code>counter.out</code>. Two programs wired in a cycle are legal for the same reason: each one reads the member of the other from the previous evaluation, and the priorities decide which one runs first.</p>
 <p>Execution control adds <code>EN</code> and <code>ENO</code> pins. <code>EN</code> becomes an <code>IF</code> around the call and its output capture; a skipped call leaves temporaries unchanged. <code>ENO</code> refers to the <code>EN</code> source rather than a result of the callee. Thus <code>done := trigger</code> reads the same source as the guard. A chain of these pins produces a sequence of <code>IF trigger</code> guards:</p>
-<pre><code>                  myAdd (1)
+<pre><code>              myAdd (1)
             +--------------------+
 trigger --&gt; | EN             ENO | --&gt; done (3)
       a --&gt; | in1          myAdd | --&gt; sum (2)
