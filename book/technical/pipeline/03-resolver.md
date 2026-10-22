@@ -100,7 +100,7 @@ PROGRAM main
 END_PROGRAM
 ```
 
-Now imagine a global variable that is also named `bufferInstance`. The resolver tries a fixed order of lookups and takes the first that succeeds: a member of the current POU, then a global variable or enum variant, then a POU (program, function, or function block), then a type. The local member wins. The one exception is the operator of a call, which tries functions first: inside a function `scale`, the name `scale` is the return variable, but `scale(...)` is the function.
+Now imagine a global variable that is also named `bufferInstance`. The resolver tries a fixed order of lookups and takes the first that succeeds: a member of the current POU, then a global variable or enum variant, then a POU (program, function, or function block), then a type. The local member wins. There are two exceptions. The operator of a call tries functions first: inside a function `scale`, the name `scale` is the return variable, but `scale(...)` is the function. The base of a cast tries types first: in `Error#Timeout`, `Error` is the enum type even if another enum has a variant `Error`.
 
 
 ## Promotion
