@@ -546,6 +546,15 @@ impl Diagnostic {
         .with_error_code("E158")
         .with_location(location)
     }
+
+    pub fn missing_action_instance<T>(name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Action block `{name}` has no instance to run on"))
+            .with_error_code("E159")
+            .with_location(location)
+    }
 }
 
 #[cfg(test)]

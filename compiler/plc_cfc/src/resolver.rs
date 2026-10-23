@@ -207,6 +207,13 @@ impl<'index> Resolver<'index> {
                     self.diagnostics.push(Diagnostic::unknown_block_type(name, location));
                 }
 
+                // An action of a function block runs on an instance; without one there is nothing to call.
+                Role::Block if block::is_missing_instance(object, self.index) => {
+                    let name = object.type_name().unwrap_or_default();
+
+                    self.diagnostics.push(Diagnostic::missing_action_instance(name, location));
+                }
+
                 // Stateless blocks (functions and sort of methods); temporaries for outputs
                 Role::Block if block::is_stateless(object, self.index) => {
                     let variadic = block::is_variadic(object, self.index);
@@ -686,6 +693,14 @@ mod block {
 
     pub(super) fn is_unknown(block: &FbdObject, index: &Index) -> bool {
         block.type_name().and_then(|name| index.find_pou(name)).is_none()
+    }
+
+    // A program is its own instance, so only the actions of other owners need one.
+    pub(super) fn is_missing_instance(block: &FbdObject, index: &Index) -> bool {
+        let Some(action) = block.type_name().and_then(|name| index.find_pou(name)) else { return false };
+        let owner = action.get_parent_pou_name().and_then(|name| index.find_pou(name));
+
+        action.is_action() && block.instance_name.is_none() && !owner.is_some_and(|owner| owner.is_program())
     }
 
     pub(super) fn is_stateless(block: &FbdObject, index: &Index) -> bool {
@@ -1452,6 +1467,14 @@ mod tests {
             insta::assert_snapshot!(transpile_project("blocks/invalid/unknown_type").unwrap_err(), @r"
             error[E146]: Block `counter` refers to an undeclared POU
              = unknown_type.cfc, diagram unknown_type, execution order 1
+            ");
+        }
+
+        #[test]
+        fn action_no_instance() {
+            insta::assert_snapshot!(transpile_project("blocks/invalid/action_no_instance").unwrap_err(), @r"
+            error[E159]: Action block `counter.increment` has no instance to run on
+             = action_no_instance.cfc, diagram action_no_instance, execution order 1
             ");
         }
 
