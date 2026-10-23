@@ -897,6 +897,114 @@ fn resolve_binary_expressions() {
 }
 
 #[test]
+fn unary_minus_types_by_operand_kind() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "TYPE SRU64 : ULINT(0..10); END_TYPE
+        TYPE EU64 : ULINT (EA := 10, EB := 11); END_TYPE
+        TYPE SRD : DINT(-10..10); END_TYPE
+        PROGRAM PRG
+        VAR
+            a : USINT;
+            b : BYTE;
+            d : DINT;
+            u : UDINT;
+            dw : DWORD;
+            ul : ULINT;
+            r : REAL;
+            t : TIME;
+            dt : DATE;
+            c : CHAR;
+            bo : BOOL;
+            su : SRU64;
+            eu : EU64;
+            sd : SRD;
+        END_VAR
+            -a;
+            -b;
+            -d;
+            -u;
+            -dw;
+            -ul;
+            -r;
+            -t;
+            -dt;
+            -c;
+            -bo;
+            -su;
+            -eu;
+            -sd;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    // (operand type, result type, operand hint): an integer is negated in a signed type that holds the
+    // negation, a subrange or an enum like its base type; other types keep their type
+    let expected = [
+        ("USINT", DINT_TYPE, Some(DINT_TYPE)),
+        ("BYTE", DINT_TYPE, Some(DINT_TYPE)),
+        ("DINT", DINT_TYPE, None),
+        ("UDINT", LINT_TYPE, Some(LINT_TYPE)),
+        ("DWORD", LINT_TYPE, Some(LINT_TYPE)),
+        ("ULINT", LINT_TYPE, Some(LINT_TYPE)),
+        ("REAL", REAL_TYPE, None),
+        ("TIME", "TIME", None),
+        ("DATE", "DATE", None),
+        ("CHAR", "CHAR", None),
+        ("BOOL", BOOL_TYPE, None),
+        ("SRU64", LINT_TYPE, Some(LINT_TYPE)),
+        ("EU64", LINT_TYPE, Some(LINT_TYPE)),
+        ("SRD", "SRD", None),
+    ];
+    for (statement, (operand_type, result_type, operand_hint)) in statements.iter().zip(expected) {
+        let AstStatement::UnaryExpression(UnaryExpression { value, .. }) = statement.get_stmt() else {
+            panic!("expected a unary expression, got {statement:?}");
+        };
+        assert_type_and_hint!(&annotations, &index, statement, result_type, None::<&str>);
+        assert_type_and_hint!(&annotations, &index, value.as_ref(), operand_type, operand_hint);
+    }
+}
+
+#[test]
+fn untyped_integer_literal_takes_the_type_of_a_wide_operand() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        VAR_GLOBAL
+            usi : USINT;
+            udi : UDINT;
+            uli : ULINT;
+            dw : DWORD;
+        END_VAR
+
+        PROGRAM PRG
+            udi / 2;
+            2 / udi;
+            uli MOD 3000000000;
+            dw / 16#10;
+            udi / -2;
+            udi / 5000000000;
+            udi + 16#FFFFFFFF;
+            dw + 3000000000;
+            udi + 5000000000000000000000;
+            usi / 2;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types =
+        vec!["UDINT", "UDINT", "ULINT", "DWORD", "DINT", "ULINT", "ULINT", "LWORD", "LINT", "DINT"];
+    let type_names: Vec<&str> =
+        statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
+
+    assert_eq!(format!("{expected_types:?}"), format!("{type_names:?}"));
+}
+
+#[test]
 fn necessary_promotions_should_be_type_hinted() {
     // GIVEN  BYTE + DINT, BYTE < DINT
     let id_provider = IdProvider::default();
