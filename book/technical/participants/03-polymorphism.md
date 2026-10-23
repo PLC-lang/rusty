@@ -504,6 +504,8 @@ This works with named arguments too:
 +consumer(in := __fatpointer_0);
 ```
 
+Only arguments that are copied in are wrapped. A by-reference parameter (`VAR_IN_OUT`, a function or method `VAR_OUTPUT`, `VAR_INPUT {ref}`, `REFERENCE TO`) binds the caller's own variable, and a function block output is copied into the caller's variable after the call without conversion. A temporary would therefore receive the callee's writes instead of the caller's variable. Such an argument must already be a fat pointer of the parameter's interface and is passed unchanged; the [Validation](#validation) section describes the check.
+
 Multiple interface arguments in a single call each get their own temporary; the counter is shared by the whole compilation and never reset:
 
 ```diff
@@ -689,6 +691,8 @@ The result temporary carries no callee name, because this rewrite leaves the ope
 
 ## Validation
 
-The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: `Invalid assignment: 'FbX' does not implement interface 'IA'`. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: `Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically`. It reports E129 when an interface variable is called directly, `refInterface()`: `Interfaces cannot be called directly`.
+The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: `Invalid assignment: 'FbX' does not implement interface 'IA'`. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: `Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically`. A value that is neither a POU instance nor an interface, such as a `DINT`, is reported as not implementing the interface. It reports E129 when an interface variable is called directly, `refInterface()`: `Interfaces cannot be called directly`.
 
-These checks run before interface types become `__FATPOINTER`, while the original interface names are still available. On failure, the lowerer drops the statement or leaves an unfilled argument temporary to avoid diagnostics about generated code. It passes its diagnostics to the driver.
+An argument that binds the caller's variable or receives a function block output (see call arguments above) cannot be converted. The lowerer matches each argument to its parameter with `resolve_argument_slots`, the rule the resolver uses. If the parameter is passed by reference or is an output, and the parameter type or the argument type is an interface, both types must be the same: an instance is not a fat pointer, and a fat pointer of a child interface points to the child's itable. A mismatch is E126 at the argument: `Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'`. A function block output reads `parameter 'x' is an output` instead. `rr REF= instance` with `rr: REFERENCE TO IA` gets the same check and reads `'rr' is a reference`. Pointer, array and string types declared inline are named as written (`ARRAY[0..1] OF DINT`, `REF_TO IA`), not by their generated index name; other inline types, such as an enumeration, still show the generated name. The lowerer does not check a parameter whose target is a variable-length array, which cannot take a temporary in place of its argument, or a pointer, such as `VAR_IN_OUT x: REFERENCE TO IA`; the validator handles both.
+
+These checks run before interface types become `__FATPOINTER`, while the original interface names are still available. On failure, the lowerer drops the statement or replaces the argument with an unfilled temporary of the parameter's type to avoid diagnostics about generated code. It passes its diagnostics to the driver.

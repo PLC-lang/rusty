@@ -327,6 +327,22 @@ impl Diagnostic {
         .with_location(location)
     }
 
+    pub fn invalid_interface_binding<T>(
+        expected: &str,
+        received: &str,
+        binding: &str,
+        location: T,
+    ) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!(
+            "Type mismatch: expected type '{expected}' but received '{received}'; {binding} and needs a variable of type '{expected}'"
+        ))
+        .with_error_code("E126")
+        .with_location(location)
+    }
+
     pub fn invalid_direct_interface_call<T>(location: T) -> Diagnostic
     where
         T: Into<SourceLocation>,

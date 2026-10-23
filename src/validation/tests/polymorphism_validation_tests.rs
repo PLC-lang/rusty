@@ -1441,6 +1441,656 @@ mod interface {
         ");
     }
 
+    mod by_ref {
+        use test_utils::parse_and_validate_buffered;
+
+        const DECLARATIONS: &str = r#"
+            INTERFACE IA
+                METHOD foo END_METHOD
+            END_INTERFACE
+            INTERFACE IB EXTENDS IA
+                METHOD bar END_METHOD
+            END_INTERFACE
+            INTERFACE IC
+                METHOD baz END_METHOD
+            END_INTERFACE
+            INTERFACE ID EXTENDS IB, IC
+            END_INTERFACE
+            INTERFACE IM
+                METHOD m VAR_IN_OUT x : IA; END_VAR END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo END_METHOD
+            END_FUNCTION_BLOCK
+            FUNCTION_BLOCK FbA2 EXTENDS FbA
+            END_FUNCTION_BLOCK
+            FUNCTION_BLOCK FbB IMPLEMENTS IB
+                METHOD foo END_METHOD
+                METHOD bar END_METHOD
+            END_FUNCTION_BLOCK
+            FUNCTION_BLOCK FbAC IMPLEMENTS IA, IC
+                METHOD foo END_METHOD
+                METHOD baz END_METHOD
+            END_FUNCTION_BLOCK
+            FUNCTION_BLOCK FbX
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbInOut VAR_IN_OUT x : IA; END_VAR END_FUNCTION_BLOCK
+            FUNCTION_BLOCK FbOut VAR_OUTPUT x : IA; END_VAR END_FUNCTION_BLOCK
+            FUNCTION_BLOCK FbOutB VAR_OUTPUT x : IB; END_VAR END_FUNCTION_BLOCK
+            FUNCTION_BLOCK FbMethod
+                METHOD m VAR_IN_OUT x : IA; END_VAR END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION f_inout : DINT VAR_IN_OUT x : IA; END_VAR END_FUNCTION
+            FUNCTION f_out : DINT VAR_OUTPUT x : IA; END_VAR END_FUNCTION
+            FUNCTION f_ref : DINT VAR_INPUT x : REFERENCE TO IA; END_VAR END_FUNCTION
+            FUNCTION f_ref_input : DINT VAR_INPUT {ref} x : IA; END_VAR END_FUNCTION
+            FUNCTION f_val : DINT VAR_INPUT x : IA; END_VAR END_FUNCTION
+            FUNCTION f_dint : DINT VAR_INPUT x : DINT; END_VAR END_FUNCTION
+            FUNCTION f_inout_fb : DINT VAR_IN_OUT x : FbA; END_VAR END_FUNCTION
+            FUNCTION f_forward : DINT VAR_IN_OUT x : IA; END_VAR f_inout(x); END_FUNCTION
+
+            TYPE Holder : STRUCT r : IA; END_STRUCT END_TYPE
+            VAR_GLOBAL CONSTANT cia : IA; END_VAR
+        "#;
+
+        /// Validates `body` in a function `main` that declares a variable of each type above.
+        fn validate(body: &str) -> String {
+            let source = format!(
+                "{DECLARATIONS}
+            FUNCTION main
+                VAR
+                    a : FbA; a2 : FbA2; b : FbB; ac : FbAC; xx : FbX; d : DINT;
+                    ia : IA; ib : IB; ic : IC; id : ID; im : IM;
+                    arr : ARRAY[1..2] OF IA; h : Holder; rr : REFERENCE TO IA;
+                    fbInOut : FbInOut; fbOut : FbOut; fbOutB : FbOutB; fbMethod : FbMethod;
+                END_VAR
+                {body}
+            END_FUNCTION
+        "
+            );
+            parse_and_validate_buffered(&source)
+        }
+
+        // -------------------------------------------------------------------
+        // Implementing instance into each kind of by-reference parameter
+        // -------------------------------------------------------------------
+        #[test]
+        fn call_arg_by_ref_implementor_to_in_out() {
+            insta::assert_snapshot!(validate("f_inout(a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(a);
+               │                         ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_to_named_in_out() {
+            insta::assert_snapshot!(validate("f_inout(x := a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:30
+               │
+            59 │                 f_inout(x := a);
+               │                              ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_to_output() {
+            insta::assert_snapshot!(validate("f_out(a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:23
+               │
+            59 │                 f_out(a);
+               │                       ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_to_named_output() {
+            insta::assert_snapshot!(validate("f_out(x => a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:28
+               │
+            59 │                 f_out(x => a);
+               │                            ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_to_reference_to() {
+            insta::assert_snapshot!(validate("f_ref(a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:23
+               │
+            59 │                 f_ref(a);
+               │                       ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_to_ref_input() {
+            insta::assert_snapshot!(validate("f_ref_input(a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:29
+               │
+            59 │                 f_ref_input(a);
+               │                             ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_to_method_in_out() {
+            insta::assert_snapshot!(validate("fbMethod.m(a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:28
+               │
+            59 │                 fbMethod.m(a);
+               │                            ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_to_function_block_in_out() {
+            insta::assert_snapshot!(validate("fbInOut(a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 fbInOut(a);
+               │                         ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_to_named_function_block_in_out() {
+            insta::assert_snapshot!(validate("fbInOut(x := a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:30
+               │
+            59 │                 fbInOut(x := a);
+               │                              ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_to_in_out_of_interface_method() {
+            insta::assert_snapshot!(validate("im.m(a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:22
+               │
+            59 │                 im.m(a);
+               │                      ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_in_nested_call() {
+            insta::assert_snapshot!(validate("f_dint(f_inout(a));"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:32
+               │
+            59 │                 f_dint(f_inout(a));
+               │                                ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        // -------------------------------------------------------------------
+        // Inheritance on the instance side
+        // -------------------------------------------------------------------
+        #[test]
+        fn call_arg_by_ref_derived_implementor() {
+            insta::assert_snapshot!(validate("f_inout(a2);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA2'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(a2);
+               │                         ^^ Type mismatch: expected type 'IA' but received 'FbA2'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_of_child_interface() {
+            insta::assert_snapshot!(validate("f_inout(b);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(b);
+               │                         ^ Type mismatch: expected type 'IA' but received 'FbB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_named_implementor_of_child_interface() {
+            insta::assert_snapshot!(validate("f_inout(x := b);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:30
+               │
+            59 │                 f_inout(x := b);
+               │                              ^ Type mismatch: expected type 'IA' but received 'FbB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_implementor_of_multiple_interfaces() {
+            insta::assert_snapshot!(validate("f_inout(ac);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbAC'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(ac);
+               │                         ^^ Type mismatch: expected type 'IA' but received 'FbAC'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_non_implementor() {
+            insta::assert_snapshot!(validate("f_inout(xx);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbX'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(xx);
+               │                         ^^ Type mismatch: expected type 'IA' but received 'FbX'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_non_implementor_to_named_output() {
+            insta::assert_snapshot!(validate("f_out(x => xx);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbX'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:28
+               │
+            59 │                 f_out(x => xx);
+               │                            ^^ Type mismatch: expected type 'IA' but received 'FbX'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        // -------------------------------------------------------------------
+        // Interface hierarchy on the argument side
+        // -------------------------------------------------------------------
+        #[test]
+        fn call_arg_by_ref_exact_interface_is_valid() {
+            let body = "
+                f_inout(ia); f_inout(x := ia); f_out(ia); f_out(x => ia); f_out(x => );
+                f_ref(ia); f_ref_input(ia); f_inout(arr[1]); f_out(h.r); f_forward(ia);
+                fbInOut(x := ia); fbOut(x => ia); fbOut(x => ); fbMethod.m(ia); im.m(ia);
+                f_val(a); f_val(ib);
+            ";
+            insta::assert_snapshot!(validate(body), @"");
+        }
+
+        #[test]
+        fn call_arg_by_ref_child_interface() {
+            insta::assert_snapshot!(validate("f_inout(ib);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(ib);
+               │                         ^^ Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_unrelated_interface() {
+            insta::assert_snapshot!(validate("f_inout(ic);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'IC'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(ic);
+               │                         ^^ Type mismatch: expected type 'IA' but received 'IC'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_diamond_interface() {
+            insta::assert_snapshot!(validate("f_inout(id);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'ID'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(id);
+               │                         ^^ Type mismatch: expected type 'IA' but received 'ID'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_child_interface_to_reference_to() {
+            insta::assert_snapshot!(validate("f_ref(ib);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:23
+               │
+            59 │                 f_ref(ib);
+               │                       ^^ Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_child_interface_to_in_out_of_interface_method() {
+            insta::assert_snapshot!(validate("im.m(ib);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:22
+               │
+            59 │                 im.m(ib);
+               │                      ^^ Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_output_into_child_interface() {
+            insta::assert_snapshot!(validate("f_out(x => ib);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:28
+               │
+            59 │                 f_out(x => ib);
+               │                            ^^ Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_function_block_output_into_child_interface() {
+            insta::assert_snapshot!(validate("fbOut(x => ib);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is an output and needs a variable of type 'IA'
+               ┌─ <internal>:59:28
+               │
+            59 │                 fbOut(x => ib);
+               │                            ^^ Type mismatch: expected type 'IA' but received 'IB'; parameter 'x' is an output and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_function_block_output_into_instance() {
+            insta::assert_snapshot!(validate("fbOut(x => a);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is an output and needs a variable of type 'IA'
+               ┌─ <internal>:59:28
+               │
+            59 │                 fbOut(x => a);
+               │                            ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is an output and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_function_block_output_into_parent_interface() {
+            insta::assert_snapshot!(validate("fbOutB(x => ia);"), @"
+            error[E126]: Type mismatch: expected type 'IB' but received 'IA'; parameter 'x' is an output and needs a variable of type 'IB'
+               ┌─ <internal>:59:29
+               │
+            59 │                 fbOutB(x => ia);
+               │                             ^^ Type mismatch: expected type 'IB' but received 'IA'; parameter 'x' is an output and needs a variable of type 'IB'
+            ");
+        }
+
+        // -------------------------------------------------------------------
+        // Non-POU arguments and the reverse direction
+        // -------------------------------------------------------------------
+        #[test]
+        fn call_arg_by_ref_literal() {
+            insta::assert_snapshot!(validate("f_inout(0);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'DINT'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(0);
+               │                         ^ Type mismatch: expected type 'IA' but received 'DINT'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_constant_interface() {
+            insta::assert_snapshot!(validate("f_inout(cia);"), @"
+            error[E031]: Parameter x is passed by reference and needs a variable with write access, but 'cia' is constant
+               ┌─ <internal>:59:25
+               │
+            59 │                 f_inout(cia);
+               │                         ^^^ Parameter x is passed by reference and needs a variable with write access, but 'cia' is constant
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_interface_to_function_block_in_out() {
+            insta::assert_snapshot!(validate("f_inout_fb(ia);"), @"
+            error[E126]: Type mismatch: expected type 'FbA' but received 'IA'; parameter 'x' is passed by reference and needs a variable of type 'FbA'
+               ┌─ <internal>:59:28
+               │
+            59 │                 f_inout_fb(ia);
+               │                            ^^ Type mismatch: expected type 'FbA' but received 'IA'; parameter 'x' is passed by reference and needs a variable of type 'FbA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_dint_to_named_output() {
+            insta::assert_snapshot!(validate("f_out(x => d);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'DINT'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:28
+               │
+            59 │                 f_out(x => d);
+               │                            ^ Type mismatch: expected type 'IA' but received 'DINT'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_dint_to_named_in_out() {
+            insta::assert_snapshot!(validate("f_inout(x := d);"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'DINT'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:30
+               │
+            59 │                 f_inout(x := d);
+               │                              ^ Type mismatch: expected type 'IA' but received 'DINT'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_non_pou_to_interface_input() {
+            insta::assert_snapshot!(validate("f_val(d);"), @"
+            error[E126]: Invalid assignment: 'DINT' does not implement interface 'IA'
+               ┌─ <internal>:59:23
+               │
+            59 │                 f_val(d);
+               │                       ^ Invalid assignment: 'DINT' does not implement interface 'IA'
+            ");
+        }
+
+        // -------------------------------------------------------------------
+        // REFERENCE TO an interface
+        // -------------------------------------------------------------------
+        #[test]
+        fn ref_assign_by_ref_exact_interface_is_valid() {
+            insta::assert_snapshot!(validate("rr REF= ia;"), @"");
+        }
+
+        #[test]
+        fn ref_assign_by_ref_implementor() {
+            insta::assert_snapshot!(validate("rr REF= a;"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; 'rr' is a reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:17
+               │
+            59 │                 rr REF= a;
+               │                 ^^^^^^^^^ Type mismatch: expected type 'IA' but received 'FbA'; 'rr' is a reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_to_action_parameters() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    METHOD foo END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbP
+                    VAR_IN_OUT x : IA; END_VAR
+                    VAR_OUTPUT o : IA; END_VAR
+                END_FUNCTION_BLOCK
+                ACTIONS FbP
+                    ACTION act END_ACTION
+                END_ACTIONS
+
+                PROGRAM prg
+                    VAR_IN_OUT x : IA; END_VAR
+                END_PROGRAM
+                ACTIONS prg
+                    ACTION pact END_ACTION
+                END_ACTIONS
+
+                FUNCTION main
+                    VAR a : FbA; ia : IA; p : FbP; END_VAR
+                    p.act(x := a, o => a);
+                    prg.pact(x := a);
+                    p.act(x := ia, o => ia);
+                END_FUNCTION
+            "#;
+            insta::assert_snapshot!(parse_and_validate_buffered(source), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:26:32
+               │
+            26 │                     p.act(x := a, o => a);
+               │                                ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'o' is an output and needs a variable of type 'IA'
+               ┌─ <internal>:26:40
+               │
+            26 │                     p.act(x := a, o => a);
+               │                                        ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'o' is an output and needs a variable of type 'IA'
+
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:27:35
+               │
+            27 │                     prg.pact(x := a);
+               │                                   ^ Type mismatch: expected type 'IA' but received 'FbA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_type_names_as_declared() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+
+                FUNCTION f_inout : DINT
+                    VAR_IN_OUT x : ARRAY[0..1] OF DINT; s : STRING[10]; END_VAR
+                END_FUNCTION
+                FUNCTION f_ref : DINT
+                    VAR_INPUT x : REFERENCE TO IA; END_VAR
+                END_FUNCTION
+                FUNCTION f_val : DINT
+                    VAR_INPUT x : IA; END_VAR
+                END_FUNCTION
+
+                FUNCTION_BLOCK FbC IMPLEMENTS IA
+                    METHOD foo END_METHOD
+                    METHOD pass f_val(THIS); END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR ia : IA; pia : REF_TO IA; END_VAR
+                    f_inout(ia, ia);
+                    f_ref(pia);
+                    f_val('abc');
+                END_FUNCTION
+            "#;
+            insta::assert_snapshot!(parse_and_validate_buffered(source), @"
+            error[E126]: Invalid assignment: 'REF_TO FbC' does not implement interface 'IA'
+               ┌─ <internal>:18:39
+               │
+            18 │                     METHOD pass f_val(THIS); END_METHOD
+               │                                       ^^^^ Invalid assignment: 'REF_TO FbC' does not implement interface 'IA'
+
+            error[E126]: Type mismatch: expected type 'ARRAY[0..1] OF DINT' but received 'IA'; parameter 'x' is passed by reference and needs a variable of type 'ARRAY[0..1] OF DINT'
+               ┌─ <internal>:23:29
+               │
+            23 │                     f_inout(ia, ia);
+               │                             ^^ Type mismatch: expected type 'ARRAY[0..1] OF DINT' but received 'IA'; parameter 'x' is passed by reference and needs a variable of type 'ARRAY[0..1] OF DINT'
+
+            error[E126]: Type mismatch: expected type 'STRING[10]' but received 'IA'; parameter 's' is passed by reference and needs a variable of type 'STRING[10]'
+               ┌─ <internal>:23:33
+               │
+            23 │                     f_inout(ia, ia);
+               │                                 ^^ Type mismatch: expected type 'STRING[10]' but received 'IA'; parameter 's' is passed by reference and needs a variable of type 'STRING[10]'
+
+            error[E126]: Type mismatch: expected type 'IA' but received 'REF_TO IA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+               ┌─ <internal>:24:27
+               │
+            24 │                     f_ref(pia);
+               │                           ^^^ Type mismatch: expected type 'IA' but received 'REF_TO IA'; parameter 'x' is passed by reference and needs a variable of type 'IA'
+
+            error[E126]: Invalid assignment: 'STRING[3]' does not implement interface 'IA'
+               ┌─ <internal>:25:27
+               │
+            25 │                     f_val('abc');
+               │                           ^^^^^ Invalid assignment: 'STRING[3]' does not implement interface 'IA'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_pointer_target_and_alias_names() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+                TYPE MyInt : DINT; END_TYPE
+
+                FUNCTION f_reference : DINT
+                    VAR_IN_OUT x : REFERENCE TO IA; END_VAR
+                END_FUNCTION
+                FUNCTION f_alias : DINT
+                    VAR_IN_OUT x : ARRAY[0..1] OF MyInt; END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR ia : IA; lr : REFERENCE TO IA; END_VAR
+                    lr REF= ia;
+                    f_reference(lr);
+                    f_alias(ia);
+                END_FUNCTION
+            "#;
+            insta::assert_snapshot!(parse_and_validate_buffered(source), @"
+            error[E126]: Type mismatch: expected type 'ARRAY[0..1] OF MyInt' but received 'IA'; parameter 'x' is passed by reference and needs a variable of type 'ARRAY[0..1] OF MyInt'
+               ┌─ <internal>:18:29
+               │
+            18 │                     f_alias(ia);
+               │                             ^^ Type mismatch: expected type 'ARRAY[0..1] OF MyInt' but received 'IA'; parameter 'x' is passed by reference and needs a variable of type 'ARRAY[0..1] OF MyInt'
+            ");
+        }
+
+        #[test]
+        fn call_arg_by_ref_interface_to_variable_length_array() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+
+                FUNCTION f_vla : DINT
+                    VAR_IN_OUT x : ARRAY[*] OF DINT; END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR ia : IA; END_VAR
+                    f_vla(ia);
+                END_FUNCTION
+            "#;
+            insta::assert_snapshot!(parse_and_validate_buffered(source), @"
+            error[E037]: Invalid assignment: cannot assign '__FATPOINTER' to 'ARRAY[*] OF DINT'
+               ┌─ <internal>:12:27
+               │
+            12 │                     f_vla(ia);
+               │                           ^^ Invalid assignment: cannot assign '__FATPOINTER' to 'ARRAY[*] OF DINT'
+            ");
+        }
+
+        #[test]
+        fn ref_assign_by_ref_child_interface() {
+            insta::assert_snapshot!(validate("rr REF= ib;"), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'IB'; 'rr' is a reference and needs a variable of type 'IA'
+               ┌─ <internal>:59:17
+               │
+            59 │                 rr REF= ib;
+               │                 ^^^^^^^^^^ Type mismatch: expected type 'IA' but received 'IB'; 'rr' is a reference and needs a variable of type 'IA'
+            ");
+        }
+    }
+
     #[test]
     fn call_method_declared_on_interface() {
         let source = r#"

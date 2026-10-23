@@ -18,7 +18,10 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::Index, lowering::polymorphism::table::interface::helper as itable_helper, resolver::AnnotationMap,
+    index::Index,
+    lowering::polymorphism::table::interface::helper as itable_helper,
+    resolver::AnnotationMap,
+    typesystem::{DataType, DataTypeInformation, StringEncoding},
 };
 
 /// Validates that a POU implements the target interface. Returns `Some(Diagnostic)` if not.
@@ -34,7 +37,18 @@ pub fn validate_pou_implements_interface(
     interface_name: &str,
     location: &SourceLocation,
 ) -> Option<Diagnostic> {
-    let pou = index.find_pou(pou_name)?;
+    // Only POUs implement interfaces. Interface sources are checked by `validate_interface_assignment`
+    // and an unresolved source is reported elsewhere.
+    let Some(pou) = index.find_pou(pou_name) else {
+        let source = index.get_effective_type_or_void_by_name(pou_name);
+        return (!source.is_void() && !source.is_interface()).then(|| {
+            Diagnostic::invalid_interface_pou_assignment(
+                &get_display_name(index, source),
+                interface_name,
+                location.clone(),
+            )
+        });
+    };
     let all_interfaces = itable_helper::collect_interfaces_for_pou(index, pou);
 
     if all_interfaces.contains(interface_name) {
@@ -73,6 +87,34 @@ pub fn validate_interface_assignment(
     Some(Diagnostic::invalid_interface_assignment(source_iface, target_iface, location.clone()))
 }
 
+/// Validates an argument or reference target that is bound in place rather than copied, such as a
+/// `VAR_IN_OUT` argument. The binding cannot convert, so the types must be the same. Returns
+/// `Some(Diagnostic)` if not; `binding` says why the conversion is not possible.
+///
+/// ```st
+/// inOut(refIA);    // ok:    exactly the parameter's interface
+/// inOut(instance); // error: FbA implements IA, but is not a fat pointer to IA
+/// inOut(refIB);    // error: IB extends IA, but its fat pointer points to IB's itable
+/// ```
+pub fn validate_bound_interface_argument(
+    index: &Index,
+    expected: &DataType,
+    received: &DataType,
+    binding: &str,
+    location: &SourceLocation,
+) -> Option<Diagnostic> {
+    if expected.get_name().eq_ignore_ascii_case(received.get_name()) {
+        return None;
+    }
+
+    Some(Diagnostic::invalid_interface_binding(
+        &get_display_name(index, expected),
+        &get_display_name(index, received),
+        binding,
+        location.clone(),
+    ))
+}
+
 /// Validates that an interface reference is not called directly.
 ///
 /// ```st
@@ -86,4 +128,59 @@ pub fn validate_direct_interface_call<T: AnnotationMap>(
 ) -> Option<Diagnostic> {
     let operator_type = annotations.get_type_or_void(operator, index);
     operator_type.is_interface().then(|| Diagnostic::invalid_direct_interface_call(operator.location.clone()))
+}
+
+/// Returns the name of `data_type` as it is written in source. Types declared inline (an array or
+/// string parameter, a `REF_TO` variable, `THIS`) only have a generated name in the index, so they
+/// are spelled out from their type information instead.
+fn get_display_name(index: &Index, data_type: &DataType) -> String {
+    let name = data_type.get_name();
+    if !(name.starts_with("__") || name.contains(".__")) {
+        return name.to_string();
+    }
+
+    match data_type.get_type_information() {
+        DataTypeInformation::Pointer { inner_type_name, type_safe, .. } => {
+            let keyword = match data_type.get_type_information() {
+                info if info.is_reference_to() => "REFERENCE TO",
+                _ if *type_safe => "REF_TO",
+                _ => "POINTER TO",
+            };
+            format!("{keyword} {}", get_inner_display_name(index, inner_type_name))
+        }
+
+        DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
+            let ranges = dimensions
+                .iter()
+                .map(|dimension| match dimension.get_range_inclusive(index) {
+                    Ok(range) => format!("{}..{}", range.start(), range.end()),
+                    Err(_) => "*".to_string(),
+                })
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!("ARRAY[{ranges}] OF {}", get_inner_display_name(index, inner_type_name))
+        }
+
+        DataTypeInformation::String { size, encoding, .. } => {
+            let keyword = match encoding {
+                StringEncoding::Utf8 => "STRING",
+                StringEncoding::Utf16 => "WSTRING",
+            };
+            // The size counts the terminating null character
+            match size.as_int_value(index) {
+                Ok(size) => format!("{keyword}[{}]", size - 1),
+                Err(_) => keyword.to_string(),
+            }
+        }
+
+        _ => name.to_string(),
+    }
+}
+
+/// Returns the display name of an element or pointee type. An alias keeps its own name.
+fn get_inner_display_name(index: &Index, type_name: &str) -> String {
+    match index.find_type(type_name) {
+        Some(data_type) => get_display_name(index, data_type),
+        None => type_name.to_string(),
+    }
 }
