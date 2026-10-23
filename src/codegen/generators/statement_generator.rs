@@ -563,6 +563,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             .insert_basic_block_after(builder.get_insert_block().expect(INTERNAL_LLVM_ERROR), "range_then");
         let range_else = context.insert_basic_block_after(range_then, "range_else");
         let exp_gen = self.create_expr_generator(llvm_index);
+        let selector_type = exp_gen.get_type_hint_for(selector)?;
+        let is_signed = self
+            .index
+            .get_intrinsic_type_by_name(selector_type.get_name())
+            .get_type_information()
+            .is_signed_int();
         let lower_bound = {
             self.register_debug_location(start);
             let start_val = exp_gen.generate_expression(start)?;
@@ -572,7 +578,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 &Operator::GreaterOrEqual,
                 selector_val,
                 start_val,
-                None,
+                Some(is_signed),
             )?
         };
 
@@ -588,7 +594,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let end_val = exp_gen.generate_expression(end)?;
             self.register_debug_location(selector);
             let selector_val = exp_gen.generate_expression(selector)?;
-            exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val, None)?
+            exp_gen.create_llvm_int_binary_expression(
+                &Operator::LessOrEqual,
+                selector_val,
+                end_val,
+                Some(is_signed),
+            )?
         };
         builder.build_conditional_branch(
             to_i1(upper_bound.into_int_value(), builder)?,

@@ -5,7 +5,7 @@ use crate::{
     index::Index,
     test_utils::tests::index,
     typesystem::{
-        self, get_equals_function_name_for, get_signed_type, Dimension, BOOL_TYPE, BYTE_TYPE, CHAR_TYPE,
+        self, get_equals_function_name_for, get_negated_type, Dimension, BOOL_TYPE, BYTE_TYPE, CHAR_TYPE,
         DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
         REAL_TYPE, SINT_TYPE, STRING_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, UDINT_TYPE, UINT_TYPE, ULINT_TYPE,
         USINT_TYPE, WCHAR_TYPE, WORD_TYPE, WSTRING_TYPE,
@@ -14,35 +14,36 @@ use crate::{
 
 use super::TypeSize;
 
-macro_rules! assert_signed_type {
+macro_rules! assert_negated_type {
     ($expected:expr, $actual:expr, $index:expr) => {
         assert_eq!(
-            $index.find_effective_type_info($expected),
-            get_signed_type($index.find_effective_type_info($actual).unwrap(), &$index)
+            $expected,
+            get_negated_type($index.get_type_or_panic($actual), &$index).get_name(),
+            "negation of {}",
+            $actual
         );
     };
 }
 
 #[test]
-pub fn signed_types_tests() {
+pub fn negated_types_tests() {
     // Given an initialized index
     let index = get_builtin_index();
-    assert_signed_type!(SINT_TYPE, BYTE_TYPE, index);
-    assert_signed_type!(SINT_TYPE, USINT_TYPE, index);
-    assert_signed_type!(INT_TYPE, WORD_TYPE, index);
-    assert_signed_type!(INT_TYPE, UINT_TYPE, index);
-    assert_signed_type!(DINT_TYPE, DWORD_TYPE, index);
-    assert_signed_type!(DINT_TYPE, UDINT_TYPE, index);
-    assert_signed_type!(LINT_TYPE, ULINT_TYPE, index);
-    assert_signed_type!(LINT_TYPE, LWORD_TYPE, index);
-
-    assert_eq!(
-        Some(index.find_effective_type_by_name(STRING_TYPE).as_ref().unwrap().get_type_information()),
-        get_signed_type(
-            index.find_effective_type_by_name(STRING_TYPE).as_ref().unwrap().get_type_information(),
-            &index
-        )
-    );
+    assert_negated_type!(DINT_TYPE, BYTE_TYPE, index);
+    assert_negated_type!(DINT_TYPE, USINT_TYPE, index);
+    assert_negated_type!(DINT_TYPE, SINT_TYPE, index);
+    assert_negated_type!(DINT_TYPE, WORD_TYPE, index);
+    assert_negated_type!(DINT_TYPE, UINT_TYPE, index);
+    assert_negated_type!(DINT_TYPE, INT_TYPE, index);
+    assert_negated_type!(DINT_TYPE, DINT_TYPE, index);
+    assert_negated_type!(LINT_TYPE, DWORD_TYPE, index);
+    assert_negated_type!(LINT_TYPE, UDINT_TYPE, index);
+    assert_negated_type!(LINT_TYPE, ULINT_TYPE, index);
+    assert_negated_type!(LINT_TYPE, LWORD_TYPE, index);
+    assert_negated_type!(LINT_TYPE, LINT_TYPE, index);
+    assert_negated_type!(REAL_TYPE, REAL_TYPE, index);
+    assert_negated_type!(TIME_TYPE, TIME_TYPE, index);
+    assert_negated_type!(STRING_TYPE, STRING_TYPE, index);
 }
 
 #[test]
