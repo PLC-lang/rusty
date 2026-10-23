@@ -1,0 +1,9 @@
+{
+	"name" : "cfc_call_source",
+	"files" : [
+		"call_source.cfc"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
