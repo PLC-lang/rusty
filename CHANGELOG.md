@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.7](https://github.com/PLC-lang/rusty/releases/tag/v1.0.7) - 2026-10-13
+## [1.0.8](https://github.com/PLC-lang/rusty/releases/tag/v1.0.8) - 2026-10-23
+
+### Fixed
+
+- **lowering**: Dispatch pointer calls through the target vtable (1.0.x) (#2022)
+- Backport the typesystem fixes from #2015 (#2016)
+- **lowering**: Dispatch THIS^ method calls through the vtable (1.0.x) (#2008)
+- **lowering**: Keep method calls on programs direct (1.0.x) (#2007)
+- **validation**: Accept REFERENCE TO a type named like a var (1.0.x) (#2006)
+## [1.0.7](https://github.com/PLC-lang/rusty/releases/tag/v1.0.7) - 2026-10-15
 
 ### Fixed
 
