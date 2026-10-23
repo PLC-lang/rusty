@@ -1,6 +1,7 @@
 ARG LLVM_VER=21
 ARG RUST_VER=1.90
-ARG CONTAINER_VERSION=$LLVM_VER-$RUST_VER
+# -r2: rebuild of the base image with a refreshed CA bundle
+ARG CONTAINER_VERSION=$LLVM_VER-$RUST_VER-r2
 ARG BASE_IMAGE=ghcr.io/plc-lang/rust-llvm:$CONTAINER_VERSION
 FROM $BASE_IMAGE
 
