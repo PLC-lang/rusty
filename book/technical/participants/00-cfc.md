@@ -338,6 +338,8 @@ localOut := inst.out;
 
 A program is read in the same way through the name of its one instance, `counter.out`. Two programs wired in a cycle are legal for the same reason: each one reads the member of the other from the previous evaluation, and the priorities decide which one runs first.
 
+The instance of an action call is the block's `instanceName`. An action of a program has none and is called through the name of the program, `P.bump(...)`. An action of a function block without an instance has nothing to run on and is rejected (E159).
+
 Execution control adds `EN` and `ENO` pins. `EN` becomes an `IF` around the call and its output capture; a skipped call leaves temporaries unchanged. `ENO` refers to the `EN` source rather than a result of the callee. Thus `done := trigger` reads the same source as the guard. A chain of these pins produces a sequence of `IF trigger` guards:
 
 ```
@@ -423,5 +425,6 @@ The participant checks the diagram before pins and wires disappear from the AST.
 | E154 | a negation bubble on a reference assignment |
 | E155 | a block with two unnamed return pins |
 | E158 | an element with evaluation priority 0 |
+| E159 | a block that calls a function block action without an instance |
 
 Everything about the rendered statements themselves (unknown variables, type mismatches, wrong argument counts) is left to the validation stage, which reports it at the block location of the element too.

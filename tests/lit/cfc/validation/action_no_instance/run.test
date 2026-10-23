@@ -1,0 +1,6 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+The block is the fault, so the diagnostic names its diagram and execution
+order and no pin index follows.
+CHECK: {{.*}}action_no_instance.cfc.action_no_instance:1: error[E159]: Action block `counter.increment` has no instance to run on
+CHECK: error: Compilation aborted due to critical errors

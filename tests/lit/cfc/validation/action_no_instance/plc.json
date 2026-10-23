@@ -1,0 +1,10 @@
+{
+	"name" : "cfc_action_no_instance",
+	"files" : [
+		"action_no_instance.cfc",
+		"counter.st"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

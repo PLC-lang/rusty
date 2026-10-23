@@ -98,7 +98,7 @@ The number is the identifier that the tool gave the element. The message repeats
 
 Other checks are about the routing. A wire must lead somewhere, so a continuation needs a connector of its name, and a connector that something reads needs an input. A name is claimed once, so two connectors with the same label are rejected, and so are two labels with the same name. A jump to a label that no element defines is rejected as well. A label that no jump uses, a jump without a condition, and an element that you placed but never wired are warnings. A return without a condition is rejected, because it could never fire.
 
-A block is checked against what the project declares. Its type must be a POU that the project knows. Every output that a wire reads must be one that the callee declares, and only one output pin may carry the return value. A generic callee needs an input that decides its type. A block with `EN` needs a wire on that pin, and the chain of `ENO` pins behind it must not lead back to the block itself.
+A block is checked against what the project declares. Its type must be a POU that the project knows. A block that calls an action of a function block must name the instance that the action runs on; an action of a program needs none, because the program is its own instance. Every output that a wire reads must be one that the callee declares, and only one output pin may carry the return value. A generic callee needs an input that decides its type. A block with `EN` needs a wire on that pin, and the chain of `ENO` pins behind it must not lead back to the block itself.
 
 The [error code reference](../reference/error-codes.md) has a page per code.
 
