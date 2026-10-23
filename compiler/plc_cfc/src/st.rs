@@ -2,13 +2,38 @@
 
 use plc::lexer::{self, Token, TokenClass};
 use plc::parser::{self, expressions_parser};
-use plc_ast::ast::{AstNode, CompilationUnit, LinkageType};
+use plc_ast::ast::{AstNode, AstStatement, CompilationUnit, LinkageType, ReferenceAccess, ReferenceExpr};
+use plc_ast::literals::{Array, AstLiteral};
+use plc_ast::mut_visitor::{AstVisitorMut, WalkerMut};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use plc_source::{SourceCode, SourceContainer};
 
 use crate::model::{Pou, PouKind};
+
+// Moves every node of a parsed tree to one location.
+struct Relocate(SourceLocation);
+
+impl AstVisitorMut for Relocate {
+    fn visit(&mut self, node: &mut AstNode) {
+        node.location = self.0.clone();
+
+        // The walker walks the operand of `(foo)` without visiting it, and skips
+        // the name of `.foo` and the elements of `[foo]`.
+        match &mut node.stmt {
+            AstStatement::ParenExpression(operand) => self.visit(operand),
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Global(name), .. }) => {
+                self.visit(name);
+                node.walk(self)
+            }
+            AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) => {
+                self.visit(elements)
+            }
+            _ => node.walk(self),
+        }
+    }
+}
 
 pub fn parse_expression(text: &str, ids: IdProvider) -> AstNode {
     let factory = SourceLocationFactory::internal(text);
@@ -25,9 +50,12 @@ pub fn is_operator_function(text: &str) -> bool {
 
 // A parsed expression relocated to where the network places it, so
 // diagnostics point at the diagram element rather than the parsed text.
+// Every node is relocated, not only the root: the parser locates nested nodes
+// within `text`, which no file contains, so diagnostics on them (e.g. an
+// unresolved `foo`) would print no location at all.
 pub fn parse_expression_at(text: &str, ids: IdProvider, location: &SourceLocation) -> AstNode {
     let mut node = parse_expression(text, ids);
-    node.location = location.clone();
+    Relocate(location.clone()).visit(&mut node);
     node
 }
 
