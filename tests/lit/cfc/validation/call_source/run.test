@@ -1,0 +1,8 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+A source may not call a function, also when it feeds a return, and also when
+the callee is a built-in such as `SEL`.
+CHECK: {{.*}}call_source.cfc.call_source:1: error[E083]: Unsupported CFC expression: `MAX(a, b)`
+CHECK: {{.*}}call_source.cfc.call_source:2: error[E083]: Unsupported CFC expression: `a > MAX(a, b)`
+CHECK: {{.*}}call_source.cfc.call_source:3: error[E083]: Unsupported CFC expression: `SEL(a > b, a, b)`
+CHECK: error: Compilation aborted due to critical errors
