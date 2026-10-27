@@ -13,12 +13,12 @@
 //! break existing validations (some SUPER tests failed when I tried this). As a result, doing validations
 //! during lowering is the most pragmatic option right now, even if it's a bit inelegant.
 
-use plc_ast::ast::AstNode;
+use plc_ast::ast::{AstNode, AstStatement, ReferenceAccess, ReferenceExpr};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::Index,
+    index::{Index, VariableIndexEntry},
     lowering::polymorphism::table::interface::helper as itable_helper,
     resolver::AnnotationMap,
     typesystem::{DataType, DataTypeInformation, StringEncoding},
@@ -87,9 +87,21 @@ pub fn validate_interface_assignment(
     Some(Diagnostic::invalid_interface_assignment(source_iface, target_iface, location.clone()))
 }
 
+/// The parameter or reference that an argument or `REF=` right side is bound to in place.
+pub enum Binding<'a> {
+    /// A `VAR_IN_OUT`, `VAR_INPUT {ref}` or `REFERENCE TO` parameter of `callee`
+    Reference { parameter: &'a VariableIndexEntry, callee: &'a str },
+
+    /// A `VAR_OUTPUT` of `callee`
+    Output { parameter: &'a VariableIndexEntry, callee: &'a str },
+
+    /// The left side of `REF=`, with its name and declaration if it is a declared variable
+    RefAssignment { name: Option<String>, declaration: Option<&'a VariableIndexEntry> },
+}
+
 /// Validates an argument or reference target that is bound in place rather than copied, such as a
 /// `VAR_IN_OUT` argument. The binding cannot convert, so the types must be the same. Returns
-/// `Some(Diagnostic)` if not; `binding` says why the conversion is not possible.
+/// `Some(Diagnostic)` if not, with a note at the declaration of the parameter or reference.
 ///
 /// ```st
 /// inOut(refIA);    // ok:    exactly the parameter's interface
@@ -100,19 +112,66 @@ pub fn validate_bound_interface_argument(
     index: &Index,
     expected: &DataType,
     received: &DataType,
-    binding: &str,
+    binding: &Binding,
+    argument: &AstNode,
     location: &SourceLocation,
 ) -> Option<Diagnostic> {
     if expected.get_name().eq_ignore_ascii_case(received.get_name()) {
         return None;
     }
 
-    Some(Diagnostic::invalid_interface_binding(
-        &get_display_name(index, expected),
+    let expected_name = get_display_name(index, expected);
+    let hint = match binding {
+        Binding::Reference { callee, .. } if is_assignable_to_interface(index, expected, received) => {
+            let argument = match get_reference_text(argument) {
+                Some(name) => format!("'{name}'"),
+                None => "the argument".to_string(),
+            };
+            Some(format!(
+                "assign {argument} to a variable of type '{expected_name}' before passing it to '{callee}'"
+            ))
+        }
+        Binding::Reference { .. } => None,
+        Binding::Output { callee, .. } => {
+            Some(format!("pass a variable of type '{expected_name}' to '{callee}'"))
+        }
+        Binding::RefAssignment { name: Some(name), .. } => {
+            Some(format!("bind '{name}' to a variable of type '{expected_name}'"))
+        }
+        Binding::RefAssignment { name: None, .. } => {
+            Some(format!("bind the left side to a variable of type '{expected_name}'"))
+        }
+    };
+
+    let (subject, declaration) = match binding {
+        Binding::Reference { parameter, .. } => {
+            (format!("Parameter '{}' is passed by reference", parameter.get_name()), Some(*parameter))
+        }
+        Binding::Output { parameter, .. } => {
+            (format!("Parameter '{}' is an output", parameter.get_name()), Some(*parameter))
+        }
+        Binding::RefAssignment { name: Some(name), declaration } => {
+            (format!("'{name}' is a reference"), *declaration)
+        }
+        Binding::RefAssignment { name: None, declaration } => {
+            ("The left side is a reference".to_string(), *declaration)
+        }
+    };
+
+    let diagnostic = Diagnostic::invalid_interface_binding(
+        &expected_name,
         &get_display_name(index, received),
-        binding,
+        hint.as_deref(),
         location.clone(),
-    ))
+    );
+    match declaration.map(|it| &it.source_location).filter(|it| !it.is_internal()) {
+        Some(declaration) => Some(diagnostic.with_sub_diagnostic(Diagnostic::interface_binding_note(
+            &subject,
+            &expected_name,
+            declaration.clone(),
+        ))),
+        None => Some(diagnostic),
+    }
 }
 
 /// Validates that an interface reference is not called directly.
@@ -182,5 +241,43 @@ fn get_inner_display_name(index: &Index, type_name: &str) -> String {
     match index.find_type(type_name) {
         Some(data_type) => get_display_name(index, data_type),
         None => type_name.to_string(),
+    }
+}
+
+/// Returns whether a value of `received` can be assigned to a variable of the interface `expected`,
+/// that is whether `received` implements, is or extends `expected`.
+fn is_assignable_to_interface(index: &Index, expected: &DataType, received: &DataType) -> bool {
+    let interface_name = expected.get_name();
+    if let Some(pou) = index.find_pou(received.get_name()) {
+        return itable_helper::collect_interfaces_for_pou(index, pou).contains(interface_name);
+    }
+
+    index.find_interface(received.get_name()).is_some_and(|interface| {
+        interface
+            .get_interface_hierarchy(index)
+            .iter()
+            .any(|it| it.get_name().eq_ignore_ascii_case(interface_name))
+    })
+}
+
+/// Returns the source text of `node` if it names a variable, such as `a`, `holder.r`, `arr[1]` or
+/// `p^`. Other expressions may have been rewritten by an earlier lowering.
+pub fn get_reference_text(node: &AstNode) -> Option<String> {
+    let mut current = node;
+    loop {
+        match &current.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), base: None })
+            | AstStatement::This
+            | AstStatement::Super(_) => {
+                return Some(node.as_string());
+            }
+            AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Member(_) | ReferenceAccess::Index(_) | ReferenceAccess::Deref,
+                base: Some(base),
+            }) => {
+                current = base;
+            }
+            _ => return None,
+        }
     }
 }

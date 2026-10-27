@@ -129,11 +129,11 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{Index, VariableIndexEntry},
-    resolver::{AnnotationMap, AnnotationMapImpl},
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     typesystem::{DataType, VOID_INTERNAL_NAME},
 };
 
-use super::validation;
+use super::validation::{self, Binding};
 
 const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
 const FATPOINTER_DATA_FIELD_NAME: &str = "data";
@@ -402,16 +402,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             return;
         }
 
-        let binding = match left.get_flat_reference_name() {
-            Some(name) => format!("'{name}' is a reference"),
-            None => "the left side is a reference".to_string(),
+        let declaration = match self.annotations.get(left) {
+            Some(StatementAnnotation::Variable { qualified_name, .. }) => {
+                self.index.find_fully_qualified_variable(qualified_name)
+            }
+            _ => None,
         };
+        let binding = Binding::RefAssignment { name: validation::get_reference_text(left), declaration };
 
         if let Some(diagnostic) = validation::validate_bound_interface_argument(
             self.index,
             expected,
             received,
             &binding,
+            right,
             &node.location,
         ) {
             self.diagnostics.push(diagnostic);
@@ -447,6 +451,9 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             let mut args = steal_expression_list(params);
 
             let call_parameters = helper::find_call_parameters(self.index, self.annotations, operator);
+            let callee = validation::get_reference_text(operator)
+                .or_else(|| self.annotations.get_call_name(operator).map(str::to_string))
+                .unwrap_or_default();
             let slots = resolve_argument_slots(
                 &args.iter().collect::<Vec<_>>(),
                 call_parameters.iter().map(|it| it.get_name()),
@@ -460,12 +467,12 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
                     AstStatement::Assignment(Assignment { right, .. })
                     | AstStatement::OutputAssignment(Assignment { right, .. })
                     | AstStatement::RefAssignment(Assignment { right, .. }) => {
-                        self.lower_argument(right.as_mut(), parameter);
+                        self.lower_argument(right.as_mut(), parameter, &callee);
                     }
 
                     // Positional argument. Inspect and potentially replace the whole node.
                     _ => {
-                        self.lower_argument(arg, parameter);
+                        self.lower_argument(arg, parameter, &callee);
                     }
                 }
             }
@@ -511,9 +518,9 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
 impl InterfaceDispatchLowerer<'_> {
     /// Validates `arg` if it binds to the caller's storage, otherwise wraps it if needed.
-    fn lower_argument(&mut self, arg: &mut AstNode, parameter: Option<&VariableIndexEntry>) {
-        let bound =
-            parameter.and_then(|it| helper::get_storage_binding(self.index, it).map(|binding| (it, binding)));
+    fn lower_argument(&mut self, arg: &mut AstNode, parameter: Option<&VariableIndexEntry>, callee: &str) {
+        let bound = parameter
+            .and_then(|it| helper::get_storage_binding(self.index, it, callee).map(|binding| (it, binding)));
         match bound {
             Some((parameter, binding)) => self.validate_bound_argument(arg, parameter, &binding),
             None => self.maybe_wrap_argument(arg),
@@ -523,7 +530,12 @@ impl InterfaceDispatchLowerer<'_> {
     /// Validates an argument that the callee reads and writes in place (a by-reference parameter
     /// or an output). A fat pointer for one interface cannot stand in for another type, so if
     /// either side is an interface, both types must be the same.
-    fn validate_bound_argument(&mut self, arg: &mut AstNode, parameter: &VariableIndexEntry, binding: &str) {
+    fn validate_bound_argument(
+        &mut self,
+        arg: &mut AstNode,
+        parameter: &VariableIndexEntry,
+        binding: &Binding,
+    ) {
         // An unbound output (`out =>`) has nothing to check
         if matches!(arg.stmt, AstStatement::EmptyStatement(_)) {
             return;
@@ -552,6 +564,7 @@ impl InterfaceDispatchLowerer<'_> {
             expected,
             received,
             binding,
+            arg,
             &arg.location,
         ) else {
             return;
@@ -667,7 +680,7 @@ mod helper {
     use super::*;
     use crate::{
         builtins, lowering::polymorphism::table::interface::helper as itable_helper,
-        resolver::StatementAnnotation, typesystem::DataTypeInformation,
+        typesystem::DataTypeInformation,
     };
 
     /// A visitor that reassigns all AST node IDs in a subtree with fresh IDs.
@@ -925,17 +938,22 @@ mod helper {
         index.get_available_parameters(pou_name)
     }
 
-    /// Describes how the callee accesses the argument of `parameter` if it reads and writes the
+    /// Describes how `callee` accesses the argument of `parameter` if it reads and writes the
     /// caller's storage, or returns `None` if the argument is copied in.
-    pub fn get_storage_binding(index: &Index, parameter: &VariableIndexEntry) -> Option<String> {
+    pub fn get_storage_binding<'a>(
+        index: &Index,
+        parameter: &'a VariableIndexEntry,
+        callee: &'a str,
+    ) -> Option<Binding<'a>> {
+        if parameter.is_output() {
+            return Some(Binding::Output { parameter, callee });
+        }
+
         let is_reference_to =
             index.find_effective_type_info(parameter.get_type_name()).is_some_and(|it| it.is_reference_to());
 
-        if parameter.get_declaration_type().is_by_ref() || is_reference_to {
-            return Some(format!("parameter '{}' is passed by reference", parameter.get_name()));
-        }
-
-        parameter.is_output().then(|| format!("parameter '{}' is an output", parameter.get_name()))
+        (parameter.get_declaration_type().is_by_ref() || is_reference_to)
+            .then_some(Binding::Reference { parameter, callee })
     }
 
     /// Returns whether `right REF=` binds a variable: a reference, `SUPER^`, or a call whose

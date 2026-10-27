@@ -25,6 +25,7 @@ END_FUNCTION_BLOCK
 
 FUNCTION GetElement : DINT
     VAR_OUTPUT
+        // CHECK-DAG: {{.*}}by_ref_argument_reproducer.st:[[@LINE+1]]:9:{{.*}}info[E159]: Parameter 'Element' is an output and needs a variable of type 'IElement'
         Element : IElement;
     END_VAR
 END_FUNCTION
@@ -33,7 +34,7 @@ PROGRAM mainProg
     VAR
         element : COLLECTIONS_Element_LREAL;
     END_VAR
-    // CHECK: {{.*}}by_ref_argument_reproducer.st:[[@LINE+1]]:16:{{.*}}error[E126]: Type mismatch: expected type 'IElement' but received 'COLLECTIONS_Element_LREAL'; parameter 'Element' is passed by reference and needs a variable of type 'IElement'
+    // CHECK-DAG: {{.*}}by_ref_argument_reproducer.st:[[@LINE+1]]:16:{{.*}}error[E126]: Type mismatch: expected type 'IElement' but received 'COLLECTIONS_Element_LREAL'; pass a variable of type 'IElement' to 'GetElement'
     GetElement(element);
 END_PROGRAM
 // CHECK: error: Compilation aborted due to critical errors

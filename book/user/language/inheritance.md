@@ -108,8 +108,10 @@ FUNCTION Calibrate: DINT
 END_FUNCTION
 
 Calibrate(sensor);  (* fine *)
-Calibrate(analog);  (* error[E126]: Type mismatch: expected type 'ISensor' but received 'Analog'; parameter 'device' is passed by reference and needs a variable of type 'ISensor' *)
+Calibrate(analog);  (* error[E126]: Type mismatch: expected type 'ISensor' but received 'Analog'; assign 'analog' to a variable of type 'ISensor' before passing it to 'Calibrate' *)
 ```
+
+A note (E159) at the declaration of `device` adds why: `Parameter 'device' is passed by reference and needs a variable of type 'ISensor'`.
 
 To pass an instance, assign it to an interface variable first, as `sensor := analog` does above. To store a function block output in a variable of a parent interface, call the block and assign the output afterwards, for example `block(); parent := block.result;`.
 
