@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-21fd3982.js";
+            window.path_to_searchindex_js = "../../searchindex-421b4e49.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -246,6 +246,7 @@ PROGRAM Machine
     END_IF
 END_PROGRAM
 </code></pre>
+<p>A variable without an initial value starts with the name whose value is zero, or with the first name if no value is zero. A type can set a different start value, as in <code>TYPE Level: (Low := 1, High := 2) := High; END_TYPE</code>.</p>
 <p>The names are visible without the type in front of them. A name that two enumerations declare resolves to the enumeration that was declared first, and the compiler does not warn you. Give every variant a name of its own, and write the type in front of a name where you want to be explicit:</p>
 <pre><code class="language-iecst">current := State#Stopped;
 </code></pre>

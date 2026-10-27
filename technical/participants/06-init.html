@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-21fd3982.js";
+            window.path_to_searchindex_js = "../../searchindex-421b4e49.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -226,7 +226,7 @@ END_PROGRAM
 </code></pre>
 <p>The method table instances are global variables that the polymorphism lowerer added in a block behind the user’s own, so they are constructed here like any other global, after them. <code>VAR_GLOBAL CONSTANT</code> blocks are skipped, because their values are static data only. Globals from included files are skipped too, and globals in an <code>{external}</code> block are skipped unless <code>--generate-external-constructors</code> is set.</p>
 <h3 id="types"><a class="header" href="#types">Types</a></h3>
-<p>Every user type gets a constructor as well. A struct constructs and initializes its fields exactly like a POU does its members, and an enum, a subrange, or a renamed scalar with a default assigns <code>self</code> directly. An alias type such as <code>TYPE MyPoint: Point; END_TYPE</code> calls the constructor of the type it renames. A struct literal is decomposed into one assignment per leaf; for a struct <code>Line</code> with the fields <code>start: Point;</code> and <code>stop: Point := (x := 5);</code> the constructor is:</p>
+<p>Every user type gets a constructor as well. A struct constructs and initializes its fields exactly like a POU does its members, and an enum, a subrange, or a renamed scalar with a default assigns <code>self</code> directly. An enum without a declared default assigns the variant that constant evaluation chose: for <code>TYPE Door: (Open := 8, Closed := 16); END_TYPE</code> that is <code>self := Door#Open</code>. Codegen zero-fills an aggregate on the stack, and the static data of an array has no element defaults, so this assignment is what gives such an enum member or element its default. An alias type such as <code>TYPE MyPoint: Point; END_TYPE</code> calls the constructor of the type it renames. A struct literal is decomposed into one assignment per leaf; for a struct <code>Line</code> with the fields <code>start: Point;</code> and <code>stop: Point := (x := 5);</code> the constructor is:</p>
 <pre><code class="language-diff">+FUNCTION Line__ctor
 +    VAR_IN_OUT
 +        self: Line;

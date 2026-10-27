@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-21fd3982.js";
+            window.path_to_searchindex_js = "../../searchindex-421b4e49.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-645c3480.js"></script>
@@ -255,7 +255,7 @@ END_PROGRAM
          ^^^^^^^^^^^^^^^^^^^^  { kind: Variable, qualified_name: "Buffer.limit",        resulting_type: "INT",    hint: "DINT" }
 END_PROGRAM
 </code></pre>
-<p>Now imagine a global variable that is also named <code>bufferInstance</code>. The resolver tries a fixed order of lookups and takes the first that succeeds: a member of the current POU, then a global variable or enum variant, then a POU (program, function, or function block), then a type. The local member wins. The one exception is the operator of a call, which tries functions first: inside a function <code>scale</code>, the name <code>scale</code> is the return variable, but <code>scale(...)</code> is the function.</p>
+<p>Now imagine a global variable that is also named <code>bufferInstance</code>. The resolver tries a fixed order of lookups and takes the first that succeeds: a member of the current POU, then a global variable or enum variant, then a POU (program, function, or function block), then a type. The local member wins. There are two exceptions. The operator of a call tries functions first: inside a function <code>scale</code>, the name <code>scale</code> is the return variable, but <code>scale(...)</code> is the function. The base of a cast tries types first: in <code>Error#Timeout</code>, <code>Error</code> is the enum type even if another enum has a variant <code>Error</code>.</p>
 <h2 id="promotion"><a class="header" href="#promotion">Promotion</a></h2>
 <p>Arithmetic and comparisons combine operands of different types. The resolver decides which type the operation runs in and marks the operands that have to be converted. In</p>
 <pre><code class="language-iecst">PROGRAM main
