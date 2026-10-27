@@ -378,9 +378,24 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             return;
         }
 
-        // A `REFERENCE TO` an interface binds the target's fat pointer, so the types must match
-        let expected =
-            helper::get_target_type(self.index, self.annotations.get_type_or_void(left, self.index));
+        // A zero literal is a null binding
+        if right.is_zero() {
+            return;
+        }
+
+        // A right side that stays a non-reference (a literal, an expression, a call returning an
+        // elementary value or a pointer) and an `AT` alias on the left are reported by the validator,
+        // with a more precise message than a type mismatch. A call returning an aggregate or an
+        // interface, including a property read, becomes a reference to a temporary later, so it is
+        // checked here
+        if !helper::is_bindable_reference(self.index, self.annotations, right)
+            || self.annotations.get(left).is_some_and(|it| it.is_alias())
+        {
+            return;
+        }
+
+        // A reference to an interface binds the target's fat pointer, so the types must match
+        let expected = helper::get_ref_assignment_target(self.index, self.annotations, left);
         let received =
             helper::get_target_type(self.index, self.annotations.get_type_or_void(right, self.index));
         if received.is_void() || !(expected.is_interface() || received.is_interface()) {
@@ -652,7 +667,7 @@ mod helper {
     use super::*;
     use crate::{
         builtins, lowering::polymorphism::table::interface::helper as itable_helper,
-        typesystem::DataTypeInformation,
+        resolver::StatementAnnotation, typesystem::DataTypeInformation,
     };
 
     /// A visitor that reassigns all AST node IDs in a subtree with fresh IDs.
@@ -921,6 +936,39 @@ mod helper {
         }
 
         parameter.is_output().then(|| format!("parameter '{}' is an output", parameter.get_name()))
+    }
+
+    /// Returns whether `right REF=` binds a variable: a reference, `SUPER^`, or a call whose
+    /// aggregate or interface result the aggregate lowering stores in a temporary.
+    pub fn is_bindable_reference(index: &Index, annotations: &AnnotationMapImpl, right: &AstNode) -> bool {
+        let right = right.get_node_peeled();
+        if right.is_reference() || matches!(right.stmt, AstStatement::Super(..)) {
+            return true;
+        }
+
+        let result_type = annotations.get_type_or_void(right, index);
+        right.is_call() && (result_type.is_aggregate_type() || result_type.is_interface())
+    }
+
+    /// Returns the type whose address `left REF= ...` stores. A `REF_TO` or `POINTER TO` variable
+    /// is annotated with the pointer type, whose pointee is the target. A `REFERENCE TO` variable
+    /// and a by-reference parameter (also one of a pointer type) are annotated as auto-deref
+    /// with their target type, which `REF=` rebinds.
+    pub fn get_ref_assignment_target<'idx>(
+        index: &'idx Index,
+        annotations: &'idx AnnotationMapImpl,
+        left: &AstNode,
+    ) -> &'idx DataType {
+        let left_type = annotations.get_type_or_void(left, index);
+        let left_type = index.find_effective_type(left_type).unwrap_or(left_type);
+        let is_reference = annotations.get(left).is_some_and(StatementAnnotation::is_auto_deref);
+
+        match left_type.get_type_information() {
+            DataTypeInformation::Pointer { inner_type_name, .. } if !is_reference => {
+                index.get_effective_type_or_void_by_name(inner_type_name)
+            }
+            _ => get_target_type(index, left_type),
+        }
     }
 
     /// Returns the type a by-reference parameter or argument refers to, with aliases resolved.

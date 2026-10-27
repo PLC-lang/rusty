@@ -1503,8 +1503,8 @@ mod interface {
             FUNCTION main
                 VAR
                     a : FbA; a2 : FbA2; b : FbB; ac : FbAC; xx : FbX; d : DINT;
-                    ia : IA; ib : IB; ic : IC; id : ID; im : IM;
-                    arr : ARRAY[1..2] OF IA; h : Holder; rr : REFERENCE TO IA;
+                    ia : IA; ib : IB; ic : IC; id : ID; im : IM; p : REF_TO IA; q : POINTER TO IA;
+                    arr : ARRAY[1..2] OF IA; h : Holder; rr : REFERENCE TO IA; rp : REFERENCE TO REF_TO IA;
                     fbInOut : FbInOut; fbOut : FbOut; fbOutB : FbOutB; fbMethod : FbMethod;
                 END_VAR
                 {body}
@@ -1895,6 +1895,139 @@ mod interface {
         #[test]
         fn ref_assign_by_ref_exact_interface_is_valid() {
             insta::assert_snapshot!(validate("rr REF= ia;"), @"");
+        }
+
+        #[test]
+        fn ref_assign_by_ref_to_interface_pointer_is_valid() {
+            insta::assert_snapshot!(validate("p REF= ia; q REF= ia;"), @"");
+        }
+
+        #[test]
+        fn ref_assign_by_ref_null_is_valid() {
+            insta::assert_snapshot!(validate("rr REF= 0; p REF= 0;"), @"");
+        }
+
+        #[test]
+        fn ref_assign_by_ref_to_pointer_parameter() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+                VAR_GLOBAL g : IA; END_VAR
+
+                FUNCTION set_pointer : DINT
+                    VAR_IN_OUT x : REF_TO IA; END_VAR
+                    x REF= g;
+                END_FUNCTION
+            "#;
+            insta::assert_snapshot!(parse_and_validate_buffered(source), @"
+            error[E126]: Type mismatch: expected type 'REF_TO IA' but received 'IA'; 'x' is a reference and needs a variable of type 'REF_TO IA'
+              ┌─ <internal>:9:21
+              │
+            9 │                     x REF= g;
+              │                     ^^^^^^^^ Type mismatch: expected type 'REF_TO IA' but received 'IA'; 'x' is a reference and needs a variable of type 'REF_TO IA'
+            ");
+        }
+
+        #[test]
+        fn ref_assign_by_ref_non_reference_and_alias_are_left_to_validator() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+
+                FUNCTION main
+                    VAR ia : IA; ib : IB; p : REF_TO IA; al AT ia : IA; END_VAR
+                    p REF= 1;
+                    al REF= ib;
+                END_FUNCTION
+            "#;
+            insta::assert_snapshot!(parse_and_validate_buffered(source), @"
+            error[E098]: Invalid assignment, expected a reference
+               ┌─ <internal>:11:28
+               │
+            11 │                     p REF= 1;
+               │                            ^ Invalid assignment, expected a reference
+
+            error[E100]: al is an immutable alias variable, can not change the address
+               ┌─ <internal>:12:21
+               │
+            12 │                     al REF= ib;
+               │                     ^^^^^^^^^^ al is an immutable alias variable, can not change the address
+            ");
+        }
+
+        #[test]
+        fn ref_assign_by_ref_property_and_call_results() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo : DINT END_METHOD
+                END_INTERFACE
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+                FUNCTION_BLOCK FbB IMPLEMENTS IB
+                    METHOD foo : DINT END_METHOD
+                    METHOD bar END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK Holder
+                    VAR ib : IB; END_VAR
+                    PROPERTY_GET PIB : IB
+                        PIB := ib;
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION getIB : IB END_FUNCTION
+                FUNCTION getB : FbB END_FUNCTION
+
+                FUNCTION main
+                    VAR h : Holder; ia : IA; r : REFERENCE TO IA; p : REF_TO IA; END_VAR
+                    r REF= h.PIB;
+                    p REF= getIB();
+                    r REF= getB();
+                    r REF= ia.foo();
+                END_FUNCTION
+            "#;
+            insta::assert_snapshot!(parse_and_validate_buffered(source), @"
+            error[E126]: Type mismatch: expected type 'IA' but received 'IB'; 'r' is a reference and needs a variable of type 'IA'
+               ┌─ <internal>:25:21
+               │
+            25 │                     r REF= h.PIB;
+               │                     ^^^^^^^^^^^^ Type mismatch: expected type 'IA' but received 'IB'; 'r' is a reference and needs a variable of type 'IA'
+
+            error[E126]: Type mismatch: expected type 'IA' but received 'IB'; 'p' is a reference and needs a variable of type 'IA'
+               ┌─ <internal>:26:21
+               │
+            26 │                     p REF= getIB();
+               │                     ^^^^^^^^^^^^^^^ Type mismatch: expected type 'IA' but received 'IB'; 'p' is a reference and needs a variable of type 'IA'
+
+            error[E126]: Type mismatch: expected type 'IA' but received 'FbB'; 'r' is a reference and needs a variable of type 'IA'
+               ┌─ <internal>:27:21
+               │
+            27 │                     r REF= getB();
+               │                     ^^^^^^^^^^^^^^ Type mismatch: expected type 'IA' but received 'FbB'; 'r' is a reference and needs a variable of type 'IA'
+
+            error[E098]: Invalid assignment, expected a reference
+               ┌─ <internal>:28:28
+               │
+            28 │                     r REF= ia.foo();
+               │                            ^^^^^^^^^ Invalid assignment, expected a reference
+            ");
+        }
+
+        #[test]
+        fn ref_assign_by_ref_interface_to_reference_to_pointer() {
+            insta::assert_snapshot!(validate("rp REF= ia;"), @"
+            error[E126]: Type mismatch: expected type 'REF_TO IA' but received 'IA'; 'rp' is a reference and needs a variable of type 'REF_TO IA'
+               ┌─ <internal>:59:17
+               │
+            59 │                 rp REF= ia;
+               │                 ^^^^^^^^^^ Type mismatch: expected type 'REF_TO IA' but received 'IA'; 'rp' is a reference and needs a variable of type 'REF_TO IA'
+            ");
         }
 
         #[test]
