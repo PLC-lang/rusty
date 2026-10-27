@@ -1,0 +1,11 @@
+RUN: %PLC -c --fpic %S/retained_fat_pointer_lib_a.st -o %t.base.o
+RUN: %PLC -c --fpic -i %S/retained_fat_pointer_lib_a.st %S/retained_fat_pointer_template_lib_a.st -o %t.lib_a.o
+RUN: %PLC -c --fpic -i %S/retained_fat_pointer_lib_a.st %S/retained_fat_pointer_template_lib_b.st -o %t.lib_b.o
+RUN: %COMPILE -i %S/retained_fat_pointer_lib_a.st -i %S/retained_fat_pointer_template_lib_a.st %S/retained_fat_pointer_overload_main.st %t.base.o %t.lib_a.o %t.lib_b.o && %RUN | %CHECK %s
+
+Two libraries each declare a generic function named bind with the same generic signature and a
+retained interface binding in its body. A generic template emits no code, so such libraries link
+together; the retained fat pointer of a template is therefore only declared, never defined, and the
+objects do not clash. retained_fat_pointer_lib_a.st provides the interface and the consumer.
+
+CHECK: main: done

@@ -834,6 +834,524 @@ mod interface {
     }
 
     #[test]
+    fn call_arg_same_interface_to_byref_param() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION consumer
+                VAR_OUTPUT
+                    out1 : IA;
+                END_VAR
+                VAR_IN_OUT
+                    inout1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION consumerRef
+                VAR_INPUT
+                    ref1 : REFERENCE TO IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                END_VAR
+                consumer(refIA, refIA);
+                consumer(out1 => refIA, inout1 := refIA);
+                consumerRef(refIA);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn call_arg_child_interface_to_byref_param() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+            END_INTERFACE
+
+            FUNCTION consumer
+                VAR_OUTPUT
+                    out1 : IA;
+                END_VAR
+                VAR_IN_OUT
+                    inout1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION consumerRef
+                VAR_INPUT
+                    ref1 : REFERENCE TO IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    refIB : IB;
+                END_VAR
+                consumer(refIB, refIB);
+                consumer(out1 => refIB, inout1 := refIB);
+                consumerRef(refIB);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"
+        error[E037]: Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:27:26
+           │
+        27 │                 consumer(refIB, refIB);
+           │                          ^^^^^ Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:27:33
+           │
+        27 │                 consumer(refIB, refIB);
+           │                                 ^^^^^ Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:28:34
+           │
+        28 │                 consumer(out1 => refIB, inout1 := refIB);
+           │                                  ^^^^^ Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:28:51
+           │
+        28 │                 consumer(out1 => refIB, inout1 := refIB);
+           │                                                   ^^^^^ Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter ref1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:29:29
+           │
+        29 │                 consumerRef(refIB);
+           │                             ^^^^^ Parameter ref1 is passed by reference, it requires an argument of type IA but got IB
+        ");
+    }
+
+    #[test]
+    fn call_arg_parent_interface_to_byref_param() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+            END_INTERFACE
+
+            FUNCTION consumer
+                VAR_IN_OUT
+                    inout1 : IB;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                END_VAR
+                consumer(refIA);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"
+        error[E037]: Parameter inout1 is passed by reference, it requires an argument of type IB but got IA
+           ┌─ <internal>:18:26
+           │
+        18 │                 consumer(refIA);
+           │                          ^^^^^ Parameter inout1 is passed by reference, it requires an argument of type IB but got IA
+        ");
+    }
+
+    #[test]
+    fn call_arg_child_interface_to_function_block_and_program_output() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbConsumer
+                VAR_OUTPUT
+                    out1 : IA;
+                END_VAR
+                VAR_IN_OUT
+                    inout1 : IA;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbConsumerChild EXTENDS FbConsumer
+                VAR_INPUT
+                    in1 : DINT;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            PROGRAM progConsumer
+                VAR_OUTPUT
+                    out1 : IA;
+                END_VAR
+            END_PROGRAM
+
+            FUNCTION main
+                VAR
+                    fbConsumer : FbConsumer;
+                    fbConsumerChild : FbConsumerChild;
+                    refIA : IA;
+                    refIB : IB;
+                END_VAR
+                fbConsumer(refIA, refIA);
+                fbConsumer(refIB, refIB);
+                fbConsumer(out1 => refIB, inout1 := refIB);
+                progConsumer(refIA);
+                progConsumer(refIB);
+                progConsumer(out1 => refIB);
+                fbConsumerChild(refIB, refIB, 1);
+                fbConsumerChild(in1 := 1, out1 => refIB, inout1 := refIB);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"
+        error[E037]: Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:37:28
+           │
+        37 │                 fbConsumer(refIB, refIB);
+           │                            ^^^^^ Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:37:35
+           │
+        37 │                 fbConsumer(refIB, refIB);
+           │                                   ^^^^^ Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:38:36
+           │
+        38 │                 fbConsumer(out1 => refIB, inout1 := refIB);
+           │                                    ^^^^^ Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:38:53
+           │
+        38 │                 fbConsumer(out1 => refIB, inout1 := refIB);
+           │                                                     ^^^^^ Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:40:30
+           │
+        40 │                 progConsumer(refIB);
+           │                              ^^^^^ Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:41:38
+           │
+        41 │                 progConsumer(out1 => refIB);
+           │                                      ^^^^^ Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:42:33
+           │
+        42 │                 fbConsumerChild(refIB, refIB, 1);
+           │                                 ^^^^^ Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:42:40
+           │
+        42 │                 fbConsumerChild(refIB, refIB, 1);
+           │                                        ^^^^^ Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:43:51
+           │
+        43 │                 fbConsumerChild(in1 := 1, out1 => refIB, inout1 := refIB);
+           │                                                   ^^^^^ Parameter out1 is passed by reference, it requires an argument of type IA but got IB
+
+        error[E037]: Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+           ┌─ <internal>:43:68
+           │
+        43 │                 fbConsumerChild(in1 := 1, out1 => refIB, inout1 := refIB);
+           │                                                                    ^^^^^ Parameter inout1 is passed by reference, it requires an argument of type IA but got IB
+        ");
+    }
+
+    #[test]
+    fn call_arg_call_result_to_byref_param() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION producer : FbA
+            END_FUNCTION
+
+            FUNCTION producerArray : ARRAY[0..1] OF FbA
+            END_FUNCTION
+
+            VAR_GLOBAL
+                globalInstance : FbA;
+            END_VAR
+
+            FUNCTION getPtr : POINTER TO FbA
+                getPtr := ADR(globalInstance);
+            END_FUNCTION
+
+            FUNCTION producerIA : IA
+                producerIA := globalInstance;
+            END_FUNCTION
+
+            TYPE Holder : STRUCT
+                r : REFERENCE TO IA;
+            END_STRUCT
+            END_TYPE
+
+            FUNCTION makeHolder : Holder
+            END_FUNCTION
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+                VAR_IN_OUT
+                    inout1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION_BLOCK FbConsumer
+                VAR_INPUT
+                    ref1 : REFERENCE TO IA;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                    instances : ARRAY[0..1] OF FbA;
+                    fbConsumer : FbConsumer;
+                END_VAR
+                consumer(producer(), instance);
+                consumer(instance, producer());
+                fbConsumer(producer());
+                fbConsumer(producerArray()[0]);
+                fbConsumer(FbA#(producerArray()[0]));
+                fbConsumer(instances[0]);
+                fbConsumer(getPtr()^);
+                fbConsumer(FbA#(instance));
+                fbConsumer(producerIA());
+                consumer(producerIA(), producerIA());
+                fbConsumer((makeHolder()).r);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"
+        error[E031]: Expected a reference for parameter inout1 because their type is InOut
+           ┌─ <internal>:56:36
+           │
+        56 │                 consumer(instance, producer());
+           │                                    ^^^^^^^^^^^ Expected a reference for parameter inout1 because their type is InOut
+
+        error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
+           ┌─ <internal>:57:28
+           │
+        57 │                 fbConsumer(producer());
+           │                            ^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
+
+        error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
+           ┌─ <internal>:58:28
+           │
+        58 │                 fbConsumer(producerArray()[0]);
+           │                            ^^^^^^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
+
+        error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
+           ┌─ <internal>:59:28
+           │
+        59 │                 fbConsumer(FbA#(producerArray()[0]));
+           │                            ^^^^^^^^^^^^^^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
+
+        error[E031]: Expected a reference for parameter ref1 because their type is REFERENCE TO
+           ┌─ <internal>:63:28
+           │
+        63 │                 fbConsumer(producerIA());
+           │                            ^^^^^^^^^^^^^ Expected a reference for parameter ref1 because their type is REFERENCE TO
+
+        error[E031]: Expected a reference for parameter inout1 because their type is InOut
+           ┌─ <internal>:64:40
+           │
+        64 │                 consumer(producerIA(), producerIA());
+           │                                        ^^^^^^^^^^^^^ Expected a reference for parameter inout1 because their type is InOut
+        ");
+    }
+
+    #[test]
+    fn call_arg_this_backed_to_byref_param() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbConsumer
+                VAR_INPUT
+                    ref1 : REFERENCE TO IA;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbHolder IMPLEMENTS IA
+                VAR
+                    instance : FbA;
+                    consumer : FbConsumer;
+                END_VAR
+
+                METHOD bind
+                    consumer(THIS^.instance);
+                    consumer(THIS^);
+                    consumer(instance);
+                END_METHOD
+            END_FUNCTION_BLOCK
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn call_arg_to_reference_to_variadic() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            TYPE RefIA : REFERENCE TO IA; END_TYPE
+
+            FUNCTION consume : DINT
+                VAR_INPUT
+                    rest : {sized} RefIA...;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION consumeByRef : DINT
+                VAR_INPUT {ref}
+                    rest : {sized} IA...;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION consumeUnsized : DINT
+                VAR_INPUT
+                    rest : RefIA...;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                    reference : IA;
+                END_VAR
+                consume(reference);
+                consume(instance);
+                consumeByRef(instance);
+                consumeUnsized(reference);
+                consumeUnsized(instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"
+        error[E159]: Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type IA
+           ┌─ <internal>:33:25
+           │
+        33 │                 consume(reference);
+           │                         ^^^^^^^^^ Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type IA
+
+        error[E159]: Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type FbA
+           ┌─ <internal>:34:25
+           │
+        34 │                 consume(instance);
+           │                         ^^^^^^^^ Parameter rest is a sized variadic of REFERENCE TO IA and cannot take an argument of type FbA
+        ");
+    }
+
+    #[test]
+    fn short_circuit_with_wrapped_argument_keeps_operand_check() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION consume : BOOL
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION count : DINT
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main : BOOL
+                VAR
+                    flag : BOOL;
+                    instance : FbA;
+                    ptr : POINTER TO BOOL;
+                END_VAR
+                main := 1 AND_THEN consume(instance);
+                main := flag AND_THEN count(instance);
+                ptr REF= flag AND_THEN consume(instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+
+        insta::assert_snapshot!(diagnostics, @"
+        error[E133]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+           ┌─ <internal>:26:25
+           │
+        26 │                 main := 1 AND_THEN consume(instance);
+           │                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+
+        error[E133]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+           ┌─ <internal>:27:25
+           │
+        27 │                 main := flag AND_THEN count(instance);
+           │                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+
+        warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
+           ┌─ <internal>:27:39
+           │
+        27 │                 main := flag AND_THEN count(instance);
+           │                                       ^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'BOOL'.
+
+        error[E098]: Invalid assignment, expected a reference
+           ┌─ <internal>:28:26
+           │
+        28 │                 ptr REF= flag AND_THEN consume(instance);
+           │                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment, expected a reference
+        ");
+    }
+
+    #[test]
     fn assign_pou_implementing_child_interface_to_parent_interface_ref() {
         let source = r#"
             INTERFACE IA
