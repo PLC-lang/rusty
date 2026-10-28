@@ -75,6 +75,8 @@ FUNCTION main : DINT
     im.m(a);
     // CHECK-DAG: {{.*}}by_ref_argument_mismatch.st:[[@LINE+1]]:13:{{.*}}error[E126]: Type mismatch: expected type 'IA' but received 'IB'; assign 'ib' to a variable of type 'IA' before passing it to 'f_inout'
     f_inout(ib);
+    // CHECK-DAG: {{.*}}by_ref_argument_mismatch.st:[[@LINE+1]]:15:{{.*}}error[E126]: Type mismatch: expected type 'IA' but received 'IB'; assign 'ib' to a variable of type 'IA' before passing it to 'f_inout'
+    f_inout(1(ib));
     // CHECK-DAG: {{.*}}by_ref_argument_mismatch.st:[[@LINE+1]]:13:{{.*}}error[E126]: Type mismatch: expected type 'IA' but received 'IC'
     f_inout(ic);
 END_FUNCTION

@@ -117,9 +117,9 @@
 
 use plc_ast::{
     ast::{
-        resolve_argument_slots, steal_expression_list, Allocation, Assignment, AstFactory, AstNode,
-        AstStatement, CallStatement, CompilationUnit, DataType as AstDataType, DataTypeDeclaration,
-        LinkageType, UserTypeDeclaration, Variable,
+        flatten_expression_list, resolve_argument_slots, steal_expression_list, Allocation, Assignment,
+        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataType as AstDataType,
+        DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -448,18 +448,26 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         // Arguments bound to the caller's storage (by-reference parameters and outputs) are
         // validated instead, never wrapped.
         if let Some(ref mut params) = parameters {
-            let mut args = steal_expression_list(params);
-
             let call_parameters = helper::find_call_parameters(self.index, self.annotations, operator);
             let callee = validation::get_reference_text(operator)
                 .or_else(|| self.annotations.get_call_name(operator).map(str::to_string))
                 .unwrap_or_default();
-            let slots = resolve_argument_slots(
-                &args.iter().collect::<Vec<_>>(),
-                call_parameters.iter().map(|it| it.get_name()),
-            );
 
-            for (arg, slot) in args.iter_mut().zip(slots) {
+            // Bind the flattened arguments, as the resolver does: a multiplied `2(d)` fills two slots
+            let mut slots = resolve_argument_slots(
+                &flatten_expression_list(params),
+                call_parameters.iter().map(|it| it.get_name()),
+            )
+            .into_iter();
+            let mut args = steal_expression_list(params);
+
+            for arg in args.iter_mut() {
+                // An argument that fills several slots is one node shared by all of them, so it is
+                // neither wrapped nor validated per slot
+                let width = flatten_expression_list(arg).len();
+                let &[slot] = slots.by_ref().take(width).collect::<Vec<_>>().as_slice() else {
+                    continue;
+                };
                 let parameter = slot.and_then(|slot| call_parameters.get(slot).copied());
 
                 match &mut arg.stmt {
@@ -467,12 +475,13 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
                     AstStatement::Assignment(Assignment { right, .. })
                     | AstStatement::OutputAssignment(Assignment { right, .. })
                     | AstStatement::RefAssignment(Assignment { right, .. }) => {
-                        self.lower_argument(right.as_mut(), parameter, &callee);
+                        self.lower_argument(helper::get_single_argument_mut(right), parameter, &callee);
                     }
 
-                    // Positional argument. Inspect and potentially replace the whole node.
+                    // Positional argument. Inspect and potentially replace the whole node, or the
+                    // node inside parentheses or a multiplier of 1.
                     _ => {
-                        self.lower_argument(arg, parameter, &callee);
+                        self.lower_argument(helper::get_single_argument_mut(arg), parameter, &callee);
                     }
                 }
             }
@@ -682,6 +691,7 @@ mod helper {
         builtins, lowering::polymorphism::table::interface::helper as itable_helper,
         typesystem::DataTypeInformation,
     };
+    use plc_ast::ast::MultipliedStatement;
 
     /// A visitor that reassigns all AST node IDs in a subtree with fresh IDs.
     /// Used after cloning AST subtrees to ensure each node in the tree has a unique ID.
@@ -936,6 +946,29 @@ mod helper {
         };
 
         index.get_available_parameters(pou_name)
+    }
+
+    /// Returns the node that fills the slot of an argument filling exactly one slot, the node
+    /// `flatten_expression_list` yields and the resolver annotates: `(a)` and `1(a)` yield `a`.
+    pub fn get_single_argument_mut(node: &mut AstNode) -> &mut AstNode {
+        let is_wrapper = match &node.stmt {
+            AstStatement::ParenExpression(_) => true,
+            AstStatement::MultipliedStatement(MultipliedStatement { multiplier, .. }) => *multiplier == 1,
+            AstStatement::ExpressionList(expressions) => expressions.len() == 1,
+            _ => false,
+        };
+        if !is_wrapper {
+            return node;
+        }
+
+        match &mut node.stmt {
+            AstStatement::ParenExpression(inner) => get_single_argument_mut(inner),
+            AstStatement::MultipliedStatement(MultipliedStatement { element, .. }) => {
+                get_single_argument_mut(element)
+            }
+            AstStatement::ExpressionList(expressions) => get_single_argument_mut(&mut expressions[0]),
+            _ => unreachable!(),
+        }
     }
 
     /// Describes how `callee` accesses the argument of `parameter` if it reads and writes the
@@ -2779,6 +2812,109 @@ mod tests {
                 "__fatpointer_2.data := ADR(instance)",
                 "__fatpointer_2.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(in1 := __fatpointer_2, out1 => refOut, inout1 := refInout)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn multiplied_args() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_IN_OUT
+                        n1, n2: DINT;
+                    END_VAR
+
+                    VAR_INPUT
+                        in1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION consumer_interfaces
+                    VAR_IN_OUT
+                        inout1, inout2: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        d: DINT;
+                        instance: FbA;
+                        refInout: IA;
+                    END_VAR
+
+                    // `2(d)` fills two slots, so the concrete POU after it binds to the input.
+                    consumer(2(d), instance);
+
+                    // A multiplied argument shares one node between its slots and passes through unchanged.
+                    consumer_interfaces(2(refInout));
+                END_FUNCTION
+            "#;
+
+            // The serializer prints a multiplied argument without its multiplier, `2(d)` as `d`.
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(d, __fatpointer_0)",
+                "consumer_interfaces(refInout)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn nested_single_args() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        in1: IA;
+                        in2: DINT;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                    END_VAR
+
+                    // The node inside parentheses or a multiplier of 1 is wrapped in place. The
+                    // serializer prints `1(x)` as `x`.
+                    consumer((instance), 2);
+                    consumer(1(instance), 2);
+                    consumer(in1 := (instance), in2 := 2);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "consumer((__fatpointer_0), 2)",
+                "alloca __fatpointer_1: __FATPOINTER",
+                "__fatpointer_1.data := ADR(instance)",
+                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_1, 2)",
+                "alloca __fatpointer_2: __FATPOINTER",
+                "__fatpointer_2.data := ADR(instance)",
+                "__fatpointer_2.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(in1 := (__fatpointer_2), in2 := 2)",
             ]
             "#);
         }
