@@ -193,10 +193,17 @@ pub fn validate_direct_interface_call<T: AnnotationMap>(
 /// string parameter, a `REF_TO` variable, `THIS`) only have a generated name in the index, so they
 /// are spelled out from their type information instead.
 fn get_display_name(index: &Index, data_type: &DataType) -> String {
+    format_display_name(index, data_type, &mut Vec::new())
+}
+
+/// Formats the display name of `data_type`. A type that is already being formatted, such as the
+/// pointee of `TYPE __P : POINTER TO __P`, keeps its index name instead of being spelled out again.
+fn format_display_name(index: &Index, data_type: &DataType, visited: &mut Vec<String>) -> String {
     let name = data_type.get_name();
-    if !(name.starts_with("__") || name.contains(".__")) {
+    if !(name.starts_with("__") || name.contains(".__")) || visited.iter().any(|it| it == name) {
         return name.to_string();
     }
+    visited.push(name.to_string());
 
     match data_type.get_type_information() {
         DataTypeInformation::Pointer { inner_type_name, type_safe, .. } => {
@@ -205,7 +212,7 @@ fn get_display_name(index: &Index, data_type: &DataType) -> String {
                 _ if *type_safe => "REF_TO",
                 _ => "POINTER TO",
             };
-            format!("{keyword} {}", get_inner_display_name(index, inner_type_name))
+            format!("{keyword} {}", get_inner_display_name(index, inner_type_name, visited))
         }
 
         DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
@@ -217,7 +224,7 @@ fn get_display_name(index: &Index, data_type: &DataType) -> String {
                 })
                 .collect::<Vec<_>>()
                 .join(", ");
-            format!("ARRAY[{ranges}] OF {}", get_inner_display_name(index, inner_type_name))
+            format!("ARRAY[{ranges}] OF {}", get_inner_display_name(index, inner_type_name, visited))
         }
 
         DataTypeInformation::String { size, encoding, .. } => {
@@ -237,9 +244,9 @@ fn get_display_name(index: &Index, data_type: &DataType) -> String {
 }
 
 /// Returns the display name of an element or pointee type. An alias keeps its own name.
-fn get_inner_display_name(index: &Index, type_name: &str) -> String {
+fn get_inner_display_name(index: &Index, type_name: &str, visited: &mut Vec<String>) -> String {
     match index.find_type(type_name) {
-        Some(data_type) => get_display_name(index, data_type),
+        Some(data_type) => format_display_name(index, data_type, visited),
         None => type_name.to_string(),
     }
 }
