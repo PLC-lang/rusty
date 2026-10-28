@@ -434,15 +434,11 @@ fn validate_condition<T>(validator: &mut Validator, context: &ValidationContext<
 where
     T: AnnotationMap,
 {
-    if let Some(value) = get_literal_int_or_const_expr_value(condition, context) {
-        if value == 0 || value == 1 {
-            return;
-        }
-    }
-
+    // A constant 0 or 1 is accepted as a boolean, but its references are still validated below
+    let is_zero_or_one = matches!(get_literal_int_or_const_expr_value(condition, context), Some(0 | 1));
     let kind = context.annotations.get_type_or_void(condition, context.index);
 
-    if !kind.get_type_information().is_bool() {
+    if !is_zero_or_one && !kind.get_type_information().is_bool() {
         let slice = validator.get_type_name_or_slice(kind);
         let message = format!("Expected a boolean, got `{slice}`");
         let location = condition.get_location();
