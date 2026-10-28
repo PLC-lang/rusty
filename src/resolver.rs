@@ -2528,8 +2528,11 @@ impl<'i> TypeAnnotator<'i> {
             // Leaf resolution below still inherits `ctx`, preserving the call/assignment
             // asymmetry encoded in `call_operator_scopes`.
             // The base of a cast (`Error#Timeout`) names a type, so types are tried first;
-            // otherwise a same-named enum variant (`Status.Error`) would win.
-            let scopes = if matches!(access, ast::ReferenceAccess::Cast(_)) {
+            // otherwise a same-named enum variant (`Status.Error`) would win. The same holds for
+            // `Error.Timeout` when the lookup would only find such a variant.
+            let scopes = if matches!(access, ast::ReferenceAccess::Cast(_))
+                || self.is_enum_type_hidden_by_variant(access, base, ctx)
+            {
                 let mut scopes = vec![ResolvingStrategy::DataType];
                 scopes.extend(ResolvingStrategy::default_scopes());
                 scopes
@@ -2669,6 +2672,39 @@ impl<'i> TypeAnnotator<'i> {
             .map(|it| it.is_const())
             .filter(|it| *it != ctx.constant)
             .unwrap_or(false)
+    }
+
+    /// Returns true for `Error.Timeout` when `Error` is an enum type with the variant `Timeout` and
+    /// the default lookup of `Error` finds an enum variant of the same name instead.
+    fn is_enum_type_hidden_by_variant(
+        &self,
+        access: &ReferenceAccess,
+        base: &AstNode,
+        ctx: &VisitorContext,
+    ) -> bool {
+        let (
+            ReferenceAccess::Member(member),
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(name), base: None }),
+        ) = (access, base.get_stmt())
+        else {
+            return false;
+        };
+        let (Some(type_name), Some(variant)) =
+            (name.get_flat_reference_name(), member.get_flat_reference_name())
+        else {
+            return false;
+        };
+        let is_enum = |name: &str| self.index.find_type(name).is_some_and(|it| it.is_enum());
+
+        // `Error` must be an enum type with the variant `Timeout`
+        if !is_enum(type_name) || self.index.find_enum_variant(type_name, variant).is_none() {
+            return false;
+        }
+
+        // ...and the default lookup must find an enum variant, not a variable
+        let found = ResolvingStrategy::Variable.resolve_name(type_name, None, self.index, ctx, &self.scopes);
+        matches!(found, Some(StatementAnnotation::Variable { qualified_name, .. })
+            if qualified_name.rsplit_once('.').is_some_and(|(container, _)| is_enum(container)))
     }
 
     /// resolves the given reference, under the optional qualifier and returns the resulting

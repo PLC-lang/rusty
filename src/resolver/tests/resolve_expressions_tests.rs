@@ -220,6 +220,48 @@ fn cast_base_resolves_to_enum_type_before_same_named_variant() {
 }
 
 #[test]
+fn member_base_resolves_to_enum_type_before_same_named_variant() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "TYPE Status : (Ok, Error); END_TYPE
+        TYPE Error : (NoError, Timeout); END_TYPE
+        TYPE Rec : STRUCT Timeout : DINT; END_STRUCT END_TYPE
+        PROGRAM PRs
+            Error.Timeout;
+        END_PROGRAM
+        PROGRAM PRv
+        VAR
+            Error : Rec;
+        END_VAR
+            Error.Timeout;
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let resolve = |statement: &AstNode| {
+        let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) =
+            statement.get_stmt()
+        else {
+            unreachable!()
+        };
+        (annotations.get(base.as_deref().unwrap()).cloned(), annotations.get_type(member, &index).cloned())
+    };
+
+    // The variant `Status.Error` does not hide the enum type `Error`
+    let (base, member) = resolve(&unit.implementations[0].statements[0]);
+    assert_eq!(base, Some(StatementAnnotation::Type { type_name: "Error".to_string() }));
+    assert_eq!(member.map(|it| it.get_name().to_string()), Some("Error".to_string()));
+
+    // A variable named `Error` still hides the enum type
+    let (base, member) = resolve(&unit.implementations[1].statements[0]);
+    assert!(
+        matches!(base, Some(StatementAnnotation::Variable { qualified_name, .. }) if qualified_name == "PRv.Error")
+    );
+    assert_eq!(member.map(|it| it.get_name().to_string()), Some(DINT_TYPE.to_string()));
+}
+
+#[test]
 fn cast_expressions_of_enum_with_direct_access_resolves_types() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(

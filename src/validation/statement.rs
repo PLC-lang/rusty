@@ -2810,7 +2810,7 @@ pub(crate) mod helper {
     use plc_ast::ast::{AstNode, DirectAccessType};
 
     use crate::index::VariableIndexEntry;
-    use crate::resolver::AnnotationMap;
+    use crate::resolver::{AnnotationMap, StatementAnnotation};
     use crate::validation::ValidationContext;
     use crate::{index::Index, typesystem::DataTypeInformation};
 
@@ -2849,8 +2849,18 @@ pub(crate) mod helper {
             return Some(value);
         }
 
-        let path = right.get_flat_reference_name().unwrap_or_default();
-        let element = context.index.find_variable(context.qualifier, &[path])?;
+        // Prefer the resolved constant, a bare name may also match a same-named enum variant. A
+        // member of a constant struct is annotated constant, but its entry holds the field default.
+        let resolved_constant = match context.annotations.get(right) {
+            Some(StatementAnnotation::Variable { qualified_name, constant: true, .. }) => {
+                context.index.find_fully_qualified_variable(qualified_name).filter(|it| it.is_constant())
+            }
+            _ => None,
+        };
+        let element = resolved_constant.or_else(|| {
+            let path = right.get_flat_reference_name().unwrap_or_default();
+            context.index.find_variable(context.qualifier, &[path])
+        })?;
 
         context
             .index
