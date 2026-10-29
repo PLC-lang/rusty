@@ -2,7 +2,7 @@
 
 `iec61131std` provides the functions and function blocks of IEC 61131-3. This page says what is in it and which file declares each family. For the signature of a single function, read that file.
 
-One name appears here and in [Built-in Functions](built-in-functions.md): `ABS` is built into the compiler, and the library declares it again to widen what a call accepts.
+The library declares no function that is also in [Built-in Functions](built-in-functions.md). `ABS` is built into the compiler and needs no library.
 
 
 ## Using it
@@ -30,7 +30,7 @@ Some parts of the language call the library by themselves, so link it also when 
 | Family | Declared in | Contains |
 |---|---|---|
 | Arithmetic | `arithmetic_functions.st` | `SQRT`, `LN`, `LOG`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `EXPT`, and the constants `PI_REAL`, `FRAC_PI_2_REAL`, `FRAC_PI_4_REAL`, `E_REAL`, `INF_REAL`, and `NAN_REAL`, each also in an `LREAL` form such as `PI_LREAL` |
-| Numerical | `numerical_functions.st` | `ABS` |
+| Numerical | `numerical_functions.st` | `ABS__SINT`, `ABS__INT`, `ABS__DINT`, `ABS__LINT`, `ABS__REAL`, and `ABS__LREAL`, each the built-in `ABS` for one type |
 | Selectors | `selectors.st` | `MAX`, `MIN`, `LIMIT` |
 | Bit shifts | `bit_shift_functions.st` | `ROL`, `ROR` |
 | Endianness | `endianness_conversion_functions.st` | `TO_BIG_ENDIAN`, `TO_LITTLE_ENDIAN`, and back |

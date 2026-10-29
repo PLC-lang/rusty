@@ -1,0 +1,9 @@
+{
+	"name" : "cfc_void_self_assignment",
+	"files" : [
+		"void_self_assignment.cfc"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

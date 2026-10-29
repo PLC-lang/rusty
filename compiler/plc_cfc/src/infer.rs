@@ -88,10 +88,10 @@
 //! predecessor's type is published. Resolved types are published in place (`Index::update_member_type`), so
 //! a round only costs one annotation of this unit rather than a re-index of the whole project.
 //! ```text
-//!       +------------+     +------------+     +------------+
-//! x --> | a      out | --> | a      out | --> | a      out | --> ...
-//! y --> | b          | z ->| b          | w ->| b          |
-//!       +------------+     +------------+     +------------+
+//!       +------------+       +------------+       +------------+
+//! x --> | a      out | ----> | a      out | ----> | a      out | --> ...
+//! y --> | b          | z --> | b          | w --> | b          |
+//!       +------------+       +------------+       +------------+
 //! ```
 
 use std::collections::{HashMap, HashSet};

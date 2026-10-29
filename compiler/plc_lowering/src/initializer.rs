@@ -29,7 +29,7 @@
 //! - **External** types are defined in the same project but written in a different language (e.g. C).
 //!   By default they get `Body::External` (declared). With `--generate-external-constructors`,
 //!   the compiler generates constructor definitions for them as well.
-//! - **Built-in** types get `Body::None` (no constructor generated).
+//! - **Built-in** types have no constructor: none is generated and none is called.
 //! - External variables are not re-initialized; they are assumed to be initialized externally.
 //!
 //! ## User-defined constructors
@@ -344,12 +344,14 @@ impl AstVisitor for Initializer {
 
     /// Generates the constructor body for a user-defined type. Handles alias types (typedef
     /// chains) by calling the parent type's constructor, and struct types by delegating to
-    /// `visit_data_type`. Also lowers any explicit initializer into an assignment.
+    /// `visit_data_type`. Also lowers any explicit initializer into an assignment; an enum
+    /// without one assigns its default variant instead.
     fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
         let name = user_type.data_type.get_name().expect("name is set at this stage");
         self.context.enter_datatype(name);
-        // Generic, VLA, and built-in types don't need constructors. We register Body::None
-        // so that apply_initialization skips POU generation for them (see Body::None => {}).
+        // Generic and VLA types don't need constructors. We register Body::None so that
+        // apply_initialization skips POU generation for them (see Body::None => {}).
+        // Built-in types are not registered at all, so no constructor calls are created for them.
         if user_type.data_type.is_generic() {
             self.constructors.insert(name.to_string(), Body::None);
             self.context.exit_datatype();
@@ -362,7 +364,6 @@ impl AstVisitor for Initializer {
             return;
         }
         if user_type.linkage == plc_ast::ast::LinkageType::BuiltIn {
-            self.constructors.insert(name.to_string(), Body::None);
             self.context.exit_datatype();
             return;
         }
@@ -392,6 +393,8 @@ impl AstVisitor for Initializer {
             let initializer = folded_initializer.as_ref().unwrap_or(initializer);
             let assignment = create_assignment("self", None, initializer, self.id_provider.clone());
             stmts.push(assignment);
+        } else if let Some(default_variant) = self.enum_default_variant(name) {
+            stmts.push(create_assignment("self", None, &default_variant, self.id_provider.clone()));
         }
         self.add_to_current_constructor(stmts);
         self.context.exit_datatype();
@@ -733,8 +736,8 @@ impl Initializer {
         for pou in &unit.pous {
             self.pre_register_pou_constructor(pou);
         }
-        // Register all user-defined types (structs)
-        for user_type in &unit.user_types {
+        // Register all user-defined types (structs), except built-in types without constructors
+        for user_type in unit.user_types.iter().filter(|it| !it.linkage.is_built_in()) {
             if let Some(name) = user_type.data_type.get_name() {
                 self.constructors.entry(name.to_string()).or_insert(Body::None);
             }
@@ -953,6 +956,30 @@ impl Initializer {
         }
 
         Some(statements)
+    }
+
+    /// Returns `<enum_name>#<variant>` for the variant constant evaluation chose as the default of
+    /// the enum, or `None` if `enum_name` is not an enum. Stack aggregates are zero-filled and arrays
+    /// have no element defaults in static data, so this assignment is what gives such an enum
+    /// member or element its default.
+    fn enum_default_variant(&mut self, enum_name: &str) -> Option<AstNode> {
+        let index = self.index.as_ref()?;
+        let data_type = index.find_type(enum_name)?;
+        let DataTypeInformation::Enum { variants, .. } = data_type.get_type_information() else {
+            return None;
+        };
+        let default = data_type.initial_value?;
+        let variant = variants.iter().find(|it| it.initial_value == Some(default))?.get_name().to_string();
+
+        let enum_reference = create_member_reference(enum_name, self.id_provider.clone(), None);
+        let variant =
+            AstFactory::create_identifier(&variant, SourceLocation::internal(), self.id_provider.next_id());
+        Some(AstFactory::create_cast_statement(
+            enum_reference,
+            variant,
+            &SourceLocation::internal(),
+            self.id_provider.next_id(),
+        ))
     }
 
     /// Creates a call statement to the constructor of the given type: `<type_name>__ctor(<var_name>)`.
@@ -1511,6 +1538,43 @@ mod tests {
         MyEnum__ctor(self.e)
         self.e := Option2
         self.n := 42
+        ");
+    }
+
+    #[test]
+    fn enum_without_explicit_default_assigns_default_variant() {
+        let src = r#"
+        TYPE NoZero : (r := 3, g := 7); END_TYPE
+        TYPE WithZero : (a := 1, b := 0); END_TYPE
+        TYPE MyStruct : STRUCT
+            n : NoZero;
+            e : NoZero := g;
+            w : WithZero;
+            i : (x := 4, y := 5);
+        END_STRUCT
+        END_TYPE
+        "#;
+
+        let initializer = parse_and_init(src);
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("NoZero").unwrap()), @"
+        intern:
+        self := NoZero#r
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("WithZero").unwrap()), @"
+        intern:
+        self := WithZero#b
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__MyStruct_i").unwrap()), @"
+        intern:
+        self := __MyStruct_i#x
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyStruct").unwrap()), @"
+        intern:
+        NoZero__ctor(self.n)
+        NoZero__ctor(self.e)
+        self.e := g
+        WithZero__ctor(self.w)
+        __MyStruct_i__ctor(self.i)
         ");
     }
 

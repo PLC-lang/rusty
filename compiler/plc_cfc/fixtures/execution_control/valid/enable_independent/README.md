@@ -8,6 +8,6 @@ Illustrated:
               a : counter (1)            b : counter (2)
             +-----------------+        +-----------------+
      t1 --> | EN              | t2 --> | EN              |
-   seed --> | in          out | --in-> |             out | --> result (3)
+   seed --> | in          out | -----> | in          out | --> result (3)
             +-----------------+        +-----------------+
 ```

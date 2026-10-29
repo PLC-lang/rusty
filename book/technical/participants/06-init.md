@@ -66,7 +66,7 @@ The method table instances are global variables that the polymorphism lowerer ad
 
 ### Types
 
-Every user type gets a constructor as well. A struct constructs and initializes its fields exactly like a POU does its members, and an enum, a subrange, or a renamed scalar with a default assigns `self` directly. An alias type such as `TYPE MyPoint: Point; END_TYPE` calls the constructor of the type it renames. A struct literal is decomposed into one assignment per leaf; for a struct `Line` with the fields `start: Point;` and `stop: Point := (x := 5);` the constructor is:
+Every user type gets a constructor as well. A struct constructs and initializes its fields exactly like a POU does its members, and an enum, a subrange, or a renamed scalar with a default assigns `self` directly. An enum without a declared default assigns the variant that constant evaluation chose: for `TYPE Door: (Open := 8, Closed := 16); END_TYPE` that is `self := Door#Open`. Codegen zero-fills an aggregate on the stack, and the static data of an array has no element defaults, so this assignment is what gives such an enum member or element its default. An alias type such as `TYPE MyPoint: Point; END_TYPE` calls the constructor of the type it renames. A struct literal is decomposed into one assignment per leaf; for a struct `Line` with the fields `start: Point;` and `stop: Point := (x := 5);` the constructor is:
 
 ```diff
 +FUNCTION Line__ctor
@@ -80,7 +80,7 @@ Every user type gets a constructor as well. A struct constructs and initializes 
 +END_FUNCTION
 ```
 
-Built-in types, generic types, and variable-length arrays get no constructor. The types the pre-processor created for inline declarations, such as `__Refs_r` for the member `r` below, are user types too and get constructors like every other type; most of them are empty.
+Built-in types, generic types, and variable-length arrays get no constructor. Members and variables of a built-in type, such as the interface fat pointer, get no constructor call either. The types the pre-processor created for inline declarations, such as `__Refs_r` for the member `r` below, are user types too and get constructors like every other type; most of them are empty.
 
 ### References and pointers
 

@@ -5,5 +5,9 @@ call lowers cleanly.
 
 Illustrated:
 ```
-[inst : counter.reset] (1)
+  inst : counter.reset (1)
++-------------------------+
+|                         |
++-------------------------+
+(no pins)
 ```

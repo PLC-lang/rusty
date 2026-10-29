@@ -175,7 +175,9 @@ One more note: methods called from within other methods, or from a function bloc
  END_METHOD
 ```
 
-Calls written as `THIS^.bar()` or `SUPER^.bar()` are left untouched, and so is a call on a plain instance variable, `instanceA.bar()`. In all three cases the type of the instance is exact, so the call is statically dispatched.
+A call written as `THIS^.bar()` is lowered the same way, because `THIS^` is the actual instance, which can be a child POU. Calls written as `SUPER^.bar()` are left untouched, and so is a call on a plain instance variable, `instanceA.bar()`. In both cases the type of the instance is exact, so the call is statically dispatched. Calls within the methods of a program are also left untouched: a program has no vtable and cannot be extended, so each call has exactly one target.
+
+Only a call without a base, or through `THIS^`, uses the vtable of the enclosing POU. A call through a pointer inside a method or body still names the declared type of the pointer, as described above.
 
 One question remains about `__vtable_FbA#(refInstanceA^.__vtable^).foo^(FbA#(refInstanceA^))`: why is it safe to cast one vtable to another? The vtable layouts give the answer:
 
@@ -200,9 +202,9 @@ The order of the function pointers is stable: the pointers of the parent types c
 2. Generate a global variable instance for each vtable, filled with the correct addresses at construction time
 3. Generate and inject a `__vtable` member field of type `POINTER TO __VOID` into every non-extended class or function block, initialized by the init participant to the address of the global instance
 4. Transform **method** calls to use the lookup table, where the
-    1. method is called from within another method or a function block body, or
-    2. method is called through a variable of type `POINTER TO <CLASS|FUNCTION_BLOCK>`, `REF_TO`, or `REFERENCE TO`,
-    3. but leave `THIS^`, `SUPER^`, and instance variable calls untouched, since those are statically dispatched
+    1. method is called from within another method of a class or function block, or from a function block body, with no base or through `THIS^`, or
+    2. method is called through a `POINTER TO`, `REF_TO`, or `REFERENCE TO` variable whose target is a class or function block,
+    3. but leave `SUPER^` calls, the body call `THIS^()`, instance variable calls, and all calls on programs untouched, since those are statically dispatched
 
 ### Interface polymorphism
 
@@ -335,6 +337,8 @@ Each itable struct includes `__upcast_<Ancestor>` pointer fields for every prope
 
 The function pointer types reference the original interface method (for example `IA.foo`), which already exists in the index as a registered implementation without a body. This avoids separate forward declarations. Inherited methods are included: `__itable_IB` contains both `foo` (from `IA`) and `bar` (from `IB`), with inherited methods first. In the diamond above, the methods of the ancestors (`IA.foo`, `IB.bar`, `IC.baz`) come before the own methods of `ID` (`ID.qux`).
 
+The unit that declares the interface owns its itable struct and defines its constructor. An interface from an include file only declares the constructor, even when no POU of the library implements it, because the object built from the library defines it. In a unit of the project, the constructor is also only declared when the unit has at least one implementor and all of its implementors are `{external}`, unless `--generate-external-constructors` is set. A unit of the project that declares the interface without implementing it defines the constructor.
+
 Then, the compiler generates global instances for every (interface, POU) combination, sorted by name. Each `__upcast` field is initialized to the ancestor instance for the same POU:
 
 ```diff
@@ -405,7 +409,7 @@ The compiler replaces every interface type reference with `__FATPOINTER`. This h
 +FUNCTION producer: __FATPOINTER
 ```
 
-The `__FATPOINTER` struct is generated on demand: it is added to the first compilation unit of the project only when at least one interface is used as a type. If no code uses interface types, no fat pointer struct is emitted. A function that returns `__FATPOINTER` returns an aggregate, so the aggregate-return lowerer later turns its return into a `VAR_IN_OUT` parameter like for any struct.
+The `__FATPOINTER` struct is generated on demand: it is added to the first compilation unit of the project only when at least one interface is used as a type. If no code uses interface types, no fat pointer struct is emitted. Every compilation that uses interfaces adds its own copy, so the struct has built-in linkage: no object defines a constructor for it, and none is called. A function that returns `__FATPOINTER` returns an aggregate, so the aggregate-return lowerer later turns its return into a `VAR_IN_OUT` parameter like for any struct.
 
 #### Dispatch transformations
 
@@ -499,6 +503,10 @@ This works with named arguments too:
 +__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
 +consumer(in := __fatpointer_0);
 ```
+
+Only arguments that are copied in are wrapped. A by-reference parameter (`VAR_IN_OUT`, a function or method `VAR_OUTPUT`, `VAR_INPUT {ref}`, `REFERENCE TO`) binds the caller's own variable, and a function block output is copied into the caller's variable after the call without conversion. A temporary would therefore receive the callee's writes instead of the caller's variable. Such an argument must already be a fat pointer of the parameter's interface and is passed unchanged; the [Validation](#validation) section describes the check.
+
+The lowerer counts a multiplied argument such as `2(d)` as one parameter slot per repetition, so the arguments after it bind to the slots after all repetitions: in `f(2(d), instanceFbA)`, `instanceFbA` binds to the third parameter. An argument that fills one slot is lowered at the node inside its parentheses or multiplier of 1, so `(instanceFbA)` and `1(instanceFbA)` are wrapped like `instanceFbA`. An argument that fills several slots is one node shared by them, so it is neither wrapped, upcast nor checked. A concrete instance repeated into interface parameters, such as `g(2(instanceFbA))`, fails with E037 (`cannot assign 'FbA' to '__FATPOINTER'`); a repeated variable of a child or unrelated interface is passed unchanged, so the callee calls through the wrong itable.
 
 Multiple interface arguments in a single call each get their own temporary; the counter is shared by the whole compilation and never reset:
 
@@ -655,7 +663,7 @@ id=2
 
 At `pre_index`, the [property lowerer](02-property.md) creates `__get_x` and `__set_x` methods. By the time the tables are generated they are ordinary methods, so they receive vtable and itable slots, and property accesses through pointers and interfaces dispatch dynamically.
 
-This participant creates the `__vtable` member but never fills it. The [init participant](06-init.md), registered later and running at `post_annotate` too, does the storing: the constructor of every class and function block ends with `self.__vtable := ADR(__vtable_FbA_instance)`. For a derived type the constructor of the base runs first and stores the table of the base, then the derived constructor overwrites the same member through the embedded base: `self.__FbA.__vtable := ADR(__vtable_FbB_instance)`. The member initializers of the vtable structs and the initializers of the itable instances become constructors too, and `__FATPOINTER` gets one like any struct. All of them run from the global constructors before the program starts.
+This participant creates the `__vtable` member but never fills it. The [init participant](06-init.md), registered later and running at `post_annotate` too, does the storing: the constructor of every class and function block ends with `self.__vtable := ADR(__vtable_FbA_instance)`. For a derived type the constructor of the base runs first and stores the table of the base, then the derived constructor overwrites the same member through the embedded base: `self.__FbA.__vtable := ADR(__vtable_FbB_instance)`. The member initializers of the vtable structs and the initializers of the itable instances become constructors too. `__FATPOINTER` is built-in and gets none. All of them run from the global constructors before the program starts.
 
 The [inheritance lowerer](10-inheritance.md), also later, resolves the members the rewrite introduced. An access follows the declared type, so a pointer declared as `POINTER TO FbB` gives `refInstanceB^.__vtable`, and because `FbB` has no member of that name it becomes `refInstanceB^.__FbA.__vtable`. The re-annotation at the end of this participant finds the inherited member; the inheritance lowerer spells out the path.
 
@@ -685,6 +693,8 @@ The result temporary carries no callee name, because this rewrite leaves the ope
 
 ## Validation
 
-The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: `Invalid assignment: 'FbX' does not implement interface 'IA'`. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: `Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically`. It reports E129 when an interface variable is called directly, `refInterface()`: `Interfaces cannot be called directly`.
+The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: `Invalid assignment: 'FbX' does not implement interface 'IA'`. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: `Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically`. A value that is neither a POU instance nor an interface, such as a `DINT`, is reported as not implementing the interface. It reports E129 when an interface variable is called directly, `refInterface()`: `Interfaces cannot be called directly`.
 
-These checks run before interface types become `__FATPOINTER`, while the original interface names are still available. On failure, the lowerer drops the statement or leaves an unfilled argument temporary to avoid diagnostics about generated code. It passes its diagnostics to the driver.
+An argument that binds the caller's variable or receives a function block output (see call arguments above) cannot be converted. The lowerer matches each argument to its parameter with `resolve_argument_slots` over the flattened argument list, the rule the resolver uses. If the parameter is passed by reference or is an output, and the parameter type or the argument type is an interface, both types must be the same: an instance is not a fat pointer, and a fat pointer of a child interface points to the child's itable. A mismatch is E126 at the argument, `Type mismatch: expected type 'IA' but received 'FbA'`, followed by a hint. If the argument could be assigned to the parameter type by value, the hint is `assign 'a' to a variable of type 'IA' before passing it to 'f'`; otherwise there is none, because that assignment would fail too. An output reads `pass a variable of type 'IA' to 'f'`. The argument is named by its source text only if it names a variable, such as `h.a`, `arr[1]` or `THIS^.a`; other expressions read `the argument`, because an earlier lowering may have rewritten them. The callee is named as written, such as `fb.m`, and by its POU name if the call operator is not a variable. A sub-diagnostic, the note E159, points at the parameter declaration: `Parameter 'x' is passed by reference and needs a variable of type 'IA'`, or `Parameter 'x' is an output ...` for a function, method or function block output. `rr REF= instance` with `rr: REFERENCE TO IA` gets the same check, with the hint `bind 'rr' to a variable of type 'IA'` and the note `'rr' is a reference ...` at the declaration of `rr`. The left side is named like an argument, `the left side` otherwise, and the note is left out if it does not resolve to a declared variable, such as the array element `arrp[1]`. `REF=` stores the address of its right side, so a `REF_TO IA` or `POINTER TO IA` variable is checked against its pointee `IA`. As the left side of `REF=`, a by-reference parameter of a pointer type, such as `VAR_IN_OUT x: REF_TO IA`, binds like `REFERENCE TO` and is checked against `REF_TO IA`. `REF= 0` is a null binding and is not checked; a right side that stays a non-reference, such as a literal, an expression or a call that returns an elementary value, and an `AT` alias on the left are left to the validator, which reports E098 and E100. A call that returns an aggregate or an interface, including a property read, is checked like a variable, because the [aggregate-return lowerer](09-aggregate-return.md) later turns it into a reference to a temporary. Pointer, array and string types declared inline are named as written (`ARRAY[0..1] OF DINT`, `REF_TO IA`), not by their generated index name; other inline types, such as an enumeration, still show the generated name. A pointer type that points to itself keeps its index name where it repeats, so `TYPE __P : POINTER TO __P` reads `POINTER TO __P`. The lowerer does not check a parameter whose target is a variable-length array, which cannot take a temporary in place of its argument, or a pointer, such as `VAR_IN_OUT x: REFERENCE TO IA`. The validator reports E037 for a non-interface argument, such as an `ARRAY[0..1] OF FbA` for `ARRAY[*] OF IA`. An interface or interface-array argument passed to such a target is not checked yet: `f(ia)` with `VAR_IN_OUT x: REF_TO IA` and `f(arr)` with `arr: ARRAY[0..1] OF IB` for `ARRAY[*] OF IA` compile without a diagnostic.
+
+These checks run before interface types become `__FATPOINTER`, while the original interface names are still available. On failure, the lowerer drops the statement or replaces the argument with an unfilled temporary of the parameter's type to avoid diagnostics about generated code. It passes its diagnostics to the driver.

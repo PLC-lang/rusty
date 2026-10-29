@@ -1617,6 +1617,7 @@ version = "1.1.0-dev"
 dependencies = [
  "anyhow",
  "codespan-reporting",
+ "insta",
  "lazy_static",
  "log",
  "plc_ast",

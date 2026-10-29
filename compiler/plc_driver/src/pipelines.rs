@@ -470,7 +470,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
-        let project = ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)?;
+        let project = ParsedProject::parse(&mut self.context, &self.project, &mut self.diagnostician)?;
         Ok(project)
     }
 
@@ -622,10 +622,19 @@ impl ParsedProject {
     /// Parses a giving project, transforming it to a `ParsedProject`
     /// Reports parsing diagnostics such as Syntax error on the fly
     pub fn parse<T: SourceContainer + Sync>(
-        ctxt: &GlobalContext,
+        ctxt: &mut GlobalContext,
         project: &Project<T>,
         diagnostician: &mut Diagnostician,
     ) -> Result<Self, Diagnostic> {
+        // Text locations of a CFC file point into its declaration, so slices must read that text
+        let declarations = ctxt
+            .sources_cfc()
+            .filter_map(|source| Some((source.get_location_str(), plc_cfc::declaration_text(source)?)))
+            .collect::<Vec<_>>();
+        for (path, text) in declarations {
+            ctxt.register_text(path, text);
+        }
+
         //TODO in parallel
         //Parse the source files
         let mut units = vec![];
@@ -1110,6 +1119,17 @@ impl GeneratedProject {
                 for lib in &link_options.libraries {
                     linker.add_lib(lib);
                 }
+
+                // A floating-point remainder becomes a call into libm, which a driver does not link
+                let is_final_link = matches!(
+                    link_options.format,
+                    FormatOption::Static | FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC
+                );
+                let is_linux = target_triple.as_str().to_string_lossy().contains("linux");
+                if is_final_link && is_linux && !link_options.no_libc {
+                    linker.add_math_library();
+                }
+
                 if let Some(sysroot) = self.target.get_sysroot() {
                     linker.add_sysroot(sysroot);
                 }

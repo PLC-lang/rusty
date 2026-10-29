@@ -31,7 +31,7 @@ At `post_annotate`, annotations identify callees and assignment targets. The ind
 
 ### The callee
 
-The callee loses its return type and gets a by-value `VAR_INPUT` variable named `__<pou>_return_val` at the front of its by-value input block. The variable's type is a generated named pointer type, `__referenceFunc__referenceFunc_return_val` here, that is a `REFERENCE TO` the original referenced type and is appended to the unit's type list. The `REF=` that assigns the return variable becomes a plain assignment, so the callee writes the value through the reference into the caller's storage:
+The callee loses its return type and gets a by-value `VAR_INPUT` variable named `__<pou>_return_val` at the front of its by-value input block. The variable's type is a generated named pointer type, `__referenceFunc__referenceFunc_return_val` here, that is a `REFERENCE TO` the original referenced type and is appended to the unit's type list with the linkage of the callee. The `REF=` that assigns the return variable becomes a plain assignment, so the callee writes the value through the reference into the caller's storage:
 
 ```diff
 -FUNCTION referenceFunc: REFERENCE TO INT
@@ -53,7 +53,7 @@ Only a `REF=` to the return variable is rewritten; a plain assignment to it beco
 
 ### The caller
 
-The caller gets two `VAR_TEMP` variables per call site: a reference and storage for the copied value. Their names are `__<callee>_return_val_N` and `__<callee>_return_val_store_N`; the reference uses the generated type `__<caller>__<callee>_return_val_N`. The counter starts at 1 for each callee in an implementation. A `VAR_TEMP` block is added if needed. The containing statement becomes an expression list: point the reference at storage, call the callee, then use the reference:
+The caller gets two `VAR_TEMP` variables per call site: a reference and storage for the copied value. Their names are `__<callee>_return_val_N` and `__<callee>_return_val_store_N`; the reference uses the generated type `__<caller>__<callee>_return_val_N`, which has the linkage of the caller. The counter starts at 1 for each callee in an implementation. A `VAR_TEMP` block is added if needed. The containing statement becomes an expression list: point the reference at storage, call the callee, then use the reference:
 
 ```diff
  FUNCTION main

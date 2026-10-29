@@ -151,15 +151,21 @@ impl InterfaceTableGenerator {
         definitions
     }
 
-    /// Determines whether the itable struct definition for an interface should be Internal or
-    /// External. External only when the library provides all implementors (and thus the struct
-    /// constructor). If no implementors exist in this unit (interface-only file), keep Internal.
+    /// Determines the linkage of the itable struct definition for an interface. An interface declared
+    /// in an included or external unit keeps the linkage of its unit, so its constructor is only
+    /// declared. In an internal unit the struct is External when the library provides all
+    /// implementors (and thus the struct constructor), and Internal otherwise, including for an
+    /// interface-only file.
     fn itable_definition_linkage(
         &self,
         index: &Index,
         unit: &CompilationUnit,
         interface_name: &str,
     ) -> LinkageType {
+        if !super::is_internal_instance(unit.linkage, self.generate_external_constructors) {
+            return unit.linkage;
+        }
+
         let mut has_external = false;
 
         for ast_pou in unit.pous.iter().filter(|p| p.kind.is_class() || p.kind.is_function_block()) {

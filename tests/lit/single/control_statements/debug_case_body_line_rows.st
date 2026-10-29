@@ -6,8 +6,8 @@
 // carries one source location, so a merged one is attributed to line 0 and the bodies it
 // came from lose their rows.
 
-// RUN: %PLC --debug -Onone -c -o %T/%basename_t.o %s
-// RUN: readelf --debug-dump=decodedline %T/%basename_t.o | %CHECK_IR %s
+// RUN: %PLC --debug -Onone -c -o %t.o %s
+// RUN: readelf --debug-dump=decodedline %t.o | %CHECK_IR %s
 
 FUNCTION_BLOCK Counter
 VAR_INPUT step : INT; reset : BOOL; END_VAR

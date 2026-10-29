@@ -183,6 +183,43 @@ fn cast_expressions_of_enum_with_resolves_types() {
 }
 
 #[test]
+fn cast_base_resolves_to_enum_type_before_same_named_variant() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "TYPE Status : (Ok, Error); END_TYPE
+        TYPE Error : (NoError, Timeout); END_TYPE
+        PROGRAM PRs
+            Error#Timeout;
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[0].statements[0];
+    assert_type_and_hint!(&annotations, &index, statement, "Error", None);
+
+    let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(access), base }) =
+        statement.get_stmt()
+    else {
+        unreachable!()
+    };
+    assert_eq!(
+        annotations.get(base.as_deref().unwrap()),
+        Some(&StatementAnnotation::Type { type_name: "Error".to_string() })
+    );
+    assert_eq!(
+        annotations.get(access),
+        Some(&StatementAnnotation::Variable {
+            resulting_type: "Error".to_string(),
+            qualified_name: "Error.Timeout".to_string(),
+            constant: true,
+            argument_type: ArgumentType::ByVal(VariableType::Global),
+            auto_deref: None,
+        })
+    );
+}
+
+#[test]
 fn cast_expressions_of_enum_with_direct_access_resolves_types() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
@@ -890,6 +927,114 @@ fn resolve_binary_expressions() {
     let expected_types = vec![
         "BYTE", "WORD", "DWORD", "LWORD", "DINT", "UDINT", "DINT", "UDINT", "DINT", "UDINT", "LINT", "ULINT",
     ];
+    let type_names: Vec<&str> =
+        statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
+
+    assert_eq!(format!("{expected_types:?}"), format!("{type_names:?}"));
+}
+
+#[test]
+fn unary_minus_types_by_operand_kind() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "TYPE SRU64 : ULINT(0..10); END_TYPE
+        TYPE EU64 : ULINT (EA := 10, EB := 11); END_TYPE
+        TYPE SRD : DINT(-10..10); END_TYPE
+        PROGRAM PRG
+        VAR
+            a : USINT;
+            b : BYTE;
+            d : DINT;
+            u : UDINT;
+            dw : DWORD;
+            ul : ULINT;
+            r : REAL;
+            t : TIME;
+            dt : DATE;
+            c : CHAR;
+            bo : BOOL;
+            su : SRU64;
+            eu : EU64;
+            sd : SRD;
+        END_VAR
+            -a;
+            -b;
+            -d;
+            -u;
+            -dw;
+            -ul;
+            -r;
+            -t;
+            -dt;
+            -c;
+            -bo;
+            -su;
+            -eu;
+            -sd;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    // (operand type, result type, operand hint): an integer is negated in a signed type that holds the
+    // negation, a subrange or an enum like its base type; other types keep their type
+    let expected = [
+        ("USINT", DINT_TYPE, Some(DINT_TYPE)),
+        ("BYTE", DINT_TYPE, Some(DINT_TYPE)),
+        ("DINT", DINT_TYPE, None),
+        ("UDINT", LINT_TYPE, Some(LINT_TYPE)),
+        ("DWORD", LINT_TYPE, Some(LINT_TYPE)),
+        ("ULINT", LINT_TYPE, Some(LINT_TYPE)),
+        ("REAL", REAL_TYPE, None),
+        ("TIME", "TIME", None),
+        ("DATE", "DATE", None),
+        ("CHAR", "CHAR", None),
+        ("BOOL", BOOL_TYPE, None),
+        ("SRU64", LINT_TYPE, Some(LINT_TYPE)),
+        ("EU64", LINT_TYPE, Some(LINT_TYPE)),
+        ("SRD", "SRD", None),
+    ];
+    for (statement, (operand_type, result_type, operand_hint)) in statements.iter().zip(expected) {
+        let AstStatement::UnaryExpression(UnaryExpression { value, .. }) = statement.get_stmt() else {
+            panic!("expected a unary expression, got {statement:?}");
+        };
+        assert_type_and_hint!(&annotations, &index, statement, result_type, None::<&str>);
+        assert_type_and_hint!(&annotations, &index, value.as_ref(), operand_type, operand_hint);
+    }
+}
+
+#[test]
+fn untyped_integer_literal_takes_the_type_of_a_wide_operand() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+        VAR_GLOBAL
+            usi : USINT;
+            udi : UDINT;
+            uli : ULINT;
+            dw : DWORD;
+        END_VAR
+
+        PROGRAM PRG
+            udi / 2;
+            2 / udi;
+            uli MOD 3000000000;
+            dw / 16#10;
+            udi / -2;
+            udi / 5000000000;
+            udi + 16#FFFFFFFF;
+            dw + 3000000000;
+            udi + 5000000000000000000000;
+            usi / 2;
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let statements = &unit.implementations[0].statements;
+
+    let expected_types =
+        vec!["UDINT", "UDINT", "ULINT", "DWORD", "DINT", "ULINT", "ULINT", "LWORD", "LINT", "DINT"];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
 
@@ -6888,11 +7033,7 @@ fn array_literal_passed_to_function_var_input_gets_type_hint_propagated() {
 // assignment resolution (variable wins) must be preserved.
 
 /// Helper: extract the base of the operator of a CallStatement at `unit.implementations[impl_idx].statements[stmt_idx]`.
-fn call_operator_base<'a>(
-    unit: &'a plc_ast::ast::CompilationUnit,
-    impl_idx: usize,
-    stmt_idx: usize,
-) -> &'a AstNode {
+fn call_operator_base(unit: &plc_ast::ast::CompilationUnit, impl_idx: usize, stmt_idx: usize) -> &AstNode {
     let stmt = &unit.implementations[impl_idx].statements[stmt_idx];
     let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
         panic!("expected CallStatement, got {:?}", stmt);
@@ -6906,11 +7047,7 @@ fn call_operator_base<'a>(
 }
 
 /// Helper: extract the operator of a CallStatement at `unit.implementations[impl_idx].statements[stmt_idx]`.
-fn call_operator<'a>(
-    unit: &'a plc_ast::ast::CompilationUnit,
-    impl_idx: usize,
-    stmt_idx: usize,
-) -> &'a AstNode {
+fn call_operator(unit: &plc_ast::ast::CompilationUnit, impl_idx: usize, stmt_idx: usize) -> &AstNode {
     let stmt = &unit.implementations[impl_idx].statements[stmt_idx];
     let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
         panic!("expected CallStatement, got {:?}", stmt);

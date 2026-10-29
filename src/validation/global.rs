@@ -199,14 +199,27 @@ impl GlobalValidator {
             let cluster: Vec<&PouIndexEntry> = pous.iter().filter(included_in_cluster).collect();
             let has_non_generic = cluster.iter().any(|p| !p.is_generic());
             if cluster.len() > 1 && has_non_generic {
-                Some((name.as_str(), cluster.iter().map(|p| p.get_location()).collect::<Vec<_>>()))
+                Some((name.as_str(), cluster))
             } else {
                 None
             }
         });
 
-        for (name, locations) in pou_clusters {
-            self.report_name_conflict(name, &locations, None);
+        for (name, cluster) in pou_clusters {
+            // A built-in declaration has no source the user can see, so only the user's non-generic
+            // declarations that collide with it are reported.
+            if cluster.iter().any(|p| p.is_builtin()) {
+                for pou in cluster.iter().filter(|p| !p.is_builtin() && !p.is_generic()) {
+                    self.push_diagnostic(
+                        Diagnostic::new(format!("`{}` is the name of a built-in function", pou.get_name()))
+                            .with_error_code("E004")
+                            .with_location(pou.get_location()),
+                    );
+                }
+            } else {
+                let locations = cluster.iter().map(|p| p.get_location()).collect::<Vec<_>>();
+                self.report_name_conflict(name, &locations, None);
+            }
         }
     }
 

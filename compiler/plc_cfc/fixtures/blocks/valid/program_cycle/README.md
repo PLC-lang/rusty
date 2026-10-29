@@ -6,7 +6,9 @@ block output even across a cross-block loop.
 
 Illustrated:
 ```
-   +--> in [ping] out (2) --+
-   |                        |
-   +-- out [pong] in <------+   (1)
+            ping (2)         pong (1)
+          +----------+     +----------+
+   .----> | in   out | --> | in   out | --.
+   |      +----------+     +----------+   |
+   '--------------------------------------'   [pong.out feeds back into ping.in]
 ```

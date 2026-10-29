@@ -92,7 +92,7 @@ fn string_with_round_parens_can_be_parsed() {
     let (result, diagnostics) = parse_buffered(src);
     assert_snapshot!(diagnostics);
 
-    let ast_string = format!("{:#?}", &result.user_types);
+    let ast_string = format!("{:#?}", result.user_types);
     assert_debug_snapshot!(ast_string);
 }
 

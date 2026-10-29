@@ -42,8 +42,10 @@ The wires say where a value goes, not when. The order of the statements is the o
 
 ```
         Add (1)             Scale (2)
- a --> | in1   out | --> | in    out | --> result (3)
- b --> | in2       |
+      +-----------+       +-----------+
+a --> | in1   out | --> | in    out | --> result (3)
+b --> | in2       |     +-----------+
+      +-----------+
 ```
 
 The numbers in parentheses are the priorities. They start at 1; the tool never writes a 0, so an element with priority 0 is rejected (E158). An element without a priority runs after every element that has one, in the order in which the file stores it.

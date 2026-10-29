@@ -5,6 +5,8 @@ value, `after` sees this cycle's. No temporary, no reordering.
 
 Illustrated:
 ```
-seed --> in [counter] out (2) --+--> before (1)
-                                +--> after (3)
+           counter (2)
+         +------------+
+seed --> | in     out | --+--> before (1)
+         +------------+   +--> after (3)
 ```

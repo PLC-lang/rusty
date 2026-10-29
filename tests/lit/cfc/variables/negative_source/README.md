@@ -5,8 +5,12 @@ literal `-5` does the same. `main` checks all three results (`-10 / 2 = -5`,
 
 Illustrated:
 ```
--t_inc   --> IN1 [DIV] --> quotient (0, 1)
-rc       --> IN2
+             DIV (1)
+           +-----------+
+-t_inc --> | IN1   DIV | --> quotient (2)
+    rc --> | IN2       |
+           +-----------+
+
 -(t_inc) --> negated (3)
--5       --> literal (4)
+      -5 --> literal (4)
 ```

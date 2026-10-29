@@ -45,6 +45,8 @@ any := ADR(scaled);
 value := any^.Read();   (* the method of ScaledSensor *)
 ```
 
+The same holds inside the base block: in a method of `Sensor`, both `Read()` and `THIS^.Read()` run the method of `ScaledSensor` when the instance is a `ScaledSensor`.
+
 Take the address with `ADR`. `REF` gives a pointer to the exact type of its argument, so `any := REF(scaled)` warns that `REF_TO Sensor` and `ScaledSensor` are different types, although the call works.
 
 This is what makes a list of different sensors possible: they all have `Read`, and each one brings its own.
@@ -95,6 +97,23 @@ FUNCTION Report: DINT
     Report := device.Read();
 END_FUNCTION
 ```
+
+A `VAR_IN_OUT` parameter, a function or method `VAR_OUTPUT`, a `VAR_INPUT {ref}` parameter and a `REFERENCE TO` of an interface type refer to the caller's interface variable itself, and a function block output is copied into it without conversion. Pass a variable of exactly that interface. An instance, even one that implements the interface, and a variable of another interface are rejected with E126:
+
+```iecst
+FUNCTION Calibrate: DINT
+    VAR_IN_OUT
+        device: ISensor;
+    END_VAR
+END_FUNCTION
+
+Calibrate(sensor);  (* fine *)
+Calibrate(analog);  (* error[E126]: Type mismatch: expected type 'ISensor' but received 'Analog'; assign 'analog' to a variable of type 'ISensor' before passing it to 'Calibrate' *)
+```
+
+A note (E159) at the declaration of `device` adds why: `Parameter 'device' is passed by reference and needs a variable of type 'ISensor'`.
+
+To pass an instance, assign it to an interface variable first, as `sensor := analog` does above. To store a function block output in a variable of a parent interface, call the block and assign the output afterwards, for example `block(); parent := block.result;`.
 
 Use an interface when the implementations have nothing in common but their operations, and `EXTENDS` when they share data or behavior.
 

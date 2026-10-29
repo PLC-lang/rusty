@@ -18,7 +18,7 @@ Eight integer types, four signed and four unsigned:
 | `LINT` | 64 bit | -9 223 372 036 854 775 808 to 9 223 372 036 854 775 807 |
 | `ULINT` | 64 bit | 0 to 18 446 744 073 709 551 615 |
 
-`DINT` is the type to reach for. It is the type that the compiler gives to a whole-number literal, and only a literal too large for 32 bits becomes a `LINT`.
+`DINT` is the type to reach for. It is the type that the compiler gives to a whole-number literal, and only a literal too large for 32 bits becomes a `LINT`. Next to an operand of another type, a literal can take that operand's type instead; see [mixed types](expressions.md#mixed-types).
 
 A literal can be written in another base, and `_` between two digits groups them:
 
