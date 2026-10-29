@@ -54,3 +54,5 @@ Lead with findings, ordered by impact. For each finding include:
 - **Trigger and impact:** the input or state required and who or what is affected.
 - **Evidence:** a minimal reproduction, test result, or concrete execution trace; distinguish executed checks from static reasoning.
 - **Fix direction:** the smallest reasonable correction and a regression test to protect it, without implementing it unless requested.
+
+Finish with coverage, checks run, and limitations. When reviewing a change, state the base commit compared against and how many candidates were dropped as pre-existing, without listing them. End with a brief TL;DR.
