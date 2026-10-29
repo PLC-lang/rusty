@@ -48,6 +48,26 @@ pub fn is_operator_function(text: &str) -> bool {
     session.token.classes().contains(&TokenClass::OperatorFunction) && session.peek() == Token::End
 }
 
+// Whether `text` is exactly one expression: it parses without errors, nothing
+// follows it, and it is no list such as `a, b`, assignment such as `a := 1`, or
+// array literal part such as `1..5` or `3(1)`.
+pub fn is_expression(text: &str) -> bool {
+    let mut session = lexer::lex_with_ids(text, IdProvider::default(), SourceLocationFactory::internal(text));
+    let node = expressions_parser::parse_expression(&mut session);
+
+    let statement = matches!(
+        node.get_stmt(),
+        AstStatement::ExpressionList(_)
+            | AstStatement::Assignment(_)
+            | AstStatement::OutputAssignment(_)
+            | AstStatement::RefAssignment(_)
+            | AstStatement::RangeStatement(_)
+            | AstStatement::MultipliedStatement(_)
+    );
+
+    session.diagnostics.is_empty() && session.token == Token::End && !statement
+}
+
 // A parsed expression relocated to where the network places it, so
 // diagnostics point at the diagram element rather than the parsed text.
 // Every node is relocated, not only the root: the parser locates nested nodes
