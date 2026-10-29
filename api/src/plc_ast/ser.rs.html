@@ -552,69 +552,72 @@
 <a href=#552 id=552 data-nosnippet>552</a>        <span class="self">self</span>.result.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"alloca {}: {}"</span>, stmt.name, stmt.reference_type));
 <a href=#553 id=553 data-nosnippet>553</a>    }
 <a href=#554 id=554 data-nosnippet>554</a>
-<a href=#555 id=555 data-nosnippet>555</a>    <span class="kw">fn </span>visit_super(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _stmt: <span class="kw-2">&amp;</span>AstStatement, _node: <span class="kw-2">&amp;</span>AstNode) {
+<a href=#555 id=555 data-nosnippet>555</a>    <span class="kw">fn </span>visit_super(<span class="kw-2">&amp;mut </span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstStatement, _node: <span class="kw-2">&amp;</span>AstNode) {
 <a href=#556 id=556 data-nosnippet>556</a>        <span class="self">self</span>.result.push_str(<span class="string">"SUPER"</span>);
-<a href=#557 id=557 data-nosnippet>557</a>    }
-<a href=#558 id=558 data-nosnippet>558</a>
-<a href=#559 id=559 data-nosnippet>559</a>    <span class="kw">fn </span>visit_this(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _stmt: <span class="kw-2">&amp;</span>AstStatement, _node: <span class="kw-2">&amp;</span>AstNode) {
-<a href=#560 id=560 data-nosnippet>560</a>        <span class="self">self</span>.result.push_str(<span class="string">"THIS"</span>);
-<a href=#561 id=561 data-nosnippet>561</a>    }
-<a href=#562 id=562 data-nosnippet>562</a>}
-<a href=#563 id=563 data-nosnippet>563</a>
-<a href=#564 id=564 data-nosnippet>564</a><span class="attr">#[cfg(test)]
-<a href=#565 id=565 data-nosnippet>565</a></span><span class="kw">mod </span>tests {
-<a href=#566 id=566 data-nosnippet>566</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-<a href=#567 id=567 data-nosnippet>567</a>    <span class="kw">use </span><span class="kw">crate</span>::ast::AstFactory;
-<a href=#568 id=568 data-nosnippet>568</a>    <span class="kw">use </span><span class="kw">crate</span>::literals::{AstLiteral, StringValue};
-<a href=#569 id=569 data-nosnippet>569</a>    <span class="kw">use </span>plc_source::source_location::SourceLocation;
-<a href=#570 id=570 data-nosnippet>570</a>
-<a href=#571 id=571 data-nosnippet>571</a>    <span class="attr">#[test]
-<a href=#572 id=572 data-nosnippet>572</a>    </span><span class="kw">fn </span>expression_list() {
-<a href=#573 id=573 data-nosnippet>573</a>        <span class="kw">let </span>function_name = AstFactory::create_identifier(<span class="string">"foo"</span>, SourceLocation::undefined(), <span class="number">0</span>);
-<a href=#574 id=574 data-nosnippet>574</a>        <span class="kw">let </span>expressions = <span class="macro">vec!</span>[
-<a href=#575 id=575 data-nosnippet>575</a>            AstFactory::create_literal(AstLiteral::Integer(<span class="number">1</span>), SourceLocation::undefined(), <span class="number">1</span>),
-<a href=#576 id=576 data-nosnippet>576</a>            AstFactory::create_literal(
-<a href=#577 id=577 data-nosnippet>577</a>                AstLiteral::String(StringValue { value: <span class="string">"two"</span>.to_string(), is_wide: <span class="bool-val">false </span>}),
-<a href=#578 id=578 data-nosnippet>578</a>                SourceLocation::undefined(),
-<a href=#579 id=579 data-nosnippet>579</a>                <span class="number">2</span>,
-<a href=#580 id=580 data-nosnippet>580</a>            ),
-<a href=#581 id=581 data-nosnippet>581</a>            AstFactory::create_literal(AstLiteral::Integer(<span class="number">3</span>), SourceLocation::undefined(), <span class="number">3</span>),
-<a href=#582 id=582 data-nosnippet>582</a>            AstFactory::create_literal(
-<a href=#583 id=583 data-nosnippet>583</a>                AstLiteral::String(StringValue { value: <span class="string">"four"</span>.to_string(), is_wide: <span class="bool-val">false </span>}),
-<a href=#584 id=584 data-nosnippet>584</a>                SourceLocation::undefined(),
-<a href=#585 id=585 data-nosnippet>585</a>                <span class="number">4</span>,
-<a href=#586 id=586 data-nosnippet>586</a>            ),
-<a href=#587 id=587 data-nosnippet>587</a>        ];
-<a href=#588 id=588 data-nosnippet>588</a>        <span class="kw">let </span>expression_list = AstFactory::create_expression_list(expressions, SourceLocation::undefined(), <span class="number">5</span>);
-<a href=#589 id=589 data-nosnippet>589</a>        <span class="kw">let </span>call = AstFactory::create_call_statement(
-<a href=#590 id=590 data-nosnippet>590</a>            function_name,
-<a href=#591 id=591 data-nosnippet>591</a>            <span class="prelude-val">Some</span>(expression_list),
-<a href=#592 id=592 data-nosnippet>592</a>            <span class="number">6</span>,
-<a href=#593 id=593 data-nosnippet>593</a>            SourceLocation::undefined(),
-<a href=#594 id=594 data-nosnippet>594</a>        );
-<a href=#595 id=595 data-nosnippet>595</a>
-<a href=#596 id=596 data-nosnippet>596</a>        <span class="kw">let </span>result = AstSerializer::format(<span class="kw-2">&amp;</span>call);
-<a href=#597 id=597 data-nosnippet>597</a>        <span class="macro">assert_eq!</span>(result, <span class="string">"foo(1, 'two', 3, 'four')"</span>);
-<a href=#598 id=598 data-nosnippet>598</a>    }
-<a href=#599 id=599 data-nosnippet>599</a>
-<a href=#600 id=600 data-nosnippet>600</a>    <span class="attr">#[test]
-<a href=#601 id=601 data-nosnippet>601</a>    </span><span class="kw">fn </span>variable_with_initializer() {
-<a href=#602 id=602 data-nosnippet>602</a>        <span class="kw">let </span>variable = Variable {
-<a href=#603 id=603 data-nosnippet>603</a>            name: <span class="string">"foo"</span>.to_string(),
-<a href=#604 id=604 data-nosnippet>604</a>            data_type_declaration: DataTypeDeclaration::reference(<span class="string">"DINT"</span>, SourceLocation::undefined()),
-<a href=#605 id=605 data-nosnippet>605</a>            initializer: <span class="prelude-val">Some</span>(AstFactory::create_literal(
-<a href=#606 id=606 data-nosnippet>606</a>                AstLiteral::Integer(<span class="number">3</span>),
-<a href=#607 id=607 data-nosnippet>607</a>                SourceLocation::undefined(),
-<a href=#608 id=608 data-nosnippet>608</a>                <span class="number">0</span>,
-<a href=#609 id=609 data-nosnippet>609</a>            )),
-<a href=#610 id=610 data-nosnippet>610</a>            address: <span class="prelude-val">None</span>,
-<a href=#611 id=611 data-nosnippet>611</a>            location: SourceLocation::undefined(),
-<a href=#612 id=612 data-nosnippet>612</a>        };
-<a href=#613 id=613 data-nosnippet>613</a>        <span class="kw">let </span>block = VariableBlock::default().with_variables(<span class="macro">vec!</span>[variable]);
-<a href=#614 id=614 data-nosnippet>614</a>
-<a href=#615 id=615 data-nosnippet>615</a>        <span class="kw">let </span>unit = CompilationUnit::new(<span class="string">"&lt;test&gt;"</span>);
-<a href=#616 id=616 data-nosnippet>616</a>        <span class="kw">let </span>result = AstSerializer::format_variable_block(<span class="kw-2">&amp;</span>block, <span class="kw-2">&amp;</span>unit);
-<a href=#617 id=617 data-nosnippet>617</a>        <span class="macro">assert_eq!</span>(result, <span class="string">"VAR\n    foo : DINT := 3;\nEND_VAR"</span>);
-<a href=#618 id=618 data-nosnippet>618</a>    }
-<a href=#619 id=619 data-nosnippet>619</a>}
+<a href=#557 id=557 data-nosnippet>557</a>        <span class="kw">if </span><span class="macro">matches!</span>(stmt, AstStatement::Super(<span class="prelude-val">Some</span>(<span class="kw">_</span>))) {
+<a href=#558 id=558 data-nosnippet>558</a>            <span class="self">self</span>.result.push(<span class="string">'^'</span>);
+<a href=#559 id=559 data-nosnippet>559</a>        }
+<a href=#560 id=560 data-nosnippet>560</a>    }
+<a href=#561 id=561 data-nosnippet>561</a>
+<a href=#562 id=562 data-nosnippet>562</a>    <span class="kw">fn </span>visit_this(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _stmt: <span class="kw-2">&amp;</span>AstStatement, _node: <span class="kw-2">&amp;</span>AstNode) {
+<a href=#563 id=563 data-nosnippet>563</a>        <span class="self">self</span>.result.push_str(<span class="string">"THIS"</span>);
+<a href=#564 id=564 data-nosnippet>564</a>    }
+<a href=#565 id=565 data-nosnippet>565</a>}
+<a href=#566 id=566 data-nosnippet>566</a>
+<a href=#567 id=567 data-nosnippet>567</a><span class="attr">#[cfg(test)]
+<a href=#568 id=568 data-nosnippet>568</a></span><span class="kw">mod </span>tests {
+<a href=#569 id=569 data-nosnippet>569</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#570 id=570 data-nosnippet>570</a>    <span class="kw">use </span><span class="kw">crate</span>::ast::AstFactory;
+<a href=#571 id=571 data-nosnippet>571</a>    <span class="kw">use </span><span class="kw">crate</span>::literals::{AstLiteral, StringValue};
+<a href=#572 id=572 data-nosnippet>572</a>    <span class="kw">use </span>plc_source::source_location::SourceLocation;
+<a href=#573 id=573 data-nosnippet>573</a>
+<a href=#574 id=574 data-nosnippet>574</a>    <span class="attr">#[test]
+<a href=#575 id=575 data-nosnippet>575</a>    </span><span class="kw">fn </span>expression_list() {
+<a href=#576 id=576 data-nosnippet>576</a>        <span class="kw">let </span>function_name = AstFactory::create_identifier(<span class="string">"foo"</span>, SourceLocation::undefined(), <span class="number">0</span>);
+<a href=#577 id=577 data-nosnippet>577</a>        <span class="kw">let </span>expressions = <span class="macro">vec!</span>[
+<a href=#578 id=578 data-nosnippet>578</a>            AstFactory::create_literal(AstLiteral::Integer(<span class="number">1</span>), SourceLocation::undefined(), <span class="number">1</span>),
+<a href=#579 id=579 data-nosnippet>579</a>            AstFactory::create_literal(
+<a href=#580 id=580 data-nosnippet>580</a>                AstLiteral::String(StringValue { value: <span class="string">"two"</span>.to_string(), is_wide: <span class="bool-val">false </span>}),
+<a href=#581 id=581 data-nosnippet>581</a>                SourceLocation::undefined(),
+<a href=#582 id=582 data-nosnippet>582</a>                <span class="number">2</span>,
+<a href=#583 id=583 data-nosnippet>583</a>            ),
+<a href=#584 id=584 data-nosnippet>584</a>            AstFactory::create_literal(AstLiteral::Integer(<span class="number">3</span>), SourceLocation::undefined(), <span class="number">3</span>),
+<a href=#585 id=585 data-nosnippet>585</a>            AstFactory::create_literal(
+<a href=#586 id=586 data-nosnippet>586</a>                AstLiteral::String(StringValue { value: <span class="string">"four"</span>.to_string(), is_wide: <span class="bool-val">false </span>}),
+<a href=#587 id=587 data-nosnippet>587</a>                SourceLocation::undefined(),
+<a href=#588 id=588 data-nosnippet>588</a>                <span class="number">4</span>,
+<a href=#589 id=589 data-nosnippet>589</a>            ),
+<a href=#590 id=590 data-nosnippet>590</a>        ];
+<a href=#591 id=591 data-nosnippet>591</a>        <span class="kw">let </span>expression_list = AstFactory::create_expression_list(expressions, SourceLocation::undefined(), <span class="number">5</span>);
+<a href=#592 id=592 data-nosnippet>592</a>        <span class="kw">let </span>call = AstFactory::create_call_statement(
+<a href=#593 id=593 data-nosnippet>593</a>            function_name,
+<a href=#594 id=594 data-nosnippet>594</a>            <span class="prelude-val">Some</span>(expression_list),
+<a href=#595 id=595 data-nosnippet>595</a>            <span class="number">6</span>,
+<a href=#596 id=596 data-nosnippet>596</a>            SourceLocation::undefined(),
+<a href=#597 id=597 data-nosnippet>597</a>        );
+<a href=#598 id=598 data-nosnippet>598</a>
+<a href=#599 id=599 data-nosnippet>599</a>        <span class="kw">let </span>result = AstSerializer::format(<span class="kw-2">&amp;</span>call);
+<a href=#600 id=600 data-nosnippet>600</a>        <span class="macro">assert_eq!</span>(result, <span class="string">"foo(1, 'two', 3, 'four')"</span>);
+<a href=#601 id=601 data-nosnippet>601</a>    }
+<a href=#602 id=602 data-nosnippet>602</a>
+<a href=#603 id=603 data-nosnippet>603</a>    <span class="attr">#[test]
+<a href=#604 id=604 data-nosnippet>604</a>    </span><span class="kw">fn </span>variable_with_initializer() {
+<a href=#605 id=605 data-nosnippet>605</a>        <span class="kw">let </span>variable = Variable {
+<a href=#606 id=606 data-nosnippet>606</a>            name: <span class="string">"foo"</span>.to_string(),
+<a href=#607 id=607 data-nosnippet>607</a>            data_type_declaration: DataTypeDeclaration::reference(<span class="string">"DINT"</span>, SourceLocation::undefined()),
+<a href=#608 id=608 data-nosnippet>608</a>            initializer: <span class="prelude-val">Some</span>(AstFactory::create_literal(
+<a href=#609 id=609 data-nosnippet>609</a>                AstLiteral::Integer(<span class="number">3</span>),
+<a href=#610 id=610 data-nosnippet>610</a>                SourceLocation::undefined(),
+<a href=#611 id=611 data-nosnippet>611</a>                <span class="number">0</span>,
+<a href=#612 id=612 data-nosnippet>612</a>            )),
+<a href=#613 id=613 data-nosnippet>613</a>            address: <span class="prelude-val">None</span>,
+<a href=#614 id=614 data-nosnippet>614</a>            location: SourceLocation::undefined(),
+<a href=#615 id=615 data-nosnippet>615</a>        };
+<a href=#616 id=616 data-nosnippet>616</a>        <span class="kw">let </span>block = VariableBlock::default().with_variables(<span class="macro">vec!</span>[variable]);
+<a href=#617 id=617 data-nosnippet>617</a>
+<a href=#618 id=618 data-nosnippet>618</a>        <span class="kw">let </span>unit = CompilationUnit::new(<span class="string">"&lt;test&gt;"</span>);
+<a href=#619 id=619 data-nosnippet>619</a>        <span class="kw">let </span>result = AstSerializer::format_variable_block(<span class="kw-2">&amp;</span>block, <span class="kw-2">&amp;</span>unit);
+<a href=#620 id=620 data-nosnippet>620</a>        <span class="macro">assert_eq!</span>(result, <span class="string">"VAR\n    foo : DINT := 3;\nEND_VAR"</span>);
+<a href=#621 id=621 data-nosnippet>621</a>    }
+<a href=#622 id=622 data-nosnippet>622</a>}
 </code></pre></div></section></main></body></html>

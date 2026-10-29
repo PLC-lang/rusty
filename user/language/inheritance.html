@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-421b4e49.js";
+            window.path_to_searchindex_js = "../../searchindex-d37ac015.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-645c3480.js"></script>
+        <script src="../../toc-d30be1ae.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -253,6 +253,18 @@ value := sensor.Read();
     Report := device.Read();
 END_FUNCTION
 </code></pre>
+<p>A <code>VAR_IN_OUT</code> parameter, a function or method <code>VAR_OUTPUT</code>, a <code>VAR_INPUT {ref}</code> parameter and a <code>REFERENCE TO</code> of an interface type refer to the caller’s interface variable itself, and a function block output is copied into it without conversion. Pass a variable of exactly that interface. An instance, even one that implements the interface, and a variable of another interface are rejected with E126:</p>
+<pre><code class="language-iecst">FUNCTION Calibrate: DINT
+    VAR_IN_OUT
+        device: ISensor;
+    END_VAR
+END_FUNCTION
+
+Calibrate(sensor);  (* fine *)
+Calibrate(analog);  (* error[E126]: Type mismatch: expected type 'ISensor' but received 'Analog'; assign 'analog' to a variable of type 'ISensor' before passing it to 'Calibrate' *)
+</code></pre>
+<p>A note (E159) at the declaration of <code>device</code> adds why: <code>Parameter 'device' is passed by reference and needs a variable of type 'ISensor'</code>.</p>
+<p>To pass an instance, assign it to an interface variable first, as <code>sensor := analog</code> does above. To store a function block output in a variable of a parent interface, call the block and assign the output afterwards, for example <code>block(); parent := block.result;</code>.</p>
 <p>Use an interface when the implementations have nothing in common but their operations, and <code>EXTENDS</code> when they share data or behavior.</p>
 <h2 id="classes"><a class="header" href="#classes">Classes</a></h2>
 <p>Neither mechanism is limited to the function block. A <code>CLASS</code> is a function block without a body. It holds members and methods, and you reach it through its methods:</p>

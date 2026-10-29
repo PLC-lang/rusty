@@ -37,10 +37,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-421b4e49.js";
+            window.path_to_searchindex_js = "searchindex-d37ac015.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-645c3480.js"></script>
+        <script src="toc-d30be1ae.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1468,6 +1468,18 @@ value := sensor.Read();
     Report := device.Read();
 END_FUNCTION
 </code></pre>
+<p>A <code>VAR_IN_OUT</code> parameter, a function or method <code>VAR_OUTPUT</code>, a <code>VAR_INPUT {ref}</code> parameter and a <code>REFERENCE TO</code> of an interface type refer to the caller’s interface variable itself, and a function block output is copied into it without conversion. Pass a variable of exactly that interface. An instance, even one that implements the interface, and a variable of another interface are rejected with E126:</p>
+<pre><code class="language-iecst">FUNCTION Calibrate: DINT
+    VAR_IN_OUT
+        device: ISensor;
+    END_VAR
+END_FUNCTION
+
+Calibrate(sensor);  (* fine *)
+Calibrate(analog);  (* error[E126]: Type mismatch: expected type 'ISensor' but received 'Analog'; assign 'analog' to a variable of type 'ISensor' before passing it to 'Calibrate' *)
+</code></pre>
+<p>A note (E159) at the declaration of <code>device</code> adds why: <code>Parameter 'device' is passed by reference and needs a variable of type 'ISensor'</code>.</p>
+<p>To pass an instance, assign it to an interface variable first, as <code>sensor := analog</code> does above. To store a function block output in a variable of a parent interface, call the block and assign the output afterwards, for example <code>block(); parent := block.result;</code>.</p>
 <p>Use an interface when the implementations have nothing in common but their operations, and <code>EXTENDS</code> when they share data or behavior.</p>
 <h2 id="classes"><a class="header" href="#classes">Classes</a></h2>
 <p>Neither mechanism is limited to the function block. A <code>CLASS</code> is a function block without a body. It holds members and methods, and you reach it through its methods:</p>
@@ -4307,11 +4319,12 @@ END_FUNCTION
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="incompatible-types-in-interface-polymorphism"><a class="header" href="#incompatible-types-in-interface-polymorphism">Incompatible types in interface polymorphism</a></h1>
 <p>This error occurs when an assignment or call argument involves an interface type but the
-source type does not satisfy the interface contract. There are two cases:</p>
+source type does not satisfy the interface contract. There are three cases:</p>
 <h2 id="case-1-pou-does-not-implement-the-interface"><a class="header" href="#case-1-pou-does-not-implement-the-interface">Case 1: POU does not implement the interface</a></h2>
 <p>When assigning a concrete function block or class instance to an interface-typed variable
 (or passing it as an argument), the POU must implement that interface — either directly
-via <code>IMPLEMENTS</code> or transitively through its <code>EXTENDS</code> chain.</p>
+via <code>IMPLEMENTS</code> or transitively through its <code>EXTENDS</code> chain. A source that is not a POU,
+such as a <code>DINT</code>, is reported the same way.</p>
 <h3 id="invalid"><a class="header" href="#invalid">Invalid</a></h3>
 <pre><code class="language-st">INTERFACE IA
     METHOD foo END_METHOD
@@ -4416,6 +4429,54 @@ FUNCTION main
     refIA := refIB;  // OK: IB extends IA
 END_FUNCTION
 </code></pre>
+<h2 id="case-3-by-reference-parameters-and-outputs"><a class="header" href="#case-3-by-reference-parameters-and-outputs">Case 3: By-reference parameters and outputs</a></h2>
+<p>A <code>VAR_IN_OUT</code> parameter, a function or method <code>VAR_OUTPUT</code>, a <code>VAR_INPUT {ref}</code> parameter and a
+<code>REFERENCE TO</code> an interface bind the caller’s variable itself instead of a copy. A function block
+output is copied into the caller’s variable after the call, without conversion. The argument
+must therefore be a variable of exactly the parameter’s interface. An instance does not qualify,
+even if it implements the interface, and neither does a variable of a child, parent or unrelated
+interface. The same rule applies when only the argument is an interface, for example an interface
+variable passed to a <code>VAR_IN_OUT</code> of a function block type, and to <code>rr REF= x</code> with
+<code>rr : REFERENCE TO IA</code>. If the parameter or reference is a declared variable, the error is
+followed by a note (E159) at its declaration.</p>
+<h3 id="invalid-1"><a class="header" href="#invalid-1">Invalid</a></h3>
+<pre><code class="language-st">INTERFACE IA
+    METHOD foo END_METHOD
+END_INTERFACE
+
+INTERFACE IB EXTENDS IA
+    METHOD bar END_METHOD
+END_INTERFACE
+
+FUNCTION_BLOCK FbA IMPLEMENTS IA
+    METHOD foo END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION update
+    VAR_IN_OUT
+        ref : IA;
+    END_VAR
+END_FUNCTION
+
+FUNCTION main
+    VAR
+        instance : FbA;
+        refIB    : IB;
+    END_VAR
+    update(instance);  // Error: expected type 'IA' but received 'FbA'
+    update(refIB);     // Error: expected type 'IA' but received 'IB'
+END_FUNCTION
+</code></pre>
+<h3 id="valid-1"><a class="header" href="#valid-1">Valid</a></h3>
+<pre><code class="language-st">FUNCTION main
+    VAR
+        instance : FbA;
+        refIA    : IA;
+    END_VAR
+    refIA := instance;
+    update(refIA);  // OK: a variable of type IA
+END_FUNCTION
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="array-initialized-with-fewer-elements-than-expected"><a class="header" href="#array-initialized-with-fewer-elements-than-expected">Array initialized with fewer elements than expected</a></h1>
 <p>An array initializer provides fewer values than the declared array size.
@@ -4442,7 +4503,7 @@ END_VAR
 </code></pre>
 <p>That means the setter updates the entire property value. It does not produce an assignable intermediate value,
 so writing through a property into nested fields or elements is not allowed.</p>
-<h2 id="invalid-1"><a class="header" href="#invalid-1">Invalid</a></h2>
+<h2 id="invalid-2"><a class="header" href="#invalid-2">Invalid</a></h2>
 <p>Assigning to a field of a property:</p>
 <pre><code class="language-iec61131st">instance.position.x := 5;
 </code></pre>
@@ -4452,7 +4513,7 @@ so writing through a property into nested fields or elements is not allowed.</p>
 <p>Using a property as the base of a larger assignment target:</p>
 <pre><code class="language-iec61131st">instance.positions[1].x := 5;
 </code></pre>
-<h2 id="valid-1"><a class="header" href="#valid-1">Valid</a></h2>
+<h2 id="valid-2"><a class="header" href="#valid-2">Valid</a></h2>
 <p>Assign the full property value:</p>
 <pre><code class="language-iec61131st">instance.position := value;
 instance.values := local_array;
@@ -4465,7 +4526,7 @@ arr[instance.position.x] := 5;
 <h1 id="interfaces-cannot-be-called-directly"><a class="header" href="#interfaces-cannot-be-called-directly">Interfaces cannot be called directly</a></h1>
 <p>Calling an interface-typed variable directly like <code>myInterface()</code> is invalid and instead a concrete method
 must be called, e.g. <code>myInterface.foo()</code>.</p>
-<h2 id="invalid-2"><a class="header" href="#invalid-2">Invalid</a></h2>
+<h2 id="invalid-3"><a class="header" href="#invalid-3">Invalid</a></h2>
 <pre><code class="language-st">INTERFACE IA
     METHOD foo END_METHOD
 END_INTERFACE
@@ -4482,7 +4543,7 @@ END_FUNCTION
 <pre><code class="language-st">THIS^.refIA();
 refs[i]();
 </code></pre>
-<h2 id="valid-2"><a class="header" href="#valid-2">Valid</a></h2>
+<h2 id="valid-3"><a class="header" href="#valid-3">Valid</a></h2>
 <p>Specify the method name explicitly:</p>
 <pre><code class="language-st">INTERFACE IA
     METHOD foo END_METHOD
@@ -5043,6 +5104,26 @@ the attribute is 0:</p>
 <pre><code class="language-xml">&lt;EvaluationPriority priorityInNetwork="0"/&gt;    &lt;!-- rejected --&gt;
 &lt;EvaluationPriority priorityInNetwork="1"/&gt;    &lt;!-- the first valid order --&gt;
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="binding-needs-a-variable-of-the-interface-type"><a class="header" href="#binding-needs-a-variable-of-the-interface-type">Binding needs a variable of the interface type</a></h1>
+<p>This note follows an <a href="#incompatible-types-in-interface-polymorphism">E126</a> type mismatch for an argument that is bound by reference or
+is an output, or for the right side of <code>REF=</code>. It points at the declaration of the parameter or
+reference that needs the variable, and names the type that the variable must have.</p>
+<pre><code class="language-st">FUNCTION update
+    VAR_IN_OUT
+        ref : IA;   // Note: Parameter 'ref' is passed by reference and needs a variable of type 'IA'
+    END_VAR
+END_FUNCTION
+
+FUNCTION main
+    VAR
+        instance : FbA;
+    END_VAR
+    update(instance);  // Error: expected type 'IA' but received 'FbA'
+END_FUNCTION
+</code></pre>
+<p>Use <code>plc explain E126</code> for the rules and how to fix the error. Ignoring E126 with <code>--error-config</code>
+does not hide this note; ignore E159 as well.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="overview"><a class="header" href="#overview">Overview</a></h1>
 <p>RuSTy compiles IEC 61131-3 Structured Text into machine code, with LLVM as its back end. This book explains how the compiler works, from source text to linked binary.</p>
@@ -7188,6 +7269,8 @@ refInterfaceC.baz(); // This would call FbD.bar rather than FbD.baz!
 +__fatpointer_0.table := ADR(__itable_IA_FbA_instance);
 +consumer(in := __fatpointer_0);
 </code></pre>
+<p>Only arguments that are copied in are wrapped. A by-reference parameter (<code>VAR_IN_OUT</code>, a function or method <code>VAR_OUTPUT</code>, <code>VAR_INPUT {ref}</code>, <code>REFERENCE TO</code>) binds the caller’s own variable, and a function block output is copied into the caller’s variable after the call without conversion. A temporary would therefore receive the callee’s writes instead of the caller’s variable. Such an argument must already be a fat pointer of the parameter’s interface and is passed unchanged; the <a href="#validation-4">Validation</a> section describes the check.</p>
+<p>The lowerer counts a multiplied argument such as <code>2(d)</code> as one parameter slot per repetition, so the arguments after it bind to the slots after all repetitions: in <code>f(2(d), instanceFbA)</code>, <code>instanceFbA</code> binds to the third parameter. An argument that fills one slot is lowered at the node inside its parentheses or multiplier of 1, so <code>(instanceFbA)</code> and <code>1(instanceFbA)</code> are wrapped like <code>instanceFbA</code>. An argument that fills several slots is one node shared by them, so it is neither wrapped, upcast nor checked. A concrete instance repeated into interface parameters, such as <code>g(2(instanceFbA))</code>, fails with E037 (<code>cannot assign 'FbA' to '__FATPOINTER'</code>); a repeated variable of a child or unrelated interface is passed unchanged, so the callee calls through the wrong itable.</p>
 <p>Multiple interface arguments in a single call each get their own temporary; the counter is shared by the whole compilation and never reset:</p>
 <pre><code class="language-diff">-consumer(instanceA, instanceB, instanceC);
 +alloca __fatpointer_0: __FATPOINTER;
@@ -7329,8 +7412,9 @@ id=2
 </code></pre>
 <p>The result temporary carries no callee name, because this rewrite leaves the operator without a plain name.</p>
 <h2 id="validation-4"><a class="header" href="#validation-4">Validation</a></h2>
-<p>The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: <code>Invalid assignment: 'FbX' does not implement interface 'IA'</code>. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: <code>Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically</code>. It reports E129 when an interface variable is called directly, <code>refInterface()</code>: <code>Interfaces cannot be called directly</code>.</p>
-<p>These checks run before interface types become <code>__FATPOINTER</code>, while the original interface names are still available. On failure, the lowerer drops the statement or leaves an unfilled argument temporary to avoid diagnostics about generated code. It passes its diagnostics to the driver.</p>
+<p>The participant reports E126 when an instance is assigned or passed to an interface its type does not implement: <code>Invalid assignment: 'FbX' does not implement interface 'IA'</code>. The same code covers an interface variable assigned or passed to an unrelated or a child interface, where the message names both interfaces: <code>Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically</code>. A value that is neither a POU instance nor an interface, such as a <code>DINT</code>, is reported as not implementing the interface. It reports E129 when an interface variable is called directly, <code>refInterface()</code>: <code>Interfaces cannot be called directly</code>.</p>
+<p>An argument that binds the caller’s variable or receives a function block output (see call arguments above) cannot be converted. The lowerer matches each argument to its parameter with <code>resolve_argument_slots</code> over the flattened argument list, the rule the resolver uses. If the parameter is passed by reference or is an output, and the parameter type or the argument type is an interface, both types must be the same: an instance is not a fat pointer, and a fat pointer of a child interface points to the child’s itable. A mismatch is E126 at the argument, <code>Type mismatch: expected type 'IA' but received 'FbA'</code>, followed by a hint. If the argument could be assigned to the parameter type by value, the hint is <code>assign 'a' to a variable of type 'IA' before passing it to 'f'</code>; otherwise there is none, because that assignment would fail too. An output reads <code>pass a variable of type 'IA' to 'f'</code>. The argument is named by its source text only if it names a variable, such as <code>h.a</code>, <code>arr[1]</code> or <code>THIS^.a</code>; other expressions read <code>the argument</code>, because an earlier lowering may have rewritten them. The callee is named as written, such as <code>fb.m</code>, and by its POU name if the call operator is not a variable. A sub-diagnostic, the note E159, points at the parameter declaration: <code>Parameter 'x' is passed by reference and needs a variable of type 'IA'</code>, or <code>Parameter 'x' is an output ...</code> for a function, method or function block output. <code>rr REF= instance</code> with <code>rr: REFERENCE TO IA</code> gets the same check, with the hint <code>bind 'rr' to a variable of type 'IA'</code> and the note <code>'rr' is a reference ...</code> at the declaration of <code>rr</code>. The left side is named like an argument, <code>the left side</code> otherwise, and the note is left out if it does not resolve to a declared variable, such as the array element <code>arrp[1]</code>. <code>REF=</code> stores the address of its right side, so a <code>REF_TO IA</code> or <code>POINTER TO IA</code> variable is checked against its pointee <code>IA</code>. As the left side of <code>REF=</code>, a by-reference parameter of a pointer type, such as <code>VAR_IN_OUT x: REF_TO IA</code>, binds like <code>REFERENCE TO</code> and is checked against <code>REF_TO IA</code>. <code>REF= 0</code> is a null binding and is not checked; a right side that stays a non-reference, such as a literal, an expression or a call that returns an elementary value, and an <code>AT</code> alias on the left are left to the validator, which reports E098 and E100. A call that returns an aggregate or an interface, including a property read, is checked like a variable, because the <a href="#aggregate-return">aggregate-return lowerer</a> later turns it into a reference to a temporary. Pointer, array and string types declared inline are named as written (<code>ARRAY[0..1] OF DINT</code>, <code>REF_TO IA</code>), not by their generated index name; other inline types, such as an enumeration, still show the generated name. A pointer type that points to itself keeps its index name where it repeats, so <code>TYPE __P : POINTER TO __P</code> reads <code>POINTER TO __P</code>. The lowerer does not check a parameter whose target is a variable-length array, which cannot take a temporary in place of its argument, or a pointer, such as <code>VAR_IN_OUT x: REFERENCE TO IA</code>. The validator reports E037 for a non-interface argument, such as an <code>ARRAY[0..1] OF FbA</code> for <code>ARRAY[*] OF IA</code>. An interface or interface-array argument passed to such a target is not checked yet: <code>f(ia)</code> with <code>VAR_IN_OUT x: REF_TO IA</code> and <code>f(arr)</code> with <code>arr: ARRAY[0..1] OF IB</code> for <code>ARRAY[*] OF IA</code> compile without a diagnostic.</p>
+<p>These checks run before interface types become <code>__FATPOINTER</code>, while the original interface names are still available. On failure, the lowerer drops the statement or replaces the argument with an unfilled temporary of the parameter’s type to avoid diagnostics about generated code. It passes its diagnostics to the driver.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="control-statements"><a class="header" href="#control-statements">Control Statements</a></h1>
 <p>The parser stores an <code>IF</code> and its <code>ELSIF</code> branches in one node. Later, the aggregate-return lowerer moves calls that return strings, arrays, or structs into separate statements. Each call must still run only when its condition is reached. For</p>
