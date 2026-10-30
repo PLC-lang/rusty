@@ -23,6 +23,34 @@ fn arithmetic_builtins_allow_mixing_of_fp_and_int_params() {
 }
 
 #[test]
+fn arithmetic_builtins_accept_bit_strings_but_not_bool() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            b : BYTE;
+            dw : DWORD;
+            flag : BOOL;
+        END_VAR
+            b := ADD(b, 1);
+            dw := SUB(dw, dw);
+            dw := MUL(dw, 2);
+            dw := DIV(IN1 := dw, IN2 := 2);
+            flag := ADD(flag, TRUE);
+        END_FUNCTION
+       ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E156]: Operator `+` is not defined for `BOOL` and `BOOL`
+       ┌─ <internal>:12:25
+       │
+    12 │             flag := ADD(flag, TRUE);
+       │                         ^^^^^^^^^^ Operator `+` is not defined for `BOOL` and `BOOL`
+    ");
+}
+
+#[test]
 fn add_and_mul_reject_a_named_argument() {
     let diagnostics = parse_and_validate_buffered(
         "

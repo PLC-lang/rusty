@@ -395,12 +395,17 @@ fn counting_idioms_on_unsigned_types_are_silent() {
         vUdint := SUB(vUdint, 1);
         vUdint := SUB(IN1 := vUdint, IN2 := 1);
         vUint := SUB(IN1 := vUint, IN2 := 3);
+        vByte := ADD(vByte, 1);
+        vUsint := ADD(vUsint, 1);
         vUdint := MUL(vUdint, 2);
         vUdint := DIV(vUdint, 2);
         vUdint := DIV(IN1 := vUdint, IN2 := 2);
         vUdint := MOD(vUdint, 10);
         vUdint := MOD(IN1 := vUdint, IN2 := 10);
         vUlint := ADD(vUlint, 1);
+        vDword := ADD(vDword, 16#FF);
+        vDword := SUB(vDword, 1);
+        vDword := DIV(IN1 := vDword, IN2 := 2);
         vWord := AND(vWord, 16#FF);
         vDword := OR(vDword, 1);
         vUdint := ADD(1, vUdint);
@@ -434,13 +439,7 @@ fn promoted_operands_of_the_same_signedness_are_silent() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @"
-    error[E156]: Operator `+` is not defined for `BYTE` and `BYTE`
-       ┌─ <internal>:38:23
-       │
-    38 │         vUdint := ADD(vByte, vByte);
-       │                       ^^^^^^^^^^^^ Operator `+` is not defined for `BYTE` and `BYTE`
-    ");
+    assert_snapshot!(diagnostics, @r"");
 }
 
 /// A signed and an unsigned operand are promoted to the signed type: the unsigned operand is reported, and the
