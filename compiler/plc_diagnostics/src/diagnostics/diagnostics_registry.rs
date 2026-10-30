@@ -243,12 +243,13 @@ lazy_static! {
         E139,   Error,      include_str!("./error_codes/E139.md"),  // Linker invocation failed (spawn / cmdline)
         E140,   Error,      include_str!("./error_codes/E140.md"),  // ':=' used for an output parameter
         E141,   Error,      include_str!("./error_codes/E141.md"),  // Member access on a non-auto-deref pointer base
-        // E142..E147 and E149 are used on later branches; E148 and E150 match the same warnings there
+        // E142..E147, E149, E152..E155 and E158 are used on later branches; E148 and E150 match the same warnings there
         E148,   Warning,    include_str!("./error_codes/E148.md"),  // Temporal literal overflow or underflow
         E150,   Warning,    include_str!("./error_codes/E150.md"),  // ABS on an unsigned value has no effect
         E151,   Error,      include_str!("./error_codes/E151.md"),  // Unary NOT with unsupported operand type
         E156,   Warning,    include_str!("./error_codes/E156.md"),  // Operator not defined for these date or time operands
         E157,   Warning,    include_str!("./error_codes/E157.md"),  // Bare integer combined with a duration
+        E159,   Info,       include_str!("./error_codes/E159.md"),  // Follow-up to E126 naming the binding parameter or reference
     );
 }
 
