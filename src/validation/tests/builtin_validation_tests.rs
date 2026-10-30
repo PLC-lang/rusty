@@ -23,6 +23,34 @@ fn arithmetic_builtins_allow_mixing_of_fp_and_int_params() {
 }
 
 #[test]
+fn arithmetic_builtins_accept_bit_strings_but_not_bool() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            b : BYTE;
+            dw : DWORD;
+            flag : BOOL;
+        END_VAR
+            b := ADD(b, 1);
+            dw := SUB(dw, dw);
+            dw := MUL(dw, 2);
+            dw := DIV(IN1 := dw, IN2 := 2);
+            flag := ADD(flag, TRUE);
+        END_FUNCTION
+       ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E156]: Operator `+` is not defined for `BOOL` and `BOOL`
+       ┌─ <internal>:12:25
+       │
+    12 │             flag := ADD(flag, TRUE);
+       │                         ^^^^^^^^^^ Operator `+` is not defined for `BOOL` and `BOOL`
+    ");
+}
+
+#[test]
 fn add_and_mul_reject_a_named_argument() {
     let diagnostics = parse_and_validate_buffered(
         "
@@ -449,7 +477,7 @@ fn mod_rejects_arguments_other_than_numbers_and_equal_durations() {
        ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E062]: Invalid type nature for generic argument. STRING is no ANY_NUMBER or ANY_DURATION
        ┌─ <internal>:10:22
        │
@@ -480,11 +508,11 @@ fn mod_rejects_arguments_other_than_numbers_and_equal_durations() {
     12 │             t := MOD(t, lt);
        │                      ^^^^^ Operator `MOD` is not defined for `TIME` and `LTIME`
 
-    warning[E067]: Implicit downcast from 'LTIME' to 'TIME'.
-       ┌─ <internal>:12:18
+    warning[E164]: Operand of type 'LTIME' is used with 'TIME', which mixes time or date types with other types.
+       ┌─ <internal>:12:25
        │
     12 │             t := MOD(t, lt);
-       │                  ^^^^^^^^^^ Implicit downcast from 'LTIME' to 'TIME'.
+       │                         ^^ Operand of type 'LTIME' is used with 'TIME', which mixes time or date types with other types.
 
     error[E156]: Operator `MOD` is not defined for `DINT` and `TIME`
        ┌─ <internal>:13:29
@@ -492,11 +520,11 @@ fn mod_rejects_arguments_other_than_numbers_and_equal_durations() {
     13 │             i := MOD(IN2 := t, IN1 := i);
        │                             ^^^^^^^^^^^ Operator `MOD` is not defined for `DINT` and `TIME`
 
-    warning[E067]: Implicit downcast from 'TIME' to 'DINT'.
-       ┌─ <internal>:13:29
+    warning[E164]: Operand of type 'DINT' is used with 'TIME', which mixes time or date types with other types.
+       ┌─ <internal>:13:39
        │
     13 │             i := MOD(IN2 := t, IN1 := i);
-       │                             ^ Implicit downcast from 'TIME' to 'DINT'.
+       │                                       ^ Operand of type 'DINT' is used with 'TIME', which mixes time or date types with other types.
     ");
 }
 

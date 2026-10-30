@@ -329,7 +329,7 @@ lazy_static! {
                         return;
                     };
 
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus, None, &[TypeNature::Num])
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus, None, ARITHMETIC_NATURES)
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Plus, None);
@@ -350,7 +350,7 @@ lazy_static! {
                         return;
                     };
 
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication, None, &[TypeNature::Num])
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication, None, ARITHMETIC_NATURES)
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Multiplication, None);
@@ -370,7 +370,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus, Some(&["IN1", "IN2"]), &[TypeNature::Num])
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus, Some(&["IN1", "IN2"]), ARITHMETIC_NATURES)
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_arithmetic_arguments(validator, &parameters, annotations, index, Operator::Minus, Some(&["IN1", "IN2"]));
@@ -390,7 +390,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division, Some(&["IN1", "IN2"]), &[TypeNature::Num])
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division, Some(&["IN1", "IN2"]), ARITHMETIC_NATURES)
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     let named_parameters: Option<&[&str]> = Some(&["IN1", "IN2"]);
@@ -757,6 +757,9 @@ lazy_static! {
     ]);
 }
 
+/// The natures `ADD`, `SUB`, `MUL` and `DIV` accept, the same as their operators
+const ARITHMETIC_NATURES: &[TypeNature] = &[TypeNature::Num, TypeNature::Bit];
+
 /// The natures the bitwise operators `AND`, `OR`, `XOR` and `NOT` accept
 const BITWISE_NATURES: &[TypeNature] = &[TypeNature::Bit, TypeNature::Int];
 
@@ -858,9 +861,9 @@ fn validate_duration_modulo(
     );
 }
 
-/// Validates the arguments of ADD, SUB, MUL, and DIV. Numeric arguments must be compatible with
-/// each other; once an argument is not a number, the arguments fold from the left and every step
-/// must be a combination the standard defines.
+/// Validates the arguments of ADD, SUB, MUL, and DIV. Numbers and bit strings other than `BOOL` must be
+/// compatible with each other, as for the operators; once an argument is neither, the arguments fold from
+/// the left and every step must be a combination the standard defines.
 fn validate_arithmetic_arguments(
     validator: &mut Validator,
     parameters: &Option<&AstNode>,
@@ -871,8 +874,12 @@ fn validate_arithmetic_arguments(
 ) {
     let Some(params) = parameters else { return };
     let arguments = arithmetic_arguments(params, named_parameters);
-    let is_number = |data_type: &DataType| data_type.has_nature(TypeNature::Num, index);
-    if arguments.iter().all(|argument| is_number(annotations.get_type_or_void(argument, index))) {
+    // codegen has no arithmetic on `BOOL`, it stays rejected
+    let is_arithmetic = |data_type: &DataType| {
+        ARITHMETIC_NATURES.iter().any(|nature| data_type.has_nature(*nature, index))
+            && !index.get_intrinsic_type_information(data_type.get_type_information()).is_bool()
+    };
+    if arguments.iter().all(|argument| is_arithmetic(annotations.get_type_or_void(argument, index))) {
         validate_types(validator, parameters, annotations, index);
         return;
     }
@@ -885,7 +892,7 @@ fn validate_arithmetic_arguments(
         if left_type.is_void() || right_type.is_void() {
             return;
         }
-        let result_type = if is_number(left_type) && is_number(right_type) {
+        let result_type = if is_arithmetic(left_type) && is_arithmetic(right_type) {
             validate_type_compatibility_with_data_types(validator, left_type, right_type, &location);
             Some(get_bigger_type(left_type, right_type, index))
         } else {
@@ -984,18 +991,28 @@ fn order_call_arguments<'a>(
 }
 
 /// Returns the name of the biggest type among the given argument values. This is the type the generic
-/// parameter of the builtin resolves to, and the type the operands of its replacement expression share.
+/// parameter of the builtin resolves to, and the type the operands of its replacement expression share. An
+/// untyped integer literal takes the type of the other arguments, as it does next to the other operand of an
+/// operator, so `DIV(IN1 := udint_value, IN2 := 2)` is a `UDINT`.
 fn find_biggest_type_name(annotator: &TypeAnnotator, arguments: &[&AstNode]) -> String {
-    let mut bigger = annotator
-        .annotation_map
-        .get_type_or_void(arguments.first().expect("must have this parameter"), annotator.index);
+    let index = annotator.index;
+    let type_of = |argument: &&AstNode| annotator.annotation_map.get_type_or_void(argument, index);
+    let is_untyped_literal =
+        |argument: &&&AstNode| matches!(argument.get_stmt(), AstStatement::Literal(AstLiteral::Integer(_)));
 
-    for argument in arguments.iter().skip(1) {
-        let right_type = annotator.annotation_map.get_type_or_void(argument, annotator.index);
-        bigger = get_bigger_type(bigger, right_type, annotator.index);
-    }
+    // the arguments without a type of their own decide nothing, unless all of them are literals
+    let typed = arguments.iter().filter(|it| !is_untyped_literal(it)).map(type_of);
+    let Some(others) = typed.reduce(|bigger, it| get_bigger_type(bigger, it, index)) else {
+        let literals = arguments.iter().map(type_of);
+        let biggest = literals.reduce(|bigger, it| get_bigger_type(bigger, it, index));
+        return biggest.expect("must have this parameter").get_name().to_owned();
+    };
 
-    bigger.get_name().to_owned()
+    let biggest = arguments
+        .iter()
+        .map(|argument| resolver::get_literal_operand_type(index, argument, type_of(argument), others))
+        .reduce(|bigger, it| get_bigger_type(bigger, it, index));
+    biggest.expect("must have this parameter").get_name().to_owned()
 }
 
 /// Hints the value of every named argument with the type the generic parameter of the builtin resolves to.

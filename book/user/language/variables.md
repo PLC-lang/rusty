@@ -90,7 +90,7 @@ An initial value follows the same rules as an assignment in the body. Its type m
 VAR
     name: STRING := 3;                          (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING' *)
     count: DINT := TRUE;                        (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
-    half: INT := 1.5;                           (* warning[E067]: Implicit downcast from 'REAL' to 'INT'. *)
+    half: INT := 1.5;                           (* warning[E163]: Implicit conversion from 'REAL' to 'INT' truncates the value. *)
     levels: ARRAY[0..1] OF REAL := [1, TRUE];   (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'REAL' *)
 END_VAR
 ```

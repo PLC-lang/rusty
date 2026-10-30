@@ -312,7 +312,7 @@ fn builtin_calls_fold_their_arguments_from_the_left() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E156]: Operator `+` is not defined for `DATE_AND_TIME` and `DATE_AND_TIME`
        ┌─ <internal>:46:23
        │
@@ -336,12 +336,6 @@ fn builtin_calls_fold_their_arguments_from_the_left() {
        │
     49 │             t := DIV(n, t);
        │                      ^^^^ Operator `/` is not defined for `DINT` and `TIME`
-
-    warning[E067]: Implicit downcast from 'TIME' to 'DINT'.
-       ┌─ <internal>:49:25
-       │
-    49 │             t := DIV(n, t);
-       │                         ^ Implicit downcast from 'TIME' to 'DINT'.
 
     warning[E157]: The integer operand of `+` has no unit and is read as milliseconds of `TIME`
        ┌─ <internal>:50:22

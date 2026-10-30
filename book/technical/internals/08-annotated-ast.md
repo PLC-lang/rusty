@@ -114,7 +114,7 @@ A hint is a second entry for the same node. It usually uses `Value` or `Argument
            ^          Variable "DINT"   hint Argument "INT", position 0, pou CheckRangeSigned
 ```
 
-The second line shows a hint that was replaced: `pct` is a subrange of `INT`, so the value is not hinted to `Percent` but to the parameter of the range check function the hidden call below inserts. Codegen compares annotation and hint and emits the conversion (see [Codegen](../pipeline/05-codegen.md#the-type-hint-decides-the-conversion)); the validator compares them to report the implicit downcast (E067).
+The second line shows a hint that was replaced: `pct` is a subrange of `INT`, so the value is not hinted to `Percent` but to the parameter of the range check function the hidden call below inserts. Codegen compares annotation and hint and emits the conversion (see [Codegen](../pipeline/05-codegen.md#the-type-hint-decides-the-conversion)); the validator compares them to report the implicit downcast (E067) and the conversions that can change the value (E160 to E165).
 
 
 ## Hidden function calls

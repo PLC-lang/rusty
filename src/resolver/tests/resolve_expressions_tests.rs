@@ -5813,7 +5813,7 @@ fn builtin_add_doesnt_annotate_replacement_ast_when_called_with_incorrect_type_n
             VAR
                 a : DINT;
                 b : INT;
-                c : LWORD;
+                c : STRING;
                 d : TIME;
             END_VAR
                 ADD(a, b, c, d);

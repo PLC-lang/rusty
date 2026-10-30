@@ -8,6 +8,12 @@ warning[E067]: Implicit downcast from 'DWORD' to 'BOOL'.
 11 │             Output.var1.%Wn1.%Bn1.%Xn1 := Input.var1; // OK
    │                                           ^^^^^^^^^^ Implicit downcast from 'DWORD' to 'BOOL'.
 
+warning[E165]: Implicit conversion from 'DWORD' to 'BOOL' mixes BOOL with a numeric type.
+   ┌─ <internal>:11:43
+   │
+11 │             Output.var1.%Wn1.%Bn1.%Xn1 := Input.var1; // OK
+   │                                           ^^^^^^^^^^ Implicit conversion from 'DWORD' to 'BOOL' mixes BOOL with a numeric type.
+
 error[E048]: Could not resolve reference to n1
    ┌─ <internal>:12:25
    │
