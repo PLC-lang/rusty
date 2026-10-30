@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-db5331d8.js";
+            window.path_to_searchindex_js = "../../searchindex-7b4ae53a.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-d30be1ae.js"></script>
@@ -218,6 +218,7 @@ END_PROGRAM
 </code></pre>
 <h2 id="declaration"><a class="header" href="#declaration">Declaration</a></h2>
 <p>The enum node records its name, underlying integer type, and variant list. The default underlying type is <code>DINT</code>. Each variant is either an identifier such as <code>Red</code> or an assignment such as <code>Blue := 5</code>.</p>
+<p>When no underlying type is explicitly specified and default one is used,   <code>numeric_type_is_default</code> field (exposed specifically for external consumers) is set to <code>true</code>.</p>
 <p>The two spellings of the underlying type, <code>: BYTE (...)</code> in the standard and <code>(...) BYTE</code> after the list, produce the same node. A default written after the list, <code>:= Closed</code>, becomes the initializer of the type declaration. <code>mode: (Manual, Auto)</code> is an inline type, which pre-processing at the start of the index stage moves out as <code>__main_mode</code> (see <a href="../pipeline/02-index.html">Index</a>, Pre-processing).</p>
 <p>Pre-processing also rewrites every variant list so that each variant has an explicit value. A bare first variant gets the literal <code>0</code>, and every later bare variant gets the expression <code>&lt;Enum&gt;#&lt;previous&gt; + 1</code>, a typed reference to the variant before it:</p>
 <pre><code class="language-diff">-TYPE Color: (Red, Green, Blue := 5); END_TYPE
