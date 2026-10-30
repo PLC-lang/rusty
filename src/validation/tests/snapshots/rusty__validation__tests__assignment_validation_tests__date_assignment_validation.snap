@@ -8,6 +8,66 @@ warning[E067]: Implicit downcast from 'LREAL' to 'DATE'.
 29 │     v_date := v_lreal; // valid
    │               ^^^^^^^ Implicit downcast from 'LREAL' to 'DATE'.
 
+warning[E164]: Implicit conversion from 'LREAL' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:29:15
+   │
+29 │     v_date := v_lreal; // valid
+   │               ^^^^^^^ Implicit conversion from 'LREAL' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'REAL' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:30:15
+   │
+30 │     v_date := REAL#2.0; // valid
+   │               ^^^^^^^^ Implicit conversion from 'REAL' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'UDINT' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:31:15
+   │
+31 │     v_date := v_udint; // valid
+   │               ^^^^^^^ Implicit conversion from 'UDINT' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'UDINT' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:32:15
+   │
+32 │     v_date := UDINT#10; // valid
+   │               ^^^^^^^^ Implicit conversion from 'UDINT' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'DINT' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:33:15
+   │
+33 │     v_date := v_dint; // valid
+   │               ^^^^^^ Implicit conversion from 'DINT' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'DINT' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:34:15
+   │
+34 │     v_date := DINT#20; // valid
+   │               ^^^^^^^ Implicit conversion from 'DINT' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'TIME' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:35:15
+   │
+35 │     v_date := v_time; // valid
+   │               ^^^^^^ Implicit conversion from 'TIME' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'TIME' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:36:15
+   │
+36 │     v_date := TIME#10h20m30s; // valid
+   │               ^^^^^^^^^^^^^^ Implicit conversion from 'TIME' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'WORD' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:37:15
+   │
+37 │     v_date := v_word; // valid
+   │               ^^^^^^ Implicit conversion from 'WORD' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'WORD' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:38:15
+   │
+38 │     v_date := WORD#16#ffff; // valid
+   │               ^^^^^^^^^^^^ Implicit conversion from 'WORD' to 'DATE' mixes time or date types with other types.
+
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:39:5
    │
@@ -38,11 +98,35 @@ error[E037]: Invalid assignment: cannot assign 'CHAR' to 'DATE'
 43 │     v_date := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'DATE'
 
+warning[E164]: Implicit conversion from 'TIME_OF_DAY' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:44:15
+   │
+44 │     v_date := v_tod; // valid
+   │               ^^^^^ Implicit conversion from 'TIME_OF_DAY' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'TIME_OF_DAY' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:45:15
+   │
+45 │     v_date := TOD#15:36:30; // valid
+   │               ^^^^^^^^^^^^ Implicit conversion from 'TIME_OF_DAY' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'INT' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:46:15
+   │
+46 │     v_date := v_ptr_int^; // valid
+   │               ^^^^^^^^^^ Implicit conversion from 'INT' to 'DATE' mixes time or date types with other types.
+
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:47:5
    │
 47 │     v_date := v_ptr_string^; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DATE'
+
+warning[E164]: Implicit conversion from 'INT' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:48:15
+   │
+48 │     v_date := v_arr_int_3[0]; // valid
+   │               ^^^^^^^^^^^^^^ Implicit conversion from 'INT' to 'DATE' mixes time or date types with other types.
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:49:5

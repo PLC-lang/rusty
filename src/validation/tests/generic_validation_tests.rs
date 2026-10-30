@@ -325,9 +325,6 @@ fn any_real_allows_reals() {
 
 #[test]
 // with https://github.com/PLC-lang/rusty/issues/547 it should be possible to use ANY_REAL functions with INTs
-// An integer argument is converted to the float type the call resolves to, and integers that the float
-// cannot hold exactly warn that they may lose precision. The warning is intended for a generic ANY_REAL
-// function, but it is a known false positive for standard functions such as SQRT, which take integers.
 fn any_real_allows_ints() {
     let src = r"
         FUNCTION test<T : ANY_REAL> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
@@ -344,31 +341,7 @@ fn any_real_allows_ints() {
     ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics, @"
-    warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
-      ┌─ <internal>:6:58
-      │
-    6 │         FUNCTION func3  : INT VAR x : DINT; END_VAR test(x); END_FUNCTION
-      │                                                          ^ Implicit conversion from 'DINT' to 'REAL' may lose precision.
-
-    warning[E162]: Implicit conversion from 'LINT' to 'LREAL' may lose precision.
-      ┌─ <internal>:7:58
-      │
-    7 │         FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
-      │                                                          ^ Implicit conversion from 'LINT' to 'LREAL' may lose precision.
-
-    warning[E162]: Implicit conversion from 'UDINT' to 'REAL' may lose precision.
-       ┌─ <internal>:11:59
-       │
-    11 │         FUNCTION func7  : INT VAR x : UDINT; END_VAR test(x); END_FUNCTION
-       │                                                           ^ Implicit conversion from 'UDINT' to 'REAL' may lose precision.
-
-    warning[E162]: Implicit conversion from 'ULINT' to 'LREAL' may lose precision.
-       ┌─ <internal>:12:59
-       │
-    12 │         FUNCTION func8  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
-       │                                                           ^ Implicit conversion from 'ULINT' to 'LREAL' may lose precision.
-    ");
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
