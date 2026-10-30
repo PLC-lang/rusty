@@ -984,18 +984,28 @@ fn order_call_arguments<'a>(
 }
 
 /// Returns the name of the biggest type among the given argument values. This is the type the generic
-/// parameter of the builtin resolves to, and the type the operands of its replacement expression share.
+/// parameter of the builtin resolves to, and the type the operands of its replacement expression share. An
+/// untyped integer literal takes the type of the other arguments, as it does next to the other operand of an
+/// operator, so `DIV(IN1 := udint_value, IN2 := 2)` is a `UDINT`.
 fn find_biggest_type_name(annotator: &TypeAnnotator, arguments: &[&AstNode]) -> String {
-    let mut bigger = annotator
-        .annotation_map
-        .get_type_or_void(arguments.first().expect("must have this parameter"), annotator.index);
+    let index = annotator.index;
+    let type_of = |argument: &&AstNode| annotator.annotation_map.get_type_or_void(argument, index);
+    let is_untyped_literal =
+        |argument: &&&AstNode| matches!(argument.get_stmt(), AstStatement::Literal(AstLiteral::Integer(_)));
 
-    for argument in arguments.iter().skip(1) {
-        let right_type = annotator.annotation_map.get_type_or_void(argument, annotator.index);
-        bigger = get_bigger_type(bigger, right_type, annotator.index);
-    }
+    // the arguments without a type of their own decide nothing, unless all of them are literals
+    let typed = arguments.iter().filter(|it| !is_untyped_literal(it)).map(type_of);
+    let Some(others) = typed.reduce(|bigger, it| get_bigger_type(bigger, it, index)) else {
+        let literals = arguments.iter().map(type_of);
+        let biggest = literals.reduce(|bigger, it| get_bigger_type(bigger, it, index));
+        return biggest.expect("must have this parameter").get_name().to_owned();
+    };
 
-    bigger.get_name().to_owned()
+    let biggest = arguments
+        .iter()
+        .map(|argument| resolver::get_literal_operand_type(index, argument, type_of(argument), others))
+        .reduce(|bigger, it| get_bigger_type(bigger, it, index));
+    biggest.expect("must have this parameter").get_name().to_owned()
 }
 
 /// Hints the value of every named argument with the type the generic parameter of the builtin resolves to.

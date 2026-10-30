@@ -486,12 +486,6 @@ fn mod_rejects_arguments_other_than_numbers_and_equal_durations() {
     12 │             t := MOD(t, lt);
        │                         ^^ Operand of type 'LTIME' is used with 'TIME', which mixes time or date types with other types.
 
-    warning[E067]: Implicit downcast from 'LTIME' to 'TIME'.
-       ┌─ <internal>:12:18
-       │
-    12 │             t := MOD(t, lt);
-       │                  ^^^^^^^^^^ Implicit downcast from 'LTIME' to 'TIME'.
-
     error[E156]: Operator `MOD` is not defined for `DINT` and `TIME`
        ┌─ <internal>:13:29
        │

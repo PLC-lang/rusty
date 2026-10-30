@@ -18,8 +18,8 @@ use plc_source::source_location::SourceLocation;
 use super::{
     array::validate_array_assignment,
     conversion::{
-        skips_argument_conversions, validate_assignment_conversions, validate_operand_conversions,
-        validate_operator_call_conversions,
+        operation_of, skips_argument_conversions, validate_assignment_conversions,
+        validate_operand_conversions, validate_operator_call_conversions,
     },
     ValidationContext, Validator, Validators,
 };
@@ -2777,6 +2777,11 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                 {
                     map.entry(dt).or_default().push(expression.get_location());
                 }
+            }
+            // a builtin operator call, such as `ADD(a, b)`, is evaluated as its operation `a + b`
+            AstStatement::CallStatement(_) if operation_of(expression, context).is_some() => {
+                let operation = operation_of(expression, context).expect("checked by the guard");
+                return get_expression_types_and_locations(operation, context, lhs_is_signed_int, false);
             }
             AstStatement::CallStatement(CallStatement { operator, parameters })
                 // special handling for builtin selector functions MUX and SEL

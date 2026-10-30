@@ -390,6 +390,21 @@ fn counting_idioms_on_unsigned_types_are_silent() {
         vDword := vDword OR 1;
         vUdint := 1 + vUdint;
         vUdint := (vUdint + 1) * 2;
+
+        vUdint := ADD(vUdint, 1);
+        vUdint := SUB(vUdint, 1);
+        vUdint := SUB(IN1 := vUdint, IN2 := 1);
+        vUint := SUB(IN1 := vUint, IN2 := 3);
+        vUdint := MUL(vUdint, 2);
+        vUdint := DIV(vUdint, 2);
+        vUdint := DIV(IN1 := vUdint, IN2 := 2);
+        vUdint := MOD(vUdint, 10);
+        vUdint := MOD(IN1 := vUdint, IN2 := 10);
+        vUlint := ADD(vUlint, 1);
+        vWord := AND(vWord, 16#FF);
+        vDword := OR(vDword, 1);
+        vUdint := ADD(1, vUdint);
+        vUdint := MUL(ADD(vUdint, 1), 2);
         ",
     );
 
@@ -408,10 +423,24 @@ fn promoted_operands_of_the_same_signedness_are_silent() {
         vLint := vDint + vDint;
         vUlint := vUdint + vUdint;
         vDint := vSint * vInt;
+
+        vUdint := ADD(vByte, vByte);
+        vUdint := ADD(vUsint, vUint);
+        vDint := ADD(vSint, vSint);
+        vLint := ADD(vDint, vDint);
+        vUlint := ADD(vUdint, vUdint);
+        vDint := MUL(vSint, vInt);
+        vUdint := SUB(IN1 := vUdint, IN2 := vUint);
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"");
+    assert_snapshot!(diagnostics, @"
+    error[E156]: Operator `+` is not defined for `BYTE` and `BYTE`
+       ┌─ <internal>:38:23
+       │
+    38 │         vUdint := ADD(vByte, vByte);
+       │                       ^^^^^^^^^^^^ Operator `+` is not defined for `BYTE` and `BYTE`
+    ");
 }
 
 /// A signed and an unsigned operand are promoted to the signed type: the unsigned operand is reported, and the
@@ -426,6 +455,11 @@ fn mixed_signedness_is_reported_at_the_converted_operand() {
         vUdint := vUdint + vSint;
         vDword := vDword + vDint;
         vUdint := vUsint + vSint;
+
+        vUdint := ADD(vUdint, vDint);
+        vUdint := SUB(IN1 := vUdint, IN2 := vDint);
+        vUlint := ADD(vUlint, vLint);
+        vUdint := ADD(vUsint, vSint);
         ",
     );
 
@@ -465,6 +499,30 @@ fn mixed_signedness_is_reported_at_the_converted_operand() {
        │
     35 │         vUdint := vUsint + vSint;
        │                   ^^^^^^^^^^^^^^ Implicit conversion from 'DINT' to 'UDINT' may change the sign.
+
+    warning[E161]: Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+       ┌─ <internal>:37:23
+       │
+    37 │         vUdint := ADD(vUdint, vDint);
+       │                       ^^^^^^ Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+
+    warning[E161]: Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+       ┌─ <internal>:38:30
+       │
+    38 │         vUdint := SUB(IN1 := vUdint, IN2 := vDint);
+       │                              ^^^^^^ Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+
+    warning[E161]: Operand of type 'ULINT' is converted to 'LINT', which may change its sign.
+       ┌─ <internal>:39:23
+       │
+    39 │         vUlint := ADD(vUlint, vLint);
+       │                       ^^^^^^ Operand of type 'ULINT' is converted to 'LINT', which may change its sign.
+
+    warning[E160]: Implicit conversion from 'DINT' to 'UDINT' may change the sign.
+       ┌─ <internal>:40:19
+       │
+    40 │         vUdint := ADD(vUsint, vSint);
+       │                   ^^^^^^^^^^^^^^^^^^ Implicit conversion from 'DINT' to 'UDINT' may change the sign.
     ");
 }
 
@@ -476,6 +534,9 @@ fn a_signed_result_is_reported_once_at_the_expression() {
         vUdint := vDint + vDint;
         vUdint := -vDint;
         vUdint := (vDint);
+
+        vUdint := ADD(vDint, vDint);
+        vUdint := SUB(IN1 := vDint, IN2 := vDint);
         ",
     );
 
@@ -497,6 +558,18 @@ fn a_signed_result_is_reported_once_at_the_expression() {
        │
     32 │         vUdint := (vDint);
        │                    ^^^^^ Implicit conversion from 'DINT' to 'UDINT' may change the sign.
+
+    warning[E160]: Implicit conversion from 'DINT' to 'UDINT' may change the sign.
+       ┌─ <internal>:34:19
+       │
+    34 │         vUdint := ADD(vDint, vDint);
+       │                   ^^^^^^^^^^^^^^^^^ Implicit conversion from 'DINT' to 'UDINT' may change the sign.
+
+    warning[E160]: Implicit conversion from 'DINT' to 'UDINT' may change the sign.
+       ┌─ <internal>:35:19
+       │
+    35 │         vUdint := SUB(IN1 := vDint, IN2 := vDint);
+       │                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit conversion from 'DINT' to 'UDINT' may change the sign.
     ");
 }
 
@@ -918,6 +991,8 @@ fn builtin_operands_of_mixed_signedness_are_reported() {
         "
         vUdint := SEL(vBool, vUdint, vDint);
         vUdint := vUdint MOD vDint;
+
+        vUdint := MOD(IN1 := vUdint, IN2 := vDint);
         ",
     );
 
@@ -933,6 +1008,12 @@ fn builtin_operands_of_mixed_signedness_are_reported() {
        │
     31 │         vUdint := vUdint MOD vDint;
        │                   ^^^^^^ Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+
+    warning[E161]: Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+       ┌─ <internal>:33:30
+       │
+    33 │         vUdint := MOD(IN1 := vUdint, IN2 := vDint);
+       │                              ^^^^^^ Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
     ");
 }
 
@@ -946,6 +1027,10 @@ fn mixed_signedness_in_comparisons_is_reported_at_the_converted_operand() {
         vBool := vLint < vUlint;
         vBool := vDint = vDword;
         vBool := vUdint > -1;
+
+        vBool := LT(vDint, vUdint);
+        vBool := EQ(vDint, vDword);
+        vBool := GT(vUdint, -1);
         ",
     );
 
@@ -979,6 +1064,24 @@ fn mixed_signedness_in_comparisons_is_reported_at_the_converted_operand() {
        │
     34 │         vBool := vUdint > -1;
        │                  ^^^^^^ Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+
+    warning[E161]: Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+       ┌─ <internal>:36:28
+       │
+    36 │         vBool := LT(vDint, vUdint);
+       │                            ^^^^^^ Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+
+    warning[E161]: Operand of type 'DWORD' is converted to 'DINT', which may change its sign.
+       ┌─ <internal>:37:28
+       │
+    37 │         vBool := EQ(vDint, vDword);
+       │                            ^^^^^^ Operand of type 'DWORD' is converted to 'DINT', which may change its sign.
+
+    warning[E161]: Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+       ┌─ <internal>:38:21
+       │
+    38 │         vBool := GT(vUdint, -1);
+       │                     ^^^^^^ Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
     ");
 }
 
@@ -999,6 +1102,13 @@ fn comparisons_that_cannot_change_a_value_are_silent() {
         vBool := vByte = 16#FF;
         vBool := vSint < vDint;
         vBool := vUsint = -1;
+
+        vBool := LT(vUdint, 5);
+        vBool := GT(vUdint, 0);
+        vBool := LT(vUint, vInt);
+        vBool := LT(vUdint, vLint);
+        vBool := EQ(vByte, 16#FF);
+        vBool := EQ(vUsint, -1);
         ",
     );
 
@@ -1015,6 +1125,10 @@ fn mixed_signedness_in_bitwise_operations_is_reported() {
         vDword := vDword AND 16#FF;
         vDword := vDword AND vUdint;
         vDint := vDint AND vDint;
+
+        vDword := AND(vDword, vDint);
+        vDword := AND(vDword, 16#FF);
+        vDword := AND(vDword, vUdint);
         ",
     );
 
@@ -1030,6 +1144,12 @@ fn mixed_signedness_in_bitwise_operations_is_reported() {
        │
     31 │         vUdint := vUdint OR vSint;
        │                   ^^^^^^ Operand of type 'UDINT' is converted to 'DINT', which may change its sign.
+
+    warning[E161]: Operand of type 'DWORD' is converted to 'DINT', which may change its sign.
+       ┌─ <internal>:36:23
+       │
+    36 │         vDword := AND(vDword, vDint);
+       │                       ^^^^^^ Operand of type 'DWORD' is converted to 'DINT', which may change its sign.
     ");
 }
 
@@ -1046,6 +1166,9 @@ fn integers_that_a_float_cannot_hold_are_reported() {
         vReal := takesReal(vDint);
         vReal := vDint + vReal;
         vReal := vLint;
+
+        vReal := ADD(vDint, vReal);
+        vReal := SUB(IN1 := vDint, IN2 := vReal);
         ",
     );
 
@@ -1103,6 +1226,18 @@ fn integers_that_a_float_cannot_hold_are_reported() {
        │
     37 │         vReal := vLint;
        │                  ^^^^^ Implicit conversion from 'LINT' to 'REAL' may lose precision.
+
+    warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
+       ┌─ <internal>:39:22
+       │
+    39 │         vReal := ADD(vDint, vReal);
+       │                      ^^^^^ Implicit conversion from 'DINT' to 'REAL' may lose precision.
+
+    warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
+       ┌─ <internal>:40:29
+       │
+    40 │         vReal := SUB(IN1 := vDint, IN2 := vReal);
+       │                             ^^^^^ Implicit conversion from 'DINT' to 'REAL' may lose precision.
     ");
 }
 
@@ -1125,6 +1260,11 @@ fn integers_that_a_float_can_hold_are_silent() {
         vLreal := vReal;
         vReal := vInt + vReal;
         vReal := vReal * 2;
+
+        vReal := ADD(vReal, 1);
+        vReal := ADD(vInt, vReal);
+        vReal := MUL(vReal, 2);
+        vReal := DIV(IN1 := vReal, IN2 := 2);
         ",
     );
 
@@ -1299,6 +1439,12 @@ fn time_and_date_arithmetic_is_silent() {
         vTime := T#5s;
         vBool := vTime < vTime;
         vLtime := vLtime + vLtime;
+
+        vTime := ADD(vTime, vTime);
+        vTime := SUB(IN1 := vTime, IN2 := vTime);
+        vTime := MUL(vTime, 3);
+        vTime := DIV(IN1 := vTime, IN2 := 2);
+        vTime := SUB(vDate, vDate);
         ",
     );
 
@@ -1322,6 +1468,9 @@ fn durations_scaled_by_any_number_are_silent() {
         vTime := MUL(vTime, vLint);
         vLtime := vLtime * vUlint;
         vLtime := vLtime / 2.5;
+
+        vTime := DIV(IN1 := vTime, IN2 := vUdint);
+        vTime := DIV(IN1 := vTime, IN2 := 1.5);
         ",
     );
 
@@ -1342,6 +1491,9 @@ fn other_operations_mixing_time_with_another_type_are_reported() {
         vTime := vTime AND vDint;
         vBool := vTime < vTime;
         vBool := vTime = T#5s;
+
+        vBool := GT(vTime, vDint);
+        vBool := EQ(vTime, 5);
         ",
     );
 
@@ -1381,6 +1533,18 @@ fn other_operations_mixing_time_with_another_type_are_reported() {
        │
     72 │         vTime := vTime AND vDint;
        │                            ^^^^^ Operand of type 'DINT' is used with 'TIME', which mixes time or date types with other types.
+
+    warning[E164]: Operand of type 'DINT' is used with 'TIME', which mixes time or date types with other types.
+       ┌─ <internal>:76:28
+       │
+    76 │         vBool := GT(vTime, vDint);
+       │                            ^^^^^ Operand of type 'DINT' is used with 'TIME', which mixes time or date types with other types.
+
+    warning[E164]: Operand of type 'SINT' is used with 'TIME', which mixes time or date types with other types.
+       ┌─ <internal>:77:28
+       │
+    77 │         vBool := EQ(vTime, 5);
+       │                            ^ Operand of type 'SINT' is used with 'TIME', which mixes time or date types with other types.
     ");
 }
 
