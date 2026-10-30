@@ -356,7 +356,7 @@
 <a href=#356 id=356 data-nosnippet>356</a>        <span class="kw">let </span>const_expression = <span class="self">self
 <a href=#357 id=357 data-nosnippet>357</a>            </span>.index
 <a href=#358 id=358 data-nosnippet>358</a>            <span class="comment">// try to find a constant variable
-<a href=#359 id=359 data-nosnippet>359</a>            </span>.find_variable(<span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>qualified_name.split(<span class="string">'.'</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;())
+<a href=#359 id=359 data-nosnippet>359</a>            </span>.find_fully_qualified_variable(qualified_name)
 <a href=#360 id=360 data-nosnippet>360</a>            <span class="comment">// or else try to find an enum element
 <a href=#361 id=361 data-nosnippet>361</a>            </span>.or_else(|| <span class="self">self</span>.index.find_enum_variant_by_qualified_name(qualified_name))
 <a href=#362 id=362 data-nosnippet>362</a>            <span class="comment">// if this is no constant we have a problem

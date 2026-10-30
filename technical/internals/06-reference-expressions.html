@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-d37ac015.js";
+            window.path_to_searchindex_js = "../../searchindex-db5331d8.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-d30be1ae.js"></script>
@@ -296,7 +296,7 @@ __auto_pointer_to_DINT  { inner_type_name: "DINT",  auto_deref: Some(Default),  
 <p>The resolver visits the base of a reference first, then applies the step. Each segment gets its own annotation, and the whole chain takes the annotation of its last segment (see <a href="../pipeline/03-resolver.html">Resolver</a>, Walking a unit, for the lookup order of a plain name). What a step produces depends on its kind:</p>
 <ul>
 <li><strong>Member with a base.</strong> The type of the base becomes the qualifier, and the member is looked up inside that type, following <code>EXTENDS</code> chains and properties. The annotation is the variable entry: its qualified name, type, and auto-deref kind.</li>
-<li><strong>Member without a base.</strong> The lookup order is a member of the current POU, then a global or enum variant, then a POU, then a type. When the reference is the operator of a call, functions are tried first. As the base of a cast, types are tried first.</li>
+<li><strong>Member without a base.</strong> The lookup order is a member of the current POU, then a global or enum variant, then a POU, then a type. When the reference is the operator of a call, functions are tried first. As the base of a cast, types are tried first. As the base of a member access such as <code>Color.Green</code>, types are also tried first when the lookup would find only an enum variant and the type <code>Color</code> has the variant <code>Green</code>.</li>
 <li><strong>Index.</strong> The base must be an array; the step is annotated as a value of the element type. The index expression is resolved on its own and gets no hint; codegen widens it to <code>DINT</code> before the offset arithmetic.</li>
 <li><strong>Dereference.</strong> The base must be a pointer without auto-deref; the step is a value of the inner type.</li>
 <li><strong>Cast.</strong> The base is resolved as a type, and the target is resolved as a variable under that type when the type is an enum, so <code>Color#Red</code> finds <code>Color.Red</code>. The step is a value of the type; a cast literal is retyped to the cast type.</li>
