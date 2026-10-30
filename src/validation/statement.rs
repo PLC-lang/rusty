@@ -523,15 +523,11 @@ fn validate_condition<T>(validator: &mut Validator, context: &ValidationContext<
 where
     T: AnnotationMap,
 {
-    if let Some(value) = get_literal_int_or_const_expr_value(condition, context) {
-        if value == 0 || value == 1 {
-            return;
-        }
-    }
-
+    // A constant 0 or 1 is accepted as a boolean, but its references are still validated below
+    let is_zero_or_one = matches!(get_literal_int_or_const_expr_value(condition, context), Some(0 | 1));
     let kind = context.annotations.get_type_or_void(condition, context.index);
 
-    if !kind.get_type_information().is_bool() {
+    if !is_zero_or_one && !kind.get_type_information().is_bool() {
         let slice = validator.get_type_name_or_slice(kind);
         let message = format!("Expected a boolean, got `{slice}`");
         let location = condition.get_location();
@@ -2911,7 +2907,7 @@ pub(crate) mod helper {
     use plc_ast::literals::{AstLiteral, Time};
 
     use crate::index::VariableIndexEntry;
-    use crate::resolver::AnnotationMap;
+    use crate::resolver::{AnnotationMap, StatementAnnotation};
     use crate::validation::ValidationContext;
     use crate::{index::Index, typesystem::DataTypeInformation};
 
@@ -2950,8 +2946,18 @@ pub(crate) mod helper {
             return Some(value);
         }
 
-        let path = right.get_flat_reference_name().unwrap_or_default();
-        let element = context.index.find_variable(context.qualifier, &[path])?;
+        // Prefer the resolved constant, a bare name may also match a same-named enum variant. A
+        // member of a constant struct is annotated constant, but its entry holds the field default.
+        let resolved_constant = match context.annotations.get(right) {
+            Some(StatementAnnotation::Variable { qualified_name, constant: true, .. }) => {
+                context.index.find_fully_qualified_variable(qualified_name).filter(|it| it.is_constant())
+            }
+            _ => None,
+        };
+        let element = resolved_constant.or_else(|| {
+            let path = right.get_flat_reference_name().unwrap_or_default();
+            context.index.find_variable(context.qualifier, &[path])
+        })?;
 
         context
             .index

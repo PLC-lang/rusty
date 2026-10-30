@@ -839,6 +839,8 @@ pub enum DataType {
         name: Option<String>, //maybe empty for inline enums
         numeric_type: String,
         elements: AstNode, //a single Ref, or an ExpressionList with Refs
+        /// `true` when the declaration has no explicit numeric type and `numeric_type` holds the default.
+        numeric_type_is_default: bool,
     },
     SubRangeType {
         name: Option<String>,
