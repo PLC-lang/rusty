@@ -36,6 +36,7 @@ UserTypeDeclaration {
                 },
             ],
         },
+        numeric_type_is_default: true,
     },
     initializer: None,
     scope: None,

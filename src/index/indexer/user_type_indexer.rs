@@ -64,7 +64,7 @@ impl AstVisitor for UserTypeIndexer<'_, '_> {
                 StructSource::OriginalDeclaration,
                 self.user_type.linkage,
             ),
-            DataType::EnumType { name: Some(name), numeric_type, elements } => {
+            DataType::EnumType { name: Some(name), numeric_type, elements, .. } => {
                 self.index_enum_type(name, numeric_type, elements)
             }
             DataType::SubRangeType { name: Some(name), referenced_type, bounds, .. } => {

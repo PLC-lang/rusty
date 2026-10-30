@@ -43,6 +43,8 @@ END_PROGRAM
 
 The enum node records its name, underlying integer type, and variant list. The default underlying type is `DINT`. Each variant is either an identifier such as `Red` or an assignment such as `Blue := 5`.
 
+When no underlying type is explicitly specified and default one is used,   `numeric_type_is_default` field (exposed specifically for external consumers) is set to `true`.
+
 The two spellings of the underlying type, `: BYTE (...)` in the standard and `(...) BYTE` after the list, produce the same node. A default written after the list, `:= Closed`, becomes the initializer of the type declaration. `mode: (Manual, Auto)` is an inline type, which pre-processing at the start of the index stage moves out as `__main_mode` (see [Index](../pipeline/02-index.md), Pre-processing).
 
 Pre-processing also rewrites every variant list so that each variant has an explicit value. A bare first variant gets the literal `0`, and every later bare variant gets the expression `<Enum>#<previous> + 1`, a typed reference to the variant before it:
