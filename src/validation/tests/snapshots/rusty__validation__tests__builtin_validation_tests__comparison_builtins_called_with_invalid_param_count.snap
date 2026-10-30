@@ -14,8 +14,20 @@ error[E032]: this POU takes 2 arguments but 1 argument was supplied
 8 │             GT(x1);
   │             ^^ this POU takes 2 arguments but 1 argument was supplied
 
+warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
+  ┌─ <internal>:9:24
+  │
+9 │             LE(x2, x2, x1, x2); // OK
+  │                        ^^ Implicit conversion from 'DINT' to 'REAL' may lose precision.
+
 error[E032]: this POU takes 2 arguments but 4 arguments were supplied
    ┌─ <internal>:10:13
    │
 10 │             NE(x2, x2, x1, x2); // NE is not extensible
    │             ^^ this POU takes 2 arguments but 4 arguments were supplied
+
+warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
+   ┌─ <internal>:10:24
+   │
+10 │             NE(x2, x2, x1, x2); // NE is not extensible
+   │                        ^^ Implicit conversion from 'DINT' to 'REAL' may lose precision.

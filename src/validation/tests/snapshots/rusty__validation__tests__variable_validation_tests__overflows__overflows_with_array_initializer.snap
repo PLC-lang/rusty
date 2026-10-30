@@ -7,3 +7,33 @@ warning[E039]: This will overflow for type UINT
   │
 3 │             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
   │                                              ^^ This will overflow for type UINT
+
+warning[E160]: Implicit conversion from 'SINT' to 'UINT' may change the sign.
+  ┌─ <internal>:3:46
+  │
+3 │             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
+  │                                              ^^ Implicit conversion from 'SINT' to 'UINT' may change the sign.
+
+warning[E160]: Implicit conversion from 'SINT' to 'UINT' may change the sign.
+  ┌─ <internal>:3:50
+  │
+3 │             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
+  │                                                  ^^ Implicit conversion from 'SINT' to 'UINT' may change the sign.
+
+warning[E160]: Implicit conversion from 'SINT' to 'UINT' may change the sign.
+  ┌─ <internal>:3:54
+  │
+3 │             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
+  │                                                      ^^ Implicit conversion from 'SINT' to 'UINT' may change the sign.
+
+warning[E160]: Implicit conversion from 'SINT' to 'UINT' may change the sign.
+  ┌─ <internal>:3:58
+  │
+3 │             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
+  │                                                          ^^ Implicit conversion from 'SINT' to 'UINT' may change the sign.
+
+warning[E160]: Implicit conversion from 'SINT' to 'UINT' may change the sign.
+  ┌─ <internal>:3:62
+  │
+3 │             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
+  │                                                              ^^ Implicit conversion from 'SINT' to 'UINT' may change the sign.
