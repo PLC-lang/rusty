@@ -85,6 +85,8 @@ A duration plus or minus a bare integer compiles too, and reads the integer as w
 
 A negative duration does not fit into the unsigned `TIME`. A literal such as `T#-10s` still compiles, but the compiler warns about an underflow and the value wraps around to a large positive duration. Use `LTIME` when a duration must be able to go below zero: `LT#-10s` is a negative `LTIME` and gets no warning.
 
+A time value and a number do not convert into each other by themselves. An assignment from one to the other compiles with a warning (E164), and so does a comparison or a bitwise operation that combines them, because the number has no unit. A short type mixed with a long one in such an operation warns the same way.
+
 To read a time value as a number, convert it with a cast. `DINT#cycle` gives the milliseconds of a `TIME`, because that is what the type holds.
 
 The standard library converts between the families and to text, for example `TIME_TO_LTIME` and `TIME_TO_STRING`, and it brings the timers `TON`, `TOF`, and `TP`, which are function blocks. The [standard library reference](../reference/standard-library.md) lists them.

@@ -85,6 +85,20 @@ k := i * j;   (* -5536, the same product cut down to the 16 bits of k *)
 s := i;       (* warning[E067]: Implicit downcast from 'INT' to 'SINT'. *)
 ```
 
+A signed and an unsigned operand are computed in a signed type. When that type is no wider than the unsigned operand, a large unsigned value turns negative before the operation sees it. The compiler warns at that operand (E161), and when a signed result moves to an unsigned target (E160):
+
+```iecst
+VAR
+    signed: DINT := 1;
+    unsigned: UDINT := 3000000000;
+    smaller: BOOL;
+END_VAR
+
+smaller := signed < unsigned;   (* warning[E161]: Operand of type 'UDINT' is converted to 'DINT', which may change its sign. *)
+```
+
+The comparison is `FALSE`, because 3000000000 is read as the `DINT` -1294967296. Convert both operands to a type that holds both, such as `LINT`, when the values can be that large.
+
 An integer and a real mix the same way, and the expression is then computed in the real type. The [basic types](basic-types.md) chapter shows what each conversion costs.
 
 

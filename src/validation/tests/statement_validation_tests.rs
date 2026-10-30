@@ -1085,7 +1085,7 @@ fn builtin_functions_named_arguments_invalid_parameter_names() {
     ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E089]: Invalid call parameters
        ┌─ <internal>:10:22
        │
@@ -3065,7 +3065,13 @@ fn binary_expressions_with_incompatible_types() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
+    warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
+       ┌─ <internal>:12:13
+       │
+    12 │             var_int + var_dint + var_real;
+       │             ^^^^^^^^^^^^^^^^^^ Implicit conversion from 'DINT' to 'REAL' may lose precision.
+
     error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
        ┌─ <internal>:15:13
        │

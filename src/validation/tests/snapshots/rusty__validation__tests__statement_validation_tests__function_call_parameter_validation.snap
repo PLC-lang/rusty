@@ -26,6 +26,12 @@ error[E037]: Parameter output1 is passed by reference, it requires an argument o
 25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
    │                                                            ^^^^ Parameter output1 is passed by reference, it requires an argument of type DINT but got REAL
 
+warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
+   ┌─ <internal>:25:49
+   │
+25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
+   │                                                 ^^^^^^^ Implicit conversion from 'DINT' to 'REAL' may lose precision.
+
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:27:17
    │

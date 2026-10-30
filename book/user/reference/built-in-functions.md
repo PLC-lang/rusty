@@ -47,6 +47,8 @@ The parameter names in the second column are the names a call can use.
 
 With a date or time argument, `ADD`, `MUL`, `SUB`, and `DIV` take the combinations of [Time and Date](../language/time.md#calculating), folded from the left, and the result has the type that table gives: `ADD(stamp, T#1s, T#2s)` is `stamp + T#1s + T#2s`, a `DATE_AND_TIME`, and `SUB(day1, day2)` is a `TIME`. The compiler carries these operations out with the standard library, such as `ADD_DT_TIME`, so such a call needs `iec61131std` linked. An argument that is neither a number nor part of a defined combination is rejected (E156). `MOD` takes numbers, or two `TIME` or two `LTIME` values: `MOD(T#7s, T#3s)` is `T#1s`. It rejects an argument of any other type (E062), and a duration paired with a number or with the other duration type, such as `TIME` with `DINT` or with `LTIME` (E156).
 
+These functions, the comparison functions and the bitwise functions convert their arguments like the operands of the operator, so `ADD(a, b)` warns where `a + b` warns: a `UDINT` combined with a `DINT`, for example, is converted to `DINT` (E161).
+
 ### Comparison
 
 | Call | Parameters | Result | Gives |

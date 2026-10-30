@@ -67,6 +67,9 @@ END_FUNCTION
 
 An integer argument for an `ANY_REAL` constraint is the one exception. The compiler converts it to a floating-point type and resolves the call with that type, so a `<T: ANY_REAL>` function called with a `DINT` resolves to its `REAL` version.
 
+> [!NOTE]
+> A 32-bit integer converted to `REAL`, or a 64-bit integer converted to `LREAL`, warns that it may lose precision (E162), as any such conversion does. The standard functions declared for `ANY_REAL`, such as `SQRT` and `LN`, are meant to take integers as well, so for them the warning is a known false positive: `SQRT(count)` for a `DINT` `count` warns, `SQRT(DINT_TO_LREAL(count))` does not.
+
 `ANY` accepts every type, so a call with a type that has no implementation passes the compiler and fails at the link step:
 
 ```iecst

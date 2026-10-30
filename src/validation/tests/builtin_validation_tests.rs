@@ -449,7 +449,7 @@ fn mod_rejects_arguments_other_than_numbers_and_equal_durations() {
        ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E062]: Invalid type nature for generic argument. STRING is no ANY_NUMBER or ANY_DURATION
        ┌─ <internal>:10:22
        │
@@ -480,6 +480,12 @@ fn mod_rejects_arguments_other_than_numbers_and_equal_durations() {
     12 │             t := MOD(t, lt);
        │                      ^^^^^ Operator `MOD` is not defined for `TIME` and `LTIME`
 
+    warning[E164]: Operand of type 'LTIME' is used with 'TIME', which mixes time or date types with other types.
+       ┌─ <internal>:12:25
+       │
+    12 │             t := MOD(t, lt);
+       │                         ^^ Operand of type 'LTIME' is used with 'TIME', which mixes time or date types with other types.
+
     warning[E067]: Implicit downcast from 'LTIME' to 'TIME'.
        ┌─ <internal>:12:18
        │
@@ -492,11 +498,11 @@ fn mod_rejects_arguments_other_than_numbers_and_equal_durations() {
     13 │             i := MOD(IN2 := t, IN1 := i);
        │                             ^^^^^^^^^^^ Operator `MOD` is not defined for `DINT` and `TIME`
 
-    warning[E067]: Implicit downcast from 'TIME' to 'DINT'.
-       ┌─ <internal>:13:29
+    warning[E164]: Operand of type 'DINT' is used with 'TIME', which mixes time or date types with other types.
+       ┌─ <internal>:13:39
        │
     13 │             i := MOD(IN2 := t, IN1 := i);
-       │                             ^ Implicit downcast from 'TIME' to 'DINT'.
+       │                                       ^ Operand of type 'DINT' is used with 'TIME', which mixes time or date types with other types.
     ");
 }
 

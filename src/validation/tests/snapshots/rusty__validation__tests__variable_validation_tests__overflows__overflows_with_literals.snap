@@ -110,6 +110,12 @@ warning[E067]: Implicit downcast from 'INT' to 'SINT'.
 6 │                 max_sint    : SINT  :=  128;    //  127
   │                                         ^^^ Implicit downcast from 'INT' to 'SINT'.
 
+warning[E160]: Implicit conversion from 'SINT' to 'USINT' may change the sign.
+  ┌─ <internal>:7:41
+  │
+7 │                 min_usint   : USINT  := -1;     // 0
+  │                                         ^^ Implicit conversion from 'SINT' to 'USINT' may change the sign.
+
 warning[E067]: Implicit downcast from 'UINT' to 'USINT'.
   ┌─ <internal>:8:41
   │
@@ -127,6 +133,12 @@ warning[E067]: Implicit downcast from 'DINT' to 'INT'.
    │
 12 │                 max_int     : INT  := 32_768;   //  32767
    │                                       ^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+warning[E160]: Implicit conversion from 'SINT' to 'UINT' may change the sign.
+   ┌─ <internal>:13:40
+   │
+13 │                 min_uint    : UINT  := -1;      // 0
+   │                                        ^^ Implicit conversion from 'SINT' to 'UINT' may change the sign.
 
 warning[E067]: Implicit downcast from 'UDINT' to 'UINT'.
    ┌─ <internal>:14:40
@@ -146,8 +158,20 @@ warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
 18 │                 max_dint    : DINT  :=  2_147_483_648;  //  2_147_483_647
    │                                         ^^^^^^^^^^^^^ Implicit downcast from 'LINT' to 'DINT'.
 
+warning[E160]: Implicit conversion from 'SINT' to 'UDINT' may change the sign.
+   ┌─ <internal>:19:41
+   │
+19 │                 min_udint   : UDINT  := -1;             // 0
+   │                                         ^^ Implicit conversion from 'SINT' to 'UDINT' may change the sign.
+
 warning[E067]: Implicit downcast from 'ULINT' to 'UDINT'.
    ┌─ <internal>:20:41
    │
 20 │                 max_udint   : UDINT  := 4_294_967_296;  // 4_294_967_296
    │                                         ^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'UDINT'.
+
+warning[E160]: Implicit conversion from 'SINT' to 'ULINT' may change the sign.
+   ┌─ <internal>:25:41
+   │
+25 │                 min_ulint   : ULINT  := -1;                         // 0
+   │                                         ^^ Implicit conversion from 'SINT' to 'ULINT' may change the sign.
