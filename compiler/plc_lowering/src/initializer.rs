@@ -337,7 +337,8 @@ impl AstVisitor for Initializer {
 
     /// Generates the constructor body for a user-defined type. Handles alias types (typedef
     /// chains) by calling the parent type's constructor, and struct types by delegating to
-    /// `visit_data_type`. Also lowers any explicit initializer into an assignment.
+    /// `visit_data_type`. Also lowers any explicit initializer into an assignment; an enum
+    /// without one assigns its default variant instead.
     fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
         let name = user_type.data_type.get_name().expect("name is set at this stage");
         self.context.enter_datatype(name);
@@ -381,6 +382,8 @@ impl AstVisitor for Initializer {
         if let Some(initializer) = &user_type.initializer {
             let assignment = create_assignment("self", None, initializer, self.id_provider.clone());
             stmts.push(assignment);
+        } else if let Some(default_variant) = self.enum_default_variant(name) {
+            stmts.push(create_assignment("self", None, &default_variant, self.id_provider.clone()));
         }
         self.add_to_current_constructor(stmts);
         self.context.exit_datatype();
@@ -916,6 +919,30 @@ impl Initializer {
         }
 
         Some(statements)
+    }
+
+    /// Returns `<enum_name>#<variant>` for the variant constant evaluation chose as the default of
+    /// the enum, or `None` if `enum_name` is not an enum. Stack aggregates are zero-filled and arrays
+    /// have no element defaults in static data, so this assignment is what gives such an enum
+    /// member or element its default.
+    fn enum_default_variant(&mut self, enum_name: &str) -> Option<AstNode> {
+        let index = self.index.as_ref()?;
+        let data_type = index.find_type(enum_name)?;
+        let DataTypeInformation::Enum { variants, .. } = data_type.get_type_information() else {
+            return None;
+        };
+        let default = data_type.initial_value?;
+        let variant = variants.iter().find(|it| it.initial_value == Some(default))?.get_name().to_string();
+
+        let enum_reference = create_member_reference(enum_name, self.id_provider.clone(), None);
+        let variant =
+            AstFactory::create_identifier(&variant, SourceLocation::internal(), self.id_provider.next_id());
+        Some(AstFactory::create_cast_statement(
+            enum_reference,
+            variant,
+            &SourceLocation::internal(),
+            self.id_provider.next_id(),
+        ))
     }
 
     /// Creates a call statement to the constructor of the given type: `<type_name>__ctor(<var_name>)`.
@@ -1474,6 +1501,43 @@ mod tests {
         MyEnum__ctor(self.e)
         self.e := Option2
         self.n := 42
+        ");
+    }
+
+    #[test]
+    fn enum_without_explicit_default_assigns_default_variant() {
+        let src = r#"
+        TYPE NoZero : (r := 3, g := 7); END_TYPE
+        TYPE WithZero : (a := 1, b := 0); END_TYPE
+        TYPE MyStruct : STRUCT
+            n : NoZero;
+            e : NoZero := g;
+            w : WithZero;
+            i : (x := 4, y := 5);
+        END_STRUCT
+        END_TYPE
+        "#;
+
+        let initializer = parse_and_init(src);
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("NoZero").unwrap()), @"
+        intern:
+        self := NoZero#r
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("WithZero").unwrap()), @"
+        intern:
+        self := WithZero#b
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__MyStruct_i").unwrap()), @"
+        intern:
+        self := __MyStruct_i#x
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyStruct").unwrap()), @"
+        intern:
+        NoZero__ctor(self.n)
+        NoZero__ctor(self.e)
+        self.e := g
+        WithZero__ctor(self.w)
+        __MyStruct_i__ctor(self.i)
         ");
     }
 
