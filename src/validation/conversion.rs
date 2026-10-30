@@ -142,7 +142,7 @@ fn validate_operation_operands<T: AnnotationMap>(
 }
 
 /// The binary expression that a builtin operator call, such as `ADD(a, b)`, is evaluated as
-fn operation_of<'s, T: AnnotationMap>(
+pub(super) fn operation_of<'s, T: AnnotationMap>(
     call: &AstNode,
     context: &ValidationContext<'s, T>,
 ) -> Option<&'s AstNode> {

@@ -3,10 +3,16 @@ source: src/validation/tests/builtin_validation_tests.rs
 expression: diagnostics
 ---
 warning[E067]: Implicit downcast from 'LREAL' to 'DINT'.
-  ┌─ <internal>:9:22
+  ┌─ <internal>:9:34
   │
 9 │             res_i := ADD(i1, i2, f1, f2);
-  │                      ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'LREAL' to 'DINT'.
+  │                                  ^^ Implicit downcast from 'LREAL' to 'DINT'.
+
+warning[E067]: Implicit downcast from 'LREAL' to 'DINT'.
+  ┌─ <internal>:9:38
+  │
+9 │             res_i := ADD(i1, i2, f1, f2);
+  │                                      ^^ Implicit downcast from 'LREAL' to 'DINT'.
 
 warning[E163]: Implicit conversion from 'LREAL' to 'DINT' truncates the value.
   ┌─ <internal>:9:22
@@ -15,10 +21,10 @@ warning[E163]: Implicit conversion from 'LREAL' to 'DINT' truncates the value.
   │                      ^^^^^^^^^^^^^^^^^^^ Implicit conversion from 'LREAL' to 'DINT' truncates the value.
 
 warning[E067]: Implicit downcast from 'LREAL' to 'DINT'.
-   ┌─ <internal>:11:22
+   ┌─ <internal>:11:30
    │
 11 │             res_i := SUB(i1, f2);
-   │                      ^^^^^^^^^^^ Implicit downcast from 'LREAL' to 'DINT'.
+   │                              ^^ Implicit downcast from 'LREAL' to 'DINT'.
 
 warning[E163]: Implicit conversion from 'LREAL' to 'DINT' truncates the value.
    ┌─ <internal>:11:22
