@@ -2580,6 +2580,53 @@ fn if_statement_triggers_error_if_condition_is_not_boolean() {
 }
 
 #[test]
+fn if_condition_with_constant_zero_or_one_still_validates_references() {
+    let diagnostic = parse_and_validate_buffered(
+        "
+        PROGRAM p
+            VAR CONSTANT
+                hidden : DINT := 1;
+            END_VAR
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb
+            VAR CONSTANT
+                k : DINT := 0;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                f : fb;
+            END_VAR
+            VAR CONSTANT
+                hidden : DINT := 1;
+            END_VAR
+
+            // Each is a constant 0 or 1, so no boolean warning, but each is a private member
+            IF      p.hidden THEN
+            ELSIF   f.k THEN
+            END_IF
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostic, @"
+    warning[E049]: Illegal access to private member p.hidden
+       ┌─ <internal>:23:23
+       │
+    23 │             IF      p.hidden THEN
+       │                       ^^^^^^ Illegal access to private member p.hidden
+
+    warning[E049]: Illegal access to private member fb.k
+       ┌─ <internal>:24:23
+       │
+    24 │             ELSIF   f.k THEN
+       │                       ^ Illegal access to private member fb.k
+    ");
+}
+
+#[test]
 fn while_loop_triggers_error_if_condition_is_not_boolean() {
     let diagnostic = parse_and_validate_buffered(
         "
