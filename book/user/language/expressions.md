@@ -69,7 +69,7 @@ So `a + b * c` multiplies first, and `x < 1 AND y > 2` compares first. A sign is
 
 ## Mixed types
 
-Precedence says how an expression is grouped. The types of its operands say in which type it is computed, and that type does not come from the target of the assignment. Every integer narrower than `DINT` is widened to `DINT` first, and a pair of different types is computed in the wider of the two. The result then moves to the target: a move to a wider type is silent, and a move to a narrower one compiles with a warning, because the value can change.
+Precedence says how an expression is grouped. The types of its operands say in which type it is computed, and that type does not come from the target of the assignment. Every integer narrower than `DINT` is widened to 32 bits first, to `UDINT` when both operands are unsigned and to `DINT` otherwise, and a pair of different types is computed in the wider of the two. An integer literal without a type prefix takes the type of the other operand when that type has 32 bits or more and the value fits it, so for a `UDINT` variable `u`, `u / 2` and `u > 5` are computed as `UDINT`. A literal too large for `DINT`, as in `u + 3000000000`, moves the operation to `ULINT`. A unary `-` widens its operand to a signed type: `-a` for a `USINT` `a` of 200 is the `DINT` -200, and the negation of an unsigned type of 32 bits or more is a `LINT`. The result then moves to the target: a move to a wider type is silent, and a move to a narrower one compiles with a warning, because the value can change.
 
 ```iecst
 VAR

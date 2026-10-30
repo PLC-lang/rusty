@@ -2,10 +2,12 @@ RUN: %COMPILE_IR %S/function_pins.cfc %S/myAdd.st | %CHECK_IR %s
 
 The diagram, with execution orders in parentheses; `o` marks a negated pin:
 
-           +-------- myAdd ---------+
-a1 ------o-| IN1              myAdd |-o------> b1 (3)
-a2 --------| IN2       myAddDoubled |-o------> b2 (2)
-           +------------------------+ (1)
+         myAdd (1)
+       +--------------------+
+a1 --o | IN1          myAdd | o--> b1 (3)
+a2 --> | IN2   myAddDoubled | o--> b2 (2)
+       +--------------------+
+       (o = negated pin)
 
 Each ordered element must get a debug location in the diagram's own file,
 at line = order, so a debugger reads line N as order N.

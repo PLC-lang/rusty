@@ -4,8 +4,10 @@ runs three cycles with `seed = 5` and checks the accumulation (`acc = 15`).
 
 Illustrated:
 ```
-     +--<-- myGenAdd <--+
-     |                  |
-     +--> a [myGenAdd]--+--> acc (0, 1)
-seed ---> b
+            myGenAdd (1)
+          +-----------------+
+seed ---> | a      myGenAdd | --+--> acc (2)
+   .----> | b               |   |
+   |      +-----------------+   |
+   '----------------------------'   [return feeds back into b]
 ```

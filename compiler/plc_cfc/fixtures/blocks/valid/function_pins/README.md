@@ -6,8 +6,10 @@ case-insensitive).
 
 Illustrated:
 ```
-           +-------- myAdd ---------+
-a1 ------o-| IN1              myAdd |-o------> b1 (3)
-a2 --------| IN2       myAddDoubled |-o------> b2 (2)
-           +------------------------+ (1)
+         myAdd (1)
+       +--------------------+
+a1 --o | IN1          myAdd | o--> b1 (3)
+a2 --> | IN2   myAddDoubled | o--> b2 (2)
+       +--------------------+
+       (o = negated pin)
 ```

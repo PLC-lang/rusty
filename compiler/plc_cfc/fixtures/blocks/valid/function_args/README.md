@@ -5,8 +5,10 @@ one on the variable side only. Verbatim IDE export.
 
 Illustrated:
 ```
-           +-------- myAdd ---------+
-a1 o-----o-| in1              myAdd |-o-----o> b1 (2)
-a2 o-------| in2       myAddDoubled |-------o> b2 (3)
-           +------------------------+ (1)
+          myAdd (1)
+        +--------------------+
+a1 o--o | in1          myAdd | o--o b1 (2)
+a2 o--> | in2   myAddDoubled | ---o b2 (3)
+        +--------------------+
+        (o = negated pin)
 ```

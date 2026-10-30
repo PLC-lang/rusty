@@ -117,9 +117,9 @@
 
 use plc_ast::{
     ast::{
-        steal_expression_list, Allocation, Assignment, AstFactory, AstNode, AstStatement, CallStatement,
-        CompilationUnit, DataType as AstDataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration,
-        Variable,
+        flatten_expression_list, resolve_argument_slots, steal_expression_list, Allocation, Assignment,
+        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataType as AstDataType,
+        DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -128,12 +128,12 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    index::Index,
-    resolver::{AnnotationMap, AnnotationMapImpl},
+    index::{Index, VariableIndexEntry},
+    resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     typesystem::{DataType, VOID_INTERNAL_NAME},
 };
 
-use super::validation;
+use super::validation::{self, Binding};
 
 const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
 const FATPOINTER_DATA_FIELD_NAME: &str = "data";
@@ -366,6 +366,65 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         self.replacement = Some(vec![data_assign, table_assign]);
     }
 
+    fn visit_ref_assignment(&mut self, node: &mut AstNode) {
+        let AstStatement::RefAssignment(Assignment { left, right }) = &mut node.stmt else {
+            return;
+        };
+
+        left.walk(self);
+        right.walk(self);
+
+        if self.in_call_args > 0 {
+            return;
+        }
+
+        // A zero literal is a null binding
+        if right.is_zero() {
+            return;
+        }
+
+        // A right side that stays a non-reference (a literal, an expression, a call returning an
+        // elementary value or a pointer) and an `AT` alias on the left are reported by the validator,
+        // with a more precise message than a type mismatch. A call returning an aggregate or an
+        // interface, including a property read, becomes a reference to a temporary later, so it is
+        // checked here
+        if !helper::is_bindable_reference(self.index, self.annotations, right)
+            || self.annotations.get(left).is_some_and(|it| it.is_alias())
+        {
+            return;
+        }
+
+        // A reference to an interface binds the target's fat pointer, so the types must match
+        let expected = helper::get_ref_assignment_target(self.index, self.annotations, left);
+        let received =
+            helper::get_target_type(self.index, self.annotations.get_type_or_void(right, self.index));
+        if received.is_void() || !(expected.is_interface() || received.is_interface()) {
+            return;
+        }
+
+        let declaration = match self.annotations.get(left) {
+            Some(StatementAnnotation::Variable { qualified_name, .. }) => {
+                self.index.find_fully_qualified_variable(qualified_name)
+            }
+            _ => None,
+        };
+        let binding = Binding::RefAssignment { name: validation::get_reference_text(left), declaration };
+
+        if let Some(diagnostic) = validation::validate_bound_interface_argument(
+            self.index,
+            expected,
+            received,
+            &binding,
+            right,
+            &node.location,
+        ) {
+            self.diagnostics.push(diagnostic);
+
+            // Drop the invalid statement, as for invalid assignments.
+            self.replacement = Some(vec![]);
+        }
+    }
+
     fn visit_call_statement(&mut self, node: &mut AstNode) {
         let AstStatement::CallStatement(CallStatement { operator, parameters }) = &mut node.stmt else {
             unreachable!();
@@ -386,22 +445,43 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         // --- Call argument wrapping ---
         // Inspect each argument: if a concrete POU is passed where an interface is expected,
         // allocate a temporary fat pointer in the preamble and replace the argument in-place.
+        // Arguments bound to the caller's storage (by-reference parameters and outputs) are
+        // validated instead, never wrapped.
         if let Some(ref mut params) = parameters {
+            let call_parameters = helper::find_call_parameters(self.index, self.annotations, operator);
+            let callee = validation::get_reference_text(operator)
+                .or_else(|| self.annotations.get_call_name(operator).map(str::to_string))
+                .unwrap_or_default();
+
+            // Bind the flattened arguments, as the resolver does: a multiplied `2(d)` fills two slots
+            let mut slots = resolve_argument_slots(
+                &flatten_expression_list(params),
+                call_parameters.iter().map(|it| it.get_name()),
+            )
+            .into_iter();
             let mut args = steal_expression_list(params);
 
             for arg in args.iter_mut() {
+                // An argument that fills several slots is one node shared by all of them, so it is
+                // neither wrapped nor validated per slot
+                let width = flatten_expression_list(arg).len();
+                let &[slot] = slots.by_ref().take(width).collect::<Vec<_>>().as_slice() else {
+                    continue;
+                };
+                let parameter = slot.and_then(|slot| call_parameters.get(slot).copied());
+
                 match &mut arg.stmt {
                     // Named argument (input, output, or in-out). Inspect and potentially replace the RHS.
-                    // TODO: Add tests for output (`out1 => x`) and in-out (`inout1 := x`) argument wrapping.
                     AstStatement::Assignment(Assignment { right, .. })
                     | AstStatement::OutputAssignment(Assignment { right, .. })
                     | AstStatement::RefAssignment(Assignment { right, .. }) => {
-                        self.maybe_wrap_argument(right.as_mut());
+                        self.lower_argument(helper::get_single_argument_mut(right), parameter, &callee);
                     }
 
-                    // Positional argument. Inspect and potentially replace the whole node.
+                    // Positional argument. Inspect and potentially replace the whole node, or the
+                    // node inside parentheses or a multiplier of 1.
                     _ => {
-                        self.maybe_wrap_argument(arg);
+                        self.lower_argument(helper::get_single_argument_mut(arg), parameter, &callee);
                     }
                 }
             }
@@ -446,6 +526,72 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 }
 
 impl InterfaceDispatchLowerer<'_> {
+    /// Validates `arg` if it binds to the caller's storage, otherwise wraps it if needed.
+    fn lower_argument(&mut self, arg: &mut AstNode, parameter: Option<&VariableIndexEntry>, callee: &str) {
+        let bound = parameter
+            .and_then(|it| helper::get_storage_binding(self.index, it, callee).map(|binding| (it, binding)));
+        match bound {
+            Some((parameter, binding)) => self.validate_bound_argument(arg, parameter, &binding),
+            None => self.maybe_wrap_argument(arg),
+        }
+    }
+
+    /// Validates an argument that the callee reads and writes in place (a by-reference parameter
+    /// or an output). A fat pointer for one interface cannot stand in for another type, so if
+    /// either side is an interface, both types must be the same.
+    fn validate_bound_argument(
+        &mut self,
+        arg: &mut AstNode,
+        parameter: &VariableIndexEntry,
+        binding: &Binding,
+    ) {
+        // An unbound output (`out =>`) has nothing to check
+        if matches!(arg.stmt, AstStatement::EmptyStatement(_)) {
+            return;
+        }
+
+        let expected = helper::get_target_type(
+            self.index,
+            self.index.get_effective_type_or_void_by_name(parameter.get_type_name()),
+        );
+        let received =
+            helper::get_target_type(self.index, self.annotations.get_type_or_void(arg, self.index));
+        // Only interface targets are checked here. A variable-length array parameter cannot take
+        // a temporary in its place, and a pointer target (`REFERENCE TO IA`) is compared with
+        // its dereferenced argument; the validator handles both
+        if received.is_void()
+            || expected.is_vla()
+            || expected.get_type_information().is_pointer()
+            || expected.get_type_information().is_generic(self.index)
+            || !(expected.is_interface() || received.is_interface())
+        {
+            return;
+        }
+
+        let Some(diagnostic) = validation::validate_bound_interface_argument(
+            self.index,
+            expected,
+            received,
+            binding,
+            arg,
+            &arg.location,
+        ) else {
+            return;
+        };
+        self.diagnostics.push(diagnostic);
+
+        // Replace the argument with a temporary of the parameter's type, so the validator does
+        // not report it again with the rewritten `__FATPOINTER` type.
+        let (name, type_name) = if expected.is_interface() {
+            (format!("__fatpointer_{}", self.fp_counter), FATPOINTER_TYPE_NAME)
+        } else {
+            (format!("__argument_{}", self.fp_counter), expected.get_name())
+        };
+        self.fp_counter += 1;
+        self.preamble.push(helper::create_alloca(&mut self.ids, &name, type_name));
+        *arg = helper::create_identifier_ref(&mut self.ids, &name);
+    }
+
     /// Checks whether `arg` is a concrete POU being passed where an interface is expected.
     /// If so, generates a temporary fat pointer (alloca + field assignments) in `self.preamble`
     /// and replaces `arg` in-place with a reference to the temporary.
@@ -491,7 +637,7 @@ impl InterfaceDispatchLowerer<'_> {
             // valid and doesn't trigger confusing `__FATPOINTER` type errors downstream.
             let fp_name = format!("__fatpointer_{}", self.fp_counter);
             self.fp_counter += 1;
-            self.preamble.push(helper::create_alloca(&mut self.ids, &fp_name));
+            self.preamble.push(helper::create_alloca(&mut self.ids, &fp_name, FATPOINTER_TYPE_NAME));
             *arg = helper::create_identifier_ref(&mut self.ids, &fp_name);
 
             return;
@@ -503,7 +649,7 @@ impl InterfaceDispatchLowerer<'_> {
 
         // Build the reference node that will replace the original argument.
         let fp_ref = helper::create_identifier_ref(&mut self.ids, &fp_name);
-        let alloca = helper::create_alloca(&mut self.ids, &fp_name);
+        let alloca = helper::create_alloca(&mut self.ids, &fp_name, FATPOINTER_TYPE_NAME);
         self.preamble.push(alloca);
 
         if actual_type.is_interface() {
@@ -541,7 +687,11 @@ impl InterfaceDispatchLowerer<'_> {
 /// Helper functions for AST construction and type checking.
 mod helper {
     use super::*;
-    use crate::lowering::polymorphism::table::interface::helper as itable_helper;
+    use crate::{
+        builtins, lowering::polymorphism::table::interface::helper as itable_helper,
+        typesystem::DataTypeInformation,
+    };
+    use plc_ast::ast::MultipliedStatement;
 
     /// A visitor that reassigns all AST node IDs in a subtree with fresh IDs.
     /// Used after cloning AST subtrees to ensure each node in the tree has a unique ID.
@@ -774,14 +924,122 @@ mod helper {
         AstFactory::create_call_statement(operator, Some(expr), ids.next_id(), SourceLocation::internal())
     }
 
-    /// Creates an `AllocationStatement` for a `__FATPOINTER` temporary with the given name.
-    pub fn create_alloca(ids: &mut IdProvider, name: &str) -> AstNode {
+    /// Returns the declared parameters of the POU called by `operator`, in declaration order.
+    /// Builtins and calls through function pointers have none.
+    pub fn find_call_parameters<'idx>(
+        index: &'idx Index,
+        annotations: &AnnotationMapImpl,
+        operator: &AstNode,
+    ) -> Vec<&'idx VariableIndexEntry> {
+        let Some(call_name) = annotations.get_call_name(operator) else {
+            return vec![];
+        };
+
+        if builtins::get_builtin(call_name).is_some() {
+            return vec![];
+        }
+
+        // An action call names the action, its parameters belong to the parent POU
+        let pou_name = match index.find_pou(call_name) {
+            Some(pou) if pou.is_action() => pou.get_parent_pou_name().unwrap_or(call_name),
+            _ => call_name,
+        };
+
+        index.get_available_parameters(pou_name)
+    }
+
+    /// Returns the node that fills the slot of an argument filling exactly one slot, the node
+    /// `flatten_expression_list` yields and the resolver annotates: `(a)` and `1(a)` yield `a`.
+    pub fn get_single_argument_mut(node: &mut AstNode) -> &mut AstNode {
+        let is_wrapper = match &node.stmt {
+            AstStatement::ParenExpression(_) => true,
+            AstStatement::MultipliedStatement(MultipliedStatement { multiplier, .. }) => *multiplier == 1,
+            AstStatement::ExpressionList(expressions) => expressions.len() == 1,
+            _ => false,
+        };
+        if !is_wrapper {
+            return node;
+        }
+
+        match &mut node.stmt {
+            AstStatement::ParenExpression(inner) => get_single_argument_mut(inner),
+            AstStatement::MultipliedStatement(MultipliedStatement { element, .. }) => {
+                get_single_argument_mut(element)
+            }
+            AstStatement::ExpressionList(expressions) => get_single_argument_mut(&mut expressions[0]),
+            _ => unreachable!(),
+        }
+    }
+
+    /// Describes how `callee` accesses the argument of `parameter` if it reads and writes the
+    /// caller's storage, or returns `None` if the argument is copied in.
+    pub fn get_storage_binding<'a>(
+        index: &Index,
+        parameter: &'a VariableIndexEntry,
+        callee: &'a str,
+    ) -> Option<Binding<'a>> {
+        if parameter.is_output() {
+            return Some(Binding::Output { parameter, callee });
+        }
+
+        let is_reference_to =
+            index.find_effective_type_info(parameter.get_type_name()).is_some_and(|it| it.is_reference_to());
+
+        (parameter.get_declaration_type().is_by_ref() || is_reference_to)
+            .then_some(Binding::Reference { parameter, callee })
+    }
+
+    /// Returns whether `right REF=` binds a variable: a reference, `SUPER^`, or a call whose
+    /// aggregate or interface result the aggregate lowering stores in a temporary.
+    pub fn is_bindable_reference(index: &Index, annotations: &AnnotationMapImpl, right: &AstNode) -> bool {
+        let right = right.get_node_peeled();
+        if right.is_reference() || matches!(right.stmt, AstStatement::Super(..)) {
+            return true;
+        }
+
+        let result_type = annotations.get_type_or_void(right, index);
+        right.is_call() && (result_type.is_aggregate_type() || result_type.is_interface())
+    }
+
+    /// Returns the type whose address `left REF= ...` stores. A `REF_TO` or `POINTER TO` variable
+    /// is annotated with the pointer type, whose pointee is the target. A `REFERENCE TO` variable
+    /// and a by-reference parameter (also one of a pointer type) are annotated as auto-deref
+    /// with their target type, which `REF=` rebinds.
+    pub fn get_ref_assignment_target<'idx>(
+        index: &'idx Index,
+        annotations: &'idx AnnotationMapImpl,
+        left: &AstNode,
+    ) -> &'idx DataType {
+        let left_type = annotations.get_type_or_void(left, index);
+        let left_type = index.find_effective_type(left_type).unwrap_or(left_type);
+        let is_reference = annotations.get(left).is_some_and(StatementAnnotation::is_auto_deref);
+
+        match left_type.get_type_information() {
+            DataTypeInformation::Pointer { inner_type_name, .. } if !is_reference => {
+                index.get_effective_type_or_void_by_name(inner_type_name)
+            }
+            _ => get_target_type(index, left_type),
+        }
+    }
+
+    /// Returns the type a by-reference parameter or argument refers to, with aliases resolved.
+    pub fn get_target_type<'idx>(index: &'idx Index, data_type: &'idx DataType) -> &'idx DataType {
+        match data_type.get_type_information() {
+            DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } => {
+                index.get_effective_type_or_void_by_name(inner_type_name)
+            }
+            _ => index.find_effective_type(data_type).unwrap_or(data_type),
+        }
+    }
+
+    /// Creates an `AllocationStatement` for a temporary of the given type.
+    pub fn create_alloca(ids: &mut IdProvider, name: &str, type_name: &str) -> AstNode {
         AstNode {
             stmt: AstStatement::AllocationStatement(Allocation {
                 name: name.to_string(),
-                reference_type: FATPOINTER_TYPE_NAME.to_string(),
-                // The fat pointer itself is consumed by the dispatch call of its own
-                // statement; only the object it points at may need pinning.
+                reference_type: type_name.to_string(),
+                // The temporary is consumed by the call of its own statement; for a fat
+                // pointer, only the object it points at may need pinning.
                 statement_scoped: true,
             }),
             id: ids.next_id(),
@@ -2554,6 +2812,109 @@ mod tests {
                 "__fatpointer_2.data := ADR(instance)",
                 "__fatpointer_2.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(in1 := __fatpointer_2, out1 => refOut, inout1 := refInout)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn multiplied_args() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_IN_OUT
+                        n1, n2: DINT;
+                    END_VAR
+
+                    VAR_INPUT
+                        in1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION consumer_interfaces
+                    VAR_IN_OUT
+                        inout1, inout2: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        d: DINT;
+                        instance: FbA;
+                        refInout: IA;
+                    END_VAR
+
+                    // `2(d)` fills two slots, so the concrete POU after it binds to the input.
+                    consumer(2(d), instance);
+
+                    // A multiplied argument shares one node between its slots and passes through unchanged.
+                    consumer_interfaces(2(refInout));
+                END_FUNCTION
+            "#;
+
+            // The serializer prints a multiplied argument without its multiplier, `2(d)` as `d`.
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(d, __fatpointer_0)",
+                "consumer_interfaces(refInout)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn nested_single_args() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        in1: IA;
+                        in2: DINT;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                    END_VAR
+
+                    // The node inside parentheses or a multiplier of 1 is wrapped in place. The
+                    // serializer prints `1(x)` as `x`.
+                    consumer((instance), 2);
+                    consumer(1(instance), 2);
+                    consumer(in1 := (instance), in2 := 2);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "alloca __fatpointer_0: __FATPOINTER",
+                "__fatpointer_0.data := ADR(instance)",
+                "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
+                "consumer((__fatpointer_0), 2)",
+                "alloca __fatpointer_1: __FATPOINTER",
+                "__fatpointer_1.data := ADR(instance)",
+                "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(__fatpointer_1, 2)",
+                "alloca __fatpointer_2: __FATPOINTER",
+                "__fatpointer_2.data := ADR(instance)",
+                "__fatpointer_2.table := ADR(__itable_IA_FbA_instance)",
+                "consumer(in1 := (__fatpointer_2), in2 := 2)",
             ]
             "#);
         }

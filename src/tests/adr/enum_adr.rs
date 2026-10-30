@@ -34,6 +34,8 @@ fn enums_generate_a_global_constants_for_each_element() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -86,6 +88,8 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 1, ptr %deref, align [filtered]
       ret void
     }
 
@@ -93,6 +97,8 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i8 1, ptr %deref, align [filtered]
       ret void
     }
 
@@ -136,6 +142,8 @@ fn inline_declaration_of_enum_types() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -143,6 +151,8 @@ fn inline_declaration_of_enum_types() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -218,6 +228,8 @@ fn using_enums() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 1, ptr %deref, align [filtered]
       ret void
     }
 
@@ -225,6 +237,8 @@ fn using_enums() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 8, ptr %deref, align [filtered]
       ret void
     }
 
@@ -269,6 +283,8 @@ fn enum_with_zero_element_no_default_initializes_to_zero() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i8 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -359,6 +375,8 @@ fn enum_without_zero_no_default_initializes_to_first_element() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i16 10, ptr %deref, align [filtered]
       ret void
     }
 

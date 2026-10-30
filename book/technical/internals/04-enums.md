@@ -128,7 +128,7 @@ A variant in a body resolves to its variable entry, and the annotation records t
 
 The example uses three forms of variant access: `Color#Red`, `Color.Green`, and the unqualified `Closed`.
 
-`Color#Red` is a cast expression: the base `Color` is annotated as a type, and because that type is an enum, the target `Red` is looked up among its variants only. The expression as a whole is a value of type `Color`. `Color.Green` is an ordinary member access: the base resolves to the type `Color`, and the member lookup finds `Green`, because the variants of an enum are its members.
+`Color#Red` is a cast expression: the base `Color` is looked up as a type before any other name, so a variant `Color` of another enum does not hide it. Because that type is an enum, the target `Red` is looked up among its variants only. The expression as a whole is a value of type `Color`. `Color.Green` is an ordinary member access: the base resolves to the type `Color`, and the member lookup finds `Green`, because the variants of an enum are its members. Here the base goes through the normal name lookup, so a variant `Color` of another enum does hide the type; write `Color#Green` in that case.
 
 `Closed` without a qualifier goes through the normal name lookup (see [Resolver](../pipeline/03-resolver.md), Walking a unit): a member of the current POU first, then a global. Inside a POU the member lookup also searches the variants of every enum type one of the POU's variables has. That is why `Closed` in `main` finds `State.Closed` and not `Door.Closed`: `main` has a variable of type `State` and none of type `Door`. Without such a variable, the global lookup takes the first variant of that name in declaration order.
 
@@ -140,7 +140,7 @@ Comparisons are promoted through the underlying type. `paint = Green` compares t
 
 ## Lowering
 
-Enums keep their representation during lowering. The [init participant](../participants/06-init.md) creates an empty constructor unless the type declares an explicit default. Thus `State__ctor` stores `4`. A variable initializer such as `mode := Auto` becomes an assignment in `main__ctor`.
+Enums keep their representation during lowering. The [init participant](../participants/06-init.md) gives every enum type a constructor that assigns its default to `self`: the explicit default, or else the default that constant evaluation chose, as a qualified variant. Thus `State__ctor` stores `4`, and `Door__ctor` assigns `Door#Open`. Struct, function block, and array constructors call it on every enum member and element. An aggregate on the stack is zero-filled, and the static data of an array has no element defaults, so without this call such a member or element would stay at 0. A variable initializer such as `mode := Auto` becomes an assignment in `main__ctor`.
 
 
 ## Codegen

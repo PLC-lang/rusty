@@ -4,5 +4,8 @@ value (`y = 42` for `x = 21`).
 
 Illustrated:
 ```
-x --> a [myGenOut] doubled --> y (0, 1)
+        myGenOut (1)
+      +-------------------+
+x --> | a         doubled | --> y (2)
+      +-------------------+
 ```

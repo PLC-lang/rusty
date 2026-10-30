@@ -190,7 +190,10 @@ A negation bubble has no meaning on a reference assignment and is rejected (E154
 A block is a call. Its `typeName` names the callee, its input pins are the parameters, and its output pins are the outputs of the callee. A callee with state keeps its outputs in its own instance, so the network needs nothing more than the call and a read of the member:
 
 ```
-localIn --> in [inst : counter] out (1) --> localOut (2)
+              inst : counter (1)
+            +-----------+
+localIn --> | in    out | --> localOut (2)
+            +-----------+
 ```
 
 ```iecst
@@ -322,7 +325,10 @@ An unwired function input is passed as an empty argument, `in2 := `, to use the 
 A callee with state, a function block instance or a program, keeps its outputs in the instance, so no temporaries are necessary: the call passes the wired inputs only, and a consumer of an output reads the member. The [Block](#block) example above shows the plain case. An action is called through its owner, and its outputs are the members of the owner, not of the action:
 
 ```
-localIn --> in [inst : counter.increment] out (1) --> localOut (2)
+              inst : counter.increment (1)
+            +--------------------------+
+localIn --> | in                   out | --> localOut (2)
+            +--------------------------+
 ```
 
 ```iecst
@@ -335,7 +341,7 @@ A program is read in the same way through the name of its one instance, `counter
 Execution control adds `EN` and `ENO` pins. `EN` becomes an `IF` around the call and its output capture; a skipped call leaves temporaries unchanged. `ENO` refers to the `EN` source rather than a result of the callee. Thus `done := trigger` reads the same source as the guard. A chain of these pins produces a sequence of `IF trigger` guards:
 
 ```
-                  myAdd (1)
+              myAdd (1)
             +--------------------+
 trigger --> | EN             ENO | --> done (3)
       a --> | in1          myAdd | --> sum (2)
@@ -365,7 +371,7 @@ Each element renders on its own. A whole network is a set of them, and the wires
 
 ## Rendering
 
-With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. The name of a callee goes through the expression parser like every other name, except for a built-in named by an operator keyword, such as `AND` or `MOD`: the keyword alone is no expression, so the transpiler builds the reference to the callee itself. Every statement carries a location of a kind that only this participant creates: the `globalId` of the element instead of a line and column. A diagnostic on such a node is printed as `file.cfc: Block 6` without a source snippet. The temporaries go into one additional `VAR` block, and the statement list replaces the empty body the parse step left.
+With the list in order, the transpiler turns each statement into an AST node with the constructors the parser uses, so the result is indistinguishable from parsed text. The name of a callee goes through the expression parser like every other name, except for a built-in named by an operator keyword, such as `AND` or `MOD`: the keyword alone is no expression, so the transpiler builds the reference to the callee itself. Every statement carries a location of a kind that only this participant creates: the diagram and execution order of the element instead of a line and column. A name parsed from an element's text gets that location on every node of its tree, not only on its root, because the parser locates the nested nodes within the text of the element, which no file contains. A diagnostic on such a node is printed as `file.cfc, diagram Mixer, execution order 2` without a source snippet. The temporaries go into one additional `VAR` block, and the statement list replaces the empty body the parse step left.
 
 
 ## Generic temporaries

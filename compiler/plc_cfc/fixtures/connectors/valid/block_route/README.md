@@ -5,6 +5,10 @@ read is a member access, not a plain source.
 
 Illustrated:
 ```
-seed --> in [counter] out --> >x>    x> --> result (2)
-             (1)
+           counter (1)
+         +-----------+
+seed --> | in    out | --> x>
+         +-----------+
+
+>x --> result (2)
 ```

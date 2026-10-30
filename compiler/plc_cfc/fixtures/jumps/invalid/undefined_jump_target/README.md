@@ -1,7 +1,8 @@
 What: a jump whose target names a label that no element defines (E142).
 
 Illustrated:
+```
+myCondition --> JMP missing (1)
 
-    myCondition --> JMP missing (1)
-
-    (no LABEL missing exists)
+(no LABEL missing exists)
+```

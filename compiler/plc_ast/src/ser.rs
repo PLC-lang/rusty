@@ -552,8 +552,11 @@ impl AstVisitor for AstSerializer<'_> {
         self.result.push_str(&format!("alloca {}: {}", stmt.name, stmt.reference_type));
     }
 
-    fn visit_super(&mut self, _stmt: &AstStatement, _node: &AstNode) {
+    fn visit_super(&mut self, stmt: &AstStatement, _node: &AstNode) {
         self.result.push_str("SUPER");
+        if matches!(stmt, AstStatement::Super(Some(_))) {
+            self.result.push('^');
+        }
     }
 
     fn visit_this(&mut self, _stmt: &AstStatement, _node: &AstNode) {

@@ -5,10 +5,10 @@ instead of faulting the runtime.
 
 Illustrated:
 ```
-      isNonZero (1)              safeDiv (2)
-    +--------------+          +------------------+
-b ->| val isNonZero| --EN --> | EN               |
-    +--------------+     a -> | dividend safeDiv | --> result (3)
-                         b -> | divisor          |
-                              +------------------+
+        isNonZero (1)               safeDiv (2)
+      +-----------------+         +------------------+
+b --> | val   isNonZero | ------> | EN               |
+      +-----------------+   a --> | dividend safeDiv | --> result (3)
+                            b --> | divisor          |
+                                  +------------------+
 ```

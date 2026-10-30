@@ -6,5 +6,8 @@ This is exactly why stateful outputs need no reordering and no temporary.
 
 Illustrated:
 ```
-countIn --> in [counter] out (2) --> countOut (1)
+              counter (2)
+            +------------+
+countIn --> | in     out | --> countOut (1)
+            +------------+
 ```

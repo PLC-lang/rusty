@@ -5,6 +5,13 @@ the ENO pin, then through the block onto the same EN wire.
 
 Illustrated:
 ```
-trigger --> x>        >x --EN--> [inst : counter] ENO --> y>   >y --> done (3)
-                    localIn ---> in (1)           out ---------------> localOut (2)
+trigger --> x>
+
+              inst : counter (1)
+            +-------------------+
+     >x --> | EN            ENO | --> y>
+localIn --> | in            out | --> localOut (2)
+            +-------------------+
+
+>y --> done (3)
 ```

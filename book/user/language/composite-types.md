@@ -90,6 +90,8 @@ PROGRAM Machine
 END_PROGRAM
 ```
 
+A variable without an initial value starts with the name whose value is zero, or with the first name if no value is zero. A type can set a different start value, as in `TYPE Level: (Low := 1, High := 2) := High; END_TYPE`.
+
 The names are visible without the type in front of them. A name that two enumerations declare resolves to the enumeration that was declared first, and the compiler does not warn you. Give every variant a name of its own, and write the type in front of a name where you want to be explicit:
 
 ```iecst

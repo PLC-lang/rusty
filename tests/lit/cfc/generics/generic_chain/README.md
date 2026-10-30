@@ -5,6 +5,9 @@ each link resolves its own binding. `main` checks the chained sum
 
 Illustrated:
 ```
-a --> [myGenAdd] --> [myGenAdd] --> result (0, 1, 2)
-b -->            c -->
+        myGenAdd (1)              myGenAdd (2)
+      +-----------------+       +-----------------+
+a --> | a      myGenAdd | ----> | a      myGenAdd | --> result (3)
+b --> | b               | c --> | b               |
+      +-----------------+       +-----------------+
 ```

@@ -100,7 +100,7 @@ PROGRAM main
 END_PROGRAM
 ```
 
-Now imagine a global variable that is also named `bufferInstance`. The resolver tries a fixed order of lookups and takes the first that succeeds: a member of the current POU, then a global variable or enum variant, then a POU (program, function, or function block), then a type. The local member wins. The one exception is the operator of a call, which tries functions first: inside a function `scale`, the name `scale` is the return variable, but `scale(...)` is the function.
+Now imagine a global variable that is also named `bufferInstance`. The resolver tries a fixed order of lookups and takes the first that succeeds: a member of the current POU, then a global variable or enum variant, then a POU (program, function, or function block), then a type. The local member wins. There are two exceptions. The operator of a call tries functions first: inside a function `scale`, the name `scale` is the return variable, but `scale(...)` is the function. The base of a cast tries types first: in `Error#Timeout`, `Error` is the enum type even if another enum has a variant `Error`.
 
 
 ## Promotion
@@ -139,6 +139,8 @@ Visualized:
                ^^^^^^^                  { kind: Variable, qualified_name: "main.sintVar", resulting_type: "SINT", hint: "DINT" }
                          ^^^^^^^        { kind: Variable, qualified_name: "main.dintVar", resulting_type: "DINT", hint: None }
 ```
+
+Integers narrower than 32 bits are widened to 32 bits: to `UDINT` when both operands are unsigned, so `UINT * UINT` cannot overflow, and to `DINT` otherwise. Two bit strings are the exception and keep the wider bit string type, so `BYTE + WORD` is a `WORD`. An integer literal without a type prefix takes the type of the other operand when that type has 32 bits or more and the value fits it: `udintVar / 2` divides two `UDINT` values, while `udintVar / -2` keeps the literal's `DINT`. A literal too large for `DINT` next to a `UDINT` or `DWORD` moves both operands to `ULINT` or `LWORD`, so `udintVar + 3000000000` does not wrap. A unary `-` gives its operand the hint of a signed type that holds the negation, `DINT` for the types narrower than 32 bits and `LINT` for `UDINT`, `ULINT`, `DWORD`, and `LWORD`, so codegen widens the operand before it negates it.
 
 
 ## Calls
@@ -189,7 +191,7 @@ Arithmetic with a date or time operand is typed by the table of combinations the
 
 ## Literals and generated types
 
-Integer literals use `DINT` if they fit 32 bits and `LINT` otherwise. Real literals use `REAL` or `LREAL` by the same size rule. Typed literals use their prefix, as in `INT#5`. String literals get types sized to their contents: `'hello'` has type `__STRING_5`, a `STRING[5]`, even when it is assigned to a `STRING` that was declared without a size.
+Integer literals use `DINT` if they fit 32 bits and `LINT` otherwise; next to an operand of a binary expression they can take that operand's type instead (see [Promotion](#promotion)). Real literals use `REAL` or `LREAL` by the same size rule. Typed literals use their prefix, as in `INT#5`. String literals get types sized to their contents: `'hello'` has type `__STRING_5`, a `STRING[5]`, even when it is assigned to a `STRING` that was declared without a size.
 
 That sized type does not exist in the index, so the resolver registers it in a small index of its own. After all units are annotated, these generated types, together with the on-demand pointer types, are imported into the global index, where codegen finds them like any declared type. String literals found in bodies are also collected per unit, because codegen emits them as global constants. For
 

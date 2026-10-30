@@ -6,6 +6,8 @@ cycle's, both off the same persistent member; no reordering, no temporary.
 
 Illustrated:
 ```
-seed --> in [inst : counter] out (2) --+--> before (1)
-                                       +--> after (3)
+           inst : counter (2)
+         +-------------------+
+seed --> | in            out | --+--> before (1)
+         +-------------------+   +--> after (3)
 ```

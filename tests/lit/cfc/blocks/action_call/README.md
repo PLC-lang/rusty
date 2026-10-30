@@ -4,5 +4,8 @@ cycles with `amount = 3` and checks the accumulated count (`count = 6`).
 
 Illustrated:
 ```
-amount --> step [inst.bump] count --> result (0, 1)
+             inst.bump (1)
+           +----------------+
+amount --> | step     count | --> result (2)
+           +----------------+
 ```
