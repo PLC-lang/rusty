@@ -1837,6 +1837,12 @@ fn function_output_with_mismatched_type_assignment_must_produce_a_friendly_error
        │
     20 │                 result => i1
        │                 ^^^^^^ Implicit downcast from 'REAL' to 'INT'.
+
+    warning[E163]: Implicit conversion from 'REAL' to 'INT' truncates the value.
+       ┌─ <internal>:20:17
+       │
+    20 │                 result => i1
+       │                 ^^^^^^ Implicit conversion from 'REAL' to 'INT' truncates the value.
     ");
 }
 

@@ -38,11 +38,23 @@ warning[E067]: Implicit downcast from 'REAL' to 'INT'.
 32 │     v_ptr_int^ := v_real; // valid
    │                   ^^^^^^ Implicit downcast from 'REAL' to 'INT'.
 
+warning[E163]: Implicit conversion from 'REAL' to 'INT' truncates the value.
+   ┌─ <internal>:32:19
+   │
+32 │     v_ptr_int^ := v_real; // valid
+   │                   ^^^^^^ Implicit conversion from 'REAL' to 'INT' truncates the value.
+
 warning[E067]: Implicit downcast from 'UDINT' to 'INT'.
    ┌─ <internal>:34:19
    │
 34 │     v_ptr_int^ := v_udint; // valid
    │                   ^^^^^^^ Implicit downcast from 'UDINT' to 'INT'.
+
+warning[E160]: Implicit conversion from 'UDINT' to 'INT' may change the sign.
+   ┌─ <internal>:34:19
+   │
+34 │     v_ptr_int^ := v_udint; // valid
+   │                   ^^^^^^^ Implicit conversion from 'UDINT' to 'INT' may change the sign.
 
 warning[E067]: Implicit downcast from 'DINT' to 'INT'.
    ┌─ <internal>:36:19
@@ -56,11 +68,23 @@ warning[E067]: Implicit downcast from 'TIME' to 'INT'.
 38 │     v_ptr_int^ := v_time; // valid
    │                   ^^^^^^ Implicit downcast from 'TIME' to 'INT'.
 
+warning[E164]: Implicit conversion from 'TIME' to 'INT' mixes time or date types with other types.
+   ┌─ <internal>:38:19
+   │
+38 │     v_ptr_int^ := v_time; // valid
+   │                   ^^^^^^ Implicit conversion from 'TIME' to 'INT' mixes time or date types with other types.
+
 warning[E067]: Implicit downcast from 'WORD' to 'INT'.
    ┌─ <internal>:40:19
    │
 40 │     v_ptr_int^ := v_word; // valid
    │                   ^^^^^^ Implicit downcast from 'WORD' to 'INT'.
+
+warning[E160]: Implicit conversion from 'WORD' to 'INT' may change the sign.
+   ┌─ <internal>:40:19
+   │
+40 │     v_ptr_int^ := v_word; // valid
+   │                   ^^^^^^ Implicit conversion from 'WORD' to 'INT' may change the sign.
 
 warning[E090]: Pointers REF_TO INT and STRING have different types
    ┌─ <internal>:41:5
@@ -85,6 +109,12 @@ warning[E067]: Implicit downcast from 'DATE' to 'INT'.
    │
 46 │     v_ptr_int^ := v_date; // valid
    │                   ^^^^^^ Implicit downcast from 'DATE' to 'INT'.
+
+warning[E164]: Implicit conversion from 'DATE' to 'INT' mixes time or date types with other types.
+   ┌─ <internal>:46:19
+   │
+46 │     v_ptr_int^ := v_date; // valid
+   │                   ^^^^^^ Implicit conversion from 'DATE' to 'INT' mixes time or date types with other types.
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:48:5

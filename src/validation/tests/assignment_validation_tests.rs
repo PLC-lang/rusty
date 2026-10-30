@@ -413,6 +413,12 @@ fn bool_assignment_validation() {
        │
     17 │     v_bool := v_dint; // valid, reported as a downcast
        │               ^^^^^^ Implicit downcast from 'DINT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:17:15
+       │
+    17 │     v_bool := v_dint; // valid, reported as a downcast
+       │               ^^^^^^ Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
     ");
 }
 
