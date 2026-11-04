@@ -1,0 +1,5 @@
+FUNCTION_BLOCK PropChild EXTENDS PropBase
+    PROPERTY_GET name : STRING[20]
+        name := 'child';
+    END_PROPERTY
+END_FUNCTION_BLOCK

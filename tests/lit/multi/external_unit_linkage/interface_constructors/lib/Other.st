@@ -1,0 +1,8 @@
+FUNCTION_BLOCK Other IMPLEMENTS IOther
+VAR_INPUT
+    v : DINT;
+END_VAR
+    METHOD id : DINT
+        id := v;
+    END_METHOD
+END_FUNCTION_BLOCK

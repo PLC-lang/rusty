@@ -119,7 +119,7 @@ impl PropertyLowerer {
                 let (pous, _) = lower_to_pou(
                     self.id_provider.clone(),
                     &interface.ident.name,
-                    LinkageType::Internal,
+                    interface.linkage,
                     property,
                 );
 
@@ -846,6 +846,34 @@ mod tests {
                     ("fb.__get_foo", LinkageType::Include),
                     ("fb.__set_foo", LinkageType::Include)
                 ]
+            );
+        }
+
+        #[test]
+        fn interface_properties_take_the_linkage_of_their_interface() {
+            let source = r"
+            INTERFACE foo
+                PROPERTY_GET bar: DINT END_PROPERTY
+                PROPERTY_SET bar: DINT END_PROPERTY
+            END_INTERFACE
+            ";
+
+            let id_provider = IdProvider::default();
+            let (mut unit, _) = parse(
+                lex_with_ids(source, id_provider.clone(), SourceLocationFactory::internal(source)),
+                LinkageType::Include,
+                "test.st",
+            );
+            PropertyLowerer::new(id_provider).properties_to_pous(&mut unit);
+
+            let methods = unit.interfaces[0]
+                .methods
+                .iter()
+                .map(|it| (it.name.as_str(), it.linkage))
+                .collect::<Vec<_>>();
+            assert_eq!(
+                methods,
+                vec![("foo.__get_bar", LinkageType::Include), ("foo.__set_bar", LinkageType::Include)]
             );
         }
 
