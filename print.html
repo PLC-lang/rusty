@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-d05f60b7.js";
+            window.path_to_searchindex_js = "searchindex-10bcc8ec.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e5f95eb2.js"></script>
@@ -5681,6 +5681,7 @@ END_PROGRAM
  END_FUNCTION
 </code></pre>
 <p>The same happens to pointers (<code>REF_TO INT</code>) and to the type parameters of generic functions (<code>__ADD__T</code> for parameter <code>T</code> of <code>ADD</code>).</p>
+<p>A generated type takes the linkage of its container. The parameter types of a method declared in an interface from an include file are therefore only declared, like the types of an included or <code>{external}</code> POU, and only the object built from the declaring unit defines their constructors.</p>
 <p>Pre-processing also gives enum variants explicit values. <code>TYPE Speed: (Slow, Normal, Fast := 10); END_TYPE</code> becomes <code>Slow := 0, Normal := Speed#Slow + 1, Fast := 10</code>.</p>
 <p>For a hardware binding such as <code>sensor AT %IX0.0: BOOL</code>, it creates the global <code>__PI_0_0</code>. The variable <code>sensor</code> becomes an alias pointer to that global, with the generated type <code>__global_sensor</code>. The <a href="#hardware-map">Hardware Map</a> chapter follows this connection.</p>
 <p>Generated helper names often use a double underscore prefix. This is a naming convention, not an enforced restriction. The <code>pre_index</code> participants run before pre-processing, so some generated declarations already exist at this point.</p>
@@ -6983,7 +6984,7 @@ END_FUNCTION
     style post_annotate fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
 </pre>
 
-<p>At <code>pre_index</code>, the participant converts accessor blocks into method declarations and bodies with the linkage of their POU. The accessors of an included or <code>{external}</code> POU are therefore only declared, like its other methods. The index registers these methods, and the resolver can find them.</p>
+<p>At <code>pre_index</code>, the participant converts accessor blocks into method declarations and bodies with the linkage of their POU or interface. The accessors of an included or <code>{external}</code> POU, or of an included interface, are therefore only declared, like its other methods. The index registers these methods, and the resolver can find them.</p>
 <p>At <code>post_annotate</code>, it reads property annotations. Each annotation names the getter or setter required by the access. The lowerer inserts the call and reruns annotation. It keeps the index because the declarations have not changed.</p>
 <p>The order inside a statement is fixed. In an assignment the participant lowers the index expressions of the target first, then the right side, then the assignment itself; in a reference it lowers the base and the index before the reference. <code>inst.foo[inst.bar]</code> therefore becomes <code>inst.__get_foo()[inst.__get_bar()]</code>, and <code>inst.scaled := inst.scaled + 1</code> becomes <code>inst.__set_scaled(inst.__get_scaled() + 1)</code>. The driver collects the participant’s diagnostics after the last <code>post_annotate</code> hook.</p>
 <h2 id="transformation-2"><a class="header" href="#transformation-2">Transformation</a></h2>

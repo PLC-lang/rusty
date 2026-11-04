@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-d05f60b7.js";
+            window.path_to_searchindex_js = "../../searchindex-10bcc8ec.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e5f95eb2.js"></script>
@@ -237,6 +237,7 @@ END_PROGRAM
  END_FUNCTION
 </code></pre>
 <p>The same happens to pointers (<code>REF_TO INT</code>) and to the type parameters of generic functions (<code>__ADD__T</code> for parameter <code>T</code> of <code>ADD</code>).</p>
+<p>A generated type takes the linkage of its container. The parameter types of a method declared in an interface from an include file are therefore only declared, like the types of an included or <code>{external}</code> POU, and only the object built from the declaring unit defines their constructors.</p>
 <p>Pre-processing also gives enum variants explicit values. <code>TYPE Speed: (Slow, Normal, Fast := 10); END_TYPE</code> becomes <code>Slow := 0, Normal := Speed#Slow + 1, Fast := 10</code>.</p>
 <p>For a hardware binding such as <code>sensor AT %IX0.0: BOOL</code>, it creates the global <code>__PI_0_0</code>. The variable <code>sensor</code> becomes an alias pointer to that global, with the generated type <code>__global_sensor</code>. The <a href="../outputs/01-hardware-map.html">Hardware Map</a> chapter follows this connection.</p>
 <p>Generated helper names often use a double underscore prefix. This is a naming convention, not an enforced restriction. The <code>pre_index</code> participants run before pre-processing, so some generated declarations already exist at this point.</p>
