@@ -88,7 +88,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
             }
             KeywordInterface => {
                 // We ignore any method implementations in interfaces as we do not support default impls yet
-                let (interfaces, _) = parse_interface(&mut lexer);
+                let (interfaces, _) = parse_interface(&mut lexer, linkage);
                 unit.interfaces.push(interfaces);
             }
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
@@ -183,7 +183,7 @@ fn parse_actions(
 }
 
 /// Parses an interface and its methods / properties
-fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>) {
+fn parse_interface(lexer: &mut ParseSession, linkage: LinkageType) -> (Interface, Vec<Implementation>) {
     let location_start = lexer.range().start;
     lexer.try_consume_or_report(KeywordInterface);
 
@@ -217,7 +217,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
         match lexer.token {
             KeywordMethod => {
                 if let Some((method, imp)) =
-                    parse_method(lexer, &name, DeclarationKind::Abstract, LinkageType::Internal, false)
+                    parse_method(lexer, &name, DeclarationKind::Abstract, linkage, false)
                 {
                     // This is temporary? At some point we'll support them but for now it's a diagnostic
                     if !imp.statements.is_empty() {
@@ -263,6 +263,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
             extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
             properties: properties.into_values().collect(),
+            linkage,
         },
         implementations,
     )

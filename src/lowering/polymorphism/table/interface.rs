@@ -142,7 +142,7 @@ impl InterfaceTableGenerator {
                 initializer: None,
                 location: location.clone(),
                 scope: None,
-                linkage: self.itable_definition_linkage(index, unit, interface.get_name()),
+                linkage: self.itable_definition_linkage(index, unit, ast_iface.linkage, interface.get_name()),
             };
 
             definitions.push(definition);
@@ -151,19 +151,19 @@ impl InterfaceTableGenerator {
         definitions
     }
 
-    /// Determines the linkage of the itable struct definition for an interface. An interface declared
-    /// in an included or external unit keeps the linkage of its unit, so its constructor is only
-    /// declared. In an internal unit the struct is External when the library provides all
-    /// implementors (and thus the struct constructor), and Internal otherwise, including for an
-    /// interface-only file.
+    /// Determines the linkage of the itable struct definition for an interface. An included or
+    /// external interface keeps its own linkage, so its constructor is only declared. An internal
+    /// interface gets an External struct when the library provides all implementors (and thus the
+    /// struct constructor), and an Internal one otherwise, including for an interface-only file.
     fn itable_definition_linkage(
         &self,
         index: &Index,
         unit: &CompilationUnit,
+        interface_linkage: LinkageType,
         interface_name: &str,
     ) -> LinkageType {
-        if !super::is_internal_instance(unit.linkage, self.generate_external_constructors) {
-            return unit.linkage;
+        if !super::is_internal_instance(interface_linkage, self.generate_external_constructors) {
+            return interface_linkage;
         }
 
         let mut has_external = false;

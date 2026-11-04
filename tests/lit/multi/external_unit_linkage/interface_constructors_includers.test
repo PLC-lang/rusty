@@ -8,15 +8,12 @@ RUN: cc -shared %t.d/a.o %t.d/c.o -o %t.d/libac.so
 RUN: cc -shared %t.d/a.o %t.d/d.o -o %t.d/libad.so
 RUN: nm -D --defined-only %t.d/libab.so %t.d/libac.so %t.d/libad.so | not grep -E ' (__I[A-Z]|_*itable_I)'
 
-RUN: sed -E 's/^(TYPE|INTERFACE|FUNCTION_BLOCK) /{external} \1 /' %S/interface_constructors_lib.st > %t.d/external.st
-RUN: %PLC --constructors-only -c --fpic %S/interface_constructors_includer.st %t.d/external.st -o %t.d/ea.o
+RUN: sed -E 's/^(TYPE|INTERFACE|FUNCTION_BLOCK|FUNCTION) /{external} \1 /' %S/interface_constructors_lib.st > %t.d/external.st
 RUN: %PLC -c --single-module --fpic %S/interface_constructors_includer.st %t.d/external.st -o %t.d/eb.o
 RUN: %PLC -c --fpic %S/interface_constructors_includer.st %t.d/external.st -o %t.d/ec.o
-RUN: %PLC -c --fpic --generate-external-constructors %S/interface_constructors_includer.st %t.d/external.st -o %t.d/ed.o
-RUN: cc -shared %t.d/ea.o %t.d/eb.o -o %t.d/libeab.so
-RUN: cc -shared %t.d/ea.o %t.d/ec.o -o %t.d/libeac.so
-RUN: cc -shared %t.d/ea.o %t.d/ed.o -o %t.d/libead.so
-RUN: nm -D --defined-only %t.d/libeab.so %t.d/libeac.so %t.d/libead.so | not grep -E ' (__I[A-Z]|_*itable_I)'
+RUN: cc -shared %t.d/eb.o -o %t.d/libeb.so
+RUN: cc -shared %t.d/ec.o -o %t.d/libec.so
+RUN: nm -D --defined-only %t.d/libeb.so %t.d/libec.so | not grep -E ' (__I[A-Z]|_*itable_I)'
 
 Each object includes interface_constructors_lib.st but does not declare its
 interfaces, so none of them may define the constructors of the interface
@@ -28,4 +25,7 @@ library that declares the interface.
 
 The second group compiles the same declarations as source, with each one marked
 {external}. An {external} declaration is a declaration of another unit, as with
--i, so the result must be the same.
+-i, so the result must be the same. Each object is linked into its own shared
+library. --constructors-only and --generate-external-constructors are not part
+of this group, because they define the constructors of {external} declarations
+on purpose.

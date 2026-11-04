@@ -1,3 +1,5 @@
+use plc_ast::ast::LinkageType;
+
 use crate::test_utils::tests::parse;
 
 #[test]
@@ -26,6 +28,7 @@ fn empty_interface() {
             methods: [],
             extensions: [],
             properties: [],
+            linkage: Internal,
         },
     ]
     "#);
@@ -100,6 +103,7 @@ fn interface_with_single_method() {
             ],
             extensions: [],
             properties: [],
+            linkage: Internal,
         },
     ]
     "#);
@@ -225,6 +229,7 @@ fn interface_with_multiple_methods() {
             ],
             extensions: [],
             properties: [],
+            linkage: Internal,
         },
     ]
     "#);
@@ -350,6 +355,7 @@ fn interface_deriving_from_other_interface() {
             },
         ],
         properties: [],
+        linkage: Internal,
     }
     "#);
 }
@@ -402,6 +408,7 @@ fn interface_deriving_from_multiple_interfaces() {
             },
         ],
         properties: [],
+        linkage: Internal,
     }
     "#);
 }
@@ -464,6 +471,36 @@ fn interface_with_property() {
         },
     ]
     "#);
+}
+
+#[test]
+fn interfaces_and_their_methods_take_the_linkage_of_the_unit_or_the_external_pragma() {
+    let source = r"
+    INTERFACE internalInterface
+        METHOD foo : DINT END_METHOD
+    END_INTERFACE
+
+    {external}
+    INTERFACE externalInterface
+        METHOD foo : DINT END_METHOD
+    END_INTERFACE
+    ";
+
+    let (unit, diagnostics) = parse(source);
+
+    assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
+    let linkages = unit
+        .interfaces
+        .iter()
+        .map(|it| (it.ident.name.as_str(), it.linkage, it.methods.iter().map(|m| m.linkage).collect()))
+        .collect::<Vec<(_, _, Vec<_>)>>();
+    assert_eq!(
+        linkages,
+        vec![
+            ("internalInterface", LinkageType::Internal, vec![LinkageType::Internal]),
+            ("externalInterface", LinkageType::External, vec![LinkageType::External]),
+        ]
+    );
 }
 
 mod error_handling {

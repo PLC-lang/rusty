@@ -1,7 +1,7 @@
 RUN: %PLC -c --fpic %S/interface_constructors_lib.st -o %t.lib.o
 RUN: %COMPILE -i %S/interface_constructors_lib.st %S/interface_constructors_main.st %t.lib.o && %RUN | %CHECK %s
 RUN: %COMPILE --generate-external-constructors -i %S/interface_constructors_lib.st %S/interface_constructors_main.st %t.lib.o && %RUN | %CHECK %s
-RUN: sed -E 's/^(TYPE|INTERFACE|FUNCTION_BLOCK) /{external} \1 /' %S/interface_constructors_lib.st > %t.external.st
+RUN: sed -E 's/^(TYPE|INTERFACE|FUNCTION_BLOCK|FUNCTION) /{external} \1 /' %S/interface_constructors_lib.st > %t.external.st
 RUN: %COMPILE %t.external.st %S/interface_constructors_main.st %t.lib.o && %RUN | %CHECK %s
 
 interface_constructors_lib.st declares interfaces whose methods and properties
