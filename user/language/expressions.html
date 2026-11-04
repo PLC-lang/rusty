@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-7b4ae53a.js";
+            window.path_to_searchindex_js = "../../searchindex-d05f60b7.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d30be1ae.js"></script>
+        <script src="../../toc-e5f95eb2.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -244,6 +244,16 @@ d := i * j;   (* 60000, because the product is computed in 32 bits *)
 k := i * j;   (* -5536, the same product cut down to the 16 bits of k *)
 s := i;       (* warning[E067]: Implicit downcast from 'INT' to 'SINT'. *)
 </code></pre>
+<p>A signed and an unsigned operand are computed in a signed type. When that type is no wider than the unsigned operand, a large unsigned value turns negative before the operation sees it. The compiler warns at that operand (E161), and when a signed result moves to an unsigned target (E160):</p>
+<pre><code class="language-iecst">VAR
+    signed: DINT := 1;
+    unsigned: UDINT := 3000000000;
+    smaller: BOOL;
+END_VAR
+
+smaller := signed &lt; unsigned;   (* warning[E161]: Operand of type 'UDINT' is converted to 'DINT', which may change its sign. *)
+</code></pre>
+<p>The comparison is <code>FALSE</code>, because 3000000000 is read as the <code>DINT</code> -1294967296. Convert both operands to a type that holds both, such as <code>LINT</code>, when the values can be that large.</p>
 <p>An integer and a real mix the same way, and the expression is then computed in the real type. The <a href="basic-types.html">basic types</a> chapter shows what each conversion costs.</p>
 <h2 id="calls-in-expressions"><a class="header" href="#calls-in-expressions">Calls in expressions</a></h2>
 <p>A function call is an expression, so it can appear anywhere a value can:</p>

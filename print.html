@@ -37,10 +37,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-7b4ae53a.js";
+            window.path_to_searchindex_js = "searchindex-d05f60b7.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-d30be1ae.js"></script>
+        <script src="toc-e5f95eb2.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -535,7 +535,7 @@ END_VAR
 <pre><code class="language-iecst">VAR
     name: STRING := 3;                          (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING' *)
     count: DINT := TRUE;                        (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
-    half: INT := 1.5;                           (* warning[E067]: Implicit downcast from 'REAL' to 'INT'. *)
+    half: INT := 1.5;                           (* warning[E163]: Implicit conversion from 'REAL' to 'INT' truncates the value. *)
     levels: ARRAY[0..1] OF REAL := [1, TRUE];   (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'REAL' *)
 END_VAR
 </code></pre>
@@ -597,10 +597,10 @@ END_VAR
 count := ready;                 (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
 count := BOOL_TO_DINT(ready);   (* 1 when ready is TRUE, 0 otherwise *)
 </code></pre>
-<p>The other direction takes the digits <code>0</code> and <code>1</code>, which are the two <code>BOOL</code> values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning. Like every downcast it keeps the low bits of the value, so it does not test “is not zero”. Write the comparison when that is what you mean:</p>
+<p>The other direction takes the digits <code>0</code> and <code>1</code>, which are the two <code>BOOL</code> values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning (E067) and a warning that a number is used as a <code>BOOL</code> (E165). Like every downcast it keeps the low bits of the value, so it does not test “is not zero”. Write the comparison when that is what you mean:</p>
 <pre><code class="language-iecst">ready := 1;             (* TRUE *)
 ready := 5;             (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL' *)
-ready := count;         (* warning[E067]: Implicit downcast from 'DINT' to 'BOOL'. *)
+ready := count;         (* warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type. *)
 ready := count &lt;&gt; 0;    (* the test, and it says so *)
 </code></pre>
 <h2 id="bit-strings"><a class="header" href="#bit-strings">Bit strings</a></h2>
@@ -657,7 +657,18 @@ tiny := small;   (* warning[E067]: Implicit downcast from 'INT' to 'SINT'. *)
 <p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
 <p>The conversion functions live in the standard library, so a project that calls one, for example <code>INT_TO_SINT</code>, must link <code>iec61131std</code>. See <a href="#linking-and-libraries">Linking and Libraries</a>.</p>
 </blockquote>
-<p>A value also crosses between the two families. An integer becomes a real without any warning, although a large <code>DINT</code> loses digits on the way. A real becomes an integer with the same downcast warning, and the fraction is cut off. Two standard functions say which result you want:</p>
+<p>A conversion between a signed and an unsigned type warns as well when the target cannot hold every value of the source, even when it is not narrower. A negative value becomes a large positive one, and a large unsigned value becomes negative. The bit strings count as unsigned. An integer literal without a type is judged by its value, so <code>5</code> fits an unsigned type and <code>-1</code> does not:</p>
+<pre><code class="language-iecst">VAR
+    offset: DINT := -1;
+    count: UDINT;
+    wide: LINT;
+END_VAR
+
+count := offset;   (* warning[E160]: Implicit conversion from 'DINT' to 'UDINT' may change the sign. *)
+count := 5;        (* fine, the value fits *)
+wide := count;     (* fine, every UDINT fits in a LINT *)
+</code></pre>
+<p>A value also crosses between the two families. An integer becomes a real without a warning as long as the real holds every value of the integer, which a <code>REAL</code> does up to <code>INT</code> and <code>UINT</code> and an <code>LREAL</code> up to <code>DINT</code> and <code>UDINT</code>. A wider integer loses digits on the way and warns (E162). A real becomes an integer with the same downcast warning, and a second one that the fraction is cut off (E163). Two standard functions say which result you want:</p>
 <pre><code class="language-iecst">VAR
     r: REAL := 2.7;
     n: DINT;
@@ -837,6 +848,7 @@ IF a &gt; b THEN          (* TRUE *)
 <p>The compiler carries these operations out with the standard library, <code>ADD_DT_TIME</code> for <code>DATE_AND_TIME + TIME</code>, <code>MUL_TIME__LINT</code> for <code>TIME * n</code>, and so on, so a project that calculates with time values must link <code>iec61131std</code> (see <a href="#linking-and-libraries">Linking and Libraries</a>). Each of these functions can also be called directly.</p>
 <p>A duration plus or minus a bare integer compiles too, and reads the integer as what the type counts: <code>cycle + 5</code> adds five milliseconds to a <code>TIME</code> and five nanoseconds to an <code>LTIME</code>. The compiler warns about it (E157), because the unit is only implied; <code>cycle + T#5ms</code> says the same without the warning.</p>
 <p>A negative duration does not fit into the unsigned <code>TIME</code>. A literal such as <code>T#-10s</code> still compiles, but the compiler warns about an underflow and the value wraps around to a large positive duration. Use <code>LTIME</code> when a duration must be able to go below zero: <code>LT#-10s</code> is a negative <code>LTIME</code> and gets no warning.</p>
+<p>A time value and a number do not convert into each other by themselves. An assignment from one to the other compiles with a warning (E164), and so does a comparison or a bitwise operation that combines them, because the number has no unit. A short type mixed with a long one in such an operation warns the same way.</p>
 <p>To read a time value as a number, convert it with a cast. <code>DINT#cycle</code> gives the milliseconds of a <code>TIME</code>, because that is what the type holds.</p>
 <p>The standard library converts between the families and to text, for example <code>TIME_TO_LTIME</code> and <code>TIME_TO_STRING</code>, and it brings the timers <code>TON</code>, <code>TOF</code>, and <code>TP</code>, which are function blocks. The <a href="#standard-library">standard library reference</a> lists them.</p>
 <h2 id="whats-next-7"><a class="header" href="#whats-next-7">What’s next</a></h2>
@@ -1013,6 +1025,16 @@ d := i * j;   (* 60000, because the product is computed in 32 bits *)
 k := i * j;   (* -5536, the same product cut down to the 16 bits of k *)
 s := i;       (* warning[E067]: Implicit downcast from 'INT' to 'SINT'. *)
 </code></pre>
+<p>A signed and an unsigned operand are computed in a signed type. When that type is no wider than the unsigned operand, a large unsigned value turns negative before the operation sees it. The compiler warns at that operand (E161), and when a signed result moves to an unsigned target (E160):</p>
+<pre><code class="language-iecst">VAR
+    signed: DINT := 1;
+    unsigned: UDINT := 3000000000;
+    smaller: BOOL;
+END_VAR
+
+smaller := signed &lt; unsigned;   (* warning[E161]: Operand of type 'UDINT' is converted to 'DINT', which may change its sign. *)
+</code></pre>
+<p>The comparison is <code>FALSE</code>, because 3000000000 is read as the <code>DINT</code> -1294967296. Convert both operands to a type that holds both, such as <code>LINT</code>, when the values can be that large.</p>
 <p>An integer and a real mix the same way, and the expression is then computed in the real type. The <a href="#basic-types">basic types</a> chapter shows what each conversion costs.</p>
 <h2 id="calls-in-expressions"><a class="header" href="#calls-in-expressions">Calls in expressions</a></h2>
 <p>A function call is an expression, so it can appear anywhere a value can:</p>
@@ -1563,6 +1585,10 @@ FUNCTION main: DINT
 END_FUNCTION
 </code></pre>
 <p>An integer argument for an <code>ANY_REAL</code> constraint is the one exception. The compiler converts it to a floating-point type and resolves the call with that type, so a <code>&lt;T: ANY_REAL&gt;</code> function called with a <code>DINT</code> resolves to its <code>REAL</code> version.</p>
+<blockquote class="blockquote-tag blockquote-tag-note">
+<p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p>A 32-bit integer converted to <code>REAL</code>, or a 64-bit integer converted to <code>LREAL</code>, warns that it may lose precision (E162), as any such conversion does. The standard functions declared for <code>ANY_REAL</code>, such as <code>SQRT</code> and <code>LN</code>, are meant to take integers as well, so for them the warning is a known false positive: <code>SQRT(count)</code> for a <code>DINT</code> <code>count</code> warns, <code>SQRT(DINT_TO_LREAL(count))</code> does not.</p>
+</blockquote>
 <p><code>ANY</code> accepts every type, so a call with a type that has no implementation passes the compiler and fails at the link step:</p>
 <pre><code class="language-iecst">TYPE Point:
     STRUCT
@@ -2977,15 +3003,16 @@ plc build src/plc.json    # reads the given file
 </thead>
 <tbody>
 <tr><td><code>ABS(IN)</code></td><td><code>IN: ANY_NUM</code></td><td>The type of <code>IN</code></td><td>The value without its sign</td></tr>
-<tr><td><code>ADD(...)</code></td><td>Two or more numbers or date and time values</td><td>The biggest argument type, or the date and time result</td><td>The sum</td></tr>
-<tr><td><code>MUL(...)</code></td><td>Two or more numbers or durations</td><td>The biggest argument type, or the date and time result</td><td>The product</td></tr>
-<tr><td><code>SUB(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 - IN2</code></td></tr>
-<tr><td><code>DIV(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 / IN2</code></td></tr>
+<tr><td><code>ADD(...)</code></td><td>Two or more numbers, bit strings, or date and time values</td><td>The biggest argument type, or the date and time result</td><td>The sum</td></tr>
+<tr><td><code>MUL(...)</code></td><td>Two or more numbers, bit strings, or durations</td><td>The biggest argument type, or the date and time result</td><td>The product</td></tr>
+<tr><td><code>SUB(IN1, IN2)</code></td><td>Numbers, bit strings, or date and time values</td><td>The biggest argument type, or the date and time result</td><td><code>IN1 - IN2</code></td></tr>
+<tr><td><code>DIV(IN1, IN2)</code></td><td>Numbers, bit strings, or durations</td><td>The biggest argument type, or the date and time result</td><td><code>IN1 / IN2</code></td></tr>
 <tr><td><code>MOD(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY_NUM</code>, or two durations of the same type</td><td>The biggest argument type, or the duration type</td><td><code>IN1 MOD IN2</code></td></tr>
 </tbody>
 </table>
 </div>
-<p>With a date or time argument, <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, and <code>DIV</code> take the combinations of <a href="#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. An argument that is neither a number nor part of a defined combination is rejected (E156). <code>MOD</code> takes numbers, or two <code>TIME</code> or two <code>LTIME</code> values: <code>MOD(T#7s, T#3s)</code> is <code>T#1s</code>. It rejects an argument of any other type (E062), and a duration paired with a number or with the other duration type, such as <code>TIME</code> with <code>DINT</code> or with <code>LTIME</code> (E156).</p>
+<p>With a date or time argument, <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, and <code>DIV</code> take the combinations of <a href="#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. A bit string, such as <code>DWORD</code>, is used as in the operator: <code>SUB(mask, 1)</code> is <code>mask - 1</code>. <code>BOOL</code> is not accepted. An argument that is neither a number nor a bit string, and not part of a defined combination, is rejected (E156). <code>MOD</code> takes numbers, or two <code>TIME</code> or two <code>LTIME</code> values: <code>MOD(T#7s, T#3s)</code> is <code>T#1s</code>. It rejects an argument of any other type (E062), and a duration paired with a number or with the other duration type, such as <code>TIME</code> with <code>DINT</code> or with <code>LTIME</code> (E156).</p>
+<p>These functions, the comparison functions and the bitwise functions convert their arguments like the operands of the operator, so <code>ADD(a, b)</code> warns where <code>a + b</code> warns: a <code>UDINT</code> combined with a <code>DINT</code>, for example, is converted to <code>DINT</code> (E161).</p>
 <h3 id="comparison-2"><a class="header" href="#comparison-2">Comparison</a></h3>
 <div class="table-wrapper">
 <table>
@@ -5125,6 +5152,127 @@ END_FUNCTION
 <p>Use <code>plc explain E126</code> for the rules and how to fix the error. Ignoring E126 with <code>--error-config</code>
 does not hide this note; ignore E159 as well.</p>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e160---implicit-conversion-may-change-the-sign"><a class="header" href="#e160---implicit-conversion-may-change-the-sign">E160 - Implicit conversion may change the sign</a></h1>
+<p>A value is converted implicitly to an integer type that cannot hold every value of the source type, and
+the two types differ in their sign. A negative value of a signed type is read as a large positive value
+by an unsigned or bit type, and a large unsigned value is read as a negative value by a signed type of the
+same size or smaller. Bit types (<code>BYTE</code>, <code>WORD</code>, <code>DWORD</code>, <code>LWORD</code>) count as unsigned.</p>
+<p>An untyped integer literal is judged by its value. <code>5</code> can be assigned to an unsigned type, <code>-1</code> cannot.
+A literal with a type, such as <code>DINT#5</code>, is judged by its type.</p>
+<p>Code example:</p>
+<pre><code class="language-iecst">PROGRAM mainProg
+VAR
+    signed : DINT := -1;
+    unsigned : UDINT;
+END_VAR
+    unsigned := signed;     // warning: DINT to UDINT
+    unsigned := -1;         // warning: the literal is negative
+    unsigned := unsigned + 1;
+END_PROGRAM
+</code></pre>
+<p>To silence the warning, convert explicitly:</p>
+<pre><code class="language-iecst">    unsigned := DINT_TO_UDINT(signed);
+</code></pre>
+<p>A conversion that narrows the type is reported by E067 as well. When the value is the result of an
+operation whose operand changes its sign, the operand is reported by E161 and the result is not reported.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e161---operand-converted-to-a-type-of-the-other-sign"><a class="header" href="#e161---operand-converted-to-a-type-of-the-other-sign">E161 - Operand converted to a type of the other sign</a></h1>
+<p>An operation combines a signed and an unsigned operand, so the compiler converts the unsigned operand to
+the signed type that the operation works in. If the signed type cannot hold every value of the unsigned
+type, the conversion may change the value of the operand. For example, comparing a <code>DINT</code> with a <code>UDINT</code>
+reads the <code>UDINT</code> as a <code>DINT</code>, so <code>3000000000</code> becomes <code>-1294967296</code>. Bit types (<code>BYTE</code>, <code>WORD</code>, <code>DWORD</code>,
+<code>LWORD</code>) count as unsigned.</p>
+<p>Code example:</p>
+<pre><code class="language-iecst">PROGRAM mainProg
+VAR
+    signed : DINT := 1;
+    unsigned : UDINT := 3000000000;
+    result : BOOL;
+END_VAR
+    result := signed &lt; unsigned;   // warning: UDINT is converted to DINT, result is FALSE
+END_PROGRAM
+</code></pre>
+<p>To silence the warning, convert both operands to a type that holds every value of both:</p>
+<pre><code class="language-iecst">    result := DINT_TO_LINT(signed) &lt; UDINT_TO_LINT(unsigned);
+</code></pre>
+<p>When the result of the operation is assigned, it is not reported again by E160.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e162---implicit-integer-to-float-conversion-may-lose-precision"><a class="header" href="#e162---implicit-integer-to-float-conversion-may-lose-precision">E162 - Implicit integer to float conversion may lose precision</a></h1>
+<p>An integer is converted implicitly to a floating point type that cannot represent every value of the
+integer type. <code>REAL</code> represents integers up to 24 bits exactly, and <code>LREAL</code> up to 53 bits. Larger values
+are rounded.</p>
+<p>Code example:</p>
+<pre><code class="language-iecst">PROGRAM mainProg
+VAR
+    count : DINT := 16777217;
+    value : REAL;
+END_VAR
+    value := count;     // warning: 16777217 becomes 16777216.0
+END_PROGRAM
+</code></pre>
+<p>To silence the warning, convert explicitly:</p>
+<pre><code class="language-iecst">    value := DINT_TO_REAL(count);
+</code></pre>
+<p>An integer passed to a generic function declared for <code>ANY_REAL</code> is converted the same way and warns as well. For the standard functions that are meant to take integers, such as <code>SQRT</code> and <code>LN</code>, this is a known false positive.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e163---implicit-float-to-integer-conversion-truncates"><a class="header" href="#e163---implicit-float-to-integer-conversion-truncates">E163 - Implicit float to integer conversion truncates</a></h1>
+<p>A floating point value is converted implicitly to an integer type. The fractional part is lost, and a
+value outside the range of the integer type has no defined result.</p>
+<p>Code example:</p>
+<pre><code class="language-iecst">PROGRAM mainProg
+VAR
+    measured : REAL := 2.7;
+    whole : LINT;
+END_VAR
+    whole := measured;     // warning: the result is 2
+END_PROGRAM
+</code></pre>
+<p>To silence the warning, convert explicitly:</p>
+<pre><code class="language-iecst">    whole := REAL_TO_LINT(measured);
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e164---implicit-conversion-between-time-or-date-and-other-types"><a class="header" href="#e164---implicit-conversion-between-time-or-date-and-other-types">E164 - Implicit conversion between time or date and other types</a></h1>
+<p>The types <code>TIME</code>, <code>LTIME</code>, <code>DATE</code>, <code>TIME_OF_DAY</code>, <code>DATE_AND_TIME</code> and their long variants do not convert
+implicitly to numbers or to each other. Their values count in a unit that the number does not show.</p>
+<p>The warning is reported where such a value is assigned, and at the operand where a comparison, <code>MOD</code> or a
+bitwise operation combines a time or date with another type.</p>
+<p>Code example:</p>
+<pre><code class="language-iecst">PROGRAM mainProg
+VAR
+    duration : TIME;
+    milliseconds : DINT := 1500;
+    expired : BOOL;
+END_VAR
+    duration := milliseconds;              // warning
+    duration := 5000;                      // warning
+    expired := duration &gt; milliseconds;    // warning at milliseconds
+END_PROGRAM
+</code></pre>
+<p>To silence the warning, use a literal or a conversion function that names the unit:</p>
+<pre><code class="language-iecst">    duration := T#1500ms;
+    duration := DINT_TO_TIME(milliseconds);
+    expired := duration &gt; DINT_TO_TIME(milliseconds);
+</code></pre>
+<p>Adding a number to a duration or subtracting one from it is reported by E157. Scaling a duration by a
+number, such as <code>duration * 2</code> or <code>duration / 1.5</code>, converts nothing and is not reported.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e165---implicit-conversion-between-bool-and-numbers"><a class="header" href="#e165---implicit-conversion-between-bool-and-numbers">E165 - Implicit conversion between BOOL and numbers</a></h1>
+<p>A number is assigned to a <code>BOOL</code>. The value is not limited to 0 and 1, so the result depends on the
+representation of the number. The literals <code>0</code> and <code>1</code> are accepted.</p>
+<p>Code example:</p>
+<pre><code class="language-iecst">PROGRAM mainProg
+VAR
+    flags : BYTE := 2;
+    active : BOOL;
+END_VAR
+    active := flags;        // warning
+    active := flags &lt;&gt; 0;
+END_PROGRAM
+</code></pre>
+<p>To silence the warning, compare the number explicitly:</p>
+<pre><code class="language-iecst">    active := flags &lt;&gt; 0;
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="overview"><a class="header" href="#overview">Overview</a></h1>
 <p>RuSTy compiles IEC 61131-3 Structured Text into machine code, with LLVM as its back end. This book explains how the compiler works, from source text to linked binary.</p>
 <p>The compiler is a pipeline of stages. Each stage takes the result of the previous one and adds to it.</p>
@@ -5947,6 +6095,7 @@ END_FUNCTION
 <p>POU checks depend on the kind. A program cannot return a value, and a class cannot have input or output parameters. Inheritance checks require existing base types and interfaces, matching method signatures, and implementations for abstract methods.</p>
 <p>Variable checks cover declared types, initializer compatibility, constant array bounds, and names that shadow base members. They also check restrictions on constant function block instances. The statement visitor checks initializers because they are expressions.</p>
 <p>An implementation is walked statement by statement. The visitor is recursive and mirrors the tree: it visits the children of a node first, then applies the checks for the node itself. A reference is checked for resolution, visibility, and pointer access. An assignment compares the type of the value with the hint the resolver attached to it. A call is matched against the parameters of the callee from the index: argument count, direction of <code>:=</code> and <code>=&gt;</code>, by-reference arguments, and required <code>VAR_IN_OUT</code> arguments. A binary expression with a date or time operand is checked against the table of combinations the standard defines: an undefined one is E156, a defined one whose standard library function is not declared is E073, and a duration combined with a bare integer warns with E157; the builtins <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> apply the same check to their arguments, folded from the left, and report E156 as well for an argument that is neither a number nor a date or time value.</p>
+<p>Where the type of a value differs from its hint, the value is converted, and a conversion that can change the value warns: a change of sign (E160), an integer that the float cannot hold exactly (E162), a float that loses its fraction (E163), a time or date mixed with another type (E164), and a number used as a <code>BOOL</code> (E165). The check runs at every assignment, argument and initializer, next to the size check of E067, and at both operands of a binary expression, where a sign change is E161. An operand that is reported keeps the result of its expression from being reported again. An untyped integer literal and a constant with a literal value are judged by their value instead of their type. An argument passed by reference is not converted. A builtin that the resolver replaces with an operation, such as <code>ADD(a, b)</code> with <code>a + b</code>, is checked through that operation, so it warns like the operator.</p>
 <p>That match takes the parameter at the place of the argument in the call. The <a href="#calls-1">resolver</a> and codegen take the first parameter that no name claims, which is a different parameter as soon as a call mixes named and positional arguments. The by-reference checks therefore read a mixed call of a POU with a by-reference parameter against the wrong parameter: they report an argument that the resolver binds to an input, and they pass a value that the resolver binds to a <code>VAR_IN_OUT</code>. Control statements check their conditions and walk their bodies. For</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK Buffer
     VAR_INPUT
@@ -10074,7 +10223,7 @@ END_PROGRAM
     pct := i;
            ^          Variable "DINT"   hint Argument "INT", position 0, pou CheckRangeSigned
 </code></pre>
-<p>The second line shows a hint that was replaced: <code>pct</code> is a subrange of <code>INT</code>, so the value is not hinted to <code>Percent</code> but to the parameter of the range check function the hidden call below inserts. Codegen compares annotation and hint and emits the conversion (see <a href="#the-type-hint-decides-the-conversion">Codegen</a>); the validator compares them to report the implicit downcast (E067).</p>
+<p>The second line shows a hint that was replaced: <code>pct</code> is a subrange of <code>INT</code>, so the value is not hinted to <code>Percent</code> but to the parameter of the range check function the hidden call below inserts. Codegen compares annotation and hint and emits the conversion (see <a href="#the-type-hint-decides-the-conversion">Codegen</a>); the validator compares them to report the implicit downcast (E067) and the conversions that can change the value (E160 to E165).</p>
 <h2 id="hidden-function-calls"><a class="header" href="#hidden-function-calls">Hidden function calls</a></h2>
 <p>An assignment to a subrange such as <code>INT(0..100)</code> can call a range-check function. The signedness and the width of the type choose the name: <code>CheckRangeSigned</code> and <code>CheckRangeUnsigned</code> up to 32 bits, <code>CheckLRangeSigned</code> and <code>CheckLRangeUnsigned</code> above. If the project declares that function, the resolver builds a call with the value and bounds. It annotates the call and stores it under the assigned value’s node ID. The original value keeps its annotation.</p>
 <p>When codegen stores into a subrange variable, it asks the table and generates the call in place of the value. Without the function declared, the store is plain.</p>

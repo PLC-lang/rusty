@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-7b4ae53a.js";
+            window.path_to_searchindex_js = "../../searchindex-d05f60b7.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d30be1ae.js"></script>
+        <script src="../../toc-e5f95eb2.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -229,6 +229,10 @@ FUNCTION main: DINT
 END_FUNCTION
 </code></pre>
 <p>An integer argument for an <code>ANY_REAL</code> constraint is the one exception. The compiler converts it to a floating-point type and resolves the call with that type, so a <code>&lt;T: ANY_REAL&gt;</code> function called with a <code>DINT</code> resolves to its <code>REAL</code> version.</p>
+<blockquote class="blockquote-tag blockquote-tag-note">
+<p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p>A 32-bit integer converted to <code>REAL</code>, or a 64-bit integer converted to <code>LREAL</code>, warns that it may lose precision (E162), as any such conversion does. The standard functions declared for <code>ANY_REAL</code>, such as <code>SQRT</code> and <code>LN</code>, are meant to take integers as well, so for them the warning is a known false positive: <code>SQRT(count)</code> for a <code>DINT</code> <code>count</code> warns, <code>SQRT(DINT_TO_LREAL(count))</code> does not.</p>
+</blockquote>
 <p><code>ANY</code> accepts every type, so a call with a type that has no implementation passes the compiler and fails at the link step:</p>
 <pre><code class="language-iecst">TYPE Point:
     STRUCT

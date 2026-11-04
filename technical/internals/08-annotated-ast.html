@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-7b4ae53a.js";
+            window.path_to_searchindex_js = "../../searchindex-d05f60b7.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d30be1ae.js"></script>
+        <script src="../../toc-e5f95eb2.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -284,7 +284,7 @@ END_PROGRAM
     pct := i;
            ^          Variable "DINT"   hint Argument "INT", position 0, pou CheckRangeSigned
 </code></pre>
-<p>The second line shows a hint that was replaced: <code>pct</code> is a subrange of <code>INT</code>, so the value is not hinted to <code>Percent</code> but to the parameter of the range check function the hidden call below inserts. Codegen compares annotation and hint and emits the conversion (see <a href="../pipeline/05-codegen.html#the-type-hint-decides-the-conversion">Codegen</a>); the validator compares them to report the implicit downcast (E067).</p>
+<p>The second line shows a hint that was replaced: <code>pct</code> is a subrange of <code>INT</code>, so the value is not hinted to <code>Percent</code> but to the parameter of the range check function the hidden call below inserts. Codegen compares annotation and hint and emits the conversion (see <a href="../pipeline/05-codegen.html#the-type-hint-decides-the-conversion">Codegen</a>); the validator compares them to report the implicit downcast (E067) and the conversions that can change the value (E160 to E165).</p>
 <h2 id="hidden-function-calls"><a class="header" href="#hidden-function-calls">Hidden function calls</a></h2>
 <p>An assignment to a subrange such as <code>INT(0..100)</code> can call a range-check function. The signedness and the width of the type choose the name: <code>CheckRangeSigned</code> and <code>CheckRangeUnsigned</code> up to 32 bits, <code>CheckLRangeSigned</code> and <code>CheckLRangeUnsigned</code> above. If the project declares that function, the resolver builds a call with the value and bounds. It annotates the call and stores it under the assigned value’s node ID. The original value keeps its annotation.</p>
 <p>When codegen stores into a subrange variable, it asks the table and generates the call in place of the value. Without the function declared, the store is plain.</p>

@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-7b4ae53a.js";
+            window.path_to_searchindex_js = "../../searchindex-d05f60b7.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d30be1ae.js"></script>
+        <script src="../../toc-e5f95eb2.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -233,15 +233,16 @@
 </thead>
 <tbody>
 <tr><td><code>ABS(IN)</code></td><td><code>IN: ANY_NUM</code></td><td>The type of <code>IN</code></td><td>The value without its sign</td></tr>
-<tr><td><code>ADD(...)</code></td><td>Two or more numbers or date and time values</td><td>The biggest argument type, or the date and time result</td><td>The sum</td></tr>
-<tr><td><code>MUL(...)</code></td><td>Two or more numbers or durations</td><td>The biggest argument type, or the date and time result</td><td>The product</td></tr>
-<tr><td><code>SUB(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 - IN2</code></td></tr>
-<tr><td><code>DIV(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY</code></td><td>The biggest argument type, or the date and time result</td><td><code>IN1 / IN2</code></td></tr>
+<tr><td><code>ADD(...)</code></td><td>Two or more numbers, bit strings, or date and time values</td><td>The biggest argument type, or the date and time result</td><td>The sum</td></tr>
+<tr><td><code>MUL(...)</code></td><td>Two or more numbers, bit strings, or durations</td><td>The biggest argument type, or the date and time result</td><td>The product</td></tr>
+<tr><td><code>SUB(IN1, IN2)</code></td><td>Numbers, bit strings, or date and time values</td><td>The biggest argument type, or the date and time result</td><td><code>IN1 - IN2</code></td></tr>
+<tr><td><code>DIV(IN1, IN2)</code></td><td>Numbers, bit strings, or durations</td><td>The biggest argument type, or the date and time result</td><td><code>IN1 / IN2</code></td></tr>
 <tr><td><code>MOD(IN1, IN2)</code></td><td><code>IN1</code> and <code>IN2: ANY_NUM</code>, or two durations of the same type</td><td>The biggest argument type, or the duration type</td><td><code>IN1 MOD IN2</code></td></tr>
 </tbody>
 </table>
 </div>
-<p>With a date or time argument, <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, and <code>DIV</code> take the combinations of <a href="../language/time.html#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. An argument that is neither a number nor part of a defined combination is rejected (E156). <code>MOD</code> takes numbers, or two <code>TIME</code> or two <code>LTIME</code> values: <code>MOD(T#7s, T#3s)</code> is <code>T#1s</code>. It rejects an argument of any other type (E062), and a duration paired with a number or with the other duration type, such as <code>TIME</code> with <code>DINT</code> or with <code>LTIME</code> (E156).</p>
+<p>With a date or time argument, <code>ADD</code>, <code>MUL</code>, <code>SUB</code>, and <code>DIV</code> take the combinations of <a href="../language/time.html#calculating">Time and Date</a>, folded from the left, and the result has the type that table gives: <code>ADD(stamp, T#1s, T#2s)</code> is <code>stamp + T#1s + T#2s</code>, a <code>DATE_AND_TIME</code>, and <code>SUB(day1, day2)</code> is a <code>TIME</code>. The compiler carries these operations out with the standard library, such as <code>ADD_DT_TIME</code>, so such a call needs <code>iec61131std</code> linked. A bit string, such as <code>DWORD</code>, is used as in the operator: <code>SUB(mask, 1)</code> is <code>mask - 1</code>. <code>BOOL</code> is not accepted. An argument that is neither a number nor a bit string, and not part of a defined combination, is rejected (E156). <code>MOD</code> takes numbers, or two <code>TIME</code> or two <code>LTIME</code> values: <code>MOD(T#7s, T#3s)</code> is <code>T#1s</code>. It rejects an argument of any other type (E062), and a duration paired with a number or with the other duration type, such as <code>TIME</code> with <code>DINT</code> or with <code>LTIME</code> (E156).</p>
+<p>These functions, the comparison functions and the bitwise functions convert their arguments like the operands of the operator, so <code>ADD(a, b)</code> warns where <code>a + b</code> warns: a <code>UDINT</code> combined with a <code>DINT</code>, for example, is converted to <code>DINT</code> (E161).</p>
 <h3 id="comparison"><a class="header" href="#comparison">Comparison</a></h3>
 <div class="table-wrapper">
 <table>

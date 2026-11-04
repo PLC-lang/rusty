@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-7b4ae53a.js";
+            window.path_to_searchindex_js = "../../searchindex-d05f60b7.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d30be1ae.js"></script>
+        <script src="../../toc-e5f95eb2.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -226,10 +226,10 @@ END_VAR
 count := ready;                 (* error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT' *)
 count := BOOL_TO_DINT(ready);   (* 1 when ready is TRUE, 0 otherwise *)
 </code></pre>
-<p>The other direction takes the digits <code>0</code> and <code>1</code>, which are the two <code>BOOL</code> values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning. Like every downcast it keeps the low bits of the value, so it does not test “is not zero”. Write the comparison when that is what you mean:</p>
+<p>The other direction takes the digits <code>0</code> and <code>1</code>, which are the two <code>BOOL</code> values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning (E067) and a warning that a number is used as a <code>BOOL</code> (E165). Like every downcast it keeps the low bits of the value, so it does not test “is not zero”. Write the comparison when that is what you mean:</p>
 <pre><code class="language-iecst">ready := 1;             (* TRUE *)
 ready := 5;             (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL' *)
-ready := count;         (* warning[E067]: Implicit downcast from 'DINT' to 'BOOL'. *)
+ready := count;         (* warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type. *)
 ready := count &lt;&gt; 0;    (* the test, and it says so *)
 </code></pre>
 <h2 id="bit-strings"><a class="header" href="#bit-strings">Bit strings</a></h2>
@@ -286,7 +286,18 @@ tiny := small;   (* warning[E067]: Implicit downcast from 'INT' to 'SINT'. *)
 <p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
 <p>The conversion functions live in the standard library, so a project that calls one, for example <code>INT_TO_SINT</code>, must link <code>iec61131std</code>. See <a href="../building/linking.html">Linking and Libraries</a>.</p>
 </blockquote>
-<p>A value also crosses between the two families. An integer becomes a real without any warning, although a large <code>DINT</code> loses digits on the way. A real becomes an integer with the same downcast warning, and the fraction is cut off. Two standard functions say which result you want:</p>
+<p>A conversion between a signed and an unsigned type warns as well when the target cannot hold every value of the source, even when it is not narrower. A negative value becomes a large positive one, and a large unsigned value becomes negative. The bit strings count as unsigned. An integer literal without a type is judged by its value, so <code>5</code> fits an unsigned type and <code>-1</code> does not:</p>
+<pre><code class="language-iecst">VAR
+    offset: DINT := -1;
+    count: UDINT;
+    wide: LINT;
+END_VAR
+
+count := offset;   (* warning[E160]: Implicit conversion from 'DINT' to 'UDINT' may change the sign. *)
+count := 5;        (* fine, the value fits *)
+wide := count;     (* fine, every UDINT fits in a LINT *)
+</code></pre>
+<p>A value also crosses between the two families. An integer becomes a real without a warning as long as the real holds every value of the integer, which a <code>REAL</code> does up to <code>INT</code> and <code>UINT</code> and an <code>LREAL</code> up to <code>DINT</code> and <code>UDINT</code>. A wider integer loses digits on the way and warns (E162). A real becomes an integer with the same downcast warning, and a second one that the fraction is cut off (E163). Two standard functions say which result you want:</p>
 <pre><code class="language-iecst">VAR
     r: REAL := 2.7;
     n: DINT;
