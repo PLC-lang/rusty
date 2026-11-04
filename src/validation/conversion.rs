@@ -83,20 +83,12 @@ pub(super) fn validate_assignment_conversions<T: AnnotationMap>(
 }
 
 /// Whether the arguments of the call are not converted to its parameters: a builtin operator call, such as
-/// `ADD(a, b)`, is evaluated as its operation `a + b`, and the shift count of a bit shift counts bits
+/// `ADD(a, b)`, is evaluated as its operation `a + b`
 pub(super) fn skips_argument_conversions<T: AnnotationMap>(
     call: &AstNode,
     context: &ValidationContext<T>,
 ) -> bool {
-    let AstStatement::CallStatement(CallStatement { operator, .. }) = call.get_stmt() else {
-        return false;
-    };
-
-    // generic functions are called by the name of their implementation, such as `ROL__BYTE`
-    let name = operator.get_flat_reference_name().unwrap_or_default();
-    let generic_name = name.split("__").next().unwrap_or_default();
     operation_of(call, context).is_some()
-        || ["SHL", "SHR", "ROL", "ROR"].iter().any(|shift| generic_name.eq_ignore_ascii_case(shift))
 }
 
 /// Reports the operands of the operation that a builtin operator call is evaluated as, like the operands of
