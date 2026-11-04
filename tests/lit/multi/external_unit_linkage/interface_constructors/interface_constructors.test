@@ -1,0 +1,49 @@
+RUN: %PLC -c --fpic "%S/lib/*.st" -o %t.lib.o
+RUN: %COMPILE -i "%S/lib/*.st" "%S/app/*.st" %t.lib.o && %RUN | %CHECK %s
+RUN: %COMPILE --generate-external-constructors -i "%S/lib/*.st" "%S/app/*.st" %t.lib.o && %RUN | %CHECK %s
+RUN: sed -E 's/^(TYPE|INTERFACE|FUNCTION_BLOCK|FUNCTION) /{external} \1 /' %S/lib/*.st > %t.external.st
+RUN: %COMPILE %t.external.st "%S/app/*.st" %t.lib.o && %RUN | %CHECK %s
+
+The library in lib/ declares interfaces whose methods and properties use types
+with constructors: STRING[n], WSTRING[n], ARRAY, subrange, ARRAY OF interface
+and POINTER TO parameters, inputs with default values, STRING[n] and ARRAY
+return values, VAR_OUTPUT and VAR_IN_OUT strings, REFERENCE TO and REF_TO
+parameters, STRING[n] and ARRAY properties with getters and setters, methods
+of extended interfaces (also of an interface that extends two), a WSTRING[n]
+input with a default value and a REFERENCE TO interface parameter.
+IDeclaredOnly has no implementor and adds an inline enum parameter, inline
+nested arrays, a REFERENCE TO return value, an ARRAY[*] OF STRING[n] parameter
+and pointers to inline arrays.
+The library is compiled to its own object. The program in app/ includes it,
+links that object, and calls through the interfaces into library types and into
+program types. Only the library object may define the constructors of these
+parameter types.
+
+The last build compiles the declarations of the library as source, with each
+one marked {external}. It must give the same result as -i.
+
+CHECK: 3
+CHECK: abc
+CHECK: 3
+CHECK: abc cut
+CHECK: 42
+CHECK: abc
+CHECK: 7
+CHECK: renamed
+CHECK: 105
+CHECK: abc
+CHECK: 105
+CHECK: mhead mtail
+CHECK: 141
+CHECK: mref
+CHECK: 107
+CHECK: M-renamed
+CHECK: 104 30 grid pw
+CHECK: 0 given
+CHECK: 1 2 3
+CHECK: set 7 8
+CHECK: 1104 1030 mgrid mpw
+CHECK: 1000 given
+CHECK: 1001 1002 1003
+CHECK: set 1007 1008
+CHECK: 1113 2226

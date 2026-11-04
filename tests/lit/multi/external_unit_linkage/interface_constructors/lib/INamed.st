@@ -1,0 +1,7 @@
+INTERFACE INamed EXTENDS IText
+    METHOD rename : DINT
+    VAR_INPUT
+        n : STRING[20];
+    END_VAR
+    END_METHOD
+END_INTERFACE

@@ -1,0 +1,36 @@
+RUN: %PLC -c --fpic "%S/lib/*.st" -o %t.lib.o
+RUN: %COMPILE -i "%S/lib/*.st" "%S/app/*.st" %t.lib.o && %RUN | %CHECK %s
+RUN: %COMPILE --generate-external-constructors -i "%S/lib/*.st" "%S/app/*.st" %t.lib.o && %RUN | %CHECK %s
+RUN: mkdir -p %t.d
+RUN: %PLC --constructors-only -c --fpic %S/includer/includer.st -i "%S/lib/*.st" -o %t.d/a.o
+RUN: %PLC -c --single-module --fpic %S/includer/includer.st -i "%S/lib/*.st" -o %t.d/b.o
+RUN: %PLC -c --fpic %S/includer/includer.st -i "%S/lib/*.st" -o %t.d/c.o
+RUN: cc -shared %t.d/a.o %t.d/b.o -o %t.d/libab.so
+RUN: cc -shared %t.d/a.o %t.d/c.o -o %t.d/libac.so
+
+The library in lib/ is compiled to its own object. It declares an abstract
+function block that implements an interface, an abstract class, final and
+overriding methods, STRING[n] and ARRAY properties, a program with a method and
+an action, a function block with an action, inline types in members, method
+locals, VAR_TEMP, function locals and globals, nested inline types in a TYPE,
+an array of function blocks, and a generic function. The program in app/
+includes it, links that object, and extends the abstract function block. Then
+objects built from includer/ that include the library are linked into one
+shared library without the library object. Only the library object may define
+the symbols generated for these declarations.
+
+CHECK: 18 3 4
+CHECK: sq
+CHECK: 12 3 6
+CHECK: 4 2 4
+CHECK: init
+CHECK: changed 5 6
+CHECK: 4 cd
+CHECK: 0
+CHECK: 12 3 b
+CHECK: 0
+CHECK: 21 11
+CHECK: global y 1 4 5
+CHECK: 7 q text
+CHECK: 17
+CHECK: 8
