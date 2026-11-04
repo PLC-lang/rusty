@@ -95,7 +95,8 @@ pub(super) fn skips_argument_conversions<T: AnnotationMap>(
     // generic functions are called by the name of their implementation, such as `ROL__BYTE`
     let name = operator.get_flat_reference_name().unwrap_or_default();
     let generic_name = name.split("__").next().unwrap_or_default();
-    operation_of(call, context).is_some() || matches!(generic_name, "SHL" | "SHR" | "ROL" | "ROR")
+    operation_of(call, context).is_some()
+        || ["SHL", "SHR", "ROL", "ROR"].iter().any(|shift| generic_name.eq_ignore_ascii_case(shift))
 }
 
 /// Reports the operands of the operation that a builtin operator call is evaluated as, like the operands of
@@ -192,7 +193,9 @@ fn validate_expression_conversions<T: AnnotationMap>(
 
         // the selector of SEL and MUX is never assigned to the target
         AstStatement::CallStatement(CallStatement { operator, parameters: Some(parameters) })
-            if matches!(operator.get_flat_reference_name().unwrap_or_default(), "MUX" | "SEL") =>
+            if ["MUX", "SEL"].iter().any(|name| {
+                operator.get_flat_reference_name().unwrap_or_default().eq_ignore_ascii_case(name)
+            }) =>
         {
             if let AstStatement::ExpressionList(arguments) = parameters.get_stmt_peeled() {
                 for argument in arguments.iter().skip(1) {
@@ -540,6 +543,6 @@ fn is_size_of(node: &AstNode) -> bool {
     matches!(
         node.get_stmt_peeled(),
         AstStatement::CallStatement(CallStatement { operator, .. })
-            if operator.get_flat_reference_name() == Some("SIZEOF")
+            if operator.get_flat_reference_name().is_some_and(|name| name.eq_ignore_ascii_case("SIZEOF"))
     )
 }
