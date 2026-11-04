@@ -8,7 +8,6 @@ RUN: env LD_LIBRARY_PATH=%STDLIBDIR:%t.d %t.out | %CHECK %s
 RUN: sed -E 's/^(INTERFACE|FUNCTION_BLOCK) /{external} \1 /' %S/lib/*.pli > %t.d/external.pli
 RUN: %PLC --constructors-only -c --fpic %t.d/external.pli -o %t.d/ctors_external.o
 RUN: %COMPILE -i %t.d/external.pli "%S/app/*.st" %t.d/ctors_external.o %t.d/body.o && %RUN | %CHECK %s
-RUN: %COMPILE %t.d/external.pli "%S/app/*.st" %t.d/ctors_external.o %t.d/body.o && %RUN | %CHECK %s
 
 The library in lib/ is written in C: CGreeter.c implements CGreeter, and
 --constructors-only generates the constructors of the declarations in the .pli
@@ -19,8 +18,7 @@ library built from them.
 
 A C library can also mark its declarations {external}. --constructors-only
 still generates all constructors for them, also those of the IGreet parameter
-types, and the program links them, with the declarations included or compiled
-as source.
+types, and the program that includes the declarations links them.
 
 CHECK: 1212
 CHECK: 2534

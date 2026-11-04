@@ -68,7 +68,7 @@ Pre-processing fixes this before indexing starts. It walks each unit, turns ever
 
 The same happens to pointers (`REF_TO INT`) and to the type parameters of generic functions (`__ADD__T` for parameter `T` of `ADD`).
 
-A generated type takes the linkage of its container. The parameter types of a method declared in an interface from an include file or with `{external}` are therefore only declared, like the types of an included or `{external}` POU, and only the object built from the declaring unit defines their constructors.
+A generated type takes the linkage of its container. The parameter types of a method declared in an interface from an include file are therefore only declared, like the types of an included or `{external}` POU, and only the object built from the declaring unit defines their constructors.
 
 Pre-processing also gives enum variants explicit values. `TYPE Speed: (Slow, Normal, Fast := 10); END_TYPE` becomes `Slow := 0, Normal := Speed#Slow + 1, Fast := 10`.
 

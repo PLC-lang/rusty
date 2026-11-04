@@ -1,8 +1,6 @@
 RUN: %PLC -c --fpic "%S/lib/*.st" -o %t.lib.o
 RUN: %COMPILE -i "%S/lib/*.st" "%S/app/*.st" %t.lib.o && %RUN | %CHECK %s
 RUN: %COMPILE --generate-external-constructors -i "%S/lib/*.st" "%S/app/*.st" %t.lib.o && %RUN | %CHECK %s
-RUN: sed -E 's/^(TYPE|INTERFACE|FUNCTION_BLOCK|FUNCTION) /{external} \1 /' %S/lib/*.st > %t.external.st
-RUN: %COMPILE %t.external.st "%S/app/*.st" %t.lib.o && %RUN | %CHECK %s
 
 The library in lib/ declares interfaces whose methods and properties use types
 with constructors: STRING[n], WSTRING[n], ARRAY, subrange, ARRAY OF interface
@@ -18,9 +16,6 @@ The library is compiled to its own object. The program in app/ includes it,
 links that object, and calls through the interfaces into library types and into
 program types. Only the library object may define the constructors of these
 parameter types.
-
-The last build compiles the declarations of the library as source, with each
-one marked {external}. It must give the same result as -i.
 
 CHECK: 3
 CHECK: abc

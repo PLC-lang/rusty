@@ -1,6 +1,7 @@
-use plc_ast::ast::LinkageType;
+use plc_ast::{ast::LinkageType, provider::IdProvider};
+use plc_source::source_location::SourceLocationFactory;
 
-use crate::test_utils::tests::parse;
+use crate::{lexer::lex_with_ids, parser, test_utils::tests::parse};
 
 #[test]
 fn empty_interface() {
@@ -474,9 +475,9 @@ fn interface_with_property() {
 }
 
 #[test]
-fn interfaces_and_their_methods_take_the_linkage_of_the_unit_or_the_external_pragma() {
+fn interfaces_and_their_methods_take_the_linkage_of_their_unit() {
     let source = r"
-    INTERFACE internalInterface
+    INTERFACE includedInterface
         METHOD foo : DINT END_METHOD
     END_INTERFACE
 
@@ -486,7 +487,11 @@ fn interfaces_and_their_methods_take_the_linkage_of_the_unit_or_the_external_pra
     END_INTERFACE
     ";
 
-    let (unit, diagnostics) = parse(source);
+    let (unit, diagnostics) = parser::parse(
+        lex_with_ids(source, IdProvider::default(), SourceLocationFactory::internal(source)),
+        LinkageType::Include,
+        "test.st",
+    );
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
     let linkages = unit
@@ -497,8 +502,8 @@ fn interfaces_and_their_methods_take_the_linkage_of_the_unit_or_the_external_pra
     assert_eq!(
         linkages,
         vec![
-            ("internalInterface", LinkageType::Internal, vec![LinkageType::Internal]),
-            ("externalInterface", LinkageType::External, vec![LinkageType::External]),
+            ("includedInterface", LinkageType::Include, vec![LinkageType::Include]),
+            ("externalInterface", LinkageType::Include, vec![LinkageType::Include]),
         ]
     );
 }

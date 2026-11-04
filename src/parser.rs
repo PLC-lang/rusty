@@ -88,7 +88,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
             }
             KeywordInterface => {
                 // We ignore any method implementations in interfaces as we do not support default impls yet
-                let (interfaces, _) = parse_interface(&mut lexer, linkage);
+                let (interfaces, _) = parse_interface(&mut lexer, lnk);
                 unit.interfaces.push(interfaces);
             }
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
