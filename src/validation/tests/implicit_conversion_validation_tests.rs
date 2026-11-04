@@ -1606,20 +1606,32 @@ fn sizes_do_not_change_sign() {
     ");
 }
 
-/// The shift count of a bit shift counts bits, it is not converted.
+/// The shift count of a bit shift is converted to its `UDINT` parameter like any other argument.
 #[test]
-fn shift_counts_are_not_converted() {
+fn shift_counts_are_converted_to_udint() {
     let diagnostics = in_main(
         "
+        vByte := SHL(vByte, vByte);
+        vDword := SHR(vDword, vUdint);
+        vByte := SHL(vByte, 2);
         vByte := SHL(vByte, vInt);
-        vByte := SHR(vByte, SINT#1);
-        vDword := SHL(vDword, vDint);
-        vByte := shl(vByte, vInt);
-        vByte := Shr(vByte, vInt);
+        vDword := shr(vDword, vLword);
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"");
+    assert_snapshot!(diagnostics, @"
+    warning[E160]: Implicit conversion from 'INT' to 'UDINT' may change the sign.
+       ┌─ <internal>:33:29
+       │
+    33 │         vByte := SHL(vByte, vInt);
+       │                             ^^^^ Implicit conversion from 'INT' to 'UDINT' may change the sign.
+
+    warning[E067]: Implicit downcast from 'LWORD' to 'UDINT'.
+       ┌─ <internal>:34:31
+       │
+    34 │         vDword := shr(vDword, vLword);
+       │                               ^^^^^^ Implicit downcast from 'LWORD' to 'UDINT'.
+    ");
 }
 
 /// An argument passed by reference is not converted; a mismatching type is an invalid argument.
