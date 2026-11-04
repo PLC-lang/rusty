@@ -3173,7 +3173,7 @@ fn to_variable_annotation(
 /// unsigned. A larger literal moves to the 64-bit type of the same kind as the other type, so that
 /// `udint_value + 3000000000` is computed as `ULINT`. Next to a type narrower than `DINT`, or when the value
 /// does not fit, the literal keeps its own type.
-fn get_literal_operand_type<'i>(
+pub(crate) fn get_literal_operand_type<'i>(
     index: &'i Index,
     operand: &AstNode,
     operand_type: &'i typesystem::DataType,

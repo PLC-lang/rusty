@@ -74,11 +74,23 @@ warning[E067]: Implicit downcast from 'REAL' to 'INT'.
 42 │     v_arr_int_3[0] := v_real; // valid
    │                       ^^^^^^ Implicit downcast from 'REAL' to 'INT'.
 
+warning[E163]: Implicit conversion from 'REAL' to 'INT' truncates the value.
+   ┌─ <internal>:42:23
+   │
+42 │     v_arr_int_3[0] := v_real; // valid
+   │                       ^^^^^^ Implicit conversion from 'REAL' to 'INT' truncates the value.
+
 warning[E067]: Implicit downcast from 'REAL' to 'INT'.
    ┌─ <internal>:43:23
    │
 43 │     v_arr_int_3[0] := REAL#2.0; // valid
    │                       ^^^^^^^^ Implicit downcast from 'REAL' to 'INT'.
+
+warning[E163]: Implicit conversion from 'REAL' to 'INT' truncates the value.
+   ┌─ <internal>:43:23
+   │
+43 │     v_arr_int_3[0] := REAL#2.0; // valid
+   │                       ^^^^^^^^ Implicit conversion from 'REAL' to 'INT' truncates the value.
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'INT'
    ┌─ <internal>:44:5

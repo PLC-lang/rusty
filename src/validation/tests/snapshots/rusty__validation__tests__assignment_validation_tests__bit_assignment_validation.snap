@@ -8,11 +8,23 @@ warning[E067]: Implicit downcast from 'LREAL' to 'BYTE'.
 29 │     v_byte := v_lreal; // valid
    │               ^^^^^^^ Implicit downcast from 'LREAL' to 'BYTE'.
 
+warning[E163]: Implicit conversion from 'LREAL' to 'BYTE' truncates the value.
+   ┌─ <internal>:29:15
+   │
+29 │     v_byte := v_lreal; // valid
+   │               ^^^^^^^ Implicit conversion from 'LREAL' to 'BYTE' truncates the value.
+
 warning[E067]: Implicit downcast from 'REAL' to 'BYTE'.
    ┌─ <internal>:30:15
    │
 30 │     v_byte := REAL#2.0; // valid
    │               ^^^^^^^^ Implicit downcast from 'REAL' to 'BYTE'.
+
+warning[E163]: Implicit conversion from 'REAL' to 'BYTE' truncates the value.
+   ┌─ <internal>:30:15
+   │
+30 │     v_byte := REAL#2.0; // valid
+   │               ^^^^^^^^ Implicit conversion from 'REAL' to 'BYTE' truncates the value.
 
 warning[E067]: Implicit downcast from 'UDINT' to 'BYTE'.
    ┌─ <internal>:31:15
@@ -32,11 +44,23 @@ warning[E067]: Implicit downcast from 'DINT' to 'BYTE'.
 33 │     v_byte := v_dint; // valid
    │               ^^^^^^ Implicit downcast from 'DINT' to 'BYTE'.
 
+warning[E160]: Implicit conversion from 'DINT' to 'BYTE' may change the sign.
+   ┌─ <internal>:33:15
+   │
+33 │     v_byte := v_dint; // valid
+   │               ^^^^^^ Implicit conversion from 'DINT' to 'BYTE' may change the sign.
+
 warning[E067]: Implicit downcast from 'DINT' to 'BYTE'.
    ┌─ <internal>:34:15
    │
 34 │     v_byte := DINT#20; // valid
    │               ^^^^^^^ Implicit downcast from 'DINT' to 'BYTE'.
+
+warning[E160]: Implicit conversion from 'DINT' to 'BYTE' may change the sign.
+   ┌─ <internal>:34:15
+   │
+34 │     v_byte := DINT#20; // valid
+   │               ^^^^^^^ Implicit conversion from 'DINT' to 'BYTE' may change the sign.
 
 warning[E067]: Implicit downcast from 'TIME' to 'BYTE'.
    ┌─ <internal>:35:15
@@ -44,11 +68,23 @@ warning[E067]: Implicit downcast from 'TIME' to 'BYTE'.
 35 │     v_byte := v_time; // valid
    │               ^^^^^^ Implicit downcast from 'TIME' to 'BYTE'.
 
+warning[E164]: Implicit conversion from 'TIME' to 'BYTE' mixes time or date types with other types.
+   ┌─ <internal>:35:15
+   │
+35 │     v_byte := v_time; // valid
+   │               ^^^^^^ Implicit conversion from 'TIME' to 'BYTE' mixes time or date types with other types.
+
 warning[E067]: Implicit downcast from 'TIME' to 'BYTE'.
    ┌─ <internal>:36:15
    │
 36 │     v_byte := TIME#10h20m30s; // valid
    │               ^^^^^^^^^^^^^^ Implicit downcast from 'TIME' to 'BYTE'.
+
+warning[E164]: Implicit conversion from 'TIME' to 'BYTE' mixes time or date types with other types.
+   ┌─ <internal>:36:15
+   │
+36 │     v_byte := TIME#10h20m30s; // valid
+   │               ^^^^^^^^^^^^^^ Implicit conversion from 'TIME' to 'BYTE' mixes time or date types with other types.
 
 warning[E067]: Implicit downcast from 'WORD' to 'BYTE'.
    ┌─ <internal>:37:15
@@ -98,17 +134,35 @@ warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
 44 │     v_byte := v_tod; // valid
    │               ^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
 
+warning[E164]: Implicit conversion from 'TIME_OF_DAY' to 'BYTE' mixes time or date types with other types.
+   ┌─ <internal>:44:15
+   │
+44 │     v_byte := v_tod; // valid
+   │               ^^^^^ Implicit conversion from 'TIME_OF_DAY' to 'BYTE' mixes time or date types with other types.
+
 warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
    ┌─ <internal>:45:15
    │
 45 │     v_byte := TOD#15:36:30; // valid
    │               ^^^^^^^^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'BYTE'.
 
+warning[E164]: Implicit conversion from 'TIME_OF_DAY' to 'BYTE' mixes time or date types with other types.
+   ┌─ <internal>:45:15
+   │
+45 │     v_byte := TOD#15:36:30; // valid
+   │               ^^^^^^^^^^^^ Implicit conversion from 'TIME_OF_DAY' to 'BYTE' mixes time or date types with other types.
+
 warning[E067]: Implicit downcast from 'INT' to 'BYTE'.
    ┌─ <internal>:46:15
    │
 46 │     v_byte := v_ptr_int^; // valid
    │               ^^^^^^^^^^ Implicit downcast from 'INT' to 'BYTE'.
+
+warning[E160]: Implicit conversion from 'INT' to 'BYTE' may change the sign.
+   ┌─ <internal>:46:15
+   │
+46 │     v_byte := v_ptr_int^; // valid
+   │               ^^^^^^^^^^ Implicit conversion from 'INT' to 'BYTE' may change the sign.
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:47:5
@@ -121,6 +175,12 @@ warning[E067]: Implicit downcast from 'INT' to 'BYTE'.
    │
 48 │     v_byte := v_arr_int_3[0]; // valid
    │               ^^^^^^^^^^^^^^ Implicit downcast from 'INT' to 'BYTE'.
+
+warning[E160]: Implicit conversion from 'INT' to 'BYTE' may change the sign.
+   ┌─ <internal>:48:15
+   │
+48 │     v_byte := v_arr_int_3[0]; // valid
+   │               ^^^^^^^^^^^^^^ Implicit conversion from 'INT' to 'BYTE' may change the sign.
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'BYTE'
    ┌─ <internal>:49:5
