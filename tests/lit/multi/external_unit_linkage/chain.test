@@ -1,0 +1,25 @@
+RUN: %PLC -c --fpic %S/chain_a.st -o %t.a.o
+RUN: %PLC -c --fpic -i %S/chain_a.st %S/chain_b.st -o %t.b.o
+RUN: %PLC -c --fpic -i %S/chain_a.st -i %S/chain_b.st %S/chain_c.st -o %t.c.o
+RUN: cc -shared %t.b.o %t.c.o -o %t.bc.so
+RUN: nm -D --defined-only %t.bc.so | not grep -E ' __I(Shape|Base)\.'
+RUN: %COMPILE -i %S/chain_a.st -i %S/chain_b.st -i %S/chain_c.st %S/chain_main.st %t.a.o %t.b.o %t.c.o && %RUN | %CHECK %s
+RUN: %COMPILE --generate-external-constructors -i %S/chain_a.st -i %S/chain_b.st -i %S/chain_c.st %S/chain_main.st %t.a.o %t.b.o %t.c.o && %RUN | %CHECK %s
+
+Three libraries are compiled to separate objects. chain_b.st includes
+chain_a.st: it implements an interface of chain_a.st, extends one of its
+interfaces, extends its abstract function block, function block, class and
+property, and has members of its types. chain_c.st includes both and extends a
+function block of chain_b.st that extends chain_a.st. Each object may define
+only the symbols of its own declarations, so the objects of chain_b.st and
+chain_c.st link into one shared library without chain_a.st, and the program
+links all three objects. The shared library must not export the constructors
+of the interface parameter types of chain_a.st.
+
+CHECK: 20 30 40
+CHECK: 40 ft
+CHECK: 23
+CHECK: 11 1 12
+CHECK: 200
+CHECK: child
+CHECK: 92

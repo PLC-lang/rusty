@@ -1,0 +1,16 @@
+RUN: mkdir -p %t.d
+RUN: %PLC --constructors-only -c --fpic %S/interface_c_owner_lib.pli -o %t.d/ctors.o
+RUN: cc -c -fPIC %S/interface_c_owner_lib.c -o %t.d/body.o
+RUN: %COMPILE -i %S/interface_c_owner_lib.pli %S/interface_c_owner_main.st %t.d/ctors.o %t.d/body.o && %RUN | %CHECK %s
+RUN: cc -shared %t.d/ctors.o %t.d/body.o -o %t.d/libgreet.so
+RUN: %COMPILE -i %S/interface_c_owner_lib.pli %S/interface_c_owner_main.st -L%t.d -lgreet
+RUN: env LD_LIBRARY_PATH=%STDLIBDIR:%t.d %t.out | %CHECK %s
+
+interface_c_owner_lib.c implements CGreeter, and --constructors-only generates
+the constructors of interface_c_owner_lib.pli, also those of the IGreet
+parameter types. The program includes interface_c_owner_lib.pli, so only the
+constructors-only object may define these symbols. The program links the
+objects directly, and then links the shared library built from them.
+
+CHECK: 1212
+CHECK: 2534

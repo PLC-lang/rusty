@@ -1,0 +1,53 @@
+INTERFACE IShape
+    METHOD area : DINT
+    VAR_INPUT
+        unit : STRING[10];
+    END_VAR
+    END_METHOD
+END_INTERFACE
+
+INTERFACE IBase
+    METHOD base_id : DINT END_METHOD
+END_INTERFACE
+
+FUNCTION_BLOCK ABSTRACT AbstractShape IMPLEMENTS IShape
+VAR_OUTPUT
+    unit_seen : STRING[10];
+END_VAR
+    METHOD ABSTRACT area : DINT
+    VAR_INPUT
+        unit : STRING[10];
+    END_VAR
+    END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK Base IMPLEMENTS IBase
+    METHOD base_id : DINT
+        base_id := 1;
+    END_METHOD
+
+    METHOD kind : DINT
+        kind := 10;
+    END_METHOD
+END_FUNCTION_BLOCK
+
+CLASS CBase
+    METHOD value : DINT
+        value := 100;
+    END_METHOD
+END_CLASS
+
+FUNCTION_BLOCK PropBase
+VAR
+    text : STRING[20] := 'base';
+END_VAR
+    PROPERTY_GET name : STRING[20]
+        name := text;
+    END_PROPERTY
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK Plain
+VAR_INPUT
+    x : DINT := 2;
+END_VAR
+END_FUNCTION_BLOCK
