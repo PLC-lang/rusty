@@ -78,6 +78,8 @@ fn test_global_var_enum_added_to_debug_info() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -85,6 +87,8 @@ fn test_global_var_enum_added_to_debug_info() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i8 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -92,6 +96,8 @@ fn test_global_var_enum_added_to_debug_info() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i64 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -170,6 +176,8 @@ fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 10, ptr %deref, align [filtered]
       ret void
     }
 
@@ -177,6 +185,8 @@ fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i16 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -184,6 +194,8 @@ fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i8 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -275,6 +287,8 @@ fn test_global_var_struct_with_enum_members_added_to_debug_info() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 0, ptr %deref, align [filtered]
       ret void
     }
 
@@ -282,6 +296,8 @@ fn test_global_var_struct_with_enum_members_added_to_debug_info() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i8 1, ptr %deref, align [filtered]
       ret void
     }
 

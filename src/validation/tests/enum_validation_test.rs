@@ -377,6 +377,147 @@ fn enum_variants_initialized_with_other_enum_values() {
 }
 
 #[test]
+fn enum_variant_named_like_enum_type_is_validated_against_the_resolved_variant() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE Status : (Ok := 0, Error := 1); END_TYPE
+        TYPE Error : (Timeout := 5, Error := 7); END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            gConst : Error := Error.Error;
+        END_VAR
+
+        VAR_GLOBAL
+            gErr : Error := Error.Error;
+        END_VAR
+
+        PROGRAM main
+            gErr := Error.Error;    // ok
+            gErr := Status.Error;   // warning, `Status.Error` is 1
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E040]: Non-standard enum value `Status.Error` for `Error`
+       ┌─ <internal>:15:21
+       │
+     3 │         TYPE Error : (Timeout := 5, Error := 7); END_TYPE
+       │              ----- see also
+       ·
+    15 │             gErr := Status.Error;   // warning, `Status.Error` is 1
+       │                     ^^^^^^^^^^^^ Non-standard enum value `Status.Error` for `Error`
+    ");
+}
+
+#[test]
+fn non_constant_member_with_initializer_is_a_run_time_value() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE Color : (Red := 1, Green := 2); END_TYPE
+        TYPE S : STRUCT x : DINT := 2; b : DINT := 1; END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK FB
+        VAR_OUTPUT
+            o : DINT := 1;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+        VAR
+            s : S;
+            fb : FB;
+            c : Color;
+        END_VAR
+            c := s.x;           // warning, evaluated at run time
+            c := fb.o;          // warning, evaluated at run time
+            IF s.b THEN         // warning, not a boolean
+            END_IF
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E091]: Value evaluated at run-time, use an enum variant from `Color`
+       ┌─ <internal>:17:18
+       │
+     2 │         TYPE Color : (Red := 1, Green := 2); END_TYPE
+       │              ----- see also
+       ·
+    17 │             c := s.x;           // warning, evaluated at run time
+       │                  ^^^ Value evaluated at run-time, use an enum variant from `Color`
+
+    warning[E091]: Value evaluated at run-time, use an enum variant from `Color`
+       ┌─ <internal>:18:18
+       │
+     2 │         TYPE Color : (Red := 1, Green := 2); END_TYPE
+       │              ----- see also
+       ·
+    18 │             c := fb.o;          // warning, evaluated at run time
+       │                  ^^^^ Value evaluated at run-time, use an enum variant from `Color`
+
+    warning[E096]: Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
+       ┌─ <internal>:19:16
+       │
+    19 │             IF s.b THEN         // warning, not a boolean
+       │                ^^^ Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
+    ");
+}
+
+#[test]
+fn member_of_constant_struct_is_a_run_time_value() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE Color : (Red := 1, Green := 2); END_TYPE
+        TYPE S : STRUCT x : DINT := 2; b : DINT := 1; END_STRUCT END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            gs : S := (x := 1, b := 5);
+        END_VAR
+
+        PROGRAM main
+        VAR
+            c : Color;
+        END_VAR
+        VAR CONSTANT
+            ls : S := (x := 1);
+        END_VAR
+            c := gs.x;          // warning, evaluated at run time
+            c := ls.x;          // warning, evaluated at run time
+            IF gs.b THEN        // warning, not a boolean
+            END_IF
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E091]: Value evaluated at run-time, use an enum variant from `Color`
+       ┌─ <internal>:16:18
+       │
+     2 │         TYPE Color : (Red := 1, Green := 2); END_TYPE
+       │              ----- see also
+       ·
+    16 │             c := gs.x;          // warning, evaluated at run time
+       │                  ^^^^ Value evaluated at run-time, use an enum variant from `Color`
+
+    warning[E091]: Value evaluated at run-time, use an enum variant from `Color`
+       ┌─ <internal>:17:18
+       │
+     2 │         TYPE Color : (Red := 1, Green := 2); END_TYPE
+       │              ----- see also
+       ·
+    17 │             c := ls.x;          // warning, evaluated at run time
+       │                  ^^^^ Value evaluated at run-time, use an enum variant from `Color`
+
+    warning[E096]: Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
+       ┌─ <internal>:18:16
+       │
+    18 │             IF gs.b THEN        // warning, not a boolean
+       │                ^^^^ Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
+    ");
+}
+
+#[test]
 #[ignore = "currently fails during codegen, tracked in #1546"]
 fn enum_type_assigned_without_qualifier() {
     let diagnostics = parse_and_validate_buffered(
