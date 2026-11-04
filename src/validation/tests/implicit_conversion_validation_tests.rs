@@ -1580,6 +1580,7 @@ fn sizes_do_not_change_sign() {
         END_VAR
             vLint := SIZEOF(vArray);
             vDint := SIZEOF(vArray);
+            vDint := sizeof(vArray);
         END_FUNCTION
         ",
     );
@@ -1596,6 +1597,12 @@ fn sizes_do_not_change_sign() {
       │
     9 │             vDint := SIZEOF(vArray);
       │                      ^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'DINT'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'DINT'.
+       ┌─ <internal>:10:22
+       │
+    10 │             vDint := sizeof(vArray);
+       │                      ^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'DINT'.
     ");
 }
 
@@ -1607,6 +1614,8 @@ fn shift_counts_are_not_converted() {
         vByte := SHL(vByte, vInt);
         vByte := SHR(vByte, SINT#1);
         vDword := SHL(vDword, vDint);
+        vByte := shl(vByte, vInt);
+        vByte := Shr(vByte, vInt);
         ",
     );
 
