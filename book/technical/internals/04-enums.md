@@ -43,6 +43,8 @@ END_PROGRAM
 
 The enum node records its name, underlying integer type, and variant list. The default underlying type is `DINT`. Each variant is either an identifier such as `Red` or an assignment such as `Blue := 5`.
 
+When no underlying type is explicitly specified and default one is used,   `numeric_type_is_default` field (exposed specifically for external consumers) is set to `true`.
+
 The two spellings of the underlying type, `: BYTE (...)` in the standard and `(...) BYTE` after the list, produce the same node. A default written after the list, `:= Closed`, becomes the initializer of the type declaration. `mode: (Manual, Auto)` is an inline type, which pre-processing at the start of the index stage moves out as `__main_mode` (see [Index](../pipeline/02-index.md), Pre-processing).
 
 Pre-processing also rewrites every variant list so that each variant has an explicit value. A bare first variant gets the literal `0`, and every later bare variant gets the expression `<Enum>#<previous> + 1`, a typed reference to the variant before it:
@@ -126,7 +128,7 @@ A variant in a body resolves to its variable entry, and the annotation records t
 
 The example uses three forms of variant access: `Color#Red`, `Color.Green`, and the unqualified `Closed`.
 
-`Color#Red` is a cast expression: the base `Color` is looked up as a type before any other name, so a variant `Color` of another enum does not hide it. Because that type is an enum, the target `Red` is looked up among its variants only. The expression as a whole is a value of type `Color`. `Color.Green` is an ordinary member access: the base resolves to the type `Color`, and the member lookup finds `Green`, because the variants of an enum are its members. Here the base goes through the normal name lookup, so a variant `Color` of another enum does hide the type; write `Color#Green` in that case.
+`Color#Red` is a cast expression: the base `Color` is looked up as a type before any other name, so a variant `Color` of another enum does not hide it. Because that type is an enum, the target `Red` is looked up among its variants only. The expression as a whole is a value of type `Color`. `Color.Green` is an ordinary member access: the base resolves to the type `Color`, and the member lookup finds `Green`, because the variants of an enum are its members. Here the base goes through the normal name lookup, with one exception: if that lookup finds a variant `Color` of another enum, and the type `Color` has the variant `Green`, the base resolves to the type.
 
 `Closed` without a qualifier goes through the normal name lookup (see [Resolver](../pipeline/03-resolver.md), Walking a unit): a member of the current POU first, then a global. Inside a POU the member lookup also searches the variants of every enum type one of the POU's variables has. That is why `Closed` in `main` finds `State.Closed` and not `Door.Closed`: `main` has a variable of type `State` and none of type `Door`. Without such a variable, the global lookup takes the first variant of that name in declaration order.
 
@@ -194,7 +196,7 @@ The declaration is checked for an integer underlying type (E122; `REAL` or `TIME
 
 Enum assignment diagnostics are warnings or informational messages by default. They do not stop codegen unless the severity configuration changes them. See [Severity and reporting](../pipeline/04-validation.md#severity-and-reporting).
 
-The assignment check reads the right side as a constant integer. When it cannot, it reports the value as evaluated at run time (E091). An integer variable lands here, and so does the cast form `Enum#Variant`, which is why `state := Door#Closed` in the example reports E091 and not a value mismatch. When it can, it compares the value with the variants of the target: a match gives the note ``Replace `1` with `Green` `` (E092), and no match gives E040. A narrower underlying type gives E067 on top, as the example also shows.
+The assignment check reads the right side as a constant integer; for a constant such as an enum variant, it reads the entry the resolver bound. When it cannot, it reports the value as evaluated at run time (E091). An integer variable lands here, and so does the cast form `Enum#Variant`, which is why `state := Door#Closed` in the example reports E091 and not a value mismatch. When it can, it compares the value with the variants of the target: a match gives the note ``Replace `1` with `Green` `` (E092), and no match gives E040. A narrower underlying type gives E067 on top, as the example also shows.
 
 Two enum types are the same type only when their names are equal, so a copy of a variant list under a second name is a different type. An enum assigned to an integer variable is not checked at all.
 

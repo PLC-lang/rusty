@@ -1,0 +1,1 @@
+TYPE Words : ARRAY[0..1] OF STRING[5]; END_TYPE

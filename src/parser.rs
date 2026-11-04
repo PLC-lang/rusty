@@ -88,7 +88,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
             }
             KeywordInterface => {
                 // We ignore any method implementations in interfaces as we do not support default impls yet
-                let (interfaces, _) = parse_interface(&mut lexer);
+                let (interfaces, _) = parse_interface(&mut lexer, lnk);
                 unit.interfaces.push(interfaces);
             }
             KeywordVarGlobal => unit.global_vars.push(parse_variable_block(&mut lexer, linkage)),
@@ -183,7 +183,7 @@ fn parse_actions(
 }
 
 /// Parses an interface and its methods / properties
-fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>) {
+fn parse_interface(lexer: &mut ParseSession, linkage: LinkageType) -> (Interface, Vec<Implementation>) {
     let location_start = lexer.range().start;
     lexer.try_consume_or_report(KeywordInterface);
 
@@ -217,7 +217,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
         match lexer.token {
             KeywordMethod => {
                 if let Some((method, imp)) =
-                    parse_method(lexer, &name, DeclarationKind::Abstract, LinkageType::Internal, false)
+                    parse_method(lexer, &name, DeclarationKind::Abstract, linkage, false)
                 {
                     // This is temporary? At some point we'll support them but for now it's a diagnostic
                     if !imp.statements.is_empty() {
@@ -263,6 +263,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
             extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
             properties: properties.into_values().collect(),
+            linkage,
         },
         implementations,
     )
@@ -1247,6 +1248,7 @@ fn parse_type_reference_type_definition(
                         name,
                         numeric_type: referenced_type,
                         elements: AstFactory::create_expression_list(expressions, location, id),
+                        numeric_type_is_default: false,
                     }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
@@ -1262,6 +1264,7 @@ fn parse_type_reference_type_definition(
                         name,
                         numeric_type: referenced_type,
                         elements: bounds.unwrap(),
+                        numeric_type_is_default: false,
                     }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
@@ -1350,7 +1353,12 @@ fn parse_string_type_definition(
             // This looks like an enum definition with STRING/WSTRING as the type
             // Create an EnumType so validation can catch it as invalid
             Some(DataTypeDeclaration::Definition {
-                data_type: Box::new(DataType::EnumType { name, numeric_type: text, elements: size }),
+                data_type: Box::new(DataType::EnumType {
+                    name,
+                    numeric_type: text,
+                    elements: size,
+                    numeric_type_is_default: false,
+                }),
                 location,
                 scope: lexer.scope.clone(),
             })
@@ -1393,12 +1401,17 @@ fn parse_enum_type_definition(
     let elements = parse_any_in_region(lexer, vec![KeywordParensClose], parse_enum_elements)?;
     // Check for Codesys-style type specification after the enum list
     // TYPE COLOR : (...) DWORD;
-    let numeric_type =
-        if lexer.token == Identifier { lexer.slice_and_advance() } else { DINT_TYPE.to_string() };
+    let numeric_type_specified = lexer.token == Identifier;
+    let numeric_type = if numeric_type_specified { lexer.slice_and_advance() } else { DINT_TYPE.to_string() };
     let initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
     Some((
         DataTypeDeclaration::Definition {
-            data_type: Box::new(DataType::EnumType { name, elements, numeric_type }),
+            data_type: Box::new(DataType::EnumType {
+                name,
+                elements,
+                numeric_type,
+                numeric_type_is_default: !numeric_type_specified,
+            }),
             location: start.span(&lexer.last_location()),
             scope: lexer.scope.clone(),
         },

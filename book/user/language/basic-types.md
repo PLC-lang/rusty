@@ -56,12 +56,12 @@ count := ready;                 (* error[E037]: Invalid assignment: cannot assig
 count := BOOL_TO_DINT(ready);   (* 1 when ready is TRUE, 0 otherwise *)
 ```
 
-The other direction takes the digits `0` and `1`, which are the two `BOOL` values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning. Like every downcast it keeps the low bits of the value, so it does not test "is not zero". Write the comparison when that is what you mean:
+The other direction takes the digits `0` and `1`, which are the two `BOOL` values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning (E067) and a warning that a number is used as a `BOOL` (E165). Like every downcast it keeps the low bits of the value, so it does not test "is not zero". Write the comparison when that is what you mean:
 
 ```iecst
 ready := 1;             (* TRUE *)
 ready := 5;             (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL' *)
-ready := count;         (* warning[E067]: Implicit downcast from 'DINT' to 'BOOL'. *)
+ready := count;         (* warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type. *)
 ready := count <> 0;    (* the test, and it says so *)
 ```
 
@@ -135,7 +135,21 @@ tiny := INT_TO_SINT(small);
 > [!NOTE]
 > The conversion functions live in the standard library, so a project that calls one, for example `INT_TO_SINT`, must link `iec61131std`. See [Linking and Libraries](../building/linking.md).
 
-A value also crosses between the two families. An integer becomes a real without any warning, although a large `DINT` loses digits on the way. A real becomes an integer with the same downcast warning, and the fraction is cut off. Two standard functions say which result you want:
+A conversion between a signed and an unsigned type warns as well when the target cannot hold every value of the source, even when it is not narrower. A negative value becomes a large positive one, and a large unsigned value becomes negative. The bit strings count as unsigned. An integer literal without a type is judged by its value, so `5` fits an unsigned type and `-1` does not:
+
+```iecst
+VAR
+    offset: DINT := -1;
+    count: UDINT;
+    wide: LINT;
+END_VAR
+
+count := offset;   (* warning[E160]: Implicit conversion from 'DINT' to 'UDINT' may change the sign. *)
+count := 5;        (* fine, the value fits *)
+wide := count;     (* fine, every UDINT fits in a LINT *)
+```
+
+A value also crosses between the two families. An integer becomes a real without a warning as long as the real holds every value of the integer, which a `REAL` does up to `INT` and `UINT` and an `LREAL` up to `DINT` and `UDINT`. A wider integer loses digits on the way and warns (E162). A real becomes an integer with the same downcast warning, and a second one that the fraction is cut off (E163). Two standard functions say which result you want:
 
 ```iecst
 VAR

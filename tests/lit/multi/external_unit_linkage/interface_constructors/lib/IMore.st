@@ -1,0 +1,7 @@
+INTERFACE IMore EXTENDS IOther, IWide
+    METHOD take_ref : DINT
+    VAR_INPUT
+        x : REFERENCE TO IOther;
+    END_VAR
+    END_METHOD
+END_INTERFACE

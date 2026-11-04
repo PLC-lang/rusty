@@ -2,8 +2,20 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: diagnostics
 ---
+warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
+  ┌─ <internal>:7:13
+  │
+7 │         foo(dint_);
+  │             ^^^^^ Implicit conversion from 'DINT' to 'REAL' may lose precision.
+
 warning[E067]: Implicit downcast from 'LREAL' to 'LINT'.
   ┌─ <internal>:8:13
   │
 8 │         bar(lreal_);
   │             ^^^^^^ Implicit downcast from 'LREAL' to 'LINT'.
+
+warning[E163]: Implicit conversion from 'LREAL' to 'LINT' truncates the value.
+  ┌─ <internal>:8:13
+  │
+8 │         bar(lreal_);
+  │             ^^^^^^ Implicit conversion from 'LREAL' to 'LINT' truncates the value.

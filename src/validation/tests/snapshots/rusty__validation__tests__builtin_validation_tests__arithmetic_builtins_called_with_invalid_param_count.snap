@@ -26,8 +26,20 @@ error[E032]: this POU takes 2 arguments but 4 arguments were supplied
 9 │             DIV(x2, x2, x1, x2); // DIV and SUB are not extensible
   │             ^^^ this POU takes 2 arguments but 4 arguments were supplied
 
+warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
+  ┌─ <internal>:9:25
+  │
+9 │             DIV(x2, x2, x1, x2); // DIV and SUB are not extensible
+  │                         ^^ Implicit conversion from 'DINT' to 'REAL' may lose precision.
+
 error[E032]: this POU takes 2 arguments but 4 arguments were supplied
    ┌─ <internal>:10:13
    │
 10 │             SUB(x2, x2, x1, x2);
    │             ^^^ this POU takes 2 arguments but 4 arguments were supplied
+
+warning[E162]: Implicit conversion from 'DINT' to 'REAL' may lose precision.
+   ┌─ <internal>:10:25
+   │
+10 │             SUB(x2, x2, x1, x2);
+   │                         ^^ Implicit conversion from 'DINT' to 'REAL' may lose precision.
