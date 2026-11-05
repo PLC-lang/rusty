@@ -4,7 +4,7 @@ RUN: cc -c -fPIC %S/lib/CGreeter.c -o %t.d/body.o
 RUN: %COMPILE -i "%S/lib/*.pli" "%S/app/*.st" %t.d/ctors.o %t.d/body.o && %RUN | %CHECK %s
 RUN: cc -shared %t.d/ctors.o %t.d/body.o -o %t.d/libgreet.so
 RUN: %COMPILE -i "%S/lib/*.pli" "%S/app/*.st" -L%t.d -lgreet
-RUN: env LD_LIBRARY_PATH=%STDLIBDIR:%t.d %t.out | %CHECK %s
+RUN: env LD_LIBRARY_PATH=%STDLIBDIR:%t.d %T/%basename_t.out | %CHECK %s
 RUN: sed -E 's/^(INTERFACE|FUNCTION_BLOCK) /{external} \1 /' %S/lib/*.pli > %t.d/external.pli
 RUN: %PLC --constructors-only -c --fpic %t.d/external.pli -o %t.d/ctors_external.o
 RUN: %COMPILE -i %t.d/external.pli "%S/app/*.st" %t.d/ctors_external.o %t.d/body.o && %RUN | %CHECK %s
