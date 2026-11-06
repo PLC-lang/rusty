@@ -3,8 +3,10 @@
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
-use plc_ast::ast::{AstFactory, AstNode, AstStatement, Operator, UnaryExpression};
+use plc_ast::ast::{AstFactory, AstNode, AstStatement, CallStatement};
+use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
+use plc_ast::visitor::AstVisitor;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use plc_source::SourceCode;
@@ -78,6 +80,12 @@ enum Reason {
     EnoCycle,
 }
 
+// Finds a call, also one nested in an operand, an index or an array literal,
+// e.g. `a + MAX(a, b)`.
+struct Calls {
+    found: bool,
+}
+
 impl<'index> Resolver<'index> {
     pub fn new(ids: IdProvider, source: &SourceCode, index: &'index Index, diagram: &str) -> Self {
         Self {
@@ -125,7 +133,7 @@ impl<'index> Resolver<'index> {
                     // The traced source becomes the sink's assigned value,
                     // negated once more by the sink's own inversion bubble.
                     Trace::Reached(source) => {
-                        let sink = self.expression(object, &location, is_supported);
+                        let sink = self.expression(object, &location, is_supported_sink);
                         let source = self.value(&source, &location);
                         let source = self.negate_if(source, &location, object.in_negated());
 
@@ -466,13 +474,12 @@ impl<'index> Resolver<'index> {
         location: &SourceLocation,
         is_supported: fn(&AstNode) -> bool,
     ) -> AstNode {
+        let text = object.identifier().unwrap_or_default();
         let node = self.parse(object, location);
 
-        // A variable element may only hold a literal or a reference, which a
-        // source may negate; anything else (a call, arithmetic) must be
-        // modeled as a block element instead.
-        if !is_supported(&node) {
-            let text = object.identifier().unwrap_or_default();
+        // A variable element holds exactly one expression, which its kind may
+        // restrict further; the parser silently drops what follows, e.g. ` b` in `a b`.
+        if !st::is_expression(text) || !is_supported(&node) {
             self.diagnostics.push(Diagnostic::unsupported_cfc_expression(text, location.clone()));
         }
 
@@ -496,19 +503,9 @@ impl<'index> Resolver<'index> {
         }
     }
 
-    // Creates an AST node, wrapped in a NOT expression for each inversion
-    // bubble on the wire: the producer's, then the consumer's on top.
+    // The source's value, negated once more by the consumer's inversion bubble.
     fn condition(&mut self, consumer: &FbdObject, source: &Source, location: &SourceLocation) -> AstNode {
-        let node = match source {
-            // Unvetted; a condition may be any ST expression.
-            Source::Variable { object, negated } => {
-                let node = self.parse(object, location);
-                let node = self.negate_if(node, location, object.out_negated());
-                self.negate_if(node, location, *negated)
-            }
-            Source::Output { .. } => self.value(source, location),
-        };
-
+        let node = self.value(source, location);
         self.negate_if(node, location, consumer.in_negated())
     }
 
@@ -602,6 +599,19 @@ impl Broken<'_> {
     }
 }
 
+impl AstVisitor for Calls {
+    fn visit_call_statement(&mut self, _: &CallStatement, _: &AstNode) {
+        self.found = true;
+    }
+
+    // The default skips the elements of `[foo]`.
+    fn visit_literal(&mut self, literal: &AstLiteral, _: &AstNode) {
+        if let AstLiteral::Array(Array { elements: Some(elements) }) = literal {
+            self.visit(elements)
+        }
+    }
+}
+
 fn trace<'model>(start: Option<usize>, survey: &Survey<'model>) -> Trace<'model> {
     let Some(mut pin) = start else { return Trace::Unwired };
     let Some(mut element) = survey.by_pin.get(&pin).copied() else { return Trace::Unwired };
@@ -662,20 +672,23 @@ fn trace<'model>(start: Option<usize>, survey: &Survey<'model>) -> Trace<'model>
     }
 }
 
-// Sees through parentheses, e.g. `(foo)` or `((5))`.
-fn is_supported(node: &AstNode) -> bool {
+// A sink is an assignment target, e.g. `foo`, `(foo)` or `arr[i]`; `-foo` is
+// none. Its index may not call either, e.g. `arr[MAX(a, b)]`.
+fn is_supported_sink(node: &AstNode) -> bool {
     matches!(node.get_stmt_peeled(), AstStatement::Literal(_) | AstStatement::ReferenceExpr(_))
+        && !calls(node)
 }
 
-// A source may also negate its value, e.g. `-foo` or `-(5)`; a sink may not,
-// because `-foo` is no assignment target.
+// A source may hold any expression except a call.
 fn is_supported_source(node: &AstNode) -> bool {
-    match node.get_stmt_peeled() {
-        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
-            is_supported(value)
-        }
-        _ => is_supported(node),
-    }
+    !calls(node)
+}
+
+// A call is a block element of its own, also a call of a built-in such as `SEL`.
+fn calls(node: &AstNode) -> bool {
+    let mut calls = Calls { found: false };
+    calls.visit(node);
+    calls.found
 }
 
 // Classification, naming, and call-target helpers for block elements.
@@ -938,6 +951,11 @@ mod tests {
             b := -(foo)
             c := (-foo)
             ");
+        }
+
+        #[test]
+        fn binary_expression() {
+            insta::assert_snapshot!(resolve_project("variables/valid/binary_expression"), @"bar := foo + 1");
         }
 
         #[test]
@@ -1379,10 +1397,61 @@ mod tests {
         }
 
         #[test]
-        fn binary_expression() {
-            insta::assert_snapshot!(diagnostics("variables/invalid/binary_expression"), @r"
-            error[E083]: Unsupported CFC expression: `foo + 1`
-             = binary_expression.cfc, diagram binary_expression, execution order 1
+        fn builtin_call() {
+            insta::assert_snapshot!(diagnostics("variables/invalid/builtin_call"), @r"
+            error[E083]: Unsupported CFC expression: `SEL(flag, foo, bar)`
+             = builtin_call.cfc, diagram builtin_call, execution order 1
+
+            error[E083]: Unsupported CFC expression: `foo + SEL(flag, 1, 2)`
+             = builtin_call.cfc, diagram builtin_call, execution order 2
+            ");
+        }
+
+        #[test]
+        fn nested_call() {
+            insta::assert_snapshot!(diagnostics("variables/invalid/nested_call"), @r"
+            error[E083]: Unsupported CFC expression: `foo + MAX(foo, bar)`
+             = nested_call.cfc, diagram nested_call, execution order 1
+
+            error[E083]: Unsupported CFC expression: `(MAX(foo, bar))`
+             = nested_call.cfc, diagram nested_call, execution order 2
+
+            error[E083]: Unsupported CFC expression: `values[MAX(foo, bar)]`
+             = nested_call.cfc, diagram nested_call, execution order 3
+
+            error[E083]: Unsupported CFC expression: `[MAX(foo, bar), 2]`
+             = nested_call.cfc, diagram nested_call, execution order 4
+            ");
+        }
+
+        #[test]
+        fn malformed_expression() {
+            insta::assert_snapshot!(diagnostics("variables/invalid/malformed_expression"), @r"
+            error[E083]: Unsupported CFC expression: `foo +`
+             = malformed_expression.cfc, diagram malformed_expression, execution order 1
+
+            error[E083]: Unsupported CFC expression: `a b`
+             = malformed_expression.cfc, diagram malformed_expression, execution order 2
+
+            error[E083]: Unsupported CFC expression: `foo := 1`
+             = malformed_expression.cfc, diagram malformed_expression, execution order 3
+
+            error[E083]: Unsupported CFC expression: `foo, bar`
+             = malformed_expression.cfc, diagram malformed_expression, execution order 4
+
+            error[E083]: Unsupported CFC expression: `1..5`
+             = malformed_expression.cfc, diagram malformed_expression, execution order 5
+
+            error[E083]: Unsupported CFC expression: `3(foo)`
+             = malformed_expression.cfc, diagram malformed_expression, execution order 6
+            ");
+        }
+
+        #[test]
+        fn call_condition() {
+            insta::assert_snapshot!(diagnostics("returns/invalid/call_condition"), @r"
+            error[E083]: Unsupported CFC expression: `MAX(foo, bar) > 5`
+             = call_condition.cfc, diagram call_condition, execution order 1
             ");
         }
 

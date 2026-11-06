@@ -47,7 +47,7 @@ END_VAR</bmx:TextDeclaration>
                         </ppx:OutputVariable>
                     </ppx:OutputVariables>
                 </ppx:FbdObject>
-                <ppx:FbdObject xsi:type="ppx:DataSource" identifier="a1 + 1" globalId="4">
+                <ppx:FbdObject xsi:type="ppx:DataSource" identifier="myAdd(a1, 1)" globalId="4">
                     <ppx:RelPosition x="860" y="260"/>
                     <ppx:Size x="80" y="20"/>
                     <ppx:ConnectionPointOut connectionPointOutId="5">
