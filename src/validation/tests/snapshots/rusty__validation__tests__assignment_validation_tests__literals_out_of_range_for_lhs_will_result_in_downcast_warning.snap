@@ -25,3 +25,9 @@ warning[E067]: Implicit downcast from 'USINT' to 'SINT'.
    │
 11 │             a := a + USINT#100;     // will fit into a, but is cast to unsigned type -> warning
    │                      ^^^^^^^^^ Implicit downcast from 'USINT' to 'SINT'.
+
+warning[E160]: Implicit conversion from 'USINT' to 'SINT' may change the sign.
+   ┌─ <internal>:11:22
+   │
+11 │             a := a + USINT#100;     // will fit into a, but is cast to unsigned type -> warning
+   │                      ^^^^^^^^^ Implicit conversion from 'USINT' to 'SINT' may change the sign.
