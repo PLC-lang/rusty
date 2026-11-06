@@ -1096,9 +1096,13 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     ) {
         let (index, types_index) = indices;
         let pou = index.find_pou(func.linking_context.get_call_name()).expect("POU is available");
+        // An interface method stays a declaration, which LLVM rejects with a definition subprogram.
+        let is_interface_method =
+            pou.get_parent_pou_name().and_then(|it| index.find_type(it)).is_some_and(DataType::is_interface);
         if pou.get_linkage().is_external_or_included()
             || pou.get_location().is_internal()
             || func.linking_context.is_init()
+            || is_interface_method
         {
             log::debug!(
                 "Skipping pou {}, linkage: {:?}, location: {:?}",

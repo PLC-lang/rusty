@@ -2455,3 +2455,169 @@ fn range_datatype_debug_alias_reused() {
     !22 = !DILocation(line: 15, column: 8, scope: !16, atomGroup: 1, atomRank: 1)
     "#);
 }
+
+#[test]
+fn interface_methods_do_not_drop_the_module_debug_info() {
+    let codegen = codegen(
+        r#"
+        INTERFACE ICounter
+            METHOD bump : DINT
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK FbImpl IMPLEMENTS ICounter
+            METHOD bump : DINT
+                bump := 1;
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %__vtable_FbImpl = type { ptr, ptr }
+    %__itable_ICounter = type { ptr }
+    %FbImpl = type { ptr }
+
+    @__vtable_FbImpl_instance = global %__vtable_FbImpl zeroinitializer
+    @__itable_ICounter_FbImpl_instance = global %__itable_ICounter zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
+
+    define void @FbImpl(ptr %0) !dbg !4 {
+    entry:
+        #dbg_declare(ptr %0, !14, !DIExpression(), !15)
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %__vtable = getelementptr inbounds nuw %FbImpl, ptr %0, i32 0, i32 0
+      ret void, !dbg !16
+    }
+
+    define i32 @FbImpl__bump(ptr %0) !dbg !17 {
+    entry:
+        #dbg_declare(ptr %0, !18, !DIExpression(), !19)
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %__vtable = getelementptr inbounds nuw %FbImpl, ptr %0, i32 0, i32 0
+      %FbImpl.bump = alloca i32, align [filtered]
+        #dbg_declare(ptr %FbImpl.bump, !20, !DIExpression(), !22)
+      store i32 0, ptr %FbImpl.bump, align [filtered]
+      store volatile i32 1, ptr %FbImpl.bump, align [filtered], !dbg !23
+      %FbImpl__bump_ret = load i32, ptr %FbImpl.bump, align [filtered], !dbg !24
+      ret i32 %FbImpl__bump_ret, !dbg !25
+    }
+
+    declare i32 @ICounter__bump(ptr)
+
+    define void @FbImpl__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      %deref = load ptr, ptr %self, align [filtered], !dbg !15
+      %__vtable = getelementptr inbounds nuw %FbImpl, ptr %deref, i32 0, i32 0, !dbg !15
+      call void @__FbImpl___vtable__ctor(ptr %__vtable), !dbg !15
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !15
+      %__vtable2 = getelementptr inbounds nuw %FbImpl, ptr %deref1, i32 0, i32 0, !dbg !15
+      store ptr @__vtable_FbImpl_instance, ptr %__vtable2, align [filtered], !dbg !15
+      ret void, !dbg !15
+    }
+
+    define void @__vtable_FbImpl__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      %deref = load ptr, ptr %self, align [filtered], !dbg !15
+      %__body = getelementptr inbounds nuw %__vtable_FbImpl, ptr %deref, i32 0, i32 0, !dbg !15
+      call void @____vtable_FbImpl___body__ctor(ptr %__body), !dbg !15
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !15
+      %__body2 = getelementptr inbounds nuw %__vtable_FbImpl, ptr %deref1, i32 0, i32 0, !dbg !15
+      store ptr @FbImpl, ptr %__body2, align [filtered], !dbg !15
+      %deref3 = load ptr, ptr %self, align [filtered], !dbg !15
+      %bump = getelementptr inbounds nuw %__vtable_FbImpl, ptr %deref3, i32 0, i32 1, !dbg !15
+      call void @____vtable_FbImpl_bump__ctor(ptr %bump), !dbg !15
+      %deref4 = load ptr, ptr %self, align [filtered], !dbg !15
+      %bump5 = getelementptr inbounds nuw %__vtable_FbImpl, ptr %deref4, i32 0, i32 1, !dbg !15
+      store ptr @FbImpl__bump, ptr %bump5, align [filtered], !dbg !15
+      ret void, !dbg !15
+    }
+
+    define void @__itable_ICounter__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      %deref = load ptr, ptr %self, align [filtered], !dbg !15
+      %bump = getelementptr inbounds nuw %__itable_ICounter, ptr %deref, i32 0, i32 0, !dbg !15
+      call void @____itable_ICounter_bump__ctor(ptr %bump), !dbg !15
+      ret void, !dbg !15
+    }
+
+    define void @__FbImpl___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      ret void, !dbg !15
+    }
+
+    define void @____vtable_FbImpl___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      ret void, !dbg !15
+    }
+
+    define void @____vtable_FbImpl_bump__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      ret void, !dbg !15
+    }
+
+    define void @____itable_ICounter_bump__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      ret void, !dbg !15
+    }
+
+    define void @__unit___internal___[ctor-hash]__ctor() {
+    entry:
+      call void @__vtable_FbImpl__ctor(ptr @__vtable_FbImpl_instance), !dbg !15
+      call void @__itable_ICounter__ctor(ptr @__itable_ICounter_FbImpl_instance), !dbg !15
+      store ptr @FbImpl__bump, ptr @__itable_ICounter_FbImpl_instance, align [filtered], !dbg !15
+      ret void, !dbg !15
+    }
+
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
+
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "<internal>", directory: "")
+    !4 = distinct !DISubprogram(name: "FbImpl", linkageName: "FbImpl", scope: !3, file: !3, line: 7, type: !5, scopeLine: 11, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13, keyInstructions: true)
+    !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+    !6 = !{null, !7}
+    !7 = !DICompositeType(tag: DW_TAG_structure_type, name: "FbImpl", scope: !3, file: !3, line: 7, size: 64, align [filtered], flags: DIFlagPublic, elements: !8, identifier: "FbImpl")
+    !8 = !{!9}
+    !9 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !3, file: !3, baseType: !10, size: 64, align [filtered], flags: DIFlagPublic)
+    !10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____FbImpl___vtable", scope: !3, file: !3, baseType: !11, align [filtered])
+    !11 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__FbImpl___vtable", baseType: !12, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !12 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !13 = !{}
+    !14 = !DILocalVariable(name: "FbImpl", scope: !4, file: !3, line: 11, type: !7)
+    !15 = !DILocation(line: 11, column: 8, scope: !4)
+    !16 = !DILocation(line: 11, column: 8, scope: !4, atomGroup: 1, atomRank: 1)
+    !17 = distinct !DISubprogram(name: "FbImpl.bump", linkageName: "FbImpl.bump", scope: !4, file: !3, line: 8, type: !5, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13, keyInstructions: true)
+    !18 = !DILocalVariable(name: "FbImpl", scope: !17, file: !3, line: 9, type: !7)
+    !19 = !DILocation(line: 9, column: 16, scope: !17)
+    !20 = !DILocalVariable(name: "bump", scope: !17, file: !3, line: 8, type: !21, align [filtered])
+    !21 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !22 = !DILocation(line: 8, column: 19, scope: !17)
+    !23 = !DILocation(line: 9, column: 16, scope: !17, atomGroup: 1, atomRank: 1)
+    !24 = !DILocation(line: 10, column: 12, scope: !17)
+    !25 = !DILocation(line: 10, column: 12, scope: !17, atomGroup: 2, atomRank: 1)
+    "#);
+}
