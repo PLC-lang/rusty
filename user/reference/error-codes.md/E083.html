@@ -36,7 +36,7 @@
             const path_to_root = "../../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../../searchindex-10bcc8ec.js";
+            window.path_to_searchindex_js = "../../../searchindex-03dce28d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../../toc-e5f95eb2.js"></script>
@@ -183,11 +183,17 @@
                     <main>
                         <h1 id="unsupported-cfc-expression"><a class="header" href="#unsupported-cfc-expression">Unsupported CFC expression</a></h1>
 <p>A variable, source or sink element in a CFC network carries an expression that
-is not supported. Only variable references (<code>foo</code>), qualified references
-(<code>foo.bar</code>), indexed references (<code>arr[i]</code>) and literals (<code>5</code>) are allowed. A
-source may also negate its value with a unary minus (<code>-foo</code>); a sink may not,
-because it is the target of an assignment. Function calls and other
-expressions are not allowed.</p>
+is not supported. The text of an element must be exactly one expression, so a
+syntax error (<code>foo +</code>), text after the expression (<code>foo bar</code>), a list
+(<code>foo, bar</code>), an assignment (<code>foo := 1</code>), or a part of an array literal such
+as a range (<code>1..5</code>) or a multiplied element (<code>3(foo)</code>) is not allowed.</p>
+<p>A source may hold any expression (<code>foo + 1</code>, <code>-foo</code>, <code>foo &gt; 5</code>) except a
+function call, such as <code>MAX(foo, bar)</code> or <code>foo + MAX(foo, bar)</code>, because a
+call is modeled as a block element. This includes built-in functions such as
+<code>SEL(g, foo, bar)</code> or <code>ADR(foo)</code>, and also applies to the source that feeds a
+return or a jump.</p>
+<p>A sink is the target of an assignment, so it may only hold a variable
+reference (<code>foo</code>, <code>foo.bar</code>, <code>arr[i]</code>), without a call in its index.</p>
 
                     </main>
 

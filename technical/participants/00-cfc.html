@@ -36,7 +36,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-10bcc8ec.js";
+            window.path_to_searchindex_js = "../../searchindex-03dce28d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e5f95eb2.js"></script>
@@ -264,7 +264,7 @@ END_FUNCTION
 <tr><th>Element</th><th>Role</th><th>Result</th></tr>
 </thead>
 <tbody>
-<tr><td><code>DataSource</code></td><td>a value: a variable or literal, read by others</td><td>nothing on its own</td></tr>
+<tr><td><code>DataSource</code></td><td>a value: an expression such as a variable, a literal, or <code>a + 1</code>, read by others</td><td>nothing on its own</td></tr>
 <tr><td><code>DataSink</code></td><td>a variable that receives a value</td><td>one assignment</td></tr>
 <tr><td><code>Block</code></td><td>a call of a function, function block, program, or action</td><td>one call</td></tr>
 <tr><td><code>Connector</code>, <code>Continuation</code></td><td>a named wire break: the connector receives, continuations of the same label re-emit</td><td>nothing; wires pass through</td></tr>
@@ -279,7 +279,7 @@ END_FUNCTION
 <p>A trace ends at a block output pin, which is read as described under blocks, or at a plain element, whose <code>identifier</code> text goes through the compiler’s expression parser. The trace also collects the negation bubbles on the way. A bubble on the producer and one on the consumer each wrap the value in one more <code>NOT</code>. The bubble of a hopped <code>ENO</code> pin and the one of the <code>EN</code> pin behind it invert the same value, so a pair of them cancels.</p>
 <p>The rest of this section takes one element kind at a time. Each example shows the network the user drew, then the statements the transpiler renders from it. A number in parentheses is the evaluation priority of the element, a bubble <code>o--&gt;</code> is a negation, and <code>[name |S]</code> is a sink with a storage mode.</p>
 <h3 id="data-source"><a class="header" href="#data-source">Data source</a></h3>
-<p>A data source supplies a variable or literal through its output pin. It produces no statement by itself. Each consumer follows the wire independently, so a source connected to two sinks produces two assignments:</p>
+<p>A data source supplies the value of its expression through its output pin. It produces no statement by itself. Each consumer follows the wire independently, so a source connected to two sinks produces two assignments:</p>
 <pre><code>foo --+--&gt; bar (1)
       '--&gt; baz (2)
 </code></pre>
@@ -291,7 +291,8 @@ baz := foo;
 </code></pre>
 <pre><code class="language-iecst">foo := 5;
 </code></pre>
-<p>The parser accepts more than the element may hold. A source or a sink is limited to a literal or a reference, and an expression such as <code>in1 + 1</code> is rejected (E083), because a diagram models arithmetic as blocks. Parentheses are looked through, so <code>(in1)</code> is a reference. A source may also negate its value with a unary minus, as in <code>-in1</code> or <code>-(in1)</code>, which the parser gives as a unary expression; a sink may not, because <code>-in1</code> is no assignment target. The condition of a return or a jump is the exception and accepts any expression.</p>
+<p>The parser accepts more than the element may hold. A source holds any expression, such as <code>in1 + 1</code>, <code>-in1</code> or <code>in1 &gt; 5</code>, except a call, because a diagram models a call as a block (E083). A visitor looks for the call in the whole tree, so <code>in1 + MAX(in1, in2)</code> and <code>values[MAX(in1, in2)]</code> are rejected too, and so is the call of a built-in such as <code>SEL(g, in1, in2)</code>. An operator that a later stage lowers to a call, such as a comparison of two strings, is no call here. The power operator is the exception: the parser itself turns <code>in1 ** 2</code> into a call of <code>EXPT</code>, so it is rejected as well. The source of a return or a jump follows the same rule. A sink is an assignment target and is limited to a literal or a reference, without a call in its index. Parentheses are looked through, so <code>(in1)</code> is a reference, but <code>-in1</code> is no assignment target. A literal sink passes here and is left to validation, which rejects it as not assignable.</p>
+<p>The parser stops after the first complete expression and drops the rest, so the resolver parses the text once more to make sure it is exactly one expression: without a syntax error, without text after it, as in <code>in1 in2</code>, and without a list, an assignment, a range or a multiplied element at the top, as in <code>in1, in2</code>, <code>in1 := 1</code>, <code>1..5</code> or <code>3(in1)</code> (E083). A range and a multiplied element are only parts of an array literal, such as <code>[1..5]</code> or <code>[3(in1)]</code>. A struct literal such as <code>(x := 1, y := 2)</code> passes, because its assignments are inside parentheses.</p>
 <p>A negation bubble on the pin wraps the value in a <code>NOT</code>:</p>
 <pre><code>foo o--&gt; bar (1)
 </code></pre>
@@ -453,7 +454,7 @@ __out_myGenAdd_5 := myGenAdd(a := __out_myGenAdd_1, b := c);   (* c : DINT     -
 <tbody>
 <tr><td>E081</td><td>a connector label claimed twice</td></tr>
 <tr><td>E082</td><td>a continuation with no connector</td></tr>
-<tr><td>E083</td><td>an expression where only a name or a literal (negated, for a source) is allowed</td></tr>
+<tr><td>E083</td><td>element text that is not one expression, a call, or a sink that is neither a reference nor a literal</td></tr>
 <tr><td>E084</td><td>an element that is placed but not wired</td></tr>
 <tr><td>E085</td><td>a return without a condition</td></tr>
 <tr><td>E086</td><td>a connector without an input</td></tr>
