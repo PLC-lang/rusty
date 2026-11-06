@@ -34,6 +34,25 @@ Examples:
 - `i1 : DINT := 8#52;` - declares and initializes a 32bit signed integer with value 42.
 - `i1 : DINT := 16#2A;` - declares and initializes a 32bit signed integer with value 42.
 
+### Implicit conversions
+
+A value assigned to a variable of another type, or combined with an operand of another type, is converted
+implicitly. The compiler warns when such a conversion may change the value:
+
+| Warning | Conversion | Example |
+| ------- | ---------- | ------- |
+| E160    | to a type of the other sign that cannot hold every value | `unsigned := signed;` |
+| E161    | an unsigned operand promoted to the signed type of the operation | `signed < unsigned` |
+| E162    | an integer to a float that cannot hold it exactly | `r := dint_value;` |
+| E163    | a float to an integer, which drops the fraction | `dint_value := r;` |
+| E164    | between a date or time type and another type | `duration := dint_value;` |
+| E165    | between `BOOL` and a number | `flag := dint_value;` |
+
+An untyped integer literal is judged by its value, so `unsigned := 5;` is silent and `unsigned := -1;`
+warns. A typed literal, such as `DINT#5`, is judged by its type. A builtin call such as `ADD(a, b)` warns
+where `a + b` warns. To silence a warning, convert explicitly, for example with `DINT_TO_UDINT(signed)`.
+Run `plc explain <code>` for the details of each warning.
+
 ## Strings
 
 ### Overview
