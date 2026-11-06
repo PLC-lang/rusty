@@ -1,0 +1,9 @@
+FUNCTION_BLOCK Child EXTENDS Base IMPLEMENTS IExtra
+    METHOD OVERRIDE kind : DINT
+        kind := 11;
+    END_METHOD
+
+    METHOD extra : DINT
+        extra := 12;
+    END_METHOD
+END_FUNCTION_BLOCK

@@ -63,6 +63,7 @@ pub struct Interface {
     pub methods: Vec<Pou>,
     pub extensions: Vec<Identifier>,
     pub properties: Vec<PropertyBlock>,
+    pub linkage: LinkageType,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]

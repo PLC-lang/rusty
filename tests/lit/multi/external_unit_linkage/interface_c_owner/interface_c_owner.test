@@ -1,0 +1,24 @@
+RUN: mkdir -p %t.d
+RUN: %PLC --constructors-only -c --fpic "%S/lib/*.pli" -o %t.d/ctors.o
+RUN: cc -c -fPIC %S/lib/CGreeter.c -o %t.d/body.o
+RUN: %COMPILE -i "%S/lib/*.pli" "%S/app/*.st" %t.d/ctors.o %t.d/body.o && %RUN | %CHECK %s
+RUN: cc -shared %t.d/ctors.o %t.d/body.o -o %t.d/libgreet.so
+RUN: %COMPILE -i "%S/lib/*.pli" "%S/app/*.st" -L%t.d -lgreet
+RUN: env LD_LIBRARY_PATH=%STDLIBDIR:%t.d %T/%basename_t.out | %CHECK %s
+RUN: sed -E 's/^(INTERFACE|FUNCTION_BLOCK) /{external} \1 /' %S/lib/*.pli > %t.d/external.pli
+RUN: %PLC --constructors-only -c --fpic %t.d/external.pli -o %t.d/ctors_external.o
+RUN: %COMPILE -i %t.d/external.pli "%S/app/*.st" %t.d/ctors_external.o %t.d/body.o && %RUN | %CHECK %s
+
+The library in lib/ is written in C: CGreeter.c implements CGreeter, and
+--constructors-only generates the constructors of the declarations in the .pli
+files, also those of the IGreet parameter types. The program in app/ includes
+the declarations, so only the constructors-only object may define these
+symbols. The program links the objects directly, and then links the shared
+library built from them.
+
+A C library can also mark its declarations {external}. --constructors-only
+still generates all constructors for them, also those of the IGreet parameter
+types, and the program that includes the declarations links them.
+
+CHECK: 1212
+CHECK: 2534

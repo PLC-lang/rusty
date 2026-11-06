@@ -1,0 +1,7 @@
+INTERFACE IShape
+    METHOD area : DINT
+    VAR_INPUT
+        unit : STRING[10];
+    END_VAR
+    END_METHOD
+END_INTERFACE
