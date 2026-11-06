@@ -1,0 +1,18 @@
+[package]
+name = "plc_formatter"
+version = "1.1.0-dev"
+edition = "2021"
+license = "LGPL-3.0"
+description = "Lexer-based source code formatter for the PLC Structured Text compiler"
+
+[dependencies]
+plc_lexer = { path = "../plc_lexer", version = "1.1.0-dev" }
+plc_diagnostics = { path = "../plc_diagnostics", version = "1.1.0-dev" }
+logos.workspace = true
+serde.workspace = true
+serde_yaml.workspace = true
+glob.workspace = true
+
+[dev-dependencies]
+pretty_assertions = "1.3.0"
+tempfile.workspace = true
