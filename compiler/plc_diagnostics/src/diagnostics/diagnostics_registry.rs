@@ -267,6 +267,7 @@ lazy_static! {
         E163,   Warning,    include_str!("./error_codes/E163.md"),  // Implicit float to integer conversion truncates
         E164,   Warning,    include_str!("./error_codes/E164.md"),  // Implicit conversion between time or date and other types
         E165,   Warning,    include_str!("./error_codes/E165.md"),  // Implicit conversion between BOOL and numbers
+        E166,   Error,      include_str!("./error_codes/E166.md"),  // FUNCTION_BLOCK called without an instance
     );
 }
 
