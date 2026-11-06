@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.7](https://github.com/PLC-lang/rusty/releases/tag/v1.0.7) - 2026-10-13
+## [1.0.8](https://github.com/PLC-lang/rusty/releases/tag/v1.0.8) - 2026-11-06
+
+### Fixed
+
+- **linkage**: Give interfaces the linkage of their declaration (#2042)
+- Add warnings to type system changes that can cause loss of information (backport) (#2031)
+- **polymorphism**: Validate interface arguments passed by reference (1.0.x) (#2028)
+- **enum**: Start aggregate enum members with the enum default (1.0.x) (#2029)
+- **lowering**: Dispatch pointer calls through the target vtable (1.0.x) (#2022)
+- Backport the typesystem fixes from #2015 (#2016)
+- **lowering**: Dispatch THIS^ method calls through the vtable (1.0.x) (#2008)
+- **lowering**: Keep method calls on programs direct (1.0.x) (#2007)
+- **validation**: Accept REFERENCE TO a type named like a var (1.0.x) (#2006)
+## [1.0.7](https://github.com/PLC-lang/rusty/releases/tag/v1.0.7) - 2026-10-15
 
 ### Fixed
 
