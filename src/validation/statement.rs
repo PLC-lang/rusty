@@ -15,7 +15,14 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
+use super::{
+    array::validate_array_assignment,
+    conversion::{
+        operation_of, skips_argument_conversions, validate_assignment_conversions,
+        validate_operand_conversions, validate_operator_call_conversions,
+    },
+    ValidationContext, Validator, Validators,
+};
 use crate::index::ImplementationType;
 use crate::typesystem::VOID_TYPE;
 use crate::validation::statement::helper::{
@@ -124,6 +131,9 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::BinaryExpression(data) => {
             visit_all_statements!(validator, context, &data.left, &data.right);
             visit_binary_expression(validator, statement, &data.operator, &data.left, &data.right, context);
+            if !statement.location.is_internal() {
+                validate_operand_conversions(validator, &data.operator, &data.left, &data.right, context);
+            }
         }
         AstStatement::UnaryExpression(data) => {
             visit_statement(validator, &data.value, context);
@@ -160,7 +170,11 @@ pub fn visit_statement<T: AnnotationMap>(
             validate_array_assignment(validator, context, statement);
         }
         AstStatement::CallStatement(data) => {
-            validate_call(validator, &data.operator, data.parameters.as_deref(), &context.set_is_call());
+            let call_context = context
+                .set_is_call()
+                .set_skips_argument_conversions(skips_argument_conversions(statement, context));
+            validate_call(validator, &data.operator, data.parameters.as_deref(), &call_context);
+            validate_operator_call_conversions(validator, statement, context);
         }
         AstStatement::ControlStatement(kind) => validate_control_statement(validator, kind, context),
         AstStatement::CaseCondition(condition) => {
@@ -509,15 +523,11 @@ fn validate_condition<T>(validator: &mut Validator, context: &ValidationContext<
 where
     T: AnnotationMap,
 {
-    if let Some(value) = get_literal_int_or_const_expr_value(condition, context) {
-        if value == 0 || value == 1 {
-            return;
-        }
-    }
-
+    // A constant 0 or 1 is accepted as a boolean, but its references are still validated below
+    let is_zero_or_one = matches!(get_literal_int_or_const_expr_value(condition, context), Some(0 | 1));
     let kind = context.annotations.get_type_or_void(condition, context.index);
 
-    if !kind.get_type_information().is_bool() {
+    if !is_zero_or_one && !kind.get_type_information().is_bool() {
         let slice = validator.get_type_name_or_slice(kind);
         let message = format!("Expected a boolean, got `{slice}`");
         let location = condition.get_location();
@@ -1746,6 +1756,21 @@ pub(super) fn validate_assignment<T: AnnotationMap>(
     let left_type = context.annotations.get_type_hint(right, context.index);
 
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
+        // an argument passed by reference is not converted
+        let is_by_ref_argument = context.is_call()
+            && (matches!(
+                context.index.find_effective_type(left_type).unwrap_or(left_type).get_type_information(),
+                DataTypeInformation::Pointer { auto_deref: Some(_), .. }
+            ) || left.is_some_and(|left| {
+                matches!(
+                    context.annotations.get(left),
+                    Some(StatementAnnotation::Variable {
+                        argument_type: ArgumentType::ByRef(VariableType::InOut),
+                        ..
+                    })
+                )
+            }));
+
         // implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
         // we need the inner type unless the RHS is a reference (e.g. REF(...) or ADR(...))
         let left_type = normalized_left_type_for_assignment(context, left_type, right);
@@ -1782,8 +1807,12 @@ pub(super) fn validate_assignment<T: AnnotationMap>(
             // If this is an output assignment (and the context is a call), then we need to swap the types for type size validation
             // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
             validate_assignment_type_sizes(validator, right_type, left.unwrap(), context);
-        } else {
+            validate_assignment_conversions(validator, right_type, left.unwrap(), context);
+        } else if !context.skips_argument_conversions() {
             validate_assignment_type_sizes(validator, left_type, right, context);
+            if !is_by_ref_argument {
+                validate_assignment_conversions(validator, left_type, right, context);
+            }
         }
     }
 }
@@ -2745,6 +2774,11 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                     map.entry(dt).or_default().push(expression.get_location());
                 }
             }
+            // a builtin operator call, such as `ADD(a, b)`, is evaluated as its operation `a + b`
+            AstStatement::CallStatement(_) if operation_of(expression, context).is_some() => {
+                let operation = operation_of(expression, context).expect("checked by the guard");
+                return get_expression_types_and_locations(operation, context, lhs_is_signed_int, false);
+            }
             AstStatement::CallStatement(CallStatement { operator, parameters })
                 // special handling for builtin selector functions MUX and SEL
                 if matches!(operator.get_flat_reference_name().unwrap_or_default(), "MUX" | "SEL") =>
@@ -2873,7 +2907,7 @@ pub(crate) mod helper {
     use plc_ast::literals::{AstLiteral, Time};
 
     use crate::index::VariableIndexEntry;
-    use crate::resolver::AnnotationMap;
+    use crate::resolver::{AnnotationMap, StatementAnnotation};
     use crate::validation::ValidationContext;
     use crate::{index::Index, typesystem::DataTypeInformation};
 
@@ -2912,8 +2946,18 @@ pub(crate) mod helper {
             return Some(value);
         }
 
-        let path = right.get_flat_reference_name().unwrap_or_default();
-        let element = context.index.find_variable(context.qualifier, &[path])?;
+        // Prefer the resolved constant, a bare name may also match a same-named enum variant. A
+        // member of a constant struct is annotated constant, but its entry holds the field default.
+        let resolved_constant = match context.annotations.get(right) {
+            Some(StatementAnnotation::Variable { qualified_name, constant: true, .. }) => {
+                context.index.find_fully_qualified_variable(qualified_name).filter(|it| it.is_constant())
+            }
+            _ => None,
+        };
+        let element = resolved_constant.or_else(|| {
+            let path = right.get_flat_reference_name().unwrap_or_default();
+            context.index.find_variable(context.qualifier, &[path])
+        })?;
 
         context
             .index

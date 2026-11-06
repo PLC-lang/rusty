@@ -1,0 +1,5 @@
+CLASS CChild EXTENDS CBase
+    METHOD OVERRIDE value : DINT
+        value := 200;
+    END_METHOD
+END_CLASS

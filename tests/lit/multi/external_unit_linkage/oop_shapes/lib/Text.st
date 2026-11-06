@@ -1,0 +1,1 @@
+TYPE Text : STRING[30]; END_TYPE

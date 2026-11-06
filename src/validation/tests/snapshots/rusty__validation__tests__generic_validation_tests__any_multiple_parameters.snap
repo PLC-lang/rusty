@@ -8,6 +8,36 @@ warning[E067]: Implicit downcast from 'REAL' to 'DATE'.
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │              ^^^^^^^^ Implicit downcast from 'REAL' to 'DATE'.
 
+warning[E164]: Implicit conversion from 'REAL' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:15:14
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │              ^^^^^^^^ Implicit conversion from 'REAL' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'UDINT' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:15:24
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                        ^^^^^^^^^^^^ Implicit conversion from 'UDINT' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'DINT' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:15:38
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                      ^^^^^^^^^^ Implicit conversion from 'DINT' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'TIME' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:15:50
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                  ^^^^^^^^ Implicit conversion from 'TIME' to 'DATE' mixes time or date types with other types.
+
+warning[E164]: Implicit conversion from 'BYTE' to 'DATE' mixes time or date types with other types.
+   ┌─ <internal>:15:60
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │                                                            ^^^^^^^^ Implicit conversion from 'BYTE' to 'DATE' mixes time or date types with other types.
+
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:15:70
    │

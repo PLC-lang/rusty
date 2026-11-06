@@ -371,7 +371,7 @@ impl GeneratedHeaderForC {
                     data_type: None,
                 });
             }
-            ast::DataType::EnumType { name, elements, numeric_type } => {
+            ast::DataType::EnumType { name, elements, numeric_type, .. } => {
                 // The assumption here is that the name has already been parsed and populated
                 let name = name.clone().unwrap_or_default();
                 let enum_declerations = extract_enum_declaration_from_elements(&name, elements);

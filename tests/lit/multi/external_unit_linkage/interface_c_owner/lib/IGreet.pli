@@ -1,0 +1,8 @@
+INTERFACE IGreet
+    METHOD greet : DINT
+    VAR_INPUT
+        name : STRING[20];
+        weights : ARRAY[0..1] OF DINT;
+    END_VAR
+    END_METHOD
+END_INTERFACE

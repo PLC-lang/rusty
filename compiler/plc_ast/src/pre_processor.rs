@@ -51,7 +51,7 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         }
 
         for property in &mut interface.properties {
-            process_property(property, &interface.ident.name, LinkageType::Internal, &mut unit.user_types);
+            process_property(property, &interface.ident.name, interface.linkage, &mut unit.user_types);
         }
     }
 

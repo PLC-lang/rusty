@@ -68,6 +68,8 @@ Pre-processing fixes this before indexing starts. It walks each unit, turns ever
 
 The same happens to pointers (`REF_TO INT`) and to the type parameters of generic functions (`__ADD__T` for parameter `T` of `ADD`).
 
+A generated type takes the linkage of its container. The parameter types of a method declared in an interface from an include file are therefore only declared, like the types of an included or `{external}` POU, and only the object built from the declaring unit defines their constructors.
+
 Pre-processing also gives enum variants explicit values. `TYPE Speed: (Slow, Normal, Fast := 10); END_TYPE` becomes `Slow := 0, Normal := Speed#Slow + 1, Fast := 10`.
 
 For a hardware binding such as `sensor AT %IX0.0: BOOL`, it creates the global `__PI_0_0`. The variable `sensor` becomes an alias pointer to that global, with the generated type `__global_sensor`. The [Hardware Map](../outputs/01-hardware-map.md) chapter follows this connection.

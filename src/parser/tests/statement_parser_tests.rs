@@ -137,6 +137,7 @@ fn inline_enum_declaration_can_be_parsed() {
                     SourceLocation::internal(),
                     0,
                 ),
+                numeric_type_is_default: true,
             }),
             location: SourceLocation::internal(),
             scope: None,

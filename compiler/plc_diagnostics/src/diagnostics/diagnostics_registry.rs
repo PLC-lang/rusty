@@ -261,6 +261,12 @@ lazy_static! {
         E157,   Warning,    include_str!("./error_codes/E157.md"),  // Bare integer combined with a duration
         E158,   Error,      include_str!("./error_codes/E158.md"),  // CFC execution order 0
         E159,   Info,       include_str!("./error_codes/E159.md"),  // Follow-up to E126 naming the binding parameter or reference
+        E160,   Warning,    include_str!("./error_codes/E160.md"),  // Implicit conversion may change the sign
+        E161,   Warning,    include_str!("./error_codes/E161.md"),  // Operand converted to a type of the other sign
+        E162,   Warning,    include_str!("./error_codes/E162.md"),  // Implicit integer to float conversion may lose precision
+        E163,   Warning,    include_str!("./error_codes/E163.md"),  // Implicit float to integer conversion truncates
+        E164,   Warning,    include_str!("./error_codes/E164.md"),  // Implicit conversion between time or date and other types
+        E165,   Warning,    include_str!("./error_codes/E165.md"),  // Implicit conversion between BOOL and numbers
     );
 }
 

@@ -26,6 +26,7 @@ use self::{
 };
 
 mod array;
+mod conversion;
 mod global;
 mod pou;
 mod property;
@@ -44,6 +45,8 @@ pub struct ValidationContext<'s, T: AnnotationMap> {
     qualifier: Option<&'s str>,
     is_call: bool,
     is_cast: bool,
+    /// the arguments of the call are not converted to its parameters, see `skips_argument_conversions`
+    skips_argument_conversions: bool,
 }
 
 impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
@@ -77,6 +80,14 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
         self.is_call
     }
 
+    fn set_skips_argument_conversions(&self, skips_argument_conversions: bool) -> Self {
+        ValidationContext { skips_argument_conversions, ..self.to_owned() }
+    }
+
+    fn skips_argument_conversions(&self) -> bool {
+        self.skips_argument_conversions
+    }
+
     fn set_cast(&self) -> Self {
         ValidationContext { is_cast: true, ..self.to_owned() }
     }
@@ -90,6 +101,7 @@ impl<T: AnnotationMap> Clone for ValidationContext<'_, T> {
             qualifier: self.qualifier,
             is_call: self.is_call,
             is_cast: self.is_cast,
+            skips_argument_conversions: self.skips_argument_conversions,
         }
     }
 }
@@ -177,8 +189,14 @@ impl<'a> Validator<'a> {
     }
 
     pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
-        let context =
-            ValidationContext { annotations, index, qualifier: None, is_call: false, is_cast: false };
+        let context = ValidationContext {
+            annotations,
+            index,
+            qualifier: None,
+            is_call: false,
+            is_cast: false,
+            skips_argument_conversions: false,
+        };
         // Validate POU and declared Variables
         for pou in &unit.pous {
             let context = context.with_qualifier(pou.name.as_str());
