@@ -541,7 +541,7 @@ dependencies = [
 
 [[package]]
 name = "errorcode_book_generator"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "clap 4.6.7",
  "mdbook-preprocessor",
@@ -906,7 +906,7 @@ dependencies = [
 
 [[package]]
 name = "iec61131std"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "cc",
  "chrono",
@@ -1513,7 +1513,7 @@ checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 
 [[package]]
 name = "plc-compiler"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1559,7 +1559,7 @@ dependencies = [
 
 [[package]]
 name = "plc_ast"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "derive_more",
  "plc_literals",
@@ -1572,7 +1572,7 @@ dependencies = [
 
 [[package]]
 name = "plc_derive"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "quote",
  "syn 2.0.119",
@@ -1580,7 +1580,7 @@ dependencies = [
 
 [[package]]
 name = "plc_diagnostics"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "anyhow",
  "codespan-reporting",
@@ -1596,7 +1596,7 @@ dependencies = [
 
 [[package]]
 name = "plc_driver"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1630,7 +1630,7 @@ dependencies = [
 
 [[package]]
 name = "plc_header_generator"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "clap 3.2.25",
  "insta",
@@ -1648,7 +1648,7 @@ dependencies = [
 
 [[package]]
 name = "plc_index"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "annotate-snippets",
  "encoding_rs",
@@ -1663,7 +1663,7 @@ dependencies = [
 
 [[package]]
 name = "plc_lexer"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "logos",
  "plc_ast",
@@ -1674,11 +1674,11 @@ dependencies = [
 
 [[package]]
 name = "plc_literals"
-version = "1.0.8"
+version = "1.0.9-dev"
 
 [[package]]
 name = "plc_llvm"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "cc",
  "inkwell",
@@ -1687,7 +1687,7 @@ dependencies = [
 
 [[package]]
 name = "plc_lowering"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "insta",
  "itertools",
@@ -1701,7 +1701,7 @@ dependencies = [
 
 [[package]]
 name = "plc_parser"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "plc_ast",
  "plc_diagnostics",
@@ -1712,7 +1712,7 @@ dependencies = [
 
 [[package]]
 name = "plc_project"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "anyhow",
  "encoding_rs",
@@ -1731,7 +1731,7 @@ dependencies = [
 
 [[package]]
 name = "plc_source"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "encoding_rs",
  "encoding_rs_io",
@@ -1742,11 +1742,11 @@ dependencies = [
 
 [[package]]
 name = "plc_util"
-version = "1.0.8"
+version = "1.0.9-dev"
 
 [[package]]
 name = "plc_xml"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "html-escape",
  "indexmap 2.14.2",
@@ -2079,7 +2079,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "section_mangler"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "nom",
 ]
@@ -2382,7 +2382,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils"
-version = "1.0.8"
+version = "1.0.9-dev"
 dependencies = [
  "plc-compiler",
  "plc_ast",
