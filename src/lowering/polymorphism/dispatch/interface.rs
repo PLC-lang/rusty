@@ -135,7 +135,7 @@ use crate::{
 
 use super::validation::{self, Binding};
 
-const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
+pub const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
 const FATPOINTER_DATA_FIELD_NAME: &str = "data";
 const FATPOINTER_TABLE_FIELD_NAME: &str = "table";
 

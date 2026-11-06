@@ -30,6 +30,7 @@ use plc_util::path::normalize_lexical_path;
 
 use crate::{
     index::{Index, PouIndexEntry, VariableIndexEntry},
+    lowering::polymorphism::dispatch::interface::FATPOINTER_TYPE_NAME,
     typesystem::{
         DataType, DataTypeInformation, Dimension, StringEncoding, TypeSize, CHAR_TYPE, VOID_INTERNAL_NAME,
         WCHAR_TYPE,
@@ -539,7 +540,9 @@ impl<'ink> DebugBuilder<'ink> {
         index: &Index,
         types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
-        if location.is_internal() {
+        // Internal structs get no debug info, except the fat pointer: it is the storage of every
+        // interface-typed variable, which a debugger can only describe through this type.
+        if location.is_internal() && !name.eq_ignore_ascii_case(FATPOINTER_TYPE_NAME) {
             return Ok(());
         }
 
@@ -768,9 +771,8 @@ impl<'ink> DebugBuilder<'ink> {
         let _ = self.register_debug_type(dt_name, dt, index, types_index);
 
         // If the type was registered, return it; otherwise report it as unavailable.
-        // This can happen for compiler-internal / synthetic types (e.g. __FATPOINTER)
-        // whose source location is internal and are therefore intentionally excluded
-        // from debug info.
+        // This can happen for compiler-internal / synthetic types whose source location is
+        // internal and are therefore intentionally excluded from debug info.
         if let Some(debug_type) = self.types.get(&key) {
             Ok(*debug_type)
         } else {

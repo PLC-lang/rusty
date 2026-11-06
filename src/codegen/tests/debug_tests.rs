@@ -2621,3 +2621,299 @@ fn interface_methods_do_not_drop_the_module_debug_info() {
     !25 = !DILocation(line: 10, column: 12, scope: !17, atomGroup: 2, atomRank: 1)
     "#);
 }
+
+#[test]
+fn interface_variables_are_described_by_the_fat_pointer() {
+    let codegen = codegen(
+        r#"
+        INTERFACE ICounter
+            METHOD bump : DINT
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK FbImpl IMPLEMENTS ICounter
+            METHOD bump : DINT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        TYPE Holder : STRUCT
+            before : DINT;
+            target : ICounter;
+            after : DINT;
+        END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbHolder
+        VAR_INPUT
+            target : ICounter;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        VAR_GLOBAL
+            iface : ICounter;
+            holder : Holder;
+            fb_holder : FbHolder;
+            ifaces : ARRAY[0..1] OF ICounter;
+        END_VAR
+        "#,
+    );
+
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %__FATPOINTER = type { ptr, ptr }
+    %Holder = type { i32, %__FATPOINTER, i32 }
+    %FbHolder = type { ptr, %__FATPOINTER }
+    %__vtable_FbImpl = type { ptr, ptr }
+    %__vtable_FbHolder = type { ptr }
+    %__itable_ICounter = type { ptr }
+    %FbImpl = type { ptr }
+
+    @iface = global %__FATPOINTER zeroinitializer, !dbg !0
+    @holder = global %Holder zeroinitializer, !dbg !12
+    @fb_holder = global %FbHolder zeroinitializer, !dbg !20
+    @ifaces = global [2 x %__FATPOINTER] zeroinitializer, !dbg !28
+    @__vtable_FbImpl_instance = global %__vtable_FbImpl zeroinitializer
+    @__vtable_FbHolder_instance = global %__vtable_FbHolder zeroinitializer
+    @__itable_ICounter_FbImpl_instance = global %__itable_ICounter zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
+
+    define void @FbHolder(ptr %0) !dbg !37 {
+    entry:
+        #dbg_declare(ptr %0, !41, !DIExpression(), !42)
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %__vtable = getelementptr inbounds nuw %FbHolder, ptr %0, i32 0, i32 0
+      %target = getelementptr inbounds nuw %FbHolder, ptr %0, i32 0, i32 1
+      ret void, !dbg !43
+    }
+
+    define void @FbImpl(ptr %0) !dbg !44 {
+    entry:
+        #dbg_declare(ptr %0, !52, !DIExpression(), !53)
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %__vtable = getelementptr inbounds nuw %FbImpl, ptr %0, i32 0, i32 0
+      ret void, !dbg !54
+    }
+
+    define i32 @FbImpl__bump(ptr %0) !dbg !55 {
+    entry:
+        #dbg_declare(ptr %0, !56, !DIExpression(), !57)
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %__vtable = getelementptr inbounds nuw %FbImpl, ptr %0, i32 0, i32 0
+      %FbImpl.bump = alloca i32, align [filtered]
+        #dbg_declare(ptr %FbImpl.bump, !58, !DIExpression(), !59)
+      store i32 0, ptr %FbImpl.bump, align [filtered]
+      %FbImpl__bump_ret = load i32, ptr %FbImpl.bump, align [filtered], !dbg !57
+      ret i32 %FbImpl__bump_ret, !dbg !60
+    }
+
+    declare i32 @ICounter__bump(ptr)
+
+    define void @FbImpl__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      %deref = load ptr, ptr %self, align [filtered], !dbg !42
+      %__vtable = getelementptr inbounds nuw %FbImpl, ptr %deref, i32 0, i32 0, !dbg !42
+      call void @__FbImpl___vtable__ctor(ptr %__vtable), !dbg !42
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !42
+      %__vtable2 = getelementptr inbounds nuw %FbImpl, ptr %deref1, i32 0, i32 0, !dbg !42
+      store ptr @__vtable_FbImpl_instance, ptr %__vtable2, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @FbHolder__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      %deref = load ptr, ptr %self, align [filtered], !dbg !42
+      %__vtable = getelementptr inbounds nuw %FbHolder, ptr %deref, i32 0, i32 0, !dbg !42
+      call void @__FbHolder___vtable__ctor(ptr %__vtable), !dbg !42
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !42
+      %__vtable2 = getelementptr inbounds nuw %FbHolder, ptr %deref1, i32 0, i32 0, !dbg !42
+      store ptr @__vtable_FbHolder_instance, ptr %__vtable2, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @Holder__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @__global_ifaces__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @__vtable_FbImpl__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      %deref = load ptr, ptr %self, align [filtered], !dbg !42
+      %__body = getelementptr inbounds nuw %__vtable_FbImpl, ptr %deref, i32 0, i32 0, !dbg !42
+      call void @____vtable_FbImpl___body__ctor(ptr %__body), !dbg !42
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !42
+      %__body2 = getelementptr inbounds nuw %__vtable_FbImpl, ptr %deref1, i32 0, i32 0, !dbg !42
+      store ptr @FbImpl, ptr %__body2, align [filtered], !dbg !42
+      %deref3 = load ptr, ptr %self, align [filtered], !dbg !42
+      %bump = getelementptr inbounds nuw %__vtable_FbImpl, ptr %deref3, i32 0, i32 1, !dbg !42
+      call void @____vtable_FbImpl_bump__ctor(ptr %bump), !dbg !42
+      %deref4 = load ptr, ptr %self, align [filtered], !dbg !42
+      %bump5 = getelementptr inbounds nuw %__vtable_FbImpl, ptr %deref4, i32 0, i32 1, !dbg !42
+      store ptr @FbImpl__bump, ptr %bump5, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @__vtable_FbHolder__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      %deref = load ptr, ptr %self, align [filtered], !dbg !42
+      %__body = getelementptr inbounds nuw %__vtable_FbHolder, ptr %deref, i32 0, i32 0, !dbg !42
+      call void @____vtable_FbHolder___body__ctor(ptr %__body), !dbg !42
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !42
+      %__body2 = getelementptr inbounds nuw %__vtable_FbHolder, ptr %deref1, i32 0, i32 0, !dbg !42
+      store ptr @FbHolder, ptr %__body2, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @__itable_ICounter__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      %deref = load ptr, ptr %self, align [filtered], !dbg !42
+      %bump = getelementptr inbounds nuw %__itable_ICounter, ptr %deref, i32 0, i32 0, !dbg !42
+      call void @____itable_ICounter_bump__ctor(ptr %bump), !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @__FbImpl___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @__FbHolder___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @____vtable_FbImpl___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @____vtable_FbImpl_bump__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @____vtable_FbHolder___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @____itable_ICounter_bump__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !42
+      store ptr %0, ptr %self, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    define void @__unit___internal___[ctor-hash]__ctor() {
+    entry:
+      call void @Holder__ctor(ptr @holder), !dbg !42
+      call void @FbHolder__ctor(ptr @fb_holder), !dbg !42
+      call void @__global_ifaces__ctor(ptr @ifaces), !dbg !42
+      call void @__vtable_FbImpl__ctor(ptr @__vtable_FbImpl_instance), !dbg !42
+      call void @__vtable_FbHolder__ctor(ptr @__vtable_FbHolder_instance), !dbg !42
+      call void @__itable_ICounter__ctor(ptr @__itable_ICounter_FbImpl_instance), !dbg !42
+      store ptr @FbImpl__bump, ptr @__itable_ICounter_FbImpl_instance, align [filtered], !dbg !42
+      ret void, !dbg !42
+    }
+
+    !llvm.module.flags = !{!33, !34}
+    !llvm.dbg.cu = !{!35}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "iface", scope: !2, file: !2, line: 26, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "__FATPOINTER", scope: !2, file: !2, size: 128, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "__FATPOINTER")
+    !4 = !{!5, !9}
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "data", scope: !2, file: !2, baseType: !6, size: 64, align [filtered], flags: DIFlagPublic)
+    !6 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO______FATPOINTER_data", scope: !2, file: !2, baseType: !7, align [filtered])
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "____FATPOINTER_data", baseType: !8, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !9 = !DIDerivedType(tag: DW_TAG_member, name: "table", scope: !2, file: !2, baseType: !10, size: 64, align [filtered], offset: 64, flags: DIFlagPublic)
+    !10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO______FATPOINTER_table", scope: !2, file: !2, baseType: !11, align [filtered])
+    !11 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "____FATPOINTER_table", baseType: !8, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !12 = !DIGlobalVariableExpression(var: !13, expr: !DIExpression())
+    !13 = distinct !DIGlobalVariable(name: "holder", scope: !2, file: !2, line: 27, type: !14, isLocal: false, isDefinition: true)
+    !14 = !DICompositeType(tag: DW_TAG_structure_type, name: "Holder", scope: !2, file: !2, line: 12, size: 256, align [filtered], flags: DIFlagPublic, elements: !15, identifier: "Holder")
+    !15 = !{!16, !18, !19}
+    !16 = !DIDerivedType(tag: DW_TAG_member, name: "before", scope: !2, file: !2, line: 13, baseType: !17, size: 32, align [filtered], flags: DIFlagPublic)
+    !17 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !18 = !DIDerivedType(tag: DW_TAG_member, name: "target", scope: !2, file: !2, line: 14, baseType: !3, size: 128, align [filtered], offset: 64, flags: DIFlagPublic)
+    !19 = !DIDerivedType(tag: DW_TAG_member, name: "after", scope: !2, file: !2, line: 15, baseType: !17, size: 32, align [filtered], offset: 192, flags: DIFlagPublic)
+    !20 = !DIGlobalVariableExpression(var: !21, expr: !DIExpression())
+    !21 = distinct !DIGlobalVariable(name: "fb_holder", scope: !2, file: !2, line: 28, type: !22, isLocal: false, isDefinition: true)
+    !22 = !DICompositeType(tag: DW_TAG_structure_type, name: "FbHolder", scope: !2, file: !2, line: 19, size: 192, align [filtered], flags: DIFlagPublic, elements: !23, identifier: "FbHolder")
+    !23 = !{!24, !27}
+    !24 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !25, size: 64, align [filtered], flags: DIFlagPublic)
+    !25 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____FbHolder___vtable", scope: !2, file: !2, baseType: !26, align [filtered])
+    !26 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__FbHolder___vtable", baseType: !8, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !27 = !DIDerivedType(tag: DW_TAG_member, name: "target", scope: !2, file: !2, line: 21, baseType: !3, size: 128, align [filtered], offset: 64, flags: DIFlagPublic)
+    !28 = !DIGlobalVariableExpression(var: !29, expr: !DIExpression())
+    !29 = distinct !DIGlobalVariable(name: "ifaces", scope: !2, file: !2, line: 29, type: !30, isLocal: false, isDefinition: true)
+    !30 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 256, align [filtered], elements: !31)
+    !31 = !{!32}
+    !32 = !DISubrange(count: 2, lowerBound: 0)
+    !33 = !{i32 2, !"Dwarf Version", i32 5}
+    !34 = !{i32 2, !"Debug Info Version", i32 3}
+    !35 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !36, splitDebugInlining: false)
+    !36 = !{!0, !12, !20, !28}
+    !37 = distinct !DISubprogram(name: "FbHolder", linkageName: "FbHolder", scope: !2, file: !2, line: 19, type: !38, scopeLine: 23, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !35, retainedNodes: !40, keyInstructions: true)
+    !38 = !DISubroutineType(flags: DIFlagPublic, types: !39)
+    !39 = !{null, !22, !3}
+    !40 = !{}
+    !41 = !DILocalVariable(name: "FbHolder", scope: !37, file: !2, line: 23, type: !22)
+    !42 = !DILocation(line: 23, column: 8, scope: !37)
+    !43 = !DILocation(line: 23, column: 8, scope: !37, atomGroup: 1, atomRank: 1)
+    !44 = distinct !DISubprogram(name: "FbImpl", linkageName: "FbImpl", scope: !2, file: !2, line: 7, type: !45, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !35, retainedNodes: !40, keyInstructions: true)
+    !45 = !DISubroutineType(flags: DIFlagPublic, types: !46)
+    !46 = !{null, !47}
+    !47 = !DICompositeType(tag: DW_TAG_structure_type, name: "FbImpl", scope: !2, file: !2, line: 7, size: 64, align [filtered], flags: DIFlagPublic, elements: !48, identifier: "FbImpl")
+    !48 = !{!49}
+    !49 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !50, size: 64, align [filtered], flags: DIFlagPublic)
+    !50 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____FbImpl___vtable", scope: !2, file: !2, baseType: !51, align [filtered])
+    !51 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__FbImpl___vtable", baseType: !8, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !52 = !DILocalVariable(name: "FbImpl", scope: !44, file: !2, line: 10, type: !47)
+    !53 = !DILocation(line: 10, column: 8, scope: !44)
+    !54 = !DILocation(line: 10, column: 8, scope: !44, atomGroup: 1, atomRank: 1)
+    !55 = distinct !DISubprogram(name: "FbImpl.bump", linkageName: "FbImpl.bump", scope: !44, file: !2, line: 8, type: !45, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !35, retainedNodes: !40, keyInstructions: true)
+    !56 = !DILocalVariable(name: "FbImpl", scope: !55, file: !2, line: 9, type: !47)
+    !57 = !DILocation(line: 9, column: 12, scope: !55)
+    !58 = !DILocalVariable(name: "bump", scope: !55, file: !2, line: 8, type: !17, align [filtered])
+    !59 = !DILocation(line: 8, column: 19, scope: !55)
+    !60 = !DILocation(line: 9, column: 12, scope: !55, atomGroup: 1, atomRank: 1)
+    "#);
+}
