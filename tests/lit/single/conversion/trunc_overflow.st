@@ -1,11 +1,13 @@
 // RUN: %COMPILE %s && %RUN | %CHECK %s
 //
-// REAL and LREAL to the integer types truncate toward zero, then keep the low bits of the target
-// width, so an out-of-range value wraps and a negative value lands at the top of an unsigned range.
-// The truncated value first becomes a signed 64-bit integer; NaN, the infinities and anything outside
-// that range become -2^63 instead, so the targets narrower than 64 bits see 0 for them. ULINT is the
-// exception: a value in [2^63, 2^64) converts exactly. This is the rule CODESYS 3.5 SP22 follows for
-// its real conversions. Each line prints SINT USINT INT UINT DINT UDINT LINT ULINT.
+// REAL and LREAL to the integer types truncate toward zero. For SINT, USINT, INT, UINT and DINT, the
+// truncated value then becomes a signed 32-bit integer and keeps the low bits of the target width;
+// NaN, the infinities and anything outside the 32-bit range become -2^31, so DINT sees -2147483648
+// and the narrower targets 0. UDINT, LINT and ULINT go through a signed 64-bit integer the same way
+// (-2^63 when out of range), so UDINT is exact up to 2^32, and ULINT keeps a value in [2^63, 2^64)
+// exact. The INT and DINT cells of the rows that the CODESYS sheet covers were measured on CODESYS
+// 3.5 SP22 on x86-64 (TRUNC_INT and TRUNC, the only two truncations it provides); the other rows and
+// columns extend the same rule. Each line prints SINT USINT INT UINT DINT UDINT LINT ULINT.
 FUNCTION typed_real
 VAR_INPUT
     x : REAL;
@@ -56,36 +58,44 @@ typed_real(REAL#5.9);       // CHECK: 5 5 5 5 5 5 5 5
 typed_real(REAL#-5.9);      // CHECK: -5 251 -5 65531 -5 4294967291 -5 18446744073709551611
 typed_real(REAL#-0.9);      // CHECK: 0 0 0 0 0 0 0 0
 typed_real(REAL#-1.9);      // CHECK: -1 255 -1 65535 -1 4294967295 -1 18446744073709551615
-// range, wraps modulo the target width
+// inside the 32-bit range, wraps modulo the target width
 typed_real(REAL#300.7);     // CHECK: 44 44 300 300 300 300 300 300
 typed_real(REAL#40000.9);   // CHECK: 64 64 -25536 40000 40000 40000 40000 40000
-typed_real(REAL#1.0E10);    // CHECK: 0 0 -7168 58368 1410065408 1410065408 10000000000 10000000000
-typed_real(REAL#1.0E19);    // CHECK: 0 0 0 0 0 0 -9223372036854775808 9999999980506447872
-typed_real(REAL#1.0E20);    // CHECK: 0 0 0 0 0 0 -9223372036854775808 9223372036854775808
+// outside the 32-bit range: -2^31 for SINT to DINT, while UDINT stays exact up to 2^32
+typed_real(REAL#3.0E9);     // CHECK: 0 0 0 0 -2147483648 3000000000 3000000000 3000000000
+typed_real(REAL#1.0E10);    // CHECK: 0 0 0 0 -2147483648 1410065408 10000000000 10000000000
+typed_real(REAL#1.0E19);    // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9999999980506447872
+typed_real(REAL#1.0E20);    // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9223372036854775808
 // not a number
-typed_real(INF_REAL);       // CHECK: 0 0 0 0 0 0 -9223372036854775808 9223372036854775808
-typed_real(ninf);           // CHECK: 0 0 0 0 0 0 -9223372036854775808 9223372036854775808
-typed_real(NAN_REAL);       // CHECK: 0 0 0 0 0 0 -9223372036854775808 9223372036854775808
+typed_real(INF_REAL);       // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9223372036854775808
+typed_real(ninf);           // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9223372036854775808
+typed_real(NAN_REAL);       // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9223372036854775808
 
 // ---- LREAL source, typed form
-typed_lreal(LREAL#-5.9);    // CHECK: -5 251 -5 65531 -5 4294967291 -5 18446744073709551611
-typed_lreal(LREAL#300.7);   // CHECK: 44 44 300 300 300 300 300 300
-typed_lreal(LREAL#40000.9); // CHECK: 64 64 -25536 40000 40000 40000 40000 40000
-typed_lreal(LREAL#1.0E10);  // CHECK: 0 0 -7168 58368 1410065408 1410065408 10000000000 10000000000
-// the 64-bit band: ULINT keeps [2^63, 2^64) exact, the other targets go through the signed path
-typed_lreal(LREAL#1.0E19);  // CHECK: 0 0 0 0 0 0 -9223372036854775808 10000000000000000000
-typed_lreal(LREAL#-1.0E19); // CHECK: 0 0 0 0 0 0 -9223372036854775808 9223372036854775808
-typed_lreal(LREAL#1.0E20);  // CHECK: 0 0 0 0 0 0 -9223372036854775808 9223372036854775808
-typed_lreal(lninf);         // CHECK: 0 0 0 0 0 0 -9223372036854775808 9223372036854775808
-typed_lreal(NAN_LREAL);     // CHECK: 0 0 0 0 0 0 -9223372036854775808 9223372036854775808
+typed_lreal(LREAL#-5.9);           // CHECK: -5 251 -5 65531 -5 4294967291 -5 18446744073709551611
+typed_lreal(LREAL#300.7);          // CHECK: 44 44 300 300 300 300 300 300
+typed_lreal(LREAL#40000.9);        // CHECK: 64 64 -25536 40000 40000 40000 40000 40000
+// the edges of the 32-bit range
+typed_lreal(LREAL#2147483647.9);   // CHECK: -1 255 -1 65535 2147483647 2147483647 2147483647 2147483647
+typed_lreal(LREAL#2147483648.0);   // CHECK: 0 0 0 0 -2147483648 2147483648 2147483648 2147483648
+typed_lreal(LREAL#-2147483648.9);  // CHECK: 0 0 0 0 -2147483648 2147483648 -2147483648 18446744071562067968
+typed_lreal(LREAL#4294967295.9);   // CHECK: 0 0 0 0 -2147483648 4294967295 4294967295 4294967295
+typed_lreal(LREAL#4294967296.0);   // CHECK: 0 0 0 0 -2147483648 0 4294967296 4294967296
+typed_lreal(LREAL#1.0E10);         // CHECK: 0 0 0 0 -2147483648 1410065408 10000000000 10000000000
+// the 64-bit band: ULINT keeps [2^63, 2^64) exact, LINT goes through the signed path
+typed_lreal(LREAL#1.0E19);         // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 10000000000000000000
+typed_lreal(LREAL#-1.0E19);        // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9223372036854775808
+typed_lreal(LREAL#1.0E20);         // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9223372036854775808
+typed_lreal(lninf);                // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9223372036854775808
+typed_lreal(NAN_LREAL);            // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9223372036854775808
 
 // ---- the generic form calls the typed one
 generic_real(REAL#-5.9);       // CHECK: -5 251 -5 65531 -5 4294967291 -5 18446744073709551611
-generic_real(REAL#1.0E10);     // CHECK: 0 0 -7168 58368 1410065408 1410065408 10000000000 10000000000
-generic_real(NAN_REAL);        // CHECK: 0 0 0 0 0 0 -9223372036854775808 9223372036854775808
+generic_real(REAL#1.0E10);     // CHECK: 0 0 0 0 -2147483648 1410065408 10000000000 10000000000
+generic_real(NAN_REAL);        // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 9223372036854775808
 generic_lreal(LREAL#40000.9);  // CHECK: 64 64 -25536 40000 40000 40000 40000 40000
-generic_lreal(LREAL#1.0E19);   // CHECK: 0 0 0 0 0 0 -9223372036854775808 10000000000000000000
+generic_lreal(LREAL#1.0E19);   // CHECK: 0 0 0 0 -2147483648 0 -9223372036854775808 10000000000000000000
 
-// ---- the deprecated TRUNC gives LINT
-printf('%lld %lld %lld$N', TRUNC(REAL#-5.9), TRUNC(LREAL#1.0E19), TRUNC(NAN_LREAL));  // CHECK: -5 -9223372036854775808 -9223372036854775808
+// ---- the deprecated TRUNC gives DINT, as TRUNC_DINT does
+printf('%d %d %d %d$N', TRUNC(REAL#-5.9), TRUNC(LREAL#2147483647.9), TRUNC(LREAL#1.0E19), TRUNC(NAN_LREAL));  // CHECK: -5 2147483647 -2147483648 -2147483648
 END_FUNCTION
