@@ -27,7 +27,7 @@ FUNCTION TRUNC_{0}__{1} : {0}
         in : {1};
     END_VAR
 
-    TRUNC_{0}__{1} := in;
+    TRUNC_{0}__{1} := {1}_TRUNC_{0}(in);
 END_FUNCTION
 """
 

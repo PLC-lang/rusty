@@ -829,14 +829,14 @@ FUNCTION TRUNC__REAL : LINT
 VAR_INPUT
     IN : REAL;
 END_VAR
-    TRUNC__REAL := IN;
+    TRUNC__REAL := REAL_TRUNC_LINT(IN);
 END_FUNCTION
 
 FUNCTION TRUNC__LREAL : LINT
 VAR_INPUT
     IN : LREAL;
 END_VAR
-    TRUNC__LREAL := IN;
+    TRUNC__LREAL := LREAL_TRUNC_LINT(IN);
 END_FUNCTION
 
 (******************************************************************************
