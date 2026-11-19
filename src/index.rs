@@ -439,6 +439,8 @@ pub enum ImplementationType {
     Method,
     Init,
     ProjectInit,
+    Exit,
+    ProjectExit,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -490,6 +492,10 @@ impl ImplementationIndexEntry {
         matches!(self.get_implementation_type(), ImplementationType::Init | ImplementationType::ProjectInit)
     }
 
+    pub fn is_generated(&self) -> bool {
+        self.get_implementation_type().is_generated()
+    }
+
     pub fn is_method(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Method)
     }
@@ -514,29 +520,43 @@ impl From<&PouType> for ImplementationType {
             PouType::Method { .. } => ImplementationType::Method,
             PouType::Init => ImplementationType::Init,
             PouType::ProjectInit => ImplementationType::ProjectInit,
+            PouType::Exit => ImplementationType::Exit,
+            PouType::ProjectExit => ImplementationType::ProjectExit,
         }
     }
 }
 
 impl ImplementationType {
-    pub fn is_function_method_or_init(&self) -> bool {
+    /// Returns true for the constructors and destructors that the compiler generates.
+    pub fn is_generated(&self) -> bool {
         matches!(
             self,
-            ImplementationType::Function
-                | ImplementationType::Init
+            ImplementationType::Init
                 | ImplementationType::ProjectInit
-                | ImplementationType::Method,
+                | ImplementationType::Exit
+                | ImplementationType::ProjectExit
         )
+    }
+
+    pub fn is_function_method_or_generated(&self) -> bool {
+        matches!(self, ImplementationType::Function | ImplementationType::Method) || self.is_generated()
     }
 
     pub(crate) fn is_project_init(&self) -> bool {
         matches!(self, ImplementationType::ProjectInit)
     }
 
+    pub(crate) fn is_project_exit(&self) -> bool {
+        matches!(self, ImplementationType::ProjectExit)
+    }
+
     pub fn has_self_parameter(&self) -> bool {
         !matches!(
             self,
-            ImplementationType::Function | ImplementationType::ProjectInit | ImplementationType::Class
+            ImplementationType::Function
+                | ImplementationType::ProjectInit
+                | ImplementationType::ProjectExit
+                | ImplementationType::Class
         )
     }
 }
@@ -2103,8 +2123,8 @@ impl Index {
         self.pous.get(&pou_name.to_lowercase())
     }
 
-    pub fn is_init_function(&self, pou_name: &str) -> bool {
-        self.find_implementation_by_name(pou_name).map(|it| it.is_init()).unwrap_or_default()
+    pub fn is_generated_function(&self, pou_name: &str) -> bool {
+        self.find_implementation_by_name(pou_name).map(|it| it.is_generated()).unwrap_or_default()
     }
 
     pub fn register_program(

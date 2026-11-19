@@ -572,3 +572,286 @@ fn function_input_arguments_are_optional() {
 
     assert_snapshot!(diagnostics, @"");
 }
+
+#[test]
+fn fb_exit_without_parameters_and_return_type_is_not_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        CLASS cls
+            METHOD fb_exit
+            END_METHOD
+        END_CLASS
+
+        PROGRAM prg
+            METHOD Fb_Exit
+            END_METHOD
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn fb_exit_with_copy_code_parameter_and_bool_return_type_is_not_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT: BOOL
+                VAR_INPUT
+                    bInCopyCode: BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fb2
+            METHOD fb_exit: bool
+                VAR_INPUT
+                    bincopycode: bool;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn fb_exit_with_only_a_return_type_is_not_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT: DINT
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn fb_exit_with_other_parameter_is_not_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT
+                VAR_INPUT
+                    timeout: TIME;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn fb_exit_with_copy_code_parameter_and_no_return_type_is_a_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT
+                VAR_INPUT
+                    bInCopyCode: BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E166]: Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+      ┌─ <internal>:5:21
+      │
+    5 │                     bInCopyCode: BOOL;
+      │                     ^^^^^^^^^^^ Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+    ");
+}
+
+#[test]
+fn fb_exit_with_copy_code_parameter_and_other_return_type_is_a_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT: DINT
+                VAR_INPUT
+                    bInCopyCode: BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E166]: Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+      ┌─ <internal>:5:21
+      │
+    5 │                     bInCopyCode: BOOL;
+      │                     ^^^^^^^^^^^ Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+    ");
+}
+
+#[test]
+fn fb_exit_with_copy_code_parameter_of_other_type_is_a_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT: BOOL
+                VAR_INPUT
+                    bInCopyCode: DINT;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E166]: Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+      ┌─ <internal>:5:21
+      │
+    5 │                     bInCopyCode: DINT;
+      │                     ^^^^^^^^^^^ Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+    ");
+}
+
+#[test]
+fn fb_exit_with_copy_code_parameter_and_additional_parameter_is_a_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT: BOOL
+                VAR_INPUT
+                    bInCopyCode: BOOL;
+                    extra: DINT;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E166]: Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+      ┌─ <internal>:5:21
+      │
+    5 │                     bInCopyCode: BOOL;
+      │                     ^^^^^^^^^^^ Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+    ");
+}
+
+#[test]
+fn fb_exit_with_copy_code_parameter_by_reference_is_a_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT: BOOL
+                VAR_IN_OUT
+                    bInCopyCode: BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E166]: Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+      ┌─ <internal>:5:21
+      │
+    5 │                     bInCopyCode: BOOL;
+      │                     ^^^^^^^^^^^ Unexpected signature of 'FB_EXIT', expected the single input 'bInCopyCode: BOOL' and the return type BOOL
+    ");
+}
+
+#[test]
+fn fb_exit_signature_is_not_reported_for_external_function_blocks() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        {external}
+        FUNCTION_BLOCK fb
+            METHOD FB_EXIT
+                VAR_INPUT
+                    bInCopyCode: BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn signature_of_other_methods_with_copy_code_parameter_is_not_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb
+            METHOD cleanup
+                VAR_INPUT
+                    bInCopyCode: BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn fb_exit_with_other_signature_than_the_base_is_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK base
+            METHOD FB_EXIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK derived EXTENDS base
+            METHOD FB_EXIT: BOOL
+                VAR_INPUT
+                    bInCopyCode: BOOL;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:8:20
+      │
+    8 │             METHOD FB_EXIT: BOOL
+      │                    ^^^^^^^ Derived methods with conflicting signatures, return types do not match:
+
+    note[E118]: Type `VOID` declared in `base.FB_EXIT` but `derived.FB_EXIT` declared type `BOOL`
+      ┌─ <internal>:3:20
+      │
+    3 │             METHOD FB_EXIT
+      │                    ------- see also
+      ·
+    8 │             METHOD FB_EXIT: BOOL
+      │                    ------- see also
+
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+      ┌─ <internal>:8:20
+      │
+    8 │             METHOD FB_EXIT: BOOL
+      │                    ^^^^^^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: `FB_EXIT` has more parameters than the method defined in `base`
+       ┌─ <internal>:3:20
+       │
+     3 │             METHOD FB_EXIT
+       │                    ------- see also
+       ·
+    10 │                     bInCopyCode: BOOL;
+       │                     ----------- see also
+    ");
+}

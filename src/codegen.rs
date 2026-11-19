@@ -38,7 +38,7 @@ use inkwell::{
     passes::PassBuilderOptions,
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
 };
-use plc_ast::ast::{CompilationUnit, PouType};
+use plc_ast::ast::CompilationUnit;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_llvm::TargetMachineExt;
 use plc_source::source_location::{FileMarker, SourceLocation};
@@ -281,9 +281,7 @@ impl<'ink> CodeGen<'ink> {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && !entry.get_linkage().is_external_or_included() {
-                    if constructors_only
-                        && !matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit)
-                    {
+                    if constructors_only && !implementation.pou_type.is_generated() {
                         continue;
                     }
                     // A diagram body's statements are scoped to the diagram's own debug file.
@@ -296,11 +294,10 @@ impl<'ink> CodeGen<'ink> {
                     }
 
                     let noop_debug = DebugBuilderEnum::None;
-                    // Use noop debug ONLY for compiler-generated types (Init/ProjectInit POUs)
+                    // Use noop debug ONLY for compiler-generated constructors and destructors
                     // User-defined functions should retain full debug info even if they have internal locations
                     // (internal locations can result from lowering/transformation of user code)
-                    let is_compiler_generated =
-                        matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit);
+                    let is_compiler_generated = implementation.pou_type.is_generated();
                     let debug = if is_compiler_generated {
                         log::debug!(
                             "Using noop debug for {} (compiler-generated type: {:?})",
@@ -318,12 +315,20 @@ impl<'ink> CodeGen<'ink> {
                     };
                     pou_generator.generate_implementation(implementation, debug).map_err(|err| {
                         if is_compiler_generated {
-                            // Add context about which constructor failed so the user can
-                            // trace the error back to the originating type declaration.
-                            let type_name =
-                                implementation.name.strip_suffix("__ctor").unwrap_or(&implementation.name);
+                            // Add context about which constructor or destructor failed so the user
+                            // can trace the error back to the originating type declaration.
+                            let (type_name, purpose) = match implementation.name.strip_suffix("__dtor") {
+                                Some(type_name) => (type_name, "cleanup"),
+                                None => (
+                                    implementation
+                                        .name
+                                        .strip_suffix("__ctor")
+                                        .unwrap_or(&implementation.name),
+                                    "initialization",
+                                ),
+                            };
                             let note = Diagnostic::new(format!(
-                                "error occurred while generating initialization code for type '{type_name}'"
+                                "error occurred while generating {purpose} code for type '{type_name}'"
                             ));
                             Diagnostic::from(err).with_sub_diagnostic(note).into()
                         } else {
