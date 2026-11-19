@@ -69,6 +69,25 @@ END_FUNCTION_BLOCK
 For a library whose implementation is not Structured Text, provide the symbol `<FunctionBlock>__FB_INIT` and declare the method in the interface file. The [C interface](c-interface.md) chapter has the symbol names and the build options.
 
 
+## Cleanup
+
+A function block that holds something it must release declares the method `FB_EXIT`. The compiler calls it once for each instance, when that instance ends. Declare it without parameters and without a return type, like `FB_INIT`.
+
+```iecst
+FUNCTION_BLOCK Counter
+    VAR
+        current: DINT;
+    END_VAR
+
+    METHOD FB_EXIT
+        current := 0;
+    END_METHOD
+END_FUNCTION_BLOCK
+```
+
+For a library whose implementation is not Structured Text, provide the symbol `<FunctionBlock>__FB_EXIT` and declare the method in the interface file. An application can only call `FB_EXIT` of a library function block when the interface file declares it, so a library that adds the method must ship the new interface file and the destructors that `--constructors-only` writes for it.
+
+
 ## What's next
 
 That is everything the guide covers. The [reference](../reference/README.md) holds the complete lists: every option, every project key, every construct, and every error code.

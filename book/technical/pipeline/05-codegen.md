@@ -398,6 +398,8 @@ entry:
 
 `main__ctor` receives the instance, calls the constructor of the embedded `Buffer`, and stores the initial values of `i` and `text`. The unit constructor calls it for the global instance, and the `llvm.global_ctors` entry runs the unit constructor before the program starts.
 
+Cleanup works the same way in the other direction. For a type that declares `FB_EXIT` or holds an instance of such a type, the init participant created a destructor with a `__dtor` suffix, and for a unit whose programs or globals need cleanup a unit destructor. Codegen registers the unit destructor in `llvm.global_dtors` with the same priority, so it runs when the program ends or the shared library is unloaded. The example declares no `FB_EXIT`, so it has neither.
+
 > [!NOTE]
 > The unoptimized IR includes redundant work. It computes unused member pointers, repeats some initialization, and emits offset arithmetic such as multiplication by one. LLVM removes much of this at `-O1` and above. Method table members remain part of function block layouts.
 

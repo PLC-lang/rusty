@@ -353,47 +353,85 @@ pub fn new_constructor(
     linkage: LinkageType,
     pou_type: PouType,
     statements: Vec<AstNode>,
+    id_provider: IdProvider,
+) -> (Pou, Implementation) {
+    new_type_function(&format!("{base_name}__ctor"), base_name, linkage, pou_type, statements, id_provider)
+}
+
+pub fn new_destructor(
+    base_name: &str,
+    linkage: LinkageType,
+    statements: Vec<AstNode>,
+    id_provider: IdProvider,
+) -> (Pou, Implementation) {
+    new_type_function(
+        &format!("{base_name}__dtor"),
+        base_name,
+        linkage,
+        PouType::Exit,
+        statements,
+        id_provider,
+    )
+}
+
+/// Creates a function with the instance of `base_name` as its `self` parameter
+fn new_type_function(
+    name: &str,
+    base_name: &str,
+    linkage: LinkageType,
+    pou_type: PouType,
+    statements: Vec<AstNode>,
     mut id_provider: IdProvider,
 ) -> (Pou, Implementation) {
-    let ctor_name = format!("{base_name}__ctor");
     // Create a VAR_IN_OUT block with self as parameter
     let self_block = VariableBlock::default()
         .with_block_type(plc_ast::ast::VariableBlockType::InOut)
         .with_variables(vec![new_variable("self", base_name)]);
     let pou = new_pou(
-        &ctor_name,
+        name,
         id_provider.next_id(),
         vec![self_block],
         pou_type.clone(),
         linkage,
         &SourceLocation::internal(),
     );
-    let implementation =
-        new_implementation(&ctor_name, statements, pou_type, linkage, SourceLocation::internal());
+    let implementation = new_implementation(name, statements, pou_type, linkage, SourceLocation::internal());
     (pou, implementation)
 }
 
 pub fn new_unit_constructor(
     unit_name: &str,
     statements: Vec<AstNode>,
+    id_provider: IdProvider,
+) -> (Pou, Implementation) {
+    new_unit_function(&format!("__unit_{unit_name}__ctor"), PouType::ProjectInit, statements, id_provider)
+}
+
+pub fn new_unit_destructor(
+    unit_name: &str,
+    statements: Vec<AstNode>,
+    id_provider: IdProvider,
+) -> (Pou, Implementation) {
+    new_unit_function(&format!("__unit_{unit_name}__dtor"), PouType::ProjectExit, statements, id_provider)
+}
+
+/// Creates a function without parameters that belongs to a unit
+fn new_unit_function(
+    name: &str,
+    pou_type: PouType,
+    statements: Vec<AstNode>,
     mut id_provider: IdProvider,
 ) -> (Pou, Implementation) {
-    let ctor_name = format!("__unit_{unit_name}__ctor");
     let pou = new_pou(
-        &ctor_name,
+        name,
         id_provider.next_id(),
         vec![],
-        PouType::ProjectInit,
+        pou_type.clone(),
         LinkageType::Internal,
         &SourceLocation::internal(),
     );
-    let implementation = new_implementation(
-        &ctor_name,
-        statements,
-        PouType::ProjectInit,
-        LinkageType::Internal,
-        SourceLocation::internal(),
-    );
+    let implementation =
+        new_implementation(name, statements, pou_type, LinkageType::Internal, SourceLocation::internal());
     (pou, implementation)
 }
 

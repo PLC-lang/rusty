@@ -1,0 +1,15 @@
+RUN: %COMPILE build plc.json && %RUN | %CHECK %s
+
+Each file holds one instance that prints its name in FB_INIT and in FB_EXIT.
+The instances are exited in the reverse order of their initialization. The
+checks capture the names in initialization order (A, B, C), so the test does
+not depend on the order in which the files are linked.
+
+CHECK: init [[A:[a-z]+]]
+CHECK-NEXT: init [[B:[a-z]+]]
+CHECK-NEXT: init [[C:[a-z]+]]
+CHECK-NEXT: main done
+CHECK-NEXT: exit [[C]]
+CHECK-NEXT: exit [[B]]
+CHECK-NEXT: exit [[A]]
+CHECK-NOT: exit

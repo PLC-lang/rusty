@@ -1,0 +1,11 @@
+FUNCTION_BLOCK Channel
+    VAR
+        handle: DINT;
+    END_VAR
+
+    METHOD FB_INIT
+    END_METHOD
+
+    METHOD FB_EXIT
+    END_METHOD
+END_FUNCTION_BLOCK

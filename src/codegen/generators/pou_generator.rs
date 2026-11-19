@@ -115,8 +115,8 @@ pub fn generate_global_constants_for_pou_members<'ink>(
         .filter(|(_, it)| it.is_in_unit(location));
     for (pou, implementation) in implementations {
         let type_name = implementation.get_type_name();
-        if implementation.is_init() {
-            // initializer functions don't need global constants to initialize members
+        if implementation.is_generated() {
+            // constructors and destructors don't need global constants to initialize members
             continue;
         }
         if pou.get_linkage().is_external_or_included() {
@@ -271,7 +271,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         implementation: &ImplementationIndexEntry,
         declared_parameters: &[&VariableIndexEntry],
     ) {
-        if !implementation.get_implementation_type().is_function_method_or_init() {
+        if !implementation.get_implementation_type().is_function_method_or_generated() {
             return;
         }
         for_each_int_extension_attr_loc(
@@ -320,7 +320,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     }
                     _ => {
                         dti.map(|it| {
-                            if !implementation.get_implementation_type().is_function_method_or_init() {
+                            if !implementation.get_implementation_type().is_function_method_or_generated() {
                                 return *p;
                             }
                             // for aggregate function parameters we will generate a pointer instead of the value type.
@@ -373,7 +373,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         self.apply_int_extension_attrs_to_decl(curr_f, implementation, &declared_parameters);
 
         if implementation.get_implementation_type().is_project_init() {
-            self.add_global_constructor(module, curr_f)?;
+            self.register_global_function(module, curr_f, "llvm.global_ctors")?;
+        }
+
+        if implementation.get_implementation_type().is_project_exit() {
+            self.register_global_function(module, curr_f, "llvm.global_dtors")?;
         }
 
         let mut parameter_types = declared_parameters
@@ -388,7 +392,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             if let Some(class_type) = self.index.find_type(class_name).filter(|ty| !ty.is_interface()) {
                 parameter_types.insert(0, class_type);
             }
-        } else if !implementation.get_implementation_type().is_function_method_or_init() {
+        } else if !implementation.get_implementation_type().is_function_method_or_generated() {
             //For non functions or methods, the first parameter is self
             if let Some(type_name) = self.index.find_type(implementation.get_type_name()) {
                 parameter_types.insert(0, type_name);
@@ -405,10 +409,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         // Register debug info only for functions that belong to this compilation unit.
         // - is_in_unit filters out cross-module declarations (e.g. stdlib functions included via -i),
         //   preventing duplicate !dbg metadata when modules are linked together.
-        // - Init/ProjectInit are compiler-generated and should never carry user-facing debug info.
+        // - Generated constructors and destructors should never carry user-facing debug info.
         // Note: is_in_unit returns true when the implementation has no file (e.g. lowered code),
         // which is correct — lowered user code should still get debug info.
-        if !constructors_only && implementation.is_in_unit(file_name) && !implementation.is_init() {
+        if !constructors_only && implementation.is_in_unit(file_name) && !implementation.is_generated() {
             debug.register_function(
                 (self.index, self.llvm_index),
                 &function_context,
@@ -421,15 +425,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         Ok(curr_f)
     }
 
-    /// Generates a global constructors entry
-    /// The entry contains the a call to the initializer function
-    fn add_global_constructor(
+    /// Registers the function in `llvm.global_ctors` or `llvm.global_dtors`, so that it runs when the
+    /// module is loaded or unloaded
+    fn register_global_function(
         &self,
         module: &Module<'ink>,
         curr_f: FunctionValue<'ink>,
+        global_name: &str,
     ) -> Result<(), CodegenError> {
-        //Create a constructor struct
-        log::trace!("Adding global constructor for module {}", module.get_name().to_string_lossy());
+        //Create an entry struct
+        log::trace!("Adding an entry to {global_name} for module {}", module.get_name().to_string_lossy());
         let ctor_str = self.llvm.context.struct_type(
             &[
                 //Priority
@@ -442,23 +447,21 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             false,
         );
 
-        //Create an entry for the global constructor of the project
+        //Create an entry for the function
         let str_value = ctor_str.const_named_struct(&[
             self.llvm.context.i32_type().const_int(65535, false).as_basic_value_enum(),
             curr_f.as_global_value().as_basic_value_enum(),
             self.llvm.context.ptr_type(AddressSpace::default()).const_zero().as_basic_value_enum(),
         ]);
-        //Create an array with the global constructor as an entry
+        //Create an array with the function as an entry
         let arr = ctor_str.const_array(&[str_value]);
-        //Create the global constructors variable or fetch it and append to it if already
-        //availabe
-        let global_ctors = module.get_global("llvm.global_ctors").unwrap_or_else(|| {
-            log::trace!("Adding a global constructor to module {}", module.get_name().to_string_lossy());
-            module.add_global(arr.get_type().as_basic_type_enum(), None, "llvm.global_ctors")
-        });
+        //Create the global variable or fetch it if already available
+        let global = module
+            .get_global(global_name)
+            .unwrap_or_else(|| module.add_global(arr.get_type().as_basic_type_enum(), None, global_name));
 
-        global_ctors.set_initializer(&arr);
-        global_ctors.set_linkage(Linkage::Appending);
+        global.set_initializer(&arr);
+        global.set_linkage(Linkage::Appending);
 
         Ok(())
     }
@@ -469,7 +472,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         implementation: &ImplementationIndexEntry,
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, CodegenError> {
-        if !implementation.implementation_type.is_function_method_or_init() {
+        if !implementation.implementation_type.is_function_method_or_generated() {
             let mut parameters = vec![];
             let _instance_struct_type: StructType = self
                 .llvm_index
@@ -553,7 +556,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         // generate local variables
-        if implementation.pou_type.is_function_method_or_init() {
+        if implementation.pou_type.is_function_method_or_generated() {
             self.generate_local_function_arguments_accessors(
                 &mut local_index,
                 &implementation.type_name,

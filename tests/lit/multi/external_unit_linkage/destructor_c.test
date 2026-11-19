@@ -1,0 +1,17 @@
+RUN: mkdir -p %t.d
+RUN: %PLC --constructors-only --relocatable --fpic %S/destructor_c_lib.pli -o %t.d/ctors.o
+RUN: cc -shared -fPIC %S/destructor_c_lib.c %t.d/ctors.o -o %t.d/libchannel.so
+RUN: %COMPILE -i %S/destructor_c_lib.pli %S/destructor_c_main.st -L%t.d -lchannel
+RUN: env LD_LIBRARY_PATH=%STDLIBDIR:%t.d %t.out | %CHECK %s
+
+Channel is a library FB: destructor_c_lib.c implements its body, FB_INIT and
+FB_EXIT, and --constructors-only generates its constructor and destructor. The
+program includes destructor_c_lib.pli and must call the library destructor for
+its instances, not define its own.
+
+CHECK: open 1
+CHECK-NEXT: open 2
+CHECK-NEXT: main done
+CHECK-NEXT: close 2
+CHECK-NEXT: close 1
+CHECK-NOT: close

@@ -227,17 +227,53 @@ END_FUNCTION_BLOCK
 The C side must also define `myFunctionBlock`, the body of the function block, because the constructor of the type writes its address into the method table.
 
 
+## Cleanup
+
+The compiler writes a destructor function for every type that needs cleanup: a function block, class, or program that declares the method `FB_EXIT`, and every type that holds an instance of one. A source file whose globals or programs need cleanup gets a destructor too. It is registered in the destructor list of the binary, so it runs when the application ends or the shared library is unloaded, and no manual call is necessary.
+
+| Symbol | Purpose |
+|---|---|
+| `<TypeName>__dtor` | Cleans up one instance of a struct or function block |
+| `<FunctionBlock>__FB_EXIT` | The `FB_EXIT` method of a function block, called by the destructor of the type |
+| `__unit_<file>_<hash>__dtor` | Cleans up the programs and globals of one source file with the destructors above |
+
+A type that needs no cleanup has no destructor symbol. A function block that needs cleanup in C declares the method on the Structured Text side and implements the symbol:
+
+```iecst
+{external}
+FUNCTION_BLOCK myFunctionBlock
+    VAR
+        a: DINT;
+        b: DINT;
+    END_VAR
+
+    METHOD FB_INIT
+    END_METHOD
+
+    METHOD FB_EXIT
+    END_METHOD
+END_FUNCTION_BLOCK
+```
+
+```c
+void myFunctionBlock__FB_EXIT(myFunctionBlock_type* self) {
+    self->a = 0;
+    self->b = 0;
+}
+```
+
+
 ## Constructors for external code
 
-The compiler writes no constructor for an `{external}` unit until you ask for it, so the `FB_INIT` above is never called. Two options control for which units the compiler writes constructors:
+The compiler writes no constructor and no destructor for an `{external}` unit until you ask for it, so the `FB_INIT` and the `FB_EXIT` above are never called. Two options control for which units the compiler writes them:
 
 | Option | Use |
 |---|---|
-| `--constructors-only` | Write the generated constructors and no bodies. For building the constructor object of an external library. It implies `--generate-external-constructors` |
-| `--generate-external-constructors` | Write constructors for `{external}` units as well. For the application that links such a library |
+| `--constructors-only` | Write the generated constructors and destructors and no bodies. For building the constructor object of an external library. It implies `--generate-external-constructors` |
+| `--generate-external-constructors` | Write constructors and destructors for `{external}` units as well. For the application that links such a library |
 
 ```bash
-# 1. Build the constructor object of the library
+# 1. Build the constructor object of the library, which also holds the destructors
 plc --constructors-only -c -o libext_ctor.o my_lib.pli
 
 # 2. Build and ship the shared library
