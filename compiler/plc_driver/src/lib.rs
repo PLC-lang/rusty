@@ -318,10 +318,19 @@ impl<T: SourceContainer> BuildPipeline<T> {
     /// Parses, indexes and annotates the project, returning any diagnostics found along the way
     /// Used for tests where we don't want to run the full pipeline
     pub fn parse_and_annotate(&mut self) -> Result<AnnotatedProject, Diagnostic> {
-        let project = self.parse()?;
+        let project = self.parse().map_err(|abort| with_reported_diagnostics(abort, &self.diagnostician))?;
         let project = self.index(project)?;
         let project = self.annotate(project)?;
         Ok(project)
+    }
+}
+
+/// Appends the diagnostics a buffered diagnostician holds to a stage abort, because the abort
+/// does not repeat what the stage already reported
+pub(crate) fn with_reported_diagnostics(abort: Diagnostic, diagnostician: &Diagnostician) -> Diagnostic {
+    match diagnostician.buffer().filter(|reported| !reported.is_empty()) {
+        Some(reported) => Diagnostic::new(format!("{abort}\n{reported}")),
+        None => abort,
     }
 }
 
@@ -345,27 +354,15 @@ pub fn parse_and_validate<T: SourceContainer + Clone>(name: &str, src: Vec<T>) -
             diagnostician.register_file(source.get_location_str().to_string(), loaded.source);
         }
     }
-    match parse_and_annotate_with_diagnostics(name, src.clone(), diagnostician) {
-        Ok((pipeline, _project)) => {
-            // Note: parse_and_annotate_with_diagnostics already calls project.validate(),
-            // so we just return the diagnostics here
-            pipeline.diagnostician.buffer().unwrap()
-        }
-        Err(diagnostic) => {
-            // Handle error diagnostics by reporting sub-diagnostics (the actual errors)
-            // We need to create a new reporter and re-register sources since the original
-            // diagnostician was consumed by parse_and_annotate_with_diagnostics
-            let mut reporter = Diagnostician::buffered();
-            for source in &src {
-                if let Ok(loaded) = source.load_source(None) {
-                    reporter.register_file(source.get_location_str().to_string(), loaded.source);
-                }
-            }
-            // Only report the sub-diagnostics (the actual errors), not the wrapper message
-            reporter.handle(&diagnostic.inner.sub_diagnostics);
-            reporter.buffer().unwrap()
-        }
+    let mut pipeline =
+        BuildPipeline::from_sources(name, src, diagnostician).unwrap_or_else(|err| panic!("{err}"));
+    pipeline.register_default_mut_participants();
+
+    // A stage reports its errors to the diagnostician before it aborts, so the buffer holds them either way
+    if let Ok(project) = pipeline.parse_and_annotate() {
+        let _ = project.validate(&pipeline.context, &mut pipeline.diagnostician);
     }
+    pipeline.diagnostician.buffer().unwrap()
 }
 
 /// Generates an IR string from a list of sources. Useful for tests or api calls

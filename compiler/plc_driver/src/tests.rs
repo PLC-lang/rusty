@@ -12,7 +12,7 @@ use source_code::SourceContainer;
 
 use crate::{
     pipelines::{self, AnnotatedProject, BuildPipeline, IndexedProject, ParsedProject, Pipeline},
-    CompileOptions,
+    with_reported_diagnostics, CompileOptions,
 };
 
 mod artifact_names;
@@ -20,6 +20,7 @@ mod debug_paths;
 mod external_files;
 mod header_generator;
 mod multi_files;
+mod parse_errors;
 
 /// `--target` and `--sysroot` are parsed as independent parameters; these cover the merge
 /// that puts the sysroot onto the target so it reaches the linker probe and the real link.
@@ -135,14 +136,15 @@ where
     S: SourceContainer + Debug,
     T: IntoIterator<Item = S>,
 {
-    let mut diagnostician = Diagnostician::null_diagnostician();
+    let mut diagnostician = Diagnostician::buffered();
     //Create a project
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
     let mut ctxt = GlobalContext::new()
         .with_source(project.get_sources(), None)?
         .with_source(project.get_includes(), None)?;
     //TODO: participants
-    pipelines::ParsedProject::parse(&mut ctxt, &project, &mut diagnostician)?
+    pipelines::ParsedProject::parse(&mut ctxt, &project, &mut diagnostician)
+        .map_err(|abort| with_reported_diagnostics(abort, &diagnostician))?
         //Index
         .index(ctxt.provider())
         //Resolve
@@ -204,7 +206,8 @@ where
         .expect("Failed to generate global context with includes!");
     let mut pipeline = get_pipeline(project, context);
 
-    let parsed_project = pipeline.parse()?;
+    let parsed_project =
+        pipeline.parse().map_err(|abort| with_reported_diagnostics(abort, &pipeline.diagnostician))?;
 
     Ok(ParsedProjectWrapper { parsed_project, context: pipeline.context })
 }
@@ -256,7 +259,7 @@ fn get_pipeline<S>(project: Project<S>, context: GlobalContext) -> BuildPipeline
 where
     S: SourceContainer + Debug,
 {
-    let diagnostician = Diagnostician::null_diagnostician();
+    let diagnostician = Diagnostician::buffered();
     let mut pipeline = BuildPipeline {
         context,
         project,

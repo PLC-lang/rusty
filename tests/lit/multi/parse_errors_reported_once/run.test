@@ -1,0 +1,12 @@
+RUN: not %COMPILE %S/first.st %S/second.st --error-format clang 2>&1 | %CHECK %s
+
+Every file is parsed before the run aborts, so the errors of both files are reported, each once.
+The abort that follows does not repeat them.
+CHECK: {{.*}}first.st:4:{{[0-9]+}}:{{.*}}: error[E006]: Missing expected Token KeywordColon or KeywordComma
+CHECK-NEXT: {{.*}}first.st:5:1:{{.*}}: error[E006]: Missing expected Token KeywordColon
+CHECK-NEXT: {{.*}}first.st:5:1:{{.*}}: error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordEndVar
+CHECK-NEXT: {{.*}}first.st:5:1:{{.*}}: error[E006]: Missing expected Token [KeywordSemicolon]
+CHECK-NEXT: {{.*}}first.st:5:1:{{.*}}: error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR'
+CHECK-NEXT: {{.*}}second.st:2:{{[0-9]+}}:{{.*}}: error[E007]: Unexpected token: expected expression but found ;
+CHECK-NEXT: error: Compilation aborted due to critical parse errors
+CHECK-NOT: {{.*}} at: {{.*}}
