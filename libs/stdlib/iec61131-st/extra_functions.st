@@ -816,27 +816,27 @@ END_FUNCTION
 
 (******************************************************************************
 *
-* Truncate REAL_TYPE to INT_TYPE.
+* Truncate REAL_TYPE to DINT.
 *
 ******************************************************************************)
-FUNCTION TRUNC < T : ANY_REAL > : LINT
+FUNCTION TRUNC < T : ANY_REAL > : DINT
 VAR_INPUT
     IN : T;
 END_VAR
 END_FUNCTION
 
-FUNCTION TRUNC__REAL : LINT
+FUNCTION TRUNC__REAL : DINT
 VAR_INPUT
     IN : REAL;
 END_VAR
-    TRUNC__REAL := IN;
+    TRUNC__REAL := REAL_TRUNC_DINT(IN);
 END_FUNCTION
 
-FUNCTION TRUNC__LREAL : LINT
+FUNCTION TRUNC__LREAL : DINT
 VAR_INPUT
     IN : LREAL;
 END_VAR
-    TRUNC__LREAL := IN;
+    TRUNC__LREAL := LREAL_TRUNC_DINT(IN);
 END_FUNCTION
 
 (******************************************************************************

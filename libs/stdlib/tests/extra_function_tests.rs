@@ -1621,7 +1621,7 @@ fn lint_to_ltod_conversion() {
 }
 
 #[test]
-fn trunc_lreal_to_lint() {
+fn trunc_lreal_to_dint() {
     let src = r#"
     FUNCTION main : LINT
     VAR
