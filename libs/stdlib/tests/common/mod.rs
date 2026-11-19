@@ -248,6 +248,7 @@ pub fn get_includes(files: &[&str]) -> Vec<SourceCode> {
     if files.contains(&"extra_functions.st") {
         includes.push(get_st_file("string_to_conversions.st"));
         includes.push(get_st_file("to_string_conversions.st"));
+        includes.push(get_st_file("real_trunc_int.st"));
     }
     includes
 }
