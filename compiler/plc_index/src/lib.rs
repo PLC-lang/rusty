@@ -62,7 +62,7 @@ impl GlobalContext {
             Ok(value) => self.sources.insert(container.get_location_str(), value),
             Err(why) => {
                 return Err(Diagnostic::new(format!(
-                    "Cannot read file '{}': {}'",
+                    "Cannot read file '{}': {}",
                     container.get_location_str(),
                     why
                 ))

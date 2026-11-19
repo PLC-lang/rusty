@@ -139,3 +139,17 @@ fn pipeline_parse_and_annotate_fails_with_the_parse_errors() {
       │                        ^ Unexpected token: expected expression but found ;
     ");
 }
+
+#[test]
+fn unreadable_source_is_reported_as_a_diagnostic() {
+    let dir = tempfile::tempdir().unwrap();
+    let missing = dir.path().join("missing.st");
+
+    let diagnostics = parse_and_validate("TestProject", vec![missing.clone()]);
+
+    // The OS error text differs per platform, so only the stable parts are checked
+    let first_line = diagnostics.lines().next().unwrap_or_default();
+    let expected_prefix = format!("error[E002]: Cannot read file '{}': ", missing.display());
+    assert!(first_line.starts_with(&expected_prefix), "unexpected diagnostics:\n{diagnostics}");
+    assert!(!first_line.ends_with('\''), "stray quote after the OS error:\n{diagnostics}");
+}

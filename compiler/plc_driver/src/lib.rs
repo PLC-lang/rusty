@@ -354,8 +354,14 @@ pub fn parse_and_validate<T: SourceContainer + Clone>(name: &str, src: Vec<T>) -
             diagnostician.register_file(source.get_location_str().to_string(), loaded.source);
         }
     }
-    let mut pipeline =
-        BuildPipeline::from_sources(name, src, diagnostician).unwrap_or_else(|err| panic!("{err}"));
+    let mut pipeline = match BuildPipeline::from_sources(name, src, diagnostician) {
+        Ok(pipeline) => pipeline,
+        Err(load_error) => {
+            let mut reporter = Diagnostician::buffered();
+            reporter.handle(&[load_error]);
+            return reporter.buffer().unwrap_or_default();
+        }
+    };
     pipeline.register_default_mut_participants();
 
     // A stage reports its errors to the diagnostician before it aborts, so the buffer holds them either way
