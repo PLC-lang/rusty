@@ -1,9 +1,7 @@
-use std::borrow::Borrow;
-
 use quick_xml::events::{BytesStart, Event};
 
 use crate::error::Error;
-use crate::reader::Reader;
+use crate::reader::{Reader, TextBuffer};
 use crate::xml_parser::Parseable;
 
 use super::pou::PouType;
@@ -46,14 +44,20 @@ impl Interface {
 impl Parseable for Interface {
     fn visit(reader: &mut Reader, _tag: Option<BytesStart>) -> Result<Self, Error> {
         let mut interface = Interface { add_data: None };
+        let mut text = TextBuffer::default();
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {
-                Event::End(tag) if tag.name().as_ref() == b"interface" => break,
-                Event::Text(text) => {
-                    interface.add_data =
-                        Some(Data::new_implementation(text.unescape().map_err(Error::ReadEvent)?.borrow()))
+                Event::Text(piece) => text.push_text(&piece)?,
+                Event::GeneralRef(reference) => text.push_reference(&reference)?,
+                event => {
+                    if let Some(content) = text.take() {
+                        interface.add_data = Some(Data::new_implementation(&content));
+                    }
+
+                    if matches!(&event, Event::End(tag) if tag.name().as_ref() == b"interface") {
+                        break;
+                    }
                 }
-                _ => {}
             }
         }
         Ok(interface)
@@ -79,4 +83,23 @@ enum HandleUnknown {
     Preserve,
     Discard,
     Implementation,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        model::interface::Interface,
+        reader::{get_start_tag, Reader},
+        xml_parser::Parseable,
+    };
+
+    #[test]
+    fn declaration_with_escaped_operator() {
+        let content = "<interface><content>VAR x : BOOL := 1 &lt; 2; END_VAR</content></interface>";
+
+        let mut reader = Reader::new(content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let interface = Interface::visit(&mut reader, tag).unwrap();
+        assert_eq!(interface.get_data_content(), Some("VAR x : BOOL := 1 < 2; END_VAR"));
+    }
 }

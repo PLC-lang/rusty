@@ -7,7 +7,7 @@ description = "CFC/FBD XML format support for the PLC Structured Text compiler"
 
 [dependencies]
 logos.workspace = true
-quick-xml = { version = "0.30", features = ["serialize"] }
+quick-xml = { version = "0.41", features = ["serialize"] }
 insta.workspace = true
 indexmap.workspace = true
 html-escape = "0.2"

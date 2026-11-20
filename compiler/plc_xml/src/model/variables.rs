@@ -2,7 +2,7 @@ use quick_xml::events::{BytesStart, Event};
 
 use crate::error::Error;
 use crate::extensions::GetOrErr;
-use crate::reader::Reader;
+use crate::reader::{Reader, TextBuffer};
 use crate::xml_parser::{get_attributes, Parseable};
 use rustc_hash::FxHashMap;
 use std::borrow::Cow;
@@ -138,24 +138,28 @@ impl Parseable for FunctionBlockVariable<'_> {
         let kind = tag.name().as_ref().try_into()?;
         let mut attributes = get_attributes(tag.attributes())?;
 
+        let mut expression = TextBuffer::default();
         loop {
             match reader.read_event().map_err(Error::ReadEvent)? {
-                Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
-                    attributes.extend(get_attributes(tag.attributes())?);
-                }
-
-                Event::Text(tag) => {
-                    attributes.insert("expression".into(), tag.unescape()?.to_string());
-                }
-
-                Event::End(tag) => match tag.name().as_ref() {
-                    b"inVariable" | b"outVariable" => {
-                        break;
+                Event::Text(piece) => expression.push_text(&piece)?,
+                Event::GeneralRef(reference) => expression.push_reference(&reference)?,
+                event => {
+                    if let Some(text) = expression.take() {
+                        attributes.insert("expression".into(), text);
                     }
-                    _ => {}
-                },
 
-                _ => {}
+                    match event {
+                        Event::Start(tag) | Event::Empty(tag) if tag.name().as_ref() == b"connection" => {
+                            attributes.extend(get_attributes(tag.attributes())?);
+                        }
+
+                        Event::End(tag) if matches!(tag.name().as_ref(), b"inVariable" | b"outVariable") => {
+                            break;
+                        }
+
+                        _ => {}
+                    }
+                }
             }
         }
 
@@ -270,6 +274,35 @@ mod tests {
         let mut reader = Reader::new(&content);
         let tag = get_start_tag(reader.read_event().unwrap());
         assert_debug_snapshot!(FunctionBlockVariable::visit(&mut reader, tag));
+    }
+
+    #[test]
+    fn fbd_in_variable_expression_with_escaped_operator() {
+        let content = SInVariable::id(0).with_expression("a &lt; b").serialize();
+
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variable = FunctionBlockVariable::visit(&mut reader, tag).unwrap();
+        assert_eq!(variable.expression, "a < b");
+    }
+
+    #[test]
+    fn fbd_in_variable_expression_with_character_reference() {
+        let content = SInVariable::id(0).with_expression("&#65;").serialize();
+
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        let variable = FunctionBlockVariable::visit(&mut reader, tag).unwrap();
+        assert_eq!(variable.expression, "A");
+    }
+
+    #[test]
+    fn fbd_in_variable_expression_with_unknown_entity() {
+        let content = SInVariable::id(0).with_expression("&unknown;").serialize();
+
+        let mut reader = Reader::new(&content);
+        let tag = get_start_tag(reader.read_event().unwrap());
+        assert!(FunctionBlockVariable::visit(&mut reader, tag).is_err());
     }
 
     #[test]
