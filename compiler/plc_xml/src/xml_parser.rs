@@ -50,7 +50,6 @@ where
 
 pub(crate) fn visit(content: &str) -> Result<Project<'_>, Error> {
     let mut reader = Reader::new(content);
-    reader.trim_text(true).expand_empty_elements(true);
     let mut project = Project::default();
 
     loop {
