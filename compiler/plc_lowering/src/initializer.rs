@@ -605,7 +605,7 @@ fn is_simple_identifier_address(address: &AstNode) -> bool {
 /// `inheritance.rs`). The derived constructor already emits an explicit base-constructor call
 /// before walking members, so this synthetic field must not be initialized as a regular member
 /// as well.
-fn is_injected_base_member(variable: &Variable, current_pou: Option<&str>, index: &Index) -> bool {
+pub(crate) fn is_injected_base_member(variable: &Variable, current_pou: Option<&str>, index: &Index) -> bool {
     let Some(current_pou) = current_pou else { return false };
     let Some(super_class) = index.find_pou(current_pou).and_then(|pou| pou.get_super_class()) else {
         return false;
@@ -835,127 +835,17 @@ impl Initializer {
             .initial_value
     }
 
-    /// Builds the per-element construction loop for an array type's constructor, one loop per
-    /// dimension with the element ctor call innermost:
-    /// ```st
-    /// __idx0 := <lo>;
-    /// WHILE TRUE DO
-    ///     IF __idx0 > <hi> THEN EXIT; END_IF
-    ///     <element_type>__ctor(self[__idx0, ...]);
-    ///     __idx0 := __idx0 + 1;
-    /// END_WHILE
-    /// ```
-    /// The loops are emitted in the canonical `WHILE TRUE` form directly because the
-    /// `LoopDesugarer` pass has already run by the time constructors are generated.
-    /// Returns `None` when the bounds cannot be resolved to constants (invalid declarations
-    /// are left to validation).
+    /// Builds the per-element construction loop for an array type's constructor, see
+    /// [`create_element_call_loop`].
     fn create_element_ctor_loop(&mut self, array_type: &str, element_type: &str) -> Option<Vec<AstNode>> {
-        // The bounds come from the index rather than from the declaration, because the
-        // declaration may name a constant of the declaring POU (`ARRAY[1..five]`). The
-        // constructor is a POU of its own, so such a name does not resolve inside it, and
-        // copying the expression here left a comparison against an unresolvable operand.
-        // The index holds the bounds already const-evaluated, so literals can be emitted.
-        let dimensions: Vec<(i64, i64)> = {
-            let index = self.index.as_ref()?;
-            let DataTypeInformation::Array { dimensions, .. } =
-                index.find_effective_type_by_name(array_type)?.get_type_information()
-            else {
-                return None;
-            };
-
-            dimensions
-                .iter()
-                .map(|dimension| {
-                    // `as_int_value` reports an undetermined bound as the pointer size, which
-                    // would silently produce a loop over the wrong range.
-                    if dimension.is_undetermined() {
-                        return None;
-                    }
-                    Some((
-                        dimension.start_offset.as_int_value(index).ok()?,
-                        dimension.end_offset.as_int_value(index).ok()?,
-                    ))
-                })
-                .collect::<Option<Vec<_>>>()?
-        };
-
-        // One counter per dimension. The counter names carry the array type name: allocation
-        // scopes are resolved by name across implementations, so they must be unique per
-        // constructor.
-        let counters: Vec<(AstNode, AstNode)> = (0..dimensions.len())
-            .map(|dim| {
-                loop_helper::create_alloca(&mut self.id_provider, "DINT", format!("{array_type}__idx{dim}"))
-            })
-            .collect();
-
-        // `<element_type>__ctor(self[__idx0, __idx1, ...])`
-        let counter_refs: Vec<AstNode> = counters.iter().map(|(_, reference)| reference.clone()).collect();
-        let subscript = if counter_refs.len() == 1 {
-            counter_refs.into_iter().next().expect("exactly one counter")
-        } else {
-            AstFactory::create_expression_list(
-                counter_refs,
-                SourceLocation::internal(),
-                self.id_provider.next_id(),
-            )
-        };
-        let element_access = AstFactory::create_index_reference(
-            subscript,
-            Some(create_member_reference("self", self.id_provider.clone(), None)),
-            self.id_provider.next_id(),
-            SourceLocation::internal(),
-        );
-        let operator =
-            create_member_reference(&format!("{element_type}__ctor"), self.id_provider.clone(), None);
-        let call = AstFactory::create_call_statement(
-            operator,
-            Some(element_access),
-            self.id_provider.next_id(),
-            SourceLocation::internal(),
-        );
-
-        // Wrap the call in one loop per dimension, innermost dimension first.
-        let mut statements = vec![call];
-        for ((alloca, counter), (start, end)) in counters.into_iter().zip(dimensions.iter()).rev() {
-            // IF __idx > <hi> THEN EXIT; END_IF
-            let bound_guard = loop_helper::create_if_then_exit(
-                self.id_provider.clone(),
-                loop_helper::create_internal_binary_expression(
-                    counter.clone(),
-                    Operator::Greater,
-                    loop_helper::create_literal_integer(&mut self.id_provider, *end as i128),
-                    &mut self.id_provider,
-                ),
-            );
-
-            // __idx := __idx + 1
-            let increment = loop_helper::create_internal_assignment(
-                counter.clone(),
-                loop_helper::create_internal_binary_expression(
-                    counter.clone(),
-                    Operator::Plus,
-                    loop_helper::create_literal_integer(&mut self.id_provider, 1),
-                    &mut self.id_provider,
-                ),
-                &mut self.id_provider,
-            );
-
-            let mut body = vec![bound_guard];
-            body.append(&mut statements);
-            body.push(increment);
-
-            statements = vec![
-                alloca,
-                loop_helper::create_internal_assignment(
-                    counter,
-                    loop_helper::create_literal_integer(&mut self.id_provider, *start as i128),
-                    &mut self.id_provider,
-                ),
-                loop_helper::create_while_true_loop(&mut self.id_provider, body),
-            ];
-        }
-
-        Some(statements)
+        let index = self.index.as_ref()?;
+        create_element_call_loop(
+            index,
+            &mut self.id_provider,
+            array_type,
+            array_type,
+            &format!("{element_type}__ctor"),
+        )
     }
 
     /// Returns `<enum_name>#<variant>` for the variant constant evaluation chose as the default of
@@ -1077,6 +967,126 @@ impl Initializer {
             Some("self")
         }
     }
+}
+
+/// Builds a loop that calls `function` on every element of the array `self`, one loop per
+/// dimension with the call innermost:
+/// ```st
+/// __idx0 := <lo>;
+/// WHILE TRUE DO
+///     IF __idx0 > <hi> THEN EXIT; END_IF
+///     <function>(self[__idx0, ...]);
+///     __idx0 := __idx0 + 1;
+/// END_WHILE
+/// ```
+/// The loops are emitted in the canonical `WHILE TRUE` form directly because the
+/// `LoopDesugarer` pass has already run by the time constructors and destructors are generated.
+/// Returns `None` when the bounds cannot be resolved to constants (invalid declarations
+/// are left to validation).
+pub(crate) fn create_element_call_loop(
+    index: &Index,
+    id_provider: &mut IdProvider,
+    array_type: &str,
+    counter_prefix: &str,
+    function: &str,
+) -> Option<Vec<AstNode>> {
+    // The bounds come from the index rather than from the declaration, because the
+    // declaration may name a constant of the declaring POU (`ARRAY[1..five]`). The
+    // constructor is a POU of its own, so such a name does not resolve inside it, and
+    // copying the expression here left a comparison against an unresolvable operand.
+    // The index holds the bounds already const-evaluated, so literals can be emitted.
+    let dimensions: Vec<(i64, i64)> = {
+        let DataTypeInformation::Array { dimensions, .. } =
+            index.find_effective_type_by_name(array_type)?.get_type_information()
+        else {
+            return None;
+        };
+
+        dimensions
+            .iter()
+            .map(|dimension| {
+                // `as_int_value` reports an undetermined bound as the pointer size, which
+                // would silently produce a loop over the wrong range.
+                if dimension.is_undetermined() {
+                    return None;
+                }
+                Some((
+                    dimension.start_offset.as_int_value(index).ok()?,
+                    dimension.end_offset.as_int_value(index).ok()?,
+                ))
+            })
+            .collect::<Option<Vec<_>>>()?
+    };
+
+    // One counter per dimension. The counter names carry a prefix: allocation scopes are
+    // resolved by name across implementations, so they must be unique per generated function.
+    let counters: Vec<(AstNode, AstNode)> = (0..dimensions.len())
+        .map(|dim| loop_helper::create_alloca(id_provider, "DINT", format!("{counter_prefix}__idx{dim}")))
+        .collect();
+
+    // `<function>(self[__idx0, __idx1, ...])`
+    let counter_refs: Vec<AstNode> = counters.iter().map(|(_, reference)| reference.clone()).collect();
+    let subscript = if counter_refs.len() == 1 {
+        counter_refs.into_iter().next().expect("exactly one counter")
+    } else {
+        AstFactory::create_expression_list(counter_refs, SourceLocation::internal(), id_provider.next_id())
+    };
+    let element_access = AstFactory::create_index_reference(
+        subscript,
+        Some(create_member_reference("self", id_provider.clone(), None)),
+        id_provider.next_id(),
+        SourceLocation::internal(),
+    );
+    let operator = create_member_reference(function, id_provider.clone(), None);
+    let call = AstFactory::create_call_statement(
+        operator,
+        Some(element_access),
+        id_provider.next_id(),
+        SourceLocation::internal(),
+    );
+
+    // Wrap the call in one loop per dimension, innermost dimension first.
+    let mut statements = vec![call];
+    for ((alloca, counter), (start, end)) in counters.into_iter().zip(dimensions.iter()).rev() {
+        // IF __idx > <hi> THEN EXIT; END_IF
+        let bound_guard = loop_helper::create_if_then_exit(
+            id_provider.clone(),
+            loop_helper::create_internal_binary_expression(
+                counter.clone(),
+                Operator::Greater,
+                loop_helper::create_literal_integer(id_provider, *end as i128),
+                id_provider,
+            ),
+        );
+
+        // __idx := __idx + 1
+        let increment = loop_helper::create_internal_assignment(
+            counter.clone(),
+            loop_helper::create_internal_binary_expression(
+                counter.clone(),
+                Operator::Plus,
+                loop_helper::create_literal_integer(id_provider, 1),
+                id_provider,
+            ),
+            id_provider,
+        );
+
+        let mut body = vec![bound_guard];
+        body.append(&mut statements);
+        body.push(increment);
+
+        statements = vec![
+            alloca,
+            loop_helper::create_internal_assignment(
+                counter,
+                loop_helper::create_literal_integer(id_provider, *start as i128),
+                id_provider,
+            ),
+            loop_helper::create_while_true_loop(id_provider, body),
+        ];
+    }
+
+    Some(statements)
 }
 
 /// Strips non-constant array literal initializers from variable and type

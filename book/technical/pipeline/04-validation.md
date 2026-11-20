@@ -95,7 +95,7 @@ neither file is wrong on its own; the conflict only exists in the merged index. 
 
 Everything else is checked unit by unit, in the order in which the units were parsed. Inside a unit the walk follows the shape of the compilation unit: the POU declarations first, then the user types, the `VAR_CONFIG` blocks, the global variable blocks, the implementations, and last the interfaces. Declarations and bodies are validated separately, as they are stored.
 
-POU checks depend on the kind. A program cannot return a value, and a class cannot have input or output parameters. Inheritance checks require existing base types and interfaces, matching method signatures, and implementations for abstract methods.
+POU checks depend on the kind. A program cannot return a value, and a class cannot have input or output parameters. Inheritance checks require existing base types and interfaces, matching method signatures, and implementations for abstract methods. A method named `FB_EXIT` that declares the parameter `bInCopyCode` is checked for its signature: the parameter must be the single input, of type `BOOL`, and the method must return `BOOL`. Each other form with this parameter gets a warning (E166) at the parameter. A signature without `bInCopyCode` is not checked.
 
 Variable checks cover declared types, initializer compatibility, constant array bounds, and names that shadow base members. They also check restrictions on constant function block instances. The statement visitor checks initializers because they are expressions.
 

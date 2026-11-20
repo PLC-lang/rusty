@@ -111,7 +111,7 @@ Every generated header includes `dependencies.plc.h`, and the compiler never wri
 
 - Declarations marked `{external}`, because their implementation is elsewhere already.
 - Declarations that came in with `-i`.
-- The constructors that the compiler generates, and the types whose names start with `__`.
+- The constructors and destructors that the compiler generates, and the types whose names start with `__`.
 
 A file whose declarations are all external or included produces no header at all. A file that uses such a declaration still names it in its prototypes, so `dependencies.plc.h` is where the C side declares it.
 

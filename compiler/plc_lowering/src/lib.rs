@@ -6,6 +6,7 @@ use plc_ast::{ast::AstNode, provider::IdProvider};
 
 pub mod array_lowering;
 pub mod control_statement;
+pub mod destructor;
 pub(crate) mod helper;
 pub mod inheritance;
 pub mod initializer;

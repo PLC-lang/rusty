@@ -2020,7 +2020,7 @@ fn variable_is_in_pou_or_container<T: AnnotationMap>(
 ) -> bool {
     qualified_name.starts_with(pou)
         || qualified_name.starts_with(container)
-        || context.index.is_init_function(pou)
+        || context.index.is_generated_function(pou)
         //Hack: Avoid internal check here because of the super call
         || location.is_internal()
 }

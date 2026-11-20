@@ -1,5 +1,7 @@
 use itertools::Itertools;
-use plc_ast::ast::{AstId, Identifier, Implementation, Interface, Pou, PouType, VariableBlockType};
+use plc_ast::ast::{
+    ArgumentProperty, AstId, Identifier, Implementation, Interface, Pou, PouType, Variable, VariableBlockType,
+};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use signature_validation::validate_method_signature;
@@ -11,13 +13,14 @@ use super::{
 use crate::resolver::{AnnotationMap, StatementAnnotation};
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
-    if !pou.linkage.is_external_or_included() && !matches!(pou.kind, PouType::Init | PouType::ProjectInit) {
+    if !pou.linkage.is_external_or_included() && !pou.kind.is_generated() {
         validate_pou(validator, pou);
         validate_interface_impl(validator, context, pou);
         validate_base_class(validator, context, pou);
         validate_methods_overrides(validator, context, pou.id, &pou.name, &pou.name_location);
         if let PouType::Method { .. } = pou.kind {
             validate_method(validator, pou, context);
+            validate_user_defined_destructor(validator, pou, context);
         }
 
         for block in &pou.variable_blocks {
@@ -142,6 +145,65 @@ fn validate_method<T: AnnotationMap>(
     })
 }
 
+/// Reports an `FB_EXIT` method that declares the parameter `bInCopyCode`, unless the parameter is its
+/// single input of type `BOOL` and the method returns `BOOL`
+fn validate_user_defined_destructor<T: AnnotationMap>(
+    validator: &mut Validator<'_>,
+    pou: &Pou,
+    context: &ValidationContext<'_, T>,
+) {
+    const USER_DEFINED_DESTRUCTOR: &str = "FB_EXIT";
+    const COPY_CODE_PARAMETER: &str = "bInCopyCode";
+
+    if !pou.get_return_name().eq_ignore_ascii_case(USER_DEFINED_DESTRUCTOR) {
+        return;
+    }
+
+    let is_bool = |type_name: Option<&str>| {
+        type_name.is_some_and(|name| context.index.get_type_information_or_void(name).is_bool())
+    };
+
+    let parameters: Vec<(&VariableBlockType, &Variable)> = pou
+        .variable_blocks
+        .iter()
+        .filter(|block| {
+            matches!(
+                block.kind,
+                VariableBlockType::Input(_) | VariableBlockType::Output | VariableBlockType::InOut
+            )
+        })
+        .flat_map(|block| block.variables.iter().map(move |variable| (&block.kind, variable)))
+        .collect();
+
+    // Only a signature with the parameter `bInCopyCode` is checked
+    let copy_code_parameter = parameters
+        .iter()
+        .map(|(_, variable)| variable)
+        .find(|variable| variable.get_name().eq_ignore_ascii_case(COPY_CODE_PARAMETER));
+    let Some(copy_code_parameter) = copy_code_parameter else {
+        return;
+    };
+
+    // A single input `bInCopyCode: BOOL` and the return type `BOOL`
+    let is_single_bool_input = matches!(
+        parameters.as_slice(),
+        [(VariableBlockType::Input(ArgumentProperty::ByVal), variable)]
+            if is_bool(variable.data_type_declaration.get_name())
+    );
+    let returns_bool = is_bool(pou.return_type.as_ref().and_then(|it| it.get_name()));
+    if is_single_bool_input && returns_bool {
+        return;
+    }
+
+    validator.push_diagnostic(
+        Diagnostic::new(format!(
+            "Unexpected signature of '{USER_DEFINED_DESTRUCTOR}', expected the single input '{COPY_CODE_PARAMETER}: BOOL' and the return type BOOL"
+        ))
+        .with_error_code("E166")
+        .with_location(&copy_code_parameter.location),
+    );
+}
+
 fn validate_base_class<T: AnnotationMap>(
     validator: &mut Validator<'_>,
     context: &ValidationContext<'_, T>,
@@ -216,9 +278,7 @@ pub fn visit_implementation<T: AnnotationMap>(
                 .with_location(&implementation.location),
         );
     }
-    if !implementation.linkage.is_external_or_included()
-        && !matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit)
-    {
+    if !implementation.linkage.is_external_or_included() && !implementation.pou_type.is_generated() {
         validate_action_container(validator, implementation);
         // Validate the label uniqueness
 

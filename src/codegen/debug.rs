@@ -995,7 +995,7 @@ impl<'ink> DebugBuilder<'ink> {
             self.register_struct_parameter(pou.get_parent_pou_name().unwrap_or_else(|| pou.get_name()), func);
             param_offset += 1;
         }
-        if implementation.get_implementation_type().is_function_method_or_init() {
+        if implementation.get_implementation_type().is_function_method_or_generated() {
             let declared_params = index.get_available_parameters(implementation.get_call_name());
             // Register all parameters for debugging
             for (index, variable) in declared_params.iter().enumerate() {
@@ -1098,7 +1098,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         let pou = index.find_pou(func.linking_context.get_call_name()).expect("POU is available");
         if pou.get_linkage().is_external_or_included()
             || pou.get_location().is_internal()
-            || func.linking_context.is_init()
+            || func.linking_context.is_generated()
         {
             log::debug!(
                 "Skipping pou {}, linkage: {:?}, location: {:?}",

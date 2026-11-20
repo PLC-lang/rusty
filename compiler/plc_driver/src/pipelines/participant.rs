@@ -21,9 +21,9 @@ use plc::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
-    array_lowering, control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
-    initializer::Initializer, loops::LoopDesugarer, reference_to_return::ReferenceToReturnParticipant,
-    retain::RetainParticipant,
+    array_lowering, control_statement::ControlStatementParticipant, destructor::Destructor,
+    inheritance::InheritanceLowerer, initializer::Initializer, loops::LoopDesugarer,
+    reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
 };
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
@@ -223,16 +223,18 @@ impl InitParticipant {
 
 impl PipelineParticipantMut for InitParticipant {
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        // Create a new init lowerer
+        // Create the init and exit lowerers
         let AnnotatedProject { units, index, .. } = annotated_project;
         let mut resulting_units = vec![];
         let index = Rc::new(index);
+        let destructor = Destructor::new(self.id_provider.clone(), index.clone(), self.generate_externals);
         for unit in units {
             let initializer = Initializer::new(self.id_provider.clone(), self.generate_externals);
             let unit = initializer.apply_initialization(unit.unit, index.clone());
+            let unit = destructor.apply_destruction(unit);
             resulting_units.push(unit);
         }
-        // Append new units and constructor to the ast and re-index
+        // Append new units, constructors and destructors to the ast and re-index
         let project = ParsedProject { units: resulting_units };
         project.index(self.id_provider.clone()).annotate(self.id_provider.clone())
     }
