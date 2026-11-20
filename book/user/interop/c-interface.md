@@ -262,6 +262,11 @@ void myFunctionBlock__FB_EXIT(myFunctionBlock_type* self) {
 }
 ```
 
+A function block that releases a file, memory, or a thread in `FB_EXIT` must handle more cases than this example shows, such as a copy of the instance. The [API guidelines](api-guidelines.md#cleanup) list them.
+
+> [!NOTE]
+> The destructor of a source file is an entry in the destructor list of the binary, and on Linux with glibc that has two effects on a library in C++. When the process ends, a static object of the library can be destroyed before `FB_EXIT` runs, so build an object that `FB_EXIT` uses with `new` and never destroy it. A library that must release what the application left open does that in a function with `__attribute__((destructor))`, which runs after the `FB_EXIT` calls of the application. When a host unloads the application with `dlclose`, `FB_EXIT` runs while the dynamic loader holds its lock. An `FB_EXIT` that waits for a thread then never returns if that thread loads a shared library, or uses a `thread_local` object with a destructor for the first time.
+
 
 ## Constructors for external code
 

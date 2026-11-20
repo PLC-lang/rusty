@@ -25,12 +25,16 @@ Use `VAR_IN_OUT` instead of a pointer in `VAR_INPUT`. The pointer makes the call
 
 A function that must accept arrays of different lengths declares the parameter as `ARRAY[*]`. The compiler always passes such a parameter by reference, whatever block it stands in.
 
+Pass an instance of a function block as `VAR_IN_OUT` as well. In `VAR_INPUT` of a function block, the instance is copied into a member, and a copy of an instance that has `FB_EXIT` is cleaned up a second time, see [Cleanup](#cleanup).
+
 
 ## Results
 
 A `FUNCTION` states its result as its return type. A `FUNCTION_BLOCK` states its results as `VAR_OUTPUT`. Do not return a result through a pointer in `VAR_INPUT`.
 
 A return type can be a string, an array, or a struct. The compiler makes such a result a hidden first parameter, and the caller provides the memory, so a large result needs no output parameter.
+
+Do not return an instance of a function block that has `FB_EXIT`. The function cleans up its result before the caller gets the copy. Let the caller pass the instance as `VAR_IN_OUT`, and fill it.
 
 
 ## Private members are visible
@@ -86,6 +90,61 @@ END_FUNCTION_BLOCK
 ```
 
 For a library whose implementation is not Structured Text, provide the symbol `<FunctionBlock>__FB_EXIT` and declare the method in the interface file. An application can only call `FB_EXIT` of a library function block when the interface file declares it, so a library that adds the method must ship the new interface file and the destructors that `--constructors-only` writes for it.
+
+`FB_EXIT` is not a destructor as C++ has it. An assignment copies an instance and calls no method, and each of the two variables is cleaned up when it ends. The example uses `LogFile`, a function block of a C library that keeps a file descriptor in the member `fd`:
+
+```c
+void LogFile__FB_EXIT(LogFile_type* self) {
+    close(self->fd);
+}
+```
+
+```iecst
+VAR_GLOBAL
+    audit: LogFile;
+    data: LogFile;
+END_VAR
+
+FUNCTION snapshot: DINT
+    VAR
+        copy: LogFile;
+    END_VAR
+
+    copy := audit;              // copy.fd = 3, no method is called
+END_FUNCTION                    // FB_EXIT of copy: close(3)
+
+FUNCTION main: DINT
+    audit.Open('audit.log');    // audit.fd = 3
+    snapshot();                 // the file of audit is closed now
+    data.Open('data.log');      // data.fd = 3, the number is free again
+    audit.Write(42);            // writes 42 to data.log, and reports no error
+END_FUNCTION
+```
+
+An instance in `VAR_INPUT` of a function block and the result of a function are copies of the same kind. An instance in `VAR_INPUT` of a function is a copy that gets neither `FB_INIT` nor `FB_EXIT`, so nothing releases what a method acquires through it. A library cannot stop a copy, but it stays correct when it follows these rules:
+
+- **Expect `FB_EXIT` for an instance that holds nothing.** It runs for every instance, also when the method that acquires the resource was never called. A member that nothing has set is 0, and 0 is a valid file descriptor: the standard input.
+- **Keep a handle in the member, not the resource.** Look the handle up in a table of the library before each use, remove the entry in `FB_EXIT`, and never use a handle value again. The cleanup of a copy then finds no entry, and in the example `audit.Write(42)` returns an error and `data.log` stays untouched.
+- **Do not acquire a resource in `FB_INIT`.** The target of an assignment loses it, because the copy overwrites the member. Acquire it in a method that the application calls, as `Open` does.
+- **Do not call the `FB_EXIT` of the base.** The destructor of a derived function block calls the derived method and then the method of the base. A call from the derived method runs the base cleanup two times.
+- **Let nothing use the instance after `FB_EXIT`.** A local instance lives on the stack, and its memory is used again after the call. A thread or a job that can outlive the call must hold data that the library owns, not the address of the instance.
+- **Catch C++ exceptions inside the library.** An exception that leaves a library function passes through the Structured Text code that called it, and no `FB_EXIT` runs for the local instances of the functions it leaves.
+
+The first rule in C, for a library that keeps the descriptor in the member:
+
+```c
+void LogFile__FB_INIT(LogFile_type* self) {
+    self->fd = -1;              // nothing to release
+}
+
+void LogFile__FB_EXIT(LogFile_type* self) {
+    if (self->fd < 0) {
+        return;
+    }
+    close(self->fd);
+    self->fd = -1;              // a second call for this instance does nothing
+}
+```
 
 
 ## What's next
