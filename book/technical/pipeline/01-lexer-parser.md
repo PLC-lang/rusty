@@ -266,11 +266,9 @@ the parser expects a semicolon after `i: DINT` and finds `text: STRING` instead.
 broken.st:4:9:{4:9-4:21}: error[E007]: Unexpected token: expected KeywordSemicolon but found 'text: STRING'
 broken.st:11:17:{11:17-11:18}: error[E007]: Unexpected token: expected expression but found ;
 error: Compilation aborted due to critical parse errors
-Unexpected token: expected KeywordSemicolon but found 'text: STRING' at: broken.st:3:8:{3:8-3:20}:
-Unexpected token: expected expression but found ; at: broken.st:10:16:{10:16-10:17}:
 ```
 
-After a file is parsed, its diagnostics go to the diagnostician. If one of them has error severity, the stage aborts the whole run with "Compilation aborted due to critical parse errors". The abort carries the diagnostics of the file, which the last two lines print again. No unit reaches the index stage, not even the units of the files that parsed cleanly.
+Every file is parsed and its diagnostics go to the diagnostician. If one of them has error severity, the stage then aborts the whole run with "Compilation aborted due to critical parse errors". The diagnostician already reported the diagnostics, so the abort does not carry them and each one is printed once. No unit reaches the index stage, not even the units of the files that parsed cleanly.
 
 
 ## Where it lives

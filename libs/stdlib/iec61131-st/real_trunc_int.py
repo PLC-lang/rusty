@@ -9,12 +9,11 @@ template = """
 * Converts {0} to {1}
 *
 ********************)
+{{external}}
 FUNCTION {0}_TRUNC_{1} : {1}
     VAR_INPUT
         in : {0};
     END_VAR
-
-    {0}_TRUNC_{1} := in;
 END_FUNCTION
 """
 
