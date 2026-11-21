@@ -41,10 +41,15 @@ A diagnostic has one of four severities:
 | `info` | Reported, the run continues |
 | `ignore` | Not reported |
 
-`plc config diagnostics` prints the severity of every code as JSON:
+`plc config diagnostics` prints the severity of every code as indented JSON. The codes within each severity group are sorted in ascending order. For example, the default ignored codes appear as follows (the other groups are omitted):
 
 ```json
-{"ignore":["E132","E015"],"warning":["E096","E042", ...],"info":["E092", ...],"error":["E119", ...]}
+{
+  "ignore": [
+    "E015",
+    "E132"
+  ]
+}
 ```
 
 
