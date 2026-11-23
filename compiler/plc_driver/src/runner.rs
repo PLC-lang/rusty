@@ -5,7 +5,7 @@ use crate::{
 
 use log::trace;
 use plc::codegen::{CodegenContext, GeneratedModule};
-use plc_diagnostics::diagnostician::Diagnostician;
+use plc_diagnostics::{diagnostician::Diagnostician, reporter::DiagnosticReporter};
 use plc_index::GlobalContext;
 use project::project::Project;
 use source_code::Compilable;
@@ -44,7 +44,7 @@ pub fn compile_with_includes<T: Compilable>(
         .unwrap()
         .with_source(project.get_includes(), None)
         .unwrap();
-    let diagnostician = Diagnostician::null_diagnostician();
+    let diagnostician = Diagnostician::buffered();
     let mut pipeline = BuildPipeline {
         context,
         project,
@@ -58,7 +58,9 @@ pub fn compile_with_includes<T: Compilable>(
 
     pipeline.register_default_mut_participants();
 
-    let project = pipeline.parse().unwrap();
+    let project = pipeline
+        .parse()
+        .unwrap_or_else(|err| panic!("{err}\n{}", pipeline.diagnostician.buffer().unwrap_or_default()));
     let project = pipeline.index(project).unwrap();
     let project = pipeline.annotate(project).unwrap();
 

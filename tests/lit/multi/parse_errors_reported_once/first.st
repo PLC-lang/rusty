@@ -1,0 +1,7 @@
+FUNCTION first : BOOL
+VAR_INPUT
+    in : BOOL;
+    in2
+END_VAR
+;
+END_FUNCTION
