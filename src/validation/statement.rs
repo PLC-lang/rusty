@@ -2374,19 +2374,34 @@ fn folded_integer_value<T: AnnotationMap>(node: &AstNode, context: &ValidationCo
 }
 
 /// The value of untyped integer literals combined with the integer operators. Each operation keeps its value
-/// only when the signed type that the resolver gave it holds the value, so an overflow, a division by zero or an
-/// unsigned operation gives `None`.
+/// only when the signed type that the resolver gave it holds its operands and the value, so an overflow, an
+/// operand that changes in the conversion to that type, a division by zero or an unsigned operation gives `None`.
 fn literal_arithmetic_value<T: AnnotationMap>(
     node: &AstNode,
     context: &ValidationContext<T>,
 ) -> Option<i128> {
-    let value = match node.get_stmt() {
+    match node.get_stmt() {
         AstStatement::Literal(AstLiteral::Integer(value)) => return Some(*value),
         AstStatement::ParenExpression(inner) => return literal_arithmetic_value(inner, context),
+        _ => (),
+    }
 
+    // the operation computes in its signed type, after it converts the operands to that type
+    let data_type = context.annotations.get_type(node, context.index)?;
+    let information = match context.index.find_effective_type_info(data_type.get_name())? {
+        information @ DataTypeInformation::Integer { signed: true, .. } if !information.is_bool() => {
+            information
+        }
+        _ => return None,
+    };
+    let operand_value = |operand: &AstNode| {
+        literal_arithmetic_value(operand, context).filter(|value| holds_value(information, *value))
+    };
+
+    let value = match node.get_stmt() {
         // unary operators
         AstStatement::UnaryExpression(UnaryExpression { operator, value }) => {
-            let value = literal_arithmetic_value(value, context)?;
+            let value = operand_value(value)?;
             match operator {
                 Operator::Minus => value.checked_neg(),
                 Operator::Not => Some(!value),
@@ -2397,8 +2412,7 @@ fn literal_arithmetic_value<T: AnnotationMap>(
 
         // binary operators
         AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) => {
-            let (left, right) =
-                (literal_arithmetic_value(left, context)?, literal_arithmetic_value(right, context)?);
+            let (left, right) = (operand_value(left)?, operand_value(right)?);
             match operator {
                 Operator::Plus => left.checked_add(right),
                 Operator::Minus => left.checked_sub(right),
@@ -2415,13 +2429,7 @@ fn literal_arithmetic_value<T: AnnotationMap>(
         _ => None,
     }?;
 
-    let data_type = context.annotations.get_type(node, context.index)?;
-    match context.index.find_effective_type_info(data_type.get_name())? {
-        information @ DataTypeInformation::Integer { signed: true, .. } if !information.is_bool() => {
-            holds_value(information, value).then_some(value)
-        }
-        _ => None,
-    }
+    holds_value(information, value).then_some(value)
 }
 
 /// The value of an integer literal behind a type prefix, e.g. `5` in `INT#5` or `-5` in `INT#-5`

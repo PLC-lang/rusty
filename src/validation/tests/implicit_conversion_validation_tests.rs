@@ -1823,6 +1823,7 @@ fn constant_integer_values_other_than_zero_or_one_are_not_bool() {
             b := cTwo;
             b := lc;
             b := Color#blue;
+            b := 4294967295 / 2147483647;
         END_FUNCTION
         ",
     );
@@ -1899,6 +1900,12 @@ fn constant_integer_values_other_than_zero_or_one_are_not_bool() {
        │
     24 │             b := Color#blue;
        │             ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:25:13
+       │
+    25 │             b := 4294967295 / 2147483647;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
     ");
 }
 
@@ -2020,6 +2027,8 @@ fn overflowing_constant_expression_assigned_to_bool_is_not_judged_by_value() {
         vBool := 9223372036854775807 * 9223372036854775807 * 9223372036854775807;
         vBool := 5 / 0;
         vBool := SINT#200;
+        vBool := 18446744073709551615 / 9223372036854775807;
+        vBool := 9223372036854775808 / 4611686018427387904;
         ",
     );
 
@@ -2059,6 +2068,30 @@ fn overflowing_constant_expression_assigned_to_bool_is_not_judged_by_value() {
        │
     32 │         vBool := SINT#200;
        │                  ^^^^^^^^ Implicit conversion from 'SINT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:33:18
+       │
+    33 │         vBool := 18446744073709551615 / 9223372036854775807;
+       │                  ^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:33:41
+       │
+    33 │         vBool := 18446744073709551615 / 9223372036854775807;
+       │                                         ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:34:18
+       │
+    34 │         vBool := 9223372036854775808 / 4611686018427387904;
+       │                  ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:34:40
+       │
+    34 │         vBool := 9223372036854775808 / 4611686018427387904;
+       │                                        ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
     ");
 }
 
