@@ -390,11 +390,11 @@ fn bool_assignment_validation() {
     11 │     v_dword := FALSE; // INVALID
        │     ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'BOOL' to 'DWORD'
 
-    error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL'
+    error[E037]: Invalid assignment: cannot assign the value 5 to 'BOOL'
        ┌─ <internal>:12:5
        │
     12 │     v_bool := 5; // INVALID
-       │     ^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'BOOL'
+       │     ^^^^^^^^^^^ Invalid assignment: cannot assign the value 5 to 'BOOL'
 
     error[E037]: Invalid assignment: cannot assign 'REAL' to 'BOOL'
        ┌─ <internal>:13:5
@@ -402,11 +402,11 @@ fn bool_assignment_validation() {
     13 │     v_bool := 2.5; // INVALID
        │     ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REAL' to 'BOOL'
 
-    error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL'
+    error[E037]: Invalid assignment: cannot assign the value 5 to 'BOOL'
        ┌─ <internal>:14:5
        │
     14 │     v_dword.1 := 5; // INVALID
-       │     ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'BOOL'
+       │     ^^^^^^^^^^^^^^ Invalid assignment: cannot assign the value 5 to 'BOOL'
 
     warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
        ┌─ <internal>:17:15
@@ -419,6 +419,248 @@ fn bool_assignment_validation() {
        │
     17 │     v_bool := v_dint; // valid, reported as a downcast
        │               ^^^^^^ Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+    ");
+}
+
+#[test]
+fn bool_arguments_and_returns_reject_constant_values_other_than_zero_or_one() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+    VAR_GLOBAL CONSTANT
+        cTwo : INT := 2;
+    END_VAR
+
+    FUNCTION foo : BOOL
+    VAR_INPUT
+        x : BOOL;
+    END_VAR
+        foo := INT#2;
+    END_FUNCTION
+
+    FUNCTION_BLOCK fb
+    VAR_INPUT
+        x : BOOL;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    PROGRAM mainProg
+    VAR
+        inst : fb;
+    END_VAR
+        foo(INT#3);
+        inst(x := cTwo);
+    END_PROGRAM
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:10:9
+       │
+    10 │         foo := INT#2;
+       │         ^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 3 to 'BOOL'
+       ┌─ <internal>:23:13
+       │
+    23 │         foo(INT#3);
+       │             ^^^^^ Invalid assignment: cannot assign the value 3 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:24:14
+       │
+    24 │         inst(x := cTwo);
+       │              ^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+    ");
+}
+
+#[test]
+fn every_bool_target_rejects_constant_values_other_than_zero_or_one() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+    TYPE MyBool : BOOL; END_TYPE
+    TYPE MyStruct : STRUCT
+        a : BOOL;
+    END_STRUCT END_TYPE
+
+    PROGRAM mainProg
+    VAR
+        aliased : MyBool;
+        ref : REFERENCE TO BOOL;
+        bits : BYTE;
+        arr : ARRAY[0..1] OF BOOL;
+        s : MyStruct;
+    END_VAR
+        aliased := INT#2;
+        ref := INT#2;
+        bits.3 := INT#2;
+        arr[0] := 1 + 1;
+        s.a := INT#2;
+    END_PROGRAM
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:15:9
+       │
+    15 │         aliased := INT#2;
+       │         ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:16:9
+       │
+    16 │         ref := INT#2;
+       │         ^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:17:9
+       │
+    17 │         bits.3 := INT#2;
+       │         ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:18:9
+       │
+    18 │         arr[0] := 1 + 1;
+       │         ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:19:9
+       │
+    19 │         s.a := INT#2;
+       │         ^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+    ");
+}
+
+#[test]
+fn member_access_to_bool_is_not_judged_by_a_constant_of_the_same_name() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+    TYPE State : (idle, running, done); END_TYPE
+    TYPE Color : (red, green, blue); END_TYPE
+
+    VAR_GLOBAL CONSTANT
+        enabled : INT := 5;
+    END_VAR
+
+    TYPE Flags : STRUCT
+        done : BOOL;
+        enabled : BOOL;
+        blue : INT;
+    END_STRUCT END_TYPE
+
+    FUNCTION_BLOCK Base
+    VAR_OUTPUT
+        done : BOOL;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK Derived EXTENDS Base
+    VAR
+        last : BOOL;
+    END_VAR
+        last := done;
+    END_FUNCTION_BLOCK
+
+    PROGRAM mainProg
+    VAR
+        f : Flags;
+        b : BOOL;
+    END_VAR
+        b := f.done;
+        b := f.enabled;
+        b := f.blue;
+    END_PROGRAM
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E067]: Implicit downcast from 'INT' to 'BOOL'.
+       ┌─ <internal>:35:14
+       │
+    35 │         b := f.blue;
+       │              ^^^^^^ Implicit downcast from 'INT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:35:14
+       │
+    35 │         b := f.blue;
+       │              ^^^^^^ Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+    ");
+}
+
+#[test]
+fn output_binding_to_a_constant_is_not_judged_by_its_value() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+    VAR_GLOBAL CONSTANT
+        cTwo : INT := 2;
+    END_VAR
+
+    FUNCTION_BLOCK fb
+    VAR_OUTPUT
+        qb : BOOL;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    PROGRAM mainProg
+    VAR
+        inst : fb;
+    END_VAR
+        inst(qb => cTwo);
+    END_PROGRAM
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E031]: Parameter qb is passed by reference and needs a variable with write access, but 'cTwo' is constant
+       ┌─ <internal>:16:20
+       │
+    16 │         inst(qb => cTwo);
+       │                    ^^^^ Parameter qb is passed by reference and needs a variable with write access, but 'cTwo' is constant
+    ");
+}
+
+#[test]
+fn bool_outputs_reject_constant_values_in_their_own_pou() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+    FUNCTION_BLOCK fb
+    VAR_OUTPUT
+        ob : BOOL;
+    END_VAR
+        ob := 5;
+        ob := 1 + 1;
+    END_FUNCTION_BLOCK
+
+    FUNCTION fn : DINT
+    VAR_OUTPUT
+        fo : BOOL;
+    END_VAR
+        fo := 2;
+    END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: Invalid assignment: cannot assign the value 5 to 'BOOL'
+      ┌─ <internal>:6:9
+      │
+    6 │         ob := 5;
+      │         ^^^^^^^ Invalid assignment: cannot assign the value 5 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+      ┌─ <internal>:7:9
+      │
+    7 │         ob := 1 + 1;
+      │         ^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:14:9
+       │
+    14 │         fo := 2;
+       │         ^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
     ");
 }
 

@@ -2178,11 +2178,11 @@ fn initializers_with_incompatible_types_are_reported() {
     22 │             dintFromBool : DINT := TRUE;
        │                                    ^^^^ Invalid assignment: cannot assign 'BOOL' to 'DINT'
 
-    error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL'
+    error[E037]: Invalid assignment: cannot assign the value 5 to 'BOOL'
        ┌─ <internal>:23:35
        │
     23 │             boolFromInt : BOOL := 5;
-       │                                   ^ Invalid assignment: cannot assign 'DINT' to 'BOOL'
+       │                                   ^ Invalid assignment: cannot assign the value 5 to 'BOOL'
 
     error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
       ┌─ <internal>:3:32
@@ -2195,5 +2195,100 @@ fn initializers_with_incompatible_types_are_reported() {
       │
     7 │             gInt : DINT := 'abc';
       │                            ^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+    ");
+}
+
+#[test]
+fn bool_initializers_reject_constant_values_other_than_zero_or_one() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        VAR_GLOBAL CONSTANT
+            cTwo : INT := 2;
+        END_VAR
+
+        TYPE MyStruct : STRUCT
+            a : BOOL;
+        END_STRUCT END_TYPE
+
+        FUNCTION foo : BOOL
+        VAR_INPUT
+            x : BOOL := 1 + 1;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+        VAR
+            fromConstant : BOOL := cTwo;
+            fromElement : ARRAY[0..1] OF BOOL := [0, INT#2];
+            fromMember : MyStruct := (a := INT#3);
+            validConstant : BOOL := INT#1;
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E039]: This will overflow for type BOOL
+       ┌─ <internal>:12:25
+       │
+    12 │             x : BOOL := 1 + 1;
+       │                         ^^^^^ This will overflow for type BOOL
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:12:25
+       │
+    12 │             x : BOOL := 1 + 1;
+       │                         ^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:18:36
+       │
+    18 │             fromConstant : BOOL := cTwo;
+       │                                    ^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:19:54
+       │
+    19 │             fromElement : ARRAY[0..1] OF BOOL := [0, INT#2];
+       │                                                      ^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 3 to 'BOOL'
+       ┌─ <internal>:20:39
+       │
+    20 │             fromMember : MyStruct := (a := INT#3);
+       │                                       ^^^^^^^^^^ Invalid assignment: cannot assign the value 3 to 'BOOL'
+
+    warning[E067]: Implicit downcast from 'INT' to 'BOOL'.
+       ┌─ <internal>:21:37
+       │
+    21 │             validConstant : BOOL := INT#1;
+       │                                     ^^^^^ Implicit downcast from 'INT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:21:37
+       │
+    21 │             validConstant : BOOL := INT#1;
+       │                                     ^^^^^ Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+    ");
+}
+
+#[test]
+fn bool_temp_initializer_reports_a_constant_value_once() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM mainProg
+        VAR_TEMP
+            t : BOOL := INT#2;
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+      ┌─ <internal>:4:25
+      │
+    4 │             t : BOOL := INT#2;
+      │                         ^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
     ");
 }
