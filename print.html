@@ -37,7 +37,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-e92d1c8b.js";
+            window.path_to_searchindex_js = "searchindex-20f7858b.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e5f95eb2.js"></script>
@@ -5611,10 +5611,8 @@ END_FUNCTION
 <pre><code>broken.st:4:9:{4:9-4:21}: error[E007]: Unexpected token: expected KeywordSemicolon but found 'text: STRING'
 broken.st:11:17:{11:17-11:18}: error[E007]: Unexpected token: expected expression but found ;
 error: Compilation aborted due to critical parse errors
-Unexpected token: expected KeywordSemicolon but found 'text: STRING' at: broken.st:3:8:{3:8-3:20}:
-Unexpected token: expected expression but found ; at: broken.st:10:16:{10:16-10:17}:
 </code></pre>
-<p>After a file is parsed, its diagnostics go to the diagnostician. If one of them has error severity, the stage aborts the whole run with “Compilation aborted due to critical parse errors”. The abort carries the diagnostics of the file, which the last two lines print again. No unit reaches the index stage, not even the units of the files that parsed cleanly.</p>
+<p>Every file is parsed and its diagnostics go to the diagnostician. If one of them has error severity, the stage then aborts the whole run with “Compilation aborted due to critical parse errors”. The diagnostician already reported the diagnostics, so the abort does not carry them and each one is printed once. No unit reaches the index stage, not even the units of the files that parsed cleanly.</p>
 <h2 id="where-it-lives-1"><a class="header" href="#where-it-lives-1">Where it lives</a></h2>
 <div class="table-wrapper">
 <table>

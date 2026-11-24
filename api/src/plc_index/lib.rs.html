@@ -62,7 +62,7 @@
 <a href=#62 id=62 data-nosnippet>62</a>            <span class="prelude-val">Ok</span>(value) =&gt; <span class="self">self</span>.sources.insert(container.get_location_str(), value),
 <a href=#63 id=63 data-nosnippet>63</a>            <span class="prelude-val">Err</span>(why) =&gt; {
 <a href=#64 id=64 data-nosnippet>64</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::new(<span class="macro">format!</span>(
-<a href=#65 id=65 data-nosnippet>65</a>                    <span class="string">"Cannot read file '{}': {}'"</span>,
+<a href=#65 id=65 data-nosnippet>65</a>                    <span class="string">"Cannot read file '{}': {}"</span>,
 <a href=#66 id=66 data-nosnippet>66</a>                    container.get_location_str(),
 <a href=#67 id=67 data-nosnippet>67</a>                    why
 <a href=#68 id=68 data-nosnippet>68</a>                ))
