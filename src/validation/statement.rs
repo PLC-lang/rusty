@@ -6,8 +6,8 @@ use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
         flatten_expression_list, resolve_argument_slots, AstNode, AstStatement, BinaryExpression,
-        CallStatement, DirectAccess, DirectAccessType, JumpStatement, Operator, ReferenceAccess, TypeNature,
-        UnaryExpression,
+        CallStatement, DirectAccess, DirectAccessType, JumpStatement, Operator, ReferenceAccess,
+        ReferenceExpr, TypeNature, UnaryExpression,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -1786,6 +1786,17 @@ pub(super) fn validate_assignment<T: AnnotationMap>(
         // Validate POU pointer assignments (POINTER TO class/FB) for inheritance compatibility
         if validate_pou_pointer_assignment(context, validator, left_type, right_type, right, location) {
             // Handled — either a valid upcast or an error was already emitted
+        } else if let Some(value) = invalid_bool_constant_value(context, left_type, right)
+            .filter(|_| !(is_output_assignment && context.is_call()))
+        {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Invalid assignment: cannot assign the value {value} to '{}'",
+                    validator.get_type_name_or_slice(left_type)
+                ))
+                .with_error_code("E037")
+                .with_location(location),
+            );
         } else if !(left_type.is_compatible_with_type(right_type)
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
@@ -2182,7 +2193,7 @@ fn is_valid_assignment(
         return true;
     } else if is_invalid_char_assignment(left_type.get_type_information(), right_type.get_type_information())
         | is_invalid_bool_assignment(left_type.get_type_information(), right_type.get_type_information())
-        | is_invalid_bool_literal_assignment(left_type.get_type_information(), right)
+        | is_real_literal_to_bool_assignment(left_type.get_type_information(), right)
         | is_invalid_pointer_assignment(
             left_type.get_type_information(),
             right_type.get_type_information(),
@@ -2292,15 +2303,179 @@ fn is_invalid_bool_assignment(left_type: &DataTypeInformation, right_type: &Data
     right_type.is_bool() && left_type.is_numerical() && !left_type.is_bool()
 }
 
-/// only the literals 0 and 1 are BOOL values
-fn is_invalid_bool_literal_assignment(left_type: &DataTypeInformation, right: &AstNode) -> bool {
-    if !left_type.is_bool() {
-        return false;
+/// a real literal is no BOOL value
+fn is_real_literal_to_bool_assignment(left_type: &DataTypeInformation, right: &AstNode) -> bool {
+    left_type.is_bool() && matches!(right.get_stmt_peeled(), AstStatement::Literal(AstLiteral::Real(_)))
+}
+
+/// only the constant integer values 0 and 1 are BOOL values, returns any other value of `right`
+fn invalid_bool_constant_value<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    left_type: &DataType,
+    right: &AstNode,
+) -> Option<i128> {
+    if !left_type.get_type_information().is_bool() {
+        return None;
     }
-    match right.get_stmt_peeled() {
-        AstStatement::Literal(AstLiteral::Integer(value)) => *value != 0 && *value != 1,
-        AstStatement::Literal(AstLiteral::Real(_)) => true,
-        _ => false,
+
+    folded_integer_value(right, context).filter(|value| *value != 0 && *value != 1)
+}
+
+/// The integer value of a constant: an expression of untyped integer literals such as `1 + 1` or `NOT 0`, or one
+/// typed literal, enum value or integer constant as the resolver bound it. Arithmetic on typed or named operands,
+/// a BOOL operand, a member access with a base and a call give `None`.
+fn folded_integer_value<T: AnnotationMap>(node: &AstNode, context: &ValidationContext<T>) -> Option<i128> {
+    match node.get_stmt() {
+        AstStatement::ParenExpression(inner) => folded_integer_value(inner, context),
+
+        // typed literals and enum values, e.g. `INT#5` or `Color#blue`
+        AstStatement::ReferenceExpr(ReferenceExpr {
+            access: ReferenceAccess::Cast(target),
+            base: Some(base),
+        }) => {
+            let type_name = base.get_flat_reference_name()?;
+            match context.index.find_effective_type_info(type_name)? {
+                DataTypeInformation::Enum { name, .. } => {
+                    let variant = context.index.find_enum_variant(name, target.get_flat_reference_name()?)?;
+                    constant_variable_value(variant, context)
+                }
+                info if is_foldable_integer(info) => {
+                    signed_literal_value(target).filter(|value| holds_value(info, *value))
+                }
+                _ => None,
+            }
+        }
+
+        // constants without a base, as the resolver bound them
+        AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), base: None }) => {
+            let Some(StatementAnnotation::Variable {
+                constant: true, qualified_name, resulting_type, ..
+            }) = context.annotations.get(node)
+            else {
+                return None;
+            };
+
+            if !is_foldable_integer(
+                context.index.get_effective_type_or_void_by_name(resulting_type).get_type_information(),
+            ) {
+                return None;
+            }
+
+            let variable = context
+                .index
+                .find_enum_variant_by_qualified_name(qualified_name)
+                .or_else(|| context.index.find_fully_qualified_variable(qualified_name))
+                .filter(|it| it.get_qualified_name().eq_ignore_ascii_case(qualified_name))?;
+            constant_variable_value(variable, context)
+        }
+
+        _ => literal_arithmetic_value(node, context),
+    }
+}
+
+/// The value of untyped integer literals combined with the integer operators. Each operation keeps its value
+/// only when the signed type that the resolver gave it holds its operands and the value, so an overflow, an
+/// operand that changes in the conversion to that type, a division by zero or an unsigned operation gives `None`.
+fn literal_arithmetic_value<T: AnnotationMap>(
+    node: &AstNode,
+    context: &ValidationContext<T>,
+) -> Option<i128> {
+    match node.get_stmt() {
+        AstStatement::Literal(AstLiteral::Integer(value)) => return Some(*value),
+        AstStatement::ParenExpression(inner) => return literal_arithmetic_value(inner, context),
+        _ => (),
+    }
+
+    // the operation computes in its signed type, after it converts the operands to that type
+    let data_type = context.annotations.get_type(node, context.index)?;
+    let information = match context.index.find_effective_type_info(data_type.get_name())? {
+        information @ DataTypeInformation::Integer { signed: true, .. } if !information.is_bool() => {
+            information
+        }
+        _ => return None,
+    };
+    let operand_value = |operand: &AstNode| {
+        literal_arithmetic_value(operand, context).filter(|value| holds_value(information, *value))
+    };
+
+    let value = match node.get_stmt() {
+        // unary operators
+        AstStatement::UnaryExpression(UnaryExpression { operator, value }) => {
+            let value = operand_value(value)?;
+            match operator {
+                Operator::Minus => value.checked_neg(),
+                Operator::Not => Some(!value),
+                Operator::Plus => Some(value),
+                _ => None,
+            }
+        }
+
+        // binary operators
+        AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) => {
+            let (left, right) = (operand_value(left)?, operand_value(right)?);
+            match operator {
+                Operator::Plus => left.checked_add(right),
+                Operator::Minus => left.checked_sub(right),
+                Operator::Multiplication => left.checked_mul(right),
+                Operator::Division => left.checked_div(right),
+                Operator::Modulo => left.checked_rem(right),
+                Operator::And => Some(left & right),
+                Operator::Or => Some(left | right),
+                Operator::Xor => Some(left ^ right),
+                _ => None,
+            }
+        }
+
+        _ => None,
+    }?;
+
+    holds_value(information, value).then_some(value)
+}
+
+/// The value of an integer literal behind a type prefix, e.g. `5` in `INT#5` or `-5` in `INT#-5`
+fn signed_literal_value(node: &AstNode) -> Option<i128> {
+    match node.get_stmt_peeled() {
+        AstStatement::Literal(AstLiteral::Integer(value)) => Some(*value),
+        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
+            signed_literal_value(value)?.checked_neg()
+        }
+        _ => None,
+    }
+}
+
+/// The resolved integer value of a constant variable or an enum value
+fn constant_variable_value<T: AnnotationMap>(
+    variable: &VariableIndexEntry,
+    context: &ValidationContext<T>,
+) -> Option<i128> {
+    let initial_value = variable.initial_value.as_ref()?;
+    context
+        .index
+        .get_const_expressions()
+        .get_resolved_constant_statement(initial_value)?
+        .get_literal_integer_value()
+}
+
+/// integers and enums; BOOL, time and date types and characters are no integer values
+fn is_foldable_integer(information: &DataTypeInformation) -> bool {
+    information.is_int()
+        && !information.is_bool()
+        && !information.is_date_or_time_type()
+        && !information.is_character()
+}
+
+/// a value out of the range of its type is reported as such, not judged by its value
+fn holds_value(information: &DataTypeInformation, value: i128) -> bool {
+    let DataTypeInformation::Integer { signed, size, .. } = information else {
+        return true;
+    };
+
+    let bits = (*size).min(127);
+    if *signed {
+        let max = (1_i128 << (bits - 1)) - 1;
+        (-max - 1..=max).contains(&value)
+    } else {
+        (0..=(1_i128 << bits) - 1).contains(&value)
     }
 }
 

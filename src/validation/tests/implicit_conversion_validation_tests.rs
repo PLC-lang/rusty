@@ -1766,11 +1766,11 @@ fn bool_and_integers_do_not_convert_implicitly() {
     35 │         vBool := vReal;
        │                  ^^^^^ Implicit conversion from 'REAL' to 'BOOL' mixes BOOL with a numeric type.
 
-    error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL'
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
        ┌─ <internal>:36:9
        │
     36 │         vBool := 2;
-       │         ^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'BOOL'
+       │         ^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
     ");
 }
 
@@ -1793,6 +1793,519 @@ fn bool_values_and_the_literals_zero_and_one_are_silent() {
     );
 
     assert_snapshot!(diagnostics, @r"");
+}
+
+/// A constant value other than 0 or 1 is no BOOL value, whatever form computes it.
+#[test]
+fn constant_integer_values_other_than_zero_or_one_are_not_bool() {
+    let diagnostics = conversions(
+        "
+        VAR_GLOBAL CONSTANT
+            cTwo : INT := 2;
+        END_VAR
+        TYPE Color : (red, green, blue); END_TYPE
+        FUNCTION main : DINT
+        VAR CONSTANT
+            lc : DINT := 7;
+        END_VAR
+        VAR
+            b : BOOL;
+        END_VAR
+            b := INT#5;
+            b := DINT#2;
+            b := WORD#3;
+            b := LINT#2;
+            b := UINT#7;
+            b := 1 + 1;
+            b := 1 - 2;
+            b := (1 + 1);
+            b := NOT 0;
+            b := cTwo;
+            b := lc;
+            b := Color#blue;
+            b := 4294967295 / 2147483647;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: Invalid assignment: cannot assign the value 5 to 'BOOL'
+       ┌─ <internal>:13:13
+       │
+    13 │             b := INT#5;
+       │             ^^^^^^^^^^ Invalid assignment: cannot assign the value 5 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:14:13
+       │
+    14 │             b := DINT#2;
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 3 to 'BOOL'
+       ┌─ <internal>:15:13
+       │
+    15 │             b := WORD#3;
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign the value 3 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:16:13
+       │
+    16 │             b := LINT#2;
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 7 to 'BOOL'
+       ┌─ <internal>:17:13
+       │
+    17 │             b := UINT#7;
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign the value 7 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:18:13
+       │
+    18 │             b := 1 + 1;
+       │             ^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value -1 to 'BOOL'
+       ┌─ <internal>:19:13
+       │
+    19 │             b := 1 - 2;
+       │             ^^^^^^^^^^ Invalid assignment: cannot assign the value -1 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:20:13
+       │
+    20 │             b := (1 + 1);
+       │             ^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value -1 to 'BOOL'
+       ┌─ <internal>:21:13
+       │
+    21 │             b := NOT 0;
+       │             ^^^^^^^^^^ Invalid assignment: cannot assign the value -1 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:22:13
+       │
+    22 │             b := cTwo;
+       │             ^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 7 to 'BOOL'
+       ┌─ <internal>:23:13
+       │
+    23 │             b := lc;
+       │             ^^^^^^^ Invalid assignment: cannot assign the value 7 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:24:13
+       │
+    24 │             b := Color#blue;
+       │             ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+
+    error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL'
+       ┌─ <internal>:25:13
+       │
+    25 │             b := 4294967295 / 2147483647;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign the value 2 to 'BOOL'
+    ");
+}
+
+/// Constant values 0 and 1 and non-constant integers keep their conversion diagnostics.
+#[test]
+fn constant_values_zero_and_one_stay_bool() {
+    let diagnostics = conversions(
+        "
+        VAR_GLOBAL CONSTANT
+            cOne : INT := 1;
+        END_VAR
+        TYPE Color : (red, green, blue); END_TYPE
+        FUNCTION main : DINT
+        VAR
+            b : BOOL;
+            i : DINT;
+        END_VAR
+            b := INT#0;
+            b := INT#1;
+            b := 1 * 1;
+            b := 4 MOD 2;
+            b := 2 > 1;
+            b := cOne;
+            b := Color#green;
+            b := i;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E067]: Implicit downcast from 'INT' to 'BOOL'.
+       ┌─ <internal>:11:18
+       │
+    11 │             b := INT#0;
+       │                  ^^^^^ Implicit downcast from 'INT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:11:18
+       │
+    11 │             b := INT#0;
+       │                  ^^^^^ Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E067]: Implicit downcast from 'INT' to 'BOOL'.
+       ┌─ <internal>:12:18
+       │
+    12 │             b := INT#1;
+       │                  ^^^^^ Implicit downcast from 'INT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:12:18
+       │
+    12 │             b := INT#1;
+       │                  ^^^^^ Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E067]: Implicit downcast from 'INT' to 'BOOL'.
+       ┌─ <internal>:16:18
+       │
+    16 │             b := cOne;
+       │                  ^^^^ Implicit downcast from 'INT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:16:18
+       │
+    16 │             b := cOne;
+       │                  ^^^^ Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E067]: Implicit downcast from 'Color' to 'BOOL'.
+       ┌─ <internal>:17:18
+       │
+    17 │             b := Color#green;
+       │                  ^^^^^^^^^^^ Implicit downcast from 'Color' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
+       ┌─ <internal>:18:18
+       │
+    18 │             b := i;
+       │                  ^ Implicit downcast from 'DINT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:18:18
+       │
+    18 │             b := i;
+       │                  ^ Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+    ");
+}
+
+/// NOT on a BOOL constant is a BOOL value, even when the constant is written as 0 or 1.
+#[test]
+fn not_on_bool_constants_stays_bool() {
+    let diagnostics = conversions(
+        "
+        VAR_GLOBAL CONSTANT
+            cFalse : BOOL := 0;
+            cTrue : BOOL := 1;
+        END_VAR
+        FUNCTION main : DINT
+        VAR CONSTANT
+            lFalse : BOOL := 0;
+        END_VAR
+        VAR
+            b : BOOL;
+        END_VAR
+            b := NOT cFalse;
+            b := NOT cTrue;
+            b := NOT lFalse;
+            b := NOT BOOL#0;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+/// A constant expression that overflows, or a typed literal out of the range of its type, is not judged by its value.
+#[test]
+fn overflowing_constant_expression_assigned_to_bool_is_not_judged_by_value() {
+    let diagnostics = in_main(
+        "
+        vBool := 9223372036854775807 * 9223372036854775807 * 9223372036854775807;
+        vBool := 5 / 0;
+        vBool := SINT#200;
+        vBool := 18446744073709551615 / 9223372036854775807;
+        vBool := 9223372036854775808 / 4611686018427387904;
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:30:18
+       │
+    30 │         vBool := 9223372036854775807 * 9223372036854775807 * 9223372036854775807;
+       │                  ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:30:40
+       │
+    30 │         vBool := 9223372036854775807 * 9223372036854775807 * 9223372036854775807;
+       │                                        ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:30:62
+       │
+    30 │         vBool := 9223372036854775807 * 9223372036854775807 * 9223372036854775807;
+       │                                                              ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    error[E123]: Division by Zero
+       ┌─ <internal>:31:18
+       │
+    31 │         vBool := 5 / 0;
+       │                  ^^^^^ Division by Zero
+
+    error[E053]: Literal 200 out of range (SINT)
+       ┌─ <internal>:32:18
+       │
+    32 │         vBool := SINT#200;
+       │                  ^^^^^^^^ Literal 200 out of range (SINT)
+
+    warning[E165]: Implicit conversion from 'SINT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:32:18
+       │
+    32 │         vBool := SINT#200;
+       │                  ^^^^^^^^ Implicit conversion from 'SINT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:33:18
+       │
+    33 │         vBool := 18446744073709551615 / 9223372036854775807;
+       │                  ^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:33:41
+       │
+    33 │         vBool := 18446744073709551615 / 9223372036854775807;
+       │                                         ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:34:18
+       │
+    34 │         vBool := 9223372036854775808 / 4611686018427387904;
+       │                  ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:34:40
+       │
+    34 │         vBool := 9223372036854775808 / 4611686018427387904;
+       │                                        ^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+    ");
+}
+
+/// Only integer constants are judged by their value; time, date and pointer constants keep their checks.
+#[test]
+fn non_integer_constants_assigned_to_bool_are_not_judged_by_value() {
+    let diagnostics = conversions(
+        "
+        VAR_GLOBAL CONSTANT
+            cTime : LTIME := 5;
+            cTod : TOD := 7;
+            cPointer : POINTER TO INT := 5;
+        END_VAR
+        FUNCTION main : DINT
+        VAR
+            b : BOOL;
+        END_VAR
+            b := cTime;
+            b := cTod;
+            b := cPointer;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E164]: Implicit conversion from 'SINT' to 'LTIME' mixes time or date types with other types.
+      ┌─ <internal>:3:30
+      │
+    3 │             cTime : LTIME := 5;
+      │                              ^ Implicit conversion from 'SINT' to 'LTIME' mixes time or date types with other types.
+
+    warning[E164]: Implicit conversion from 'SINT' to 'TIME_OF_DAY' mixes time or date types with other types.
+      ┌─ <internal>:4:27
+      │
+    4 │             cTod : TOD := 7;
+      │                           ^ Implicit conversion from 'SINT' to 'TIME_OF_DAY' mixes time or date types with other types.
+
+    warning[E067]: Implicit downcast from 'LTIME' to 'BOOL'.
+       ┌─ <internal>:11:18
+       │
+    11 │             b := cTime;
+       │                  ^^^^^ Implicit downcast from 'LTIME' to 'BOOL'.
+
+    warning[E164]: Implicit conversion from 'LTIME' to 'BOOL' mixes time or date types with other types.
+       ┌─ <internal>:11:18
+       │
+    11 │             b := cTime;
+       │                  ^^^^^ Implicit conversion from 'LTIME' to 'BOOL' mixes time or date types with other types.
+
+    warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'BOOL'.
+       ┌─ <internal>:12:18
+       │
+    12 │             b := cTod;
+       │                  ^^^^ Implicit downcast from 'TIME_OF_DAY' to 'BOOL'.
+
+    warning[E164]: Implicit conversion from 'TIME_OF_DAY' to 'BOOL' mixes time or date types with other types.
+       ┌─ <internal>:12:18
+       │
+    12 │             b := cTod;
+       │                  ^^^^ Implicit conversion from 'TIME_OF_DAY' to 'BOOL' mixes time or date types with other types.
+
+    error[E065]: The type BOOL 8 is too small to hold a Pointer
+       ┌─ <internal>:13:13
+       │
+    13 │             b := cPointer;
+       │             ^^^^^^^^^^^^^ The type BOOL 8 is too small to hold a Pointer
+
+    error[E037]: Invalid assignment: cannot assign 'POINTER TO INT' to 'BOOL'
+       ┌─ <internal>:13:13
+       │
+    13 │             b := cPointer;
+       │             ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'POINTER TO INT' to 'BOOL'
+    ");
+}
+
+/// Arithmetic on typed or named operands is not judged by its value; it keeps the conversion checks.
+#[test]
+fn constant_arithmetic_on_typed_operands_assigned_to_bool_is_not_judged_by_value() {
+    let diagnostics = conversions(
+        "
+        TYPE UColor : USINT (ured := 254, ugreen := 1); END_TYPE
+        VAR_GLOBAL CONSTANT
+            cTwo : INT := 2;
+            cU : UDINT := 16#FFFFFFFE;
+            cD : DINT := 2147483647;
+            cMask : BYTE := 16#FE;
+            cZero : BYTE := 0;
+        END_VAR
+        FUNCTION main : DINT
+        VAR
+            b : BOOL;
+        END_VAR
+            b := NOT UColor#ured;
+            b := (NOT UColor#ured) + 1;
+            b := cU / cD;
+            b := cTwo + 1;
+            b := NOT cMask;
+            b := NOT BYTE#254;
+            b := NOT cZero;
+            b := ULINT#16#FFFFFFFFFFFFFFFF + ULINT#2;
+            b := DINT#2147483647 + DINT#2147483647 + DINT#3;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E067]: Implicit downcast from 'UDINT' to 'BOOL'.
+       ┌─ <internal>:16:18
+       │
+    16 │             b := cU / cD;
+       │                  ^^ Implicit downcast from 'UDINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
+       ┌─ <internal>:16:23
+       │
+    16 │             b := cU / cD;
+       │                       ^^ Implicit downcast from 'DINT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:16:18
+       │
+    16 │             b := cU / cD;
+       │                  ^^^^^^^ Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E067]: Implicit downcast from 'INT' to 'BOOL'.
+       ┌─ <internal>:17:18
+       │
+    17 │             b := cTwo + 1;
+       │                  ^^^^ Implicit downcast from 'INT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:17:18
+       │
+    17 │             b := cTwo + 1;
+       │                  ^^^^ Implicit conversion from 'INT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E165]: Implicit conversion from 'BYTE' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:18:18
+       │
+    18 │             b := NOT cMask;
+       │                  ^^^^^^^^^ Implicit conversion from 'BYTE' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E165]: Implicit conversion from 'BYTE' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:19:18
+       │
+    19 │             b := NOT BYTE#254;
+       │                  ^^^^^^^^^^^^ Implicit conversion from 'BYTE' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E165]: Implicit conversion from 'BYTE' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:20:18
+       │
+    20 │             b := NOT cZero;
+       │                  ^^^^^^^^^ Implicit conversion from 'BYTE' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:21:18
+       │
+    21 │             b := ULINT#16#FFFFFFFFFFFFFFFF + ULINT#2;
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'BOOL'.
+       ┌─ <internal>:21:46
+       │
+    21 │             b := ULINT#16#FFFFFFFFFFFFFFFF + ULINT#2;
+       │                                              ^^^^^^^ Implicit downcast from 'ULINT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'ULINT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:21:18
+       │
+    21 │             b := ULINT#16#FFFFFFFFFFFFFFFF + ULINT#2;
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit conversion from 'ULINT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E165]: Implicit conversion from 'ULINT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:21:46
+       │
+    21 │             b := ULINT#16#FFFFFFFFFFFFFFFF + ULINT#2;
+       │                                              ^^^^^^^ Implicit conversion from 'ULINT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
+       ┌─ <internal>:22:18
+       │
+    22 │             b := DINT#2147483647 + DINT#2147483647 + DINT#3;
+       │                  ^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
+       ┌─ <internal>:22:36
+       │
+    22 │             b := DINT#2147483647 + DINT#2147483647 + DINT#3;
+       │                                    ^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'BOOL'.
+
+    warning[E067]: Implicit downcast from 'DINT' to 'BOOL'.
+       ┌─ <internal>:22:54
+       │
+    22 │             b := DINT#2147483647 + DINT#2147483647 + DINT#3;
+       │                                                      ^^^^^^ Implicit downcast from 'DINT' to 'BOOL'.
+
+    warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:22:18
+       │
+    22 │             b := DINT#2147483647 + DINT#2147483647 + DINT#3;
+       │                  ^^^^^^^^^^^^^^^ Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:22:36
+       │
+    22 │             b := DINT#2147483647 + DINT#2147483647 + DINT#3;
+       │                                    ^^^^^^^^^^^^^^^ Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+
+    warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+       ┌─ <internal>:22:54
+       │
+    22 │             b := DINT#2147483647 + DINT#2147483647 + DINT#3;
+       │                                                      ^^^^^^ Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type.
+    ");
 }
 
 /// Loop counters and CASE branches are not assignments.

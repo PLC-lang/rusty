@@ -39,7 +39,7 @@ VAR
     intFromBool : INT := TRUE;
     // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'BOOL' to 'REAL'
     realFromBool : REAL := TRUE;
-    // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL'
+    // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign the value 5 to 'BOOL'
     boolFromInt : BOOL := 5;
     // CHECK-DAG: {{.*}}initializer_type_mismatch.st:[[@LINE+1]]:{{[0-9]+}}:{{.*}}error[E037]: Invalid assignment: cannot assign 'BOOL' to 'DINT'
     dintsFromBool : ARRAY[0..0] OF DINT := [TRUE];

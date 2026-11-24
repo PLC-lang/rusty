@@ -56,11 +56,12 @@ count := ready;                 (* error[E037]: Invalid assignment: cannot assig
 count := BOOL_TO_DINT(ready);   (* 1 when ready is TRUE, 0 otherwise *)
 ```
 
-The other direction takes the digits `0` and `1`, which are the two `BOOL` values written as numbers, and rejects every other number. An integer variable is accepted with a downcast warning (E067) and a warning that a number is used as a `BOOL` (E165). Like every downcast it keeps the low bits of the value, so it does not test "is not zero". Write the comparison when that is what you mean:
+The other direction takes the digits `0` and `1`, which are the two `BOOL` values written as numbers, and rejects every other constant integer value: a literal, an expression of literals such as `1 + 1`, a typed literal such as `INT#5`, a `CONSTANT` variable named without a prefix, or an enum value. An expression of literals that overflows its type is not judged by its value, and it gets the conversion warnings. An integer variable, a constant named with a prefix such as `mainProg.limit`, arithmetic on a typed literal or a constant such as `limit + 1`, and a typed literal or constant with the value `0` or `1` are accepted with conversion warnings: a downcast warning (E067) when the type is wider than `BOOL`, and a warning that a number is used as a `BOOL` (E165) unless the value is an enum value. Like every downcast, the conversion keeps the low bits of the value, so it does not test "is not zero". Write the comparison when that is what you mean:
 
 ```iecst
 ready := 1;             (* TRUE *)
-ready := 5;             (* error[E037]: Invalid assignment: cannot assign 'DINT' to 'BOOL' *)
+ready := 5;             (* error[E037]: Invalid assignment: cannot assign the value 5 to 'BOOL' *)
+ready := 1 + 1;         (* error[E037]: Invalid assignment: cannot assign the value 2 to 'BOOL' *)
 ready := count;         (* warning[E165]: Implicit conversion from 'DINT' to 'BOOL' mixes BOOL with a numeric type. *)
 ready := count <> 0;    (* the test, and it says so *)
 ```
