@@ -121,7 +121,7 @@ use plc_ast::{
         AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataType as AstDataType,
         DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable,
     },
-    mut_visitor::{AstVisitorMut, WalkerMut},
+    mut_visitor::{clone_with_new_ids, AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -692,27 +692,6 @@ mod helper {
         typesystem::DataTypeInformation,
     };
     use plc_ast::ast::MultipliedStatement;
-
-    /// A visitor that reassigns all AST node IDs in a subtree with fresh IDs.
-    /// Used after cloning AST subtrees to ensure each node in the tree has a unique ID.
-    struct IdReassigner<'a> {
-        ids: &'a mut IdProvider,
-    }
-
-    impl AstVisitorMut for IdReassigner<'_> {
-        fn visit(&mut self, node: &mut AstNode) {
-            node.id = self.ids.next_id();
-            node.walk(self);
-        }
-    }
-
-    /// Clones an AST node and reassigns all node IDs in the cloned subtree with fresh IDs,
-    /// preventing duplicate IDs between the original and cloned trees.
-    fn clone_with_new_ids(node: &AstNode, ids: &mut IdProvider) -> AstNode {
-        let mut cloned = node.clone();
-        IdReassigner { ids }.visit(&mut cloned);
-        cloned
-    }
 
     /// Rewrites an interface method call into an indirect dispatch through the itable.
     /// Applies four in-place transformations to the operator and parameters:
@@ -3685,27 +3664,33 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
             // Statements in main
             __main_instances__ctor(instances)
             __main_references__ctor(references)
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
+            alloca __past_end_0: BOOL
             i := 0
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    IF __is_incrementing_0 THEN
+                        __past_end_0 := i + 1 > 2
+                    ELSE
+                        __past_end_0 := i + 1 < 2
+                    END_IF
                     i := i + 1
+                ELSE
+                    IF __is_incrementing_0 THEN
+                        __past_end_0 := i > 2
+                    ELSE
+                        __past_end_0 := i < 2
+                    END_IF
                 END_IF
                 __ran_once_0 := TRUE
-                IF __is_incrementing_0 THEN
-                    IF i > 2 THEN
-                        EXIT;
-                    END_IF
-                ELSE
-                    IF i < 2 THEN
-                        EXIT;
-                    END_IF
+                IF __past_end_0 THEN
+                    EXIT;
                 END_IF
                 references[i].data := ADR(instances[i])
                 references[i].table := ADR(__itable_IA_FbA_instance)

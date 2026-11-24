@@ -15,67 +15,86 @@ entry:
   %__ran_once_0 = alloca i8, align [filtered]
   store i8 0, ptr %__ran_once_0, align [filtered], !dbg !11
   %__is_incrementing_0 = alloca i8, align [filtered]
-  store i8 0, ptr %__is_incrementing_0, align [filtered], !dbg !12
+  store i8 0, ptr %__is_incrementing_0, align [filtered], !dbg !11
+  %__past_end_0 = alloca i8, align [filtered]
+  store i8 0, ptr %__past_end_0, align [filtered], !dbg !12
   store volatile i32 1, ptr %myFunc, align [filtered], !dbg !13
   store i8 1, ptr %__is_incrementing_0, align [filtered], !dbg !14
   br label %while_body, !dbg !15
 
-while_body:                                       ; preds = %continue2, %entry
+while_body:                                       ; preds = %continue19, %entry
   %load___ran_once_0 = load i8, ptr %__ran_once_0, align [filtered], !dbg !11
   %0 = icmp ne i8 %load___ran_once_0, 0, !dbg !11
-  br i1 %0, label %condition_body, label %continue1, !dbg !16
+  br i1 %0, label %condition_body, label %else, !dbg !16
 
-continue:                                         ; preds = %condition_body11, %condition_body7
+continue:                                         ; preds = %condition_body20
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
   ret i32 %myFunc_ret, !dbg !18
 
 condition_body:                                   ; preds = %while_body
-  %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !19
-  %tmpVar = add i32 %load_myFunc, 2, !dbg !19
-  store volatile i32 %tmpVar, ptr %myFunc, align [filtered], !dbg !20
-  br label %continue1, !dbg !21
-
-continue1:                                        ; preds = %condition_body, %while_body
-  store i8 1, ptr %__ran_once_0, align [filtered], !dbg !11
   %load___is_incrementing_0 = load i8, ptr %__is_incrementing_0, align [filtered], !dbg !11
   %1 = icmp ne i8 %load___is_incrementing_0, 0, !dbg !11
-  br i1 %1, label %condition_body3, label %else, !dbg !22
+  br i1 %1, label %condition_body4, label %else2, !dbg !19
 
-condition_body3:                                  ; preds = %continue1
-  %load_myFunc5 = load i32, ptr %myFunc, align [filtered], !dbg !19
-  %tmpVar6 = icmp sgt i32 %load_myFunc5, 20, !dbg !19
-  %2 = zext i1 %tmpVar6 to i8, !dbg !19
-  %3 = icmp ne i8 %2, 0, !dbg !19
-  br i1 %3, label %condition_body7, label %continue4, !dbg !23
+else:                                             ; preds = %while_body
+  %load___is_incrementing_013 = load i8, ptr %__is_incrementing_0, align [filtered], !dbg !11
+  %2 = icmp ne i8 %load___is_incrementing_013, 0, !dbg !11
+  br i1 %2, label %condition_body14, label %else11, !dbg !20
 
-else:                                             ; preds = %continue1
-  %load_myFunc9 = load i32, ptr %myFunc, align [filtered], !dbg !19
-  %tmpVar10 = icmp slt i32 %load_myFunc9, 20, !dbg !19
-  %4 = zext i1 %tmpVar10 to i8, !dbg !19
-  %5 = icmp ne i8 %4, 0, !dbg !19
-  br i1 %5, label %condition_body11, label %continue8, !dbg !24
+continue1:                                        ; preds = %continue12, %continue3
+  store i8 1, ptr %__ran_once_0, align [filtered], !dbg !11
+  %load___past_end_0 = load i8, ptr %__past_end_0, align [filtered], !dbg !11
+  %3 = icmp ne i8 %load___past_end_0, 0, !dbg !11
+  br i1 %3, label %condition_body20, label %continue19, !dbg !21
 
-continue2:                                        ; preds = %continue8, %continue4
-  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !25
-  br label %while_body, !dbg !26
+condition_body4:                                  ; preds = %condition_body
+  %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !22
+  %tmpVar = add i32 %load_myFunc, 2, !dbg !22
+  %tmpVar5 = icmp sgt i32 %tmpVar, 20, !dbg !22
+  %4 = zext i1 %tmpVar5 to i8, !dbg !22
+  store volatile i8 %4, ptr %__past_end_0, align [filtered], !dbg !23
+  br label %continue3, !dbg !24
 
-condition_body7:                                  ; preds = %condition_body3
-  br label %continue, !dbg !27
+else2:                                            ; preds = %condition_body
+  %load_myFunc6 = load i32, ptr %myFunc, align [filtered], !dbg !22
+  %tmpVar7 = add i32 %load_myFunc6, 2, !dbg !22
+  %tmpVar8 = icmp slt i32 %tmpVar7, 20, !dbg !22
+  %5 = zext i1 %tmpVar8 to i8, !dbg !22
+  store volatile i8 %5, ptr %__past_end_0, align [filtered], !dbg !25
+  br label %continue3, !dbg !26
+
+continue3:                                        ; preds = %else2, %condition_body4
+  %load_myFunc9 = load i32, ptr %myFunc, align [filtered], !dbg !22
+  %tmpVar10 = add i32 %load_myFunc9, 2, !dbg !22
+  store volatile i32 %tmpVar10, ptr %myFunc, align [filtered], !dbg !27
+  br label %continue1, !dbg !28
+
+condition_body14:                                 ; preds = %else
+  %load_myFunc15 = load i32, ptr %myFunc, align [filtered], !dbg !22
+  %tmpVar16 = icmp sgt i32 %load_myFunc15, 20, !dbg !22
+  %6 = zext i1 %tmpVar16 to i8, !dbg !22
+  store volatile i8 %6, ptr %__past_end_0, align [filtered], !dbg !29
+  br label %continue12, !dbg !30
+
+else11:                                           ; preds = %else
+  %load_myFunc17 = load i32, ptr %myFunc, align [filtered], !dbg !22
+  %tmpVar18 = icmp slt i32 %load_myFunc17, 20, !dbg !22
+  %7 = zext i1 %tmpVar18 to i8, !dbg !22
+  store volatile i8 %7, ptr %__past_end_0, align [filtered], !dbg !31
+  br label %continue12, !dbg !32
+
+continue12:                                       ; preds = %else11, %condition_body14
+  br label %continue1, !dbg !33
+
+condition_body20:                                 ; preds = %continue1
+  br label %continue, !dbg !34
 
 buffer_block:                                     ; No predecessors!
-  br label %continue4, !dbg !28
+  br label %continue19, !dbg !35
 
-continue4:                                        ; preds = %buffer_block, %condition_body3
-  br label %continue2, !dbg !29
-
-condition_body11:                                 ; preds = %else
-  br label %continue, !dbg !30
-
-buffer_block12:                                   ; No predecessors!
-  br label %continue8, !dbg !31
-
-continue8:                                        ; preds = %buffer_block12, %else
-  br label %continue2, !dbg !32
+continue19:                                       ; preds = %buffer_block, %continue1
+  store volatile i32 1, ptr %myFunc, align [filtered], !dbg !36
+  br label %while_body, !dbg !37
 }
 
 !llvm.module.flags = !{!0, !1}
@@ -100,17 +119,22 @@ continue8:                                        ; preds = %buffer_block12, %el
 !16 = !DILocation(line: 0, scope: !4, atomGroup: 5, atomRank: 1)
 !17 = !DILocation(line: 6, column: 8, scope: !4)
 !18 = !DILocation(line: 6, column: 8, scope: !4, atomGroup: 6, atomRank: 1)
-!19 = !DILocation(line: 3, column: 16, scope: !4)
-!20 = !DILocation(line: 3, column: 16, scope: !4, atomGroup: 7, atomRank: 1)
-!21 = !DILocation(line: 0, scope: !4, atomGroup: 8, atomRank: 1)
-!22 = !DILocation(line: 0, scope: !4, atomGroup: 9, atomRank: 1)
+!19 = !DILocation(line: 0, scope: !4, atomGroup: 7, atomRank: 1)
+!20 = !DILocation(line: 0, scope: !4, atomGroup: 8, atomRank: 1)
+!21 = !DILocation(line: 0, scope: !4, atomGroup: 9, atomRank: 1)
+!22 = !DILocation(line: 3, column: 16, scope: !4)
 !23 = !DILocation(line: 3, column: 16, scope: !4, atomGroup: 10, atomRank: 1)
-!24 = !DILocation(line: 3, column: 16, scope: !4, atomGroup: 11, atomRank: 1)
-!25 = !DILocation(line: 4, column: 16, scope: !4, atomGroup: 12, atomRank: 1)
+!24 = !DILocation(line: 0, scope: !4, atomGroup: 11, atomRank: 1)
+!25 = !DILocation(line: 3, column: 16, scope: !4, atomGroup: 12, atomRank: 1)
 !26 = !DILocation(line: 0, scope: !4, atomGroup: 13, atomRank: 1)
-!27 = !DILocation(line: 0, scope: !4, atomGroup: 14, atomRank: 1)
+!27 = !DILocation(line: 3, column: 16, scope: !4, atomGroup: 14, atomRank: 1)
 !28 = !DILocation(line: 0, scope: !4, atomGroup: 15, atomRank: 1)
-!29 = !DILocation(line: 0, scope: !4, atomGroup: 16, atomRank: 1)
+!29 = !DILocation(line: 3, column: 16, scope: !4, atomGroup: 16, atomRank: 1)
 !30 = !DILocation(line: 0, scope: !4, atomGroup: 17, atomRank: 1)
-!31 = !DILocation(line: 0, scope: !4, atomGroup: 18, atomRank: 1)
+!31 = !DILocation(line: 3, column: 16, scope: !4, atomGroup: 18, atomRank: 1)
 !32 = !DILocation(line: 0, scope: !4, atomGroup: 19, atomRank: 1)
+!33 = !DILocation(line: 0, scope: !4, atomGroup: 20, atomRank: 1)
+!34 = !DILocation(line: 0, scope: !4, atomGroup: 21, atomRank: 1)
+!35 = !DILocation(line: 0, scope: !4, atomGroup: 22, atomRank: 1)
+!36 = !DILocation(line: 4, column: 16, scope: !4, atomGroup: 23, atomRank: 1)
+!37 = !DILocation(line: 0, scope: !4, atomGroup: 24, atomRank: 1)

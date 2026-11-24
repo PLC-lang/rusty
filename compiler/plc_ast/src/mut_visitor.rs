@@ -13,6 +13,7 @@ use crate::control_statements::{
     AstControlStatement, ConditionalBlock, ForLoopStatement, LoopStatement, ReturnStatement,
 };
 use crate::literals::AstLiteral;
+use crate::provider::IdProvider;
 use crate::try_from_mut;
 
 #[macro_export]
@@ -639,5 +640,89 @@ impl WalkerMut for Implementation {
         V: AstVisitorMut,
     {
         visitor.visit_statement_list(&mut self.statements);
+    }
+}
+
+/// A visitor that gives every node of a subtree a fresh id.
+struct IdReassigner<'a> {
+    ids: &'a mut IdProvider,
+}
+
+impl AstVisitorMut for IdReassigner<'_> {
+    fn visit(&mut self, node: &mut AstNode) {
+        node.id = self.ids.next_id();
+        node.walk(self);
+    }
+
+    // The default walkers of these nodes skip `visit` for the inner node, so its id would stay.
+    fn visit_paren_expression(&mut self, node: &mut AstNode) {
+        let AstStatement::ParenExpression(inner) = node.get_stmt_mut() else {
+            unreachable!("Must be ParenExpression");
+        };
+        self.visit(inner);
+    }
+
+    fn visit_case_condition(&mut self, node: &mut AstNode) {
+        let AstStatement::CaseCondition(inner) = node.get_stmt_mut() else {
+            unreachable!("CaseCondition");
+        };
+        self.visit(inner);
+    }
+}
+
+/// Clones a node and gives every node of the clone a fresh id. The resolver annotates nodes by id, so
+/// a clone with the original ids would share the original's annotations.
+pub fn clone_with_new_ids(node: &AstNode, ids: &mut IdProvider) -> AstNode {
+    let mut cloned = node.clone();
+    IdReassigner { ids }.visit(&mut cloned);
+    cloned
+}
+
+#[cfg(test)]
+mod tests {
+    use plc_source::source_location::SourceLocation;
+
+    use super::clone_with_new_ids;
+    use crate::{
+        ast::{AstFactory, AstNode, AstStatement},
+        provider::IdProvider,
+    };
+
+    fn reference(name: &str, ids: &mut IdProvider) -> AstNode {
+        let identifier = AstFactory::create_identifier(name, SourceLocation::internal(), ids.next_id());
+        AstFactory::create_member_reference(identifier, None, ids.next_id())
+    }
+
+    fn inner(node: &AstNode) -> &AstNode {
+        match node.get_stmt() {
+            AstStatement::ParenExpression(inner) | AstStatement::CaseCondition(inner) => inner,
+            _ => unreachable!("expected a node with one inner node"),
+        }
+    }
+
+    #[test]
+    fn clone_with_new_ids_gives_the_nodes_inside_nested_parentheses_new_ids() {
+        let mut ids = IdProvider::default();
+        let x = reference("x", &mut ids);
+        let paren = AstFactory::create_paren_expression(x, SourceLocation::internal(), ids.next_id());
+        let outer = AstFactory::create_paren_expression(paren, SourceLocation::internal(), ids.next_id());
+
+        let clone = clone_with_new_ids(&outer, &mut ids);
+
+        assert_ne!(clone.get_id(), outer.get_id());
+        assert_ne!(inner(&clone).get_id(), inner(&outer).get_id());
+        assert_ne!(inner(inner(&clone)).get_id(), inner(inner(&outer)).get_id());
+    }
+
+    #[test]
+    fn clone_with_new_ids_gives_the_node_inside_a_case_condition_a_new_id() {
+        let mut ids = IdProvider::default();
+        let x = reference("x", &mut ids);
+        let condition = AstFactory::create_case_condition(x, SourceLocation::internal(), ids.next_id());
+
+        let clone = clone_with_new_ids(&condition, &mut ids);
+
+        assert_ne!(clone.get_id(), condition.get_id());
+        assert_ne!(inner(&clone).get_id(), inner(&condition).get_id());
     }
 }

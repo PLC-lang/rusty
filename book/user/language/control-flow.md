@@ -71,7 +71,7 @@ FOR i := 10 TO 1 BY -3 DO   (* 10, 7, 4, 1: four passes *)
 END_FOR
 ```
 
-The end value is included. The counter is an ordinary variable of the POU, and after the loop it keeps the value that ended it: after `FOR i := 1 TO 3`, `i` is `4`, and after `FOR i := 10 TO 1 BY -3`, `i` is `-2`. When the body never runs, the counter keeps the start value.
+The end value is included. The counter is an ordinary variable of the POU, and after the loop it keeps the value that ended it: after `FOR i := 1 TO 3`, `i` is `4`, and after `FOR i := 10 TO 1 BY -3`, `i` is `-2`. When the body never runs, the counter keeps the start value. If the value that ends the loop does not fit the counter's type, the counter wraps, but the loop still ends: with `u : USINT`, `FOR u := 10 TO 1 BY -3` runs four times and leaves `u` at `254`. This holds for counters narrower than 32 bits, unless the counter and the step are both bit strings, such as a `BYTE` counter with the step `BYTE#3`. Such a loop, and a loop with a 32-bit or 64-bit counter, can wrap and continue without end: with `d : DINT`, `FOR d := 2147483640 TO 2147483647 BY 5` does not end.
 
 
 ## WHILE and REPEAT
