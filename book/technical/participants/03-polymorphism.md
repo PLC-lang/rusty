@@ -413,7 +413,7 @@ The `__FATPOINTER` struct is generated on demand: it is added to the first compi
 
 #### Dispatch transformations
 
-With itables and fat pointers in place, the compiler can transform all interface-related operations. There are four kinds of transformations.
+With itables and fat pointers in place, the compiler can transform all interface-related operations. There are five kinds of transformations.
 
 **Assignments**: When a concrete POU instance is assigned to an interface variable, the compiler expands the single assignment into two: one for the data pointer and one for the itable pointer.
 
@@ -547,6 +547,13 @@ The same transformation applies when a child interface is passed as a call argum
 ```
 
 Same-interface assignments (for example `refIA1 := refIA2`) remain plain struct copies, since the itable layout is identical.
+
+**Comparisons with zero**: An interface variable compared with `0` by `=` or `<>` checks whether an instance is assigned. The compiler compares the `.data` field instead, on either side of the operator:
+
+```diff
+-IF reference <> 0 THEN
++IF reference.data <> 0 THEN
+```
 
 ### Complete example
 
