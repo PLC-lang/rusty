@@ -150,6 +150,37 @@ END_FUNCTION_BLOCK
 The compiler calls `FB_INIT` once for each instance, when that instance is created. For a global instance and for a member of a program, that is before the program starts. Declare the method without parameters and without a return type, because the compiler calls it with no arguments.
 
 
+## Cleanup
+
+An instance that takes something from the outside, such as a file, a connection, or memory, must give it back. For this, declare the method `FB_EXIT`:
+
+```iecst
+VAR_GLOBAL
+    openBuffers: DINT;
+END_VAR
+
+FUNCTION_BLOCK Buffer
+    METHOD FB_INIT
+        openBuffers := openBuffers + 1;
+    END_METHOD
+
+    METHOD FB_EXIT
+        openBuffers := openBuffers - 1;
+    END_METHOD
+END_FUNCTION_BLOCK
+```
+
+The compiler calls `FB_EXIT` once for each instance, when that instance ends. For a global instance and for a member of a program, that is when the application ends, after the last cycle. For an instance that is local to a function or a method, and for an instance in `VAR_TEMP`, that is the end of each call, also when the call leaves through `RETURN`. Such an instance is initialized and cleaned up again on every call. In code that runs in every cycle this costs time, so use a member there unless a fresh instance is what you want.
+
+Instances end in the reverse order of their initialization. A function block runs its own `FB_EXIT` first, while its members are still usable, and then its members end, the last declared one first. With inheritance the derived function block comes first and its base last. Do not call the `FB_EXIT` of the base from the derived one, because the base method would run two times. The elements of an array are the exception to the reverse order: they end in ascending order.
+
+`FB_EXIT` belongs to the variable that holds the instance. A pointer, a reference, and a `VAR_IN_OUT` parameter refer to an instance that lives elsewhere and cause no call. An assignment copies an instance with no call of `FB_INIT` or `FB_EXIT`. Both variables then end with the same data, so something that `FB_EXIT` releases is released two times. The same applies to a function that returns an instance: the returned instance ends with the call, and the caller keeps a copy of it.
+
+Declare the method without parameters and without a return type. The compiler also accepts `METHOD FB_EXIT: BOOL` with the single input `bInCopyCode: BOOL`. The call that the compiler generates passes `FALSE` and does not use the result. A method that declares `bInCopyCode` in another way gets a warning (E166). The method is called with every signature: its parameters then have their default values. A class and a program can declare `FB_EXIT` too.
+
+`FB_EXIT` runs only when the application ends in an orderly way. It does not run when the process is killed or crashes, and an error inside one `FB_EXIT` stops the cleanup of the instances that follow.
+
+
 ## What's next
 
 A function block can do more than run a body. The next chapter gives it [methods and properties](methods-and-properties.md).

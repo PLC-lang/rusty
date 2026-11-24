@@ -1,0 +1,14 @@
+{
+	"name" : "Application",
+	"files" : [
+        "src/first.st",
+        "src/second.st",
+        "src/third.st",
+        "src/main.st",
+        "../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : [
+	]
+}

@@ -11,7 +11,7 @@ PROGRAM main
 END_PROGRAM
 ```
 
-the `1` can be static data, but `counterInstance` can need member initialization, a method table address, reference bindings, and an `FB_INIT` call. The init participant generates constructor functions that perform this work through assignments and calls.
+the `1` can be static data, but `counterInstance` can need member initialization, a method table address, reference bindings, and an `FB_INIT` call. The init participant generates constructor functions that perform this work through assignments and calls. In the same step it generates the destructor functions that call `FB_EXIT` when an instance ends.
 
 ```mermaid
 flowchart LR
@@ -23,7 +23,7 @@ The participant runs once at `post_annotate`. It uses the index to identify type
 
 For each unit, the participant first registers its POUs and types. It then visits types, globals, `VAR_CONFIG` entries, and POUs. It collects three kinds of statements: type and POU constructor bodies, initialization at the start of a POU body, and unit initialization.
 
-The participant appends constructor POUs and inserts stack initialization at the start of existing bodies. It removes non-constant array initializers from declarations, then rebuilds the index and annotations.
+The participant appends constructor POUs and inserts stack initialization at the start of existing bodies. It removes non-constant array initializers from declarations. It then appends the destructor POUs and inserts their calls on the exit paths of existing bodies, and rebuilds the index and annotations one time for both.
 
 
 ## Transformation
@@ -148,6 +148,67 @@ Function and method locals and outputs, and `VAR_TEMP` variables in any POU, are
 For external or included types and POUs, the participant declares constructors without bodies. The linker must find their definitions in the library. Calls are still generated where the types are used. `--generate-external-constructors`, also implied by `--constructors-only`, generates bodies for `{external}` items. This lets a library be built from its external declarations.
 
 
+### Destructors
+
+A constructor exists for every type. A destructor exists only for a type that needs cleanup: a function block, class, or program that declares `FB_EXIT`, and a type that owns an instance of such a type as a member, a struct field, an array element, or through its base. The check follows the types in the index, and a member that is a pointer, a reference, or a `VAR_IN_OUT` ends it, because such a member does not own an instance. A project that declares no `FB_EXIT` therefore gets no destructor and no destructor call.
+
+The destructor `<Name>__dtor` is the mirror of the constructor. It calls the `FB_EXIT` method that the POU declares itself, then the destructors of the members in reverse declaration order, then the destructor of the base on the injected base member. Members and a base that need no cleanup get no call. In the example `Base` needs cleanup too:
+
+```diff
+ FUNCTION_BLOCK Client EXTENDS Base
+     VAR
+         primary: Connection;
+         backup: Connection;
+     END_VAR
+
+     METHOD FB_EXIT
+     END_METHOD
+ END_FUNCTION_BLOCK
++FUNCTION Client__dtor
++    VAR_IN_OUT
++        self: Client;
++    END_VAR
++
++    self.FB_EXIT();
++    Connection__dtor(self.backup);
++    Connection__dtor(self.primary);
++    Base__dtor(self.__Base);
++END_FUNCTION
+```
+
+The generated POU has the internal kind `Exit`. `FB_EXIT` is called with no arguments, so a declared input gets its default value. The call is direct, not through the method table, and each level of an inheritance chain calls only its own `FB_EXIT`. A struct type calls the destructors of its fields in reverse order, an alias type calls the destructor of the type it renames, and an array type runs the same loop as its constructor, in ascending order, with the destructor of the element type.
+
+A unit whose programs or globals need cleanup gets a destructor named `__unit_<file>_<hash>__dtor` of kind `ProjectExit`. Its order is the reverse of the unit constructor: the program instances first, then the globals, each from the last declaration to the first.
+
+```diff
++FUNCTION __unit_main_st_<hash>__dtor
++    main__dtor(main);
++    Connection__dtor(gConnection);
++END_FUNCTION
+```
+
+The variables that are constructed at the start of each call are destructed on each path that leaves the body. These are the locals of a function or method, the `VAR_TEMP` variables of every POU, and the return value of a function. The participant inserts the destructor calls before every `RETURN`, at any depth, and at the end of the body: the return value first, then the variables in reverse declaration order. A conditional return of a graphical program becomes a branch that holds the calls and an unconditional `RETURN`.
+
+```diff
+ FUNCTION work: DINT
+     VAR
+         connection: Connection;
+     END_VAR
+
++    Connection__ctor(connection);
+     IF failed THEN
++        Connection__dtor(connection);
+         RETURN;
+     END_IF
++    Connection__dtor(connection);
+ END_FUNCTION
+```
+
+Outputs and `VAR_IN_OUT` variables of a function or method are storage of the caller and get no destructor call, and an input that is passed by value is a plain copy that was not constructed. The body of an action runs with the instance of its POU and gets no calls of its own.
+
+Destructors follow the linkage rules of constructors. For an external or included type that needs cleanup, the participant declares the destructor without a body, and `--generate-external-constructors` generates the bodies for `{external}` items.
+
+
 ## Interactions
 
 The participant depends on three earlier participants. The polymorphism lowerer (`post_index`) added the `__vtable` member, the `__vtable_<Name>` struct types, and the `__vtable_<Name>_instance` globals that the constructors assign and construct. The inheritance lowerer (`pre_index`) injected the `__<Base>` member that the base constructor call addresses. The reference-to-return participant is registered directly before it and generates new types and variables at `post_annotate`, and the init participant runs after it so that those get constructors too.
@@ -156,6 +217,6 @@ Pre-processing supplies names for inline types. Constant evaluation supplies arr
 
 Every later participant sees the constructors as ordinary POUs and processes their bodies. The inheritance lowerer rewrites the `self.__vtable` assignment of a derived block into `self.__Base.__vtable`, and the array lowerer turns the assignment of an array literal with non-constant elements in a constructor into one assignment per element.
 
-[Codegen](../pipeline/05-codegen.md#initialization) handles constructor bodies with a few special rules. In `Init` and `ProjectInit`, assignment to an alias or `REFERENCE TO` stores an address. This permits `VAR_CONFIG` to bind hardware storage. Constructors have no debug information, and codegen errors identify their type. Validation skips POU-level checks for these generated kinds.
+[Codegen](../pipeline/05-codegen.md#initialization) handles constructor bodies with a few special rules. In `Init` and `ProjectInit`, assignment to an alias or `REFERENCE TO` stores an address. This permits `VAR_CONFIG` to bind hardware storage. Constructors and destructors have no debug information, and codegen errors identify their type. Validation skips POU-level checks for the four generated kinds `Init`, `ProjectInit`, `Exit`, and `ProjectExit`.
 
-A unit that uses another unit's type calls its constructor; the linker supplies the definition. Merging units into one LLVM module also combines their `llvm.global_ctors` entries. The [Initializers](../internals/07-initializers.md) chapter follows this work alongside static initialization.
+A unit that uses another unit's type calls its constructor and, when the type needs cleanup, its destructor; the linker supplies the definitions. Merging units into one LLVM module also combines their `llvm.global_ctors` and `llvm.global_dtors` entries. The [Initializers](../internals/07-initializers.md) chapter follows this work alongside static initialization.

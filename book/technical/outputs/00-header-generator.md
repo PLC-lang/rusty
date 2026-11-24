@@ -68,7 +68,7 @@ pub struct Variable {
 }
 ```
 
-The generator visits globals, user types, POUs, and implementations. It skips external and included declarations, generated constructors, and types with names that start with `__`. The sizes of an inline array declaration, such as `a: ARRAY[0..1, 0..2] OF DINT` inside a POU, are read from the helper type that the pre-processor created for it.
+The generator visits globals, user types, POUs, and implementations. It skips external and included declarations, generated constructors and destructors, and types with names that start with `__`. The sizes of an inline array declaration, such as `a: ARRAY[0..1, 0..2] OF DINT` inside a POU, are read from the helper type that the pre-processor created for it.
 
 Built-in types are translated from the compiler's table of built-in types. Integers use `intN_t` or `uintN_t`; `BOOL` uses `bool`; `REAL` and `LREAL` use `float_t` and `double_t`. Date and time types use `time_t`. Strings become arrays of `char` or `int16_t`, including a terminator slot. User type names stay unchanged.
 

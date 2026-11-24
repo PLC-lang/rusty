@@ -134,7 +134,7 @@ pub struct ImplementationIndexEntry {
     /// The class or function block a method belongs to
     associated_class: Option<String>,
 
-    /// Program, Function, FunctionBlock, Class, Method, Action, or a generated constructor
+    /// Program, Function, FunctionBlock, Class, Method, Action, or a generated constructor or destructor
     implementation_type: ImplementationType,
 
     // ... other omitted fields
@@ -215,7 +215,7 @@ Inside the callee the return member is an ordinary variable: `scale := tmp` in `
 
 ## Lowering
 
-The index and the annotations above describe the POUs as the parser read them. Several participants then change the declarations, and each one runs the affected stages again before the next one sees the tree. The [polymorphism lowerer](../participants/03-polymorphism.md) adds method tables and a `__vtable` member to root classes and function blocks. Derived types access that member through the base inserted by the [inheritance lowerer](../participants/10-inheritance.md). The [init participant](../participants/06-init.md) creates constructors. The [aggregate-return lowerer](../participants/09-aggregate-return.md) adds result parameters for strings, arrays, and structs.
+The index and the annotations above describe the POUs as the parser read them. Several participants then change the declarations, and each one runs the affected stages again before the next one sees the tree. The [polymorphism lowerer](../participants/03-polymorphism.md) adds method tables and a `__vtable` member to root classes and function blocks. Derived types access that member through the base inserted by the [inheritance lowerer](../participants/10-inheritance.md). The [init participant](../participants/06-init.md) creates constructors, and destructors for the types that need cleanup. The [aggregate-return lowerer](../participants/09-aggregate-return.md) adds result parameters for strings, arrays, and structs.
 
 After lowering, `Counter` has four instance fields instead of three. `scratch` remains a stack variable. The unit also contains ten type and POU constructors of kind `Init`, plus one unit constructor.
 

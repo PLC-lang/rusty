@@ -414,6 +414,8 @@ pub enum PouType {
     },
     Init,
     ProjectInit,
+    Exit,
+    ProjectExit,
 }
 
 impl Display for PouType {
@@ -427,6 +429,8 @@ impl Display for PouType {
             PouType::Method { .. } => write!(f, "Method"),
             PouType::Init => write!(f, "Init"),
             PouType::ProjectInit => write!(f, "ProjectInit"),
+            PouType::Exit => write!(f, "Exit"),
+            PouType::ProjectExit => write!(f, "ProjectExit"),
         }
     }
 }
@@ -441,8 +445,13 @@ impl PouType {
         }
     }
 
-    pub fn is_function_method_or_init(&self) -> bool {
-        matches!(self, PouType::Function | PouType::Init | PouType::ProjectInit | PouType::Method { .. })
+    /// Returns true for the constructors and destructors that the compiler generates.
+    pub fn is_generated(&self) -> bool {
+        matches!(self, PouType::Init | PouType::ProjectInit | PouType::Exit | PouType::ProjectExit)
+    }
+
+    pub fn is_function_method_or_generated(&self) -> bool {
+        matches!(self, PouType::Function | PouType::Method { .. }) || self.is_generated()
     }
 
     pub fn is_stateful(&self) -> bool {

@@ -155,7 +155,7 @@ impl GeneratedHeaderForC {
         index: &Index,
     ) {
         for pou in &compilation_unit.pous {
-            if matches!(pou.kind, PouType::Init | PouType::ProjectInit) {
+            if pou.kind.is_generated() {
                 continue;
             }
             if pou.linkage.is_external_or_included() {
@@ -243,7 +243,7 @@ impl GeneratedHeaderForC {
         }
 
         for implementation in &compilation_unit.implementations {
-            if matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit) {
+            if implementation.pou_type.is_generated() {
                 continue;
             }
             if implementation.linkage.is_external_or_included() {

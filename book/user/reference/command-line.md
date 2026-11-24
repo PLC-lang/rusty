@@ -115,8 +115,8 @@ The default name comes from the first argument as it was written, so a glob patt
 | `--generate-headers` | Write C headers instead of code |
 | `--header-output <dir>` | Directory for the generated headers |
 | `--hwmap-file[=<file>]` | Write the map of hardware-bound variables. The `=` is required |
-| `--generate-external-constructors` | Also write constructors for `{external}` units |
-| `--constructors-only` | Write the generated constructors and no bodies |
+| `--generate-external-constructors` | Also write constructors and destructors for `{external}` units |
+| `--constructors-only` | Write the generated constructors and destructors and no bodies |
 
 
 ## Deprecated

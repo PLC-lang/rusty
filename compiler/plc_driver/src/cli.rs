@@ -212,7 +212,7 @@ pub struct CompileParameters {
         name = "generate-external-constructors",
         long,
         global = true,
-        help = "Generate constructor for units marked as {external} but not for any included files (with '-i') or any library. This is useful when compiling external libraries."
+        help = "Generate constructors and destructors for units marked as {external} but not for any included files (with '-i') or any library. This is useful when compiling external libraries."
     )]
     pub generate_external_constructors: bool,
 
@@ -220,7 +220,7 @@ pub struct CompileParameters {
         name = "constructors-only",
         long,
         global = true,
-        help = "Emit only compiler-generated constructors (no user-defined bodies). Implies --generate-external-constructors."
+        help = "Emit only compiler-generated constructors and destructors (no user-defined bodies). Implies --generate-external-constructors."
     )]
     pub constructors_only: bool,
 

@@ -314,7 +314,7 @@ fn parse_pou(
             PouType::Class => "a class name",
             PouType::Action => "an action name",
             PouType::Method { .. } => "a method name",
-            PouType::Init | PouType::ProjectInit => "a POU name",
+            PouType::Init | PouType::ProjectInit | PouType::Exit | PouType::ProjectExit => "a POU name",
         };
         let (name, name_location) = parse_pou_name(lexer, linkage, pou_slot_label)
             .unwrap_or_else(|| ("".to_string(), SourceLocation::undefined()));

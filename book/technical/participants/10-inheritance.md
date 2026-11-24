@@ -142,6 +142,6 @@ Before this participant runs, `SUPER^` has no type, and the resolver resolves a 
 
 Polymorphism uses the embedded base layout. A derived method table already names inherited implementations, such as `ADR(Base.step)`. This participant supplies the path to the table pointer, `THIS^.__Base.__vtable`. Casting the instance to `Base` is valid because that base occupies the first field.
 
-The init participant writes `Base__ctor(self.__Base)` and skips the member during its walk, so the base is constructed exactly once. Every other statement of a constructor, such as `self.offset := self.__Base.limit`, is rewritten like user code.
+The init participant writes `Base__ctor(self.__Base)` and skips the member during its walk, so the base is constructed exactly once. A destructor has the same shape: it ends with `Base__dtor(self.__Base)` and skips the member during its walk. Every other statement of a constructor, such as `self.offset := self.__Base.limit`, is rewritten like user code.
 
 This participant runs late so that it can rewrite member accesses introduced by property, polymorphism, initializer, and call lowering. Only the [array lowerer](11-array.md) follows.
