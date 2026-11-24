@@ -17,82 +17,88 @@ entry:
   %__is_incrementing_0 = alloca i8, align [filtered]
   store i8 0, ptr %__is_incrementing_0, align [filtered], !dbg !11
   %__past_end_0 = alloca i8, align [filtered]
-  store i8 0, ptr %__past_end_0, align [filtered], !dbg !12
+  store i8 0, ptr %__past_end_0, align [filtered], !dbg !11
+  %__next_0 = alloca i64, align [filtered]
+  store i64 0, ptr %__next_0, align [filtered], !dbg !12
   store volatile i32 1, ptr %myFunc, align [filtered], !dbg !13
   store i8 1, ptr %__is_incrementing_0, align [filtered], !dbg !14
   br label %while_body, !dbg !15
 
-while_body:                                       ; preds = %continue19, %entry
+while_body:                                       ; preds = %continue18, %entry
   %load___ran_once_0 = load i8, ptr %__ran_once_0, align [filtered], !dbg !11
   %0 = icmp ne i8 %load___ran_once_0, 0, !dbg !11
   br i1 %0, label %condition_body, label %else, !dbg !16
 
-continue:                                         ; preds = %condition_body20
+continue:                                         ; preds = %condition_body19
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
   ret i32 %myFunc_ret, !dbg !18
 
 condition_body:                                   ; preds = %while_body
+  %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !11
+  %1 = sext i32 %load_myFunc to i64, !dbg !11
+  store i64 %1, ptr %__next_0, align [filtered], !dbg !11
+  %load___next_0 = load i64, ptr %__next_0, align [filtered], !dbg !11
+  %tmpVar = add i64 %load___next_0, 2, !dbg !11
+  store i64 %tmpVar, ptr %__next_0, align [filtered], !dbg !11
   %load___is_incrementing_0 = load i8, ptr %__is_incrementing_0, align [filtered], !dbg !11
-  %1 = icmp ne i8 %load___is_incrementing_0, 0, !dbg !11
-  br i1 %1, label %condition_body4, label %else2, !dbg !19
+  %2 = icmp ne i8 %load___is_incrementing_0, 0, !dbg !11
+  br i1 %2, label %condition_body4, label %else2, !dbg !19
 
 else:                                             ; preds = %while_body
-  %load___is_incrementing_013 = load i8, ptr %__is_incrementing_0, align [filtered], !dbg !11
-  %2 = icmp ne i8 %load___is_incrementing_013, 0, !dbg !11
-  br i1 %2, label %condition_body14, label %else11, !dbg !20
+  %load___is_incrementing_012 = load i8, ptr %__is_incrementing_0, align [filtered], !dbg !11
+  %3 = icmp ne i8 %load___is_incrementing_012, 0, !dbg !11
+  br i1 %3, label %condition_body13, label %else10, !dbg !20
 
-continue1:                                        ; preds = %continue12, %continue3
+continue1:                                        ; preds = %continue11, %continue3
   store i8 1, ptr %__ran_once_0, align [filtered], !dbg !11
   %load___past_end_0 = load i8, ptr %__past_end_0, align [filtered], !dbg !11
-  %3 = icmp ne i8 %load___past_end_0, 0, !dbg !11
-  br i1 %3, label %condition_body20, label %continue19, !dbg !21
+  %4 = icmp ne i8 %load___past_end_0, 0, !dbg !11
+  br i1 %4, label %condition_body19, label %continue18, !dbg !21
 
 condition_body4:                                  ; preds = %condition_body
-  %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !22
-  %tmpVar = add i32 %load_myFunc, 2, !dbg !22
-  %tmpVar5 = icmp sgt i32 %tmpVar, 20, !dbg !22
-  %4 = zext i1 %tmpVar5 to i8, !dbg !22
-  store volatile i8 %4, ptr %__past_end_0, align [filtered], !dbg !23
+  %load___next_05 = load i64, ptr %__next_0, align [filtered], !dbg !22
+  %tmpVar6 = icmp sgt i64 %load___next_05, 20, !dbg !22
+  %5 = zext i1 %tmpVar6 to i8, !dbg !22
+  store volatile i8 %5, ptr %__past_end_0, align [filtered], !dbg !23
   br label %continue3, !dbg !24
 
 else2:                                            ; preds = %condition_body
-  %load_myFunc6 = load i32, ptr %myFunc, align [filtered], !dbg !22
-  %tmpVar7 = add i32 %load_myFunc6, 2, !dbg !22
-  %tmpVar8 = icmp slt i32 %tmpVar7, 20, !dbg !22
-  %5 = zext i1 %tmpVar8 to i8, !dbg !22
-  store volatile i8 %5, ptr %__past_end_0, align [filtered], !dbg !25
+  %load___next_07 = load i64, ptr %__next_0, align [filtered], !dbg !22
+  %tmpVar8 = icmp slt i64 %load___next_07, 20, !dbg !22
+  %6 = zext i1 %tmpVar8 to i8, !dbg !22
+  store volatile i8 %6, ptr %__past_end_0, align [filtered], !dbg !25
   br label %continue3, !dbg !26
 
 continue3:                                        ; preds = %else2, %condition_body4
-  %load_myFunc9 = load i32, ptr %myFunc, align [filtered], !dbg !22
-  %tmpVar10 = add i32 %load_myFunc9, 2, !dbg !22
-  store volatile i32 %tmpVar10, ptr %myFunc, align [filtered], !dbg !27
+  %load___next_09 = load i64, ptr %__next_0, align [filtered], !dbg !22
+  %7 = trunc i64 %load___next_09 to i32, !dbg !22
+  store volatile i32 %7, ptr %myFunc, align [filtered], !dbg !27
   br label %continue1, !dbg !28
 
-condition_body14:                                 ; preds = %else
-  %load_myFunc15 = load i32, ptr %myFunc, align [filtered], !dbg !22
-  %tmpVar16 = icmp sgt i32 %load_myFunc15, 20, !dbg !22
-  %6 = zext i1 %tmpVar16 to i8, !dbg !22
-  store volatile i8 %6, ptr %__past_end_0, align [filtered], !dbg !29
-  br label %continue12, !dbg !30
+condition_body13:                                 ; preds = %else
+  %load_myFunc14 = load i32, ptr %myFunc, align [filtered], !dbg !22
+  %tmpVar15 = icmp sgt i32 %load_myFunc14, 20, !dbg !22
+  %8 = zext i1 %tmpVar15 to i8, !dbg !22
+  store volatile i8 %8, ptr %__past_end_0, align [filtered], !dbg !29
+  br label %continue11, !dbg !30
 
-else11:                                           ; preds = %else
-  %load_myFunc17 = load i32, ptr %myFunc, align [filtered], !dbg !22
-  %tmpVar18 = icmp slt i32 %load_myFunc17, 20, !dbg !22
-  %7 = zext i1 %tmpVar18 to i8, !dbg !22
-  store volatile i8 %7, ptr %__past_end_0, align [filtered], !dbg !31
-  br label %continue12, !dbg !32
+else10:                                           ; preds = %else
+  %load_myFunc16 = load i32, ptr %myFunc, align [filtered], !dbg !22
+  %tmpVar17 = icmp slt i32 %load_myFunc16, 20, !dbg !22
+  %9 = zext i1 %tmpVar17 to i8, !dbg !22
+  store volatile i8 %9, ptr %__past_end_0, align [filtered], !dbg !31
+  br label %continue11, !dbg !32
 
-continue12:                                       ; preds = %else11, %condition_body14
+continue11:                                       ; preds = %else10, %condition_body13
   br label %continue1, !dbg !33
 
-condition_body20:                                 ; preds = %continue1
+condition_body19:                                 ; preds = %continue1
   br label %continue, !dbg !34
 
 buffer_block:                                     ; No predecessors!
-  br label %continue19, !dbg !35
+  br label %continue18, !dbg !35
 
-continue19:                                       ; preds = %buffer_block, %continue1
+continue18:                                       ; preds = %buffer_block, %continue1
   store volatile i32 1, ptr %myFunc, align [filtered], !dbg !36
   br label %while_body, !dbg !37
 }

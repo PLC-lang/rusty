@@ -253,7 +253,7 @@ pub mod tests {
     ) -> Lowered {
         // Mirror the relevant pre-index lowering participants used by the real pipeline so codegen tests
         // operate on the same loop/control-flow shape as the compiler.
-        let loop_desugarer = LoopDesugarer::new(id_provider.clone());
+        let mut loop_desugarer = LoopDesugarer::new(id_provider.clone());
         loop_desugarer.desugar(std::slice::from_mut(&mut unit));
 
         // TODO: Added the control statement lowerer for now... but maybe we should be using the pipeline participants for codegen as well

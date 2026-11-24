@@ -63,7 +63,7 @@ The driver registers twelve mutating participants. Hook order determines when th
 >
 > - **Order dependence.** All participants change one tree, and each one can depend on the rewrites before it. A different registration order can change the behavior of the program.
 > - **Generated nodes.** Lowering adds constructors, normalized loops, and result parameters. Validation, diagnostics, and debug information must distinguish these nodes from source constructs through locations and metadata.
-> - **Repeated analysis.** A rewrite can make a new index or a new annotation map necessary for the whole project. A plain build runs both stages nine times each; generic calls add more rounds.
+> - **Repeated analysis.** A rewrite can make a new index or a new annotation map necessary for the whole project. A plain build runs both stages nine times each; generic calls add more rounds, and a `FOR` loop whose counter needs a type other than `LINT` for its next value adds one more annotation.
 > - **One tree, two forms.** The AST must hold both source constructs and their lowered forms. Each stage must know which form it gets.
 > - **No fixed boundary.** Codegen uses the combined result of all participants, not a separate representation with a stable contract.
 >

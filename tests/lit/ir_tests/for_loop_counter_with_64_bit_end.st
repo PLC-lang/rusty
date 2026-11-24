@@ -1,8 +1,9 @@
 // RUN: %COMPILE_IR %s | %CHECK_IR %s
 //
 // A FOR loop uses its counter, step and end expressions in more than one place. Each use must be
-// resolved on its own: the counter in `ud + 1` must not take the LINT type that the comparison with
-// the end value gives to the counter, or codegen emits an `add` of an i64 and an i32 operand.
+// resolved on its own: the counter that is copied to the LINT temporary `__next_0` is loaded as an
+// i32 and widened, the next value is added and compared in i64, and the store back to the counter
+// truncates it to i32.
 
 FUNCTION main : DINT
 VAR
@@ -16,6 +17,11 @@ END_VAR
 END_FUNCTION
 
 // CHECK-LABEL: define i32 @main()
-// CHECK: %[[SUM:.*]] = add i32 %{{.*}}, 1
-// CHECK: %[[WIDE:.*]] = zext i32 %[[SUM]] to i64
-// CHECK: icmp sgt i64 %[[WIDE]], %{{.*}}
+// CHECK: %__next_0 = alloca i64
+// CHECK: %[[COUNTER:.*]] = load i32, ptr %ud
+// CHECK: %[[WIDE:.*]] = zext i32 %[[COUNTER]] to i64
+// CHECK: store {{(volatile )?}}i64 %[[WIDE]], ptr %__next_0
+// CHECK: add i64 %{{.*}}, 1
+// CHECK: icmp sgt i64 %{{.*}}, %{{.*}}
+// CHECK: %[[NEXT:.*]] = trunc i64 %{{.*}} to i32
+// CHECK: store {{(volatile )?}}i32 %[[NEXT]], ptr %ud

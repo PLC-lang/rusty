@@ -1,6 +1,6 @@
 // RUN: %COMPILE %s --error-format clang 2>&1 | %CHECK %s
 // A FOR loop reports the operand conversion warnings of the comparison `<counter> > <end>` (or `<`), as the
-// same comparison does in user code. The generated `<counter> + <step>` and its comparison report none.
+// same comparison does in user code. The generated statements on `__next_N` (copy, addition and comparison) report none.
 
 FUNCTION main : DINT
     VAR

@@ -79,28 +79,32 @@
 //! END_FOR
 //! ```
 //!
-//! is lowered to a canonical `WHILE TRUE` loop with three synthetic temporaries:
+//! is lowered to a canonical `WHILE TRUE` loop with four synthetic temporaries:
 //!
 //! - `__ran_once_N` tracks whether the first iteration has already happened
 //! - `__is_incrementing_N` remembers whether the step is positive
 //! - `__past_end_N` records whether the counter value of this pass is past the end bound
+//! - `__next_N` holds the next counter value
 //!
 //! ```st
 //! alloca __ran_once_N : BOOL;
 //! alloca __is_incrementing_N : BOOL;
 //! alloca __past_end_N : BOOL;
+//! alloca __next_N : LINT;
 //!
 //! <ctrl> := <init>;
 //! __is_incrementing_N := <step> > 0;
 //!
 //! WHILE TRUE DO
 //!     IF __ran_once_N THEN
+//!         __next_N := <ctrl>;
+//!         __next_N := __next_N + <step>;
 //!         IF __is_incrementing_N THEN
-//!             __past_end_N := <ctrl> + <step> > <final>;
+//!             __past_end_N := __next_N > <final>;
 //!         ELSE
-//!             __past_end_N := <ctrl> + <step> < <final>;
+//!             __past_end_N := __next_N < <final>;
 //!         END_IF
-//!         <ctrl> := <ctrl> + <step>;
+//!         <ctrl> := __next_N;
 //!     ELSIF __is_incrementing_N THEN
 //!         __past_end_N := <ctrl> > <final>;
 //!     ELSE
@@ -116,42 +120,63 @@
 //! END_WHILE
 //! ```
 //!
-//! The bound check uses `<ctrl> + <step>` before the assignment truncates it to the counter's width, so a
-//! narrow counter whose next value leaves its type still ends the loop. The sum has the type that the resolver
-//! gives to the addition (at least 32 bits, unless the counter and the step are both bit strings). If the sum
-//! does not fit that type, it wraps before the comparison, so a 32-bit or 64-bit counter, or a bit-string
-//! counter with a bit-string step, can still loop without end at its limit. The counter is assigned on the last
-//! iteration too, so it keeps the value that ended the loop.
+//! The step is evaluated once per iteration, into `__next_N`, so the bound check and the counter see the same
+//! next value. The bound check uses `__next_N` before the assignment truncates it to the counter's width, and
+//! the counter is assigned on the last iteration too, so it keeps the value that ended the loop.
 //!
-//! Every copy of `<ctrl>`, `<step>` and `<final>` gets fresh node ids, so the resolver types each use on its
-//! own. The sum and its comparison are internal and report no conversion warnings; the first-iteration
-//! comparisons get the location from the counter to the end value and report them.
+//! The counter's type is not known before annotation, so `__next_N` is declared as `LINT`. After annotation,
+//! [`LoopDesugarer::type_next_values`] keeps `LINT` for a signed or unsigned integer or bit-string counter of up
+//! to 32 bits, which makes the next value exact, and gives `__next_N` the counter's own intrinsic type
+//! otherwise (64-bit integers, `CHAR`, date and time types, `REAL`, ...). A 64-bit counter therefore
+//! still wraps before the bound check at its limit and can loop without end.
+//!
+//! Every copy of `<ctrl>`, `<step>`, `<final>` and `__next_N` gets fresh node ids, so the resolver types each
+//! use on its own. The statements on `__next_N` are internal and report no conversion warnings; the
+//! first-iteration comparisons get the location from the counter to the end value and report them.
 //!
 //! If `BY` is omitted, the step defaults to `1`. The step and end expressions stay in the lowered tree, so they
-//! are evaluated again on every iteration. From the second iteration on, the step is evaluated twice, once for
-//! the bound check and once for the update.
+//! are evaluated again on every iteration.
 //!
 //! ## Generated temporaries
 //!
-//! Compiler-generated names such as `__ran_once_N`, `__is_incrementing_N` and `__past_end_N` are unique per
-//! desugared loop.
+//! Compiler-generated names such as `__ran_once_N`, `__is_incrementing_N`, `__past_end_N` and `__next_N` are
+//! unique per desugared loop.
 //! They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.
 
 use std::{
+    collections::HashMap,
     rc::Rc,
     sync::atomic::{AtomicUsize, Ordering},
 };
 
+use plc::{
+    index::Index,
+    resolver::{AnnotationMap, AstAnnotations},
+    typesystem::{DataType, DataTypeInformation},
+};
 use plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, Operator},
+    ast::{
+        Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement, CompilationUnit, Operator,
+        TypeNature,
+    },
     control_statements::{ForLoopStatement, LoopStatement},
     mut_visitor::{clone_with_new_ids, AstVisitorMut, WalkerMut},
     provider::IdProvider,
+    visitor::AstVisitor,
 };
 use plc_source::source_location::SourceLocation;
 
+/// The name prefix of the temporary that holds the next counter value of a `FOR` loop.
+const NEXT_VALUE_PREFIX: &str = "__next_";
+
+/// The type of the next-value temporary when the counter is an integer of up to 32 bits.
+const NEXT_VALUE_WIDE_TYPE: &str = "LINT";
+
 pub struct LoopDesugarer {
     ids: IdProvider,
+
+    /// The ids of each `__next_N := <ctrl>` copy and of its `__next_N` allocation
+    next_values: HashMap<AstId, AstId>,
 }
 
 struct WhileDesugarer {
@@ -172,26 +197,83 @@ struct ForDesugarer {
 
     /// Preamble statements followed by the replacement loop
     replacement: Option<Vec<AstNode>>,
+
+    /// The ids of each `__next_N := <ctrl>` copy and of its `__next_N` allocation
+    next_values: HashMap<AstId, AstId>,
+}
+
+/// Collects, by allocation id, the type of each next-value temporary that does not stay `LINT`.
+struct NextValueTypeCollector<'a> {
+    index: &'a Index,
+    annotations: &'a AstAnnotations,
+    next_values: &'a HashMap<AstId, AstId>,
+    types: HashMap<AstId, String>,
+}
+
+/// Sets the collected types on the next-value allocations.
+struct NextValueTypeSetter {
+    types: HashMap<AstId, String>,
 }
 
 impl LoopDesugarer {
     pub fn new(ids: IdProvider) -> Self {
-        Self { ids }
+        Self { ids, next_values: HashMap::new() }
     }
 
-    pub fn desugar(&self, units: &mut [CompilationUnit]) {
+    pub fn desugar(&mut self, units: &mut [CompilationUnit]) {
         let counter = Rc::new(AtomicUsize::new(0));
 
         let mut whiled = WhileDesugarer { ids: self.ids.clone() };
         let mut repeatd =
             RepeatDesugarer { ids: self.ids.clone(), counter: counter.clone(), replacement: None };
-        let mut ford = ForDesugarer { ids: self.ids.clone(), counter, replacement: None };
+        let mut ford =
+            ForDesugarer { ids: self.ids.clone(), counter, replacement: None, next_values: HashMap::new() };
 
         for unit in units {
             whiled.visit_compilation_unit(unit);
             repeatd.visit_compilation_unit(unit);
             ford.visit_compilation_unit(unit);
         }
+
+        self.next_values = ford.next_values;
+    }
+
+    pub fn provider(&self) -> IdProvider {
+        self.ids.clone()
+    }
+
+    /// Gives each `__next_N` temporary its final type from the annotated counter: `LINT` for an integer
+    /// or bit-string counter of up to 32 bits, so the next value is exact, else the counter's own
+    /// intrinsic type. Returns whether a temporary changed its type, in which case the units must be
+    /// annotated again.
+    pub fn type_next_values<'u>(
+        &self,
+        units: impl IntoIterator<Item = &'u mut CompilationUnit>,
+        index: &Index,
+        annotations: &AstAnnotations,
+    ) -> bool {
+        let mut units = units.into_iter().collect::<Vec<_>>();
+
+        let mut collector = NextValueTypeCollector {
+            index,
+            annotations,
+            next_values: &self.next_values,
+            types: HashMap::new(),
+        };
+        for unit in &units {
+            collector.visit_compilation_unit(unit);
+        }
+
+        if collector.types.is_empty() {
+            return false;
+        }
+
+        let mut setter = NextValueTypeSetter { types: collector.types };
+        for unit in &mut units {
+            setter.visit_compilation_unit(unit);
+        }
+
+        true
     }
 }
 
@@ -327,34 +409,43 @@ impl AstVisitorMut for ForDesugarer {
             helper::create_alloca(&mut self.ids, "BOOL", format!("__is_incrementing_{num}"));
         let (past_end_alloca, past_end_ref) =
             helper::create_alloca(&mut self.ids, "BOOL", format!("__past_end_{num}"));
+        let (next_alloca, next_ref) =
+            helper::create_alloca(&mut self.ids, NEXT_VALUE_WIDE_TYPE, format!("{NEXT_VALUE_PREFIX}{num}"));
 
         // Normalize the step expression so omitted `BY` becomes a literal `1`.
         let has_explicit_step = by_step.is_some();
         let step = by_step.unwrap_or_else(|| helper::create_literal_integer(&mut self.ids, 1));
         let zero = helper::create_literal_integer(&mut self.ids, 0);
 
-        // From the second iteration on, compare `<ctrl> + <step>` with the end bound before the
-        // assignment truncates the sum to the counter's width, then step the counter. The sum and its
-        // comparison are internal, like the update, so they report no conversion warnings; the
-        // first-iteration comparisons get the location from the counter to the end value and report
-        // them. Every copy of the counter, step and end gets fresh ids, so the resolver types each use
-        // on its own.
+        // From the second iteration on, compute the next counter value once in `__next_N`, compare it
+        // with the end bound, then store it in the counter, which can truncate it. These statements
+        // are internal, so they report no conversion warnings; the first-iteration comparisons get the
+        // location from the counter to the end value and report them. Every copy of the counter, step,
+        // end and `__next_N` gets fresh ids, so the resolver types each use on its own.
         let bound_location = counter.get_location().span(&end.get_location());
-        let next_value = |ids: &mut IdProvider| {
-            helper::create_internal_binary_expression(
-                clone_with_new_ids(&counter, ids),
-                Operator::Plus,
-                clone_with_new_ids(&step, ids),
-                ids,
-            )
-        };
-        let (next_incrementing, next_decrementing) = (next_value(&mut self.ids), next_value(&mut self.ids));
+        let next_copy = helper::create_internal_assignment(
+            clone_with_new_ids(&next_ref, &mut self.ids),
+            clone_with_new_ids(&counter, &mut self.ids),
+            &mut self.ids,
+        );
+        self.next_values.insert(next_copy.get_id(), next_alloca.get_id());
+        let next_sum = helper::create_internal_binary_expression(
+            clone_with_new_ids(&next_ref, &mut self.ids),
+            Operator::Plus,
+            clone_with_new_ids(&step, &mut self.ids),
+            &mut self.ids,
+        );
+        let next_step = helper::create_internal_assignment(
+            clone_with_new_ids(&next_ref, &mut self.ids),
+            next_sum,
+            &mut self.ids,
+        );
         let next_bound_check = helper::create_if_then_else(
             self.ids.clone(),
             is_incrementing_ref.clone(),
             vec![helper::create_bound_check(
                 past_end_ref.clone(),
-                next_incrementing,
+                clone_with_new_ids(&next_ref, &mut self.ids),
                 Operator::Greater,
                 clone_with_new_ids(&end, &mut self.ids),
                 (bound_location.clone(), SourceLocation::internal()),
@@ -362,7 +453,7 @@ impl AstVisitorMut for ForDesugarer {
             )],
             vec![helper::create_bound_check(
                 past_end_ref.clone(),
-                next_decrementing,
+                clone_with_new_ids(&next_ref, &mut self.ids),
                 Operator::Less,
                 clone_with_new_ids(&end, &mut self.ids),
                 (bound_location.clone(), SourceLocation::internal()),
@@ -372,7 +463,7 @@ impl AstVisitorMut for ForDesugarer {
         );
         let increment_assignment = helper::create_internal_assignment(
             clone_with_new_ids(&counter, &mut self.ids),
-            next_value(&mut self.ids),
+            next_ref,
             &mut self.ids,
         );
 
@@ -396,7 +487,7 @@ impl AstVisitorMut for ForDesugarer {
         let bound_check = helper::create_if_chain(
             self.ids.clone(),
             vec![
-                (ran_once_ref.clone(), vec![next_bound_check, increment_assignment]),
+                (ran_once_ref.clone(), vec![next_copy, next_step, next_bound_check, increment_assignment]),
                 (is_incrementing_ref.clone(), vec![first_incrementing_check]),
             ],
             vec![first_decrementing_check],
@@ -441,6 +532,7 @@ impl AstVisitorMut for ForDesugarer {
             ran_once_alloca,
             is_incrementing_alloca,
             past_end_alloca,
+            next_alloca,
             AstFactory::create_assignment(counter, start, self.ids.next_id()),
             is_incrementing_assignment,
             helper::create_while_true_loop(&mut self.ids, body),
@@ -448,6 +540,48 @@ impl AstVisitorMut for ForDesugarer {
     }
 }
 
+impl NextValueTypeCollector<'_> {
+    /// Returns the type of `__next_N` for the given counter type, or `None` if it stays `LINT`.
+    fn next_value_type(&self, counter_type: &DataType) -> Option<String> {
+        let intrinsic = self.index.get_intrinsic_type_by_name(counter_type.get_name());
+        let information = intrinsic.get_type_information();
+
+        // An integer or bit string of up to 32 bits, BOOL included, fits a `LINT`; CHAR, date and time
+        // types do not keep their meaning there.
+        let fits_lint = matches!(information, DataTypeInformation::Integer { size, .. } if *size <= 32)
+            && matches!(
+                intrinsic.get_nature(),
+                TypeNature::Int | TypeNature::Signed | TypeNature::Unsigned | TypeNature::Bit
+            );
+
+        if fits_lint || information.is_void() || intrinsic.get_name() == NEXT_VALUE_WIDE_TYPE {
+            return None;
+        }
+
+        Some(intrinsic.get_name().to_string())
+    }
+}
+
+impl AstVisitor for NextValueTypeCollector<'_> {
+    fn visit_assignment(&mut self, stmt: &Assignment, node: &AstNode) {
+        // Only the copy `__next_N := <ctrl>` that the desugarer generated tells the counter's type.
+        let Some(allocation) = self.next_values.get(&node.get_id()) else { return };
+        let Some(counter_type) = self.annotations.get_type(&stmt.right, self.index) else { return };
+
+        if let Some(next_type) = self.next_value_type(counter_type) {
+            self.types.insert(*allocation, next_type);
+        }
+    }
+}
+
+impl AstVisitorMut for NextValueTypeSetter {
+    fn visit_allocation(&mut self, node: &mut AstNode) {
+        let Some(next_type) = self.types.get(&node.id) else { return };
+        if let AstStatement::AllocationStatement(Allocation { reference_type, .. }) = &mut node.stmt {
+            *reference_type = next_type.clone();
+        }
+    }
+}
 pub(crate) mod helper {
     use plc_ast::{
         ast::{Allocation, AstFactory, AstNode, AstStatement, Operator},
@@ -953,16 +1087,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := 0
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + 1
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + 1 > 10
+                        __past_end_0 := __next_0 > 10
                     ELSE
-                        __past_end_0 := i + 1 < 10
+                        __past_end_0 := __next_0 < 10
                     END_IF
-                    i := i + 1
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > 10
@@ -998,16 +1135,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := a
             __is_incrementing_0 := step > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + step
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + step > max
+                        __past_end_0 := __next_0 > max
                     ELSE
-                        __past_end_0 := i + step < max
+                        __past_end_0 := __next_0 < max
                     END_IF
-                    i := i + step
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > max
@@ -1044,16 +1184,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := 1
             __is_incrementing_0 := 0 > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + 0
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + 0 > 3
+                        __past_end_0 := __next_0 > 3
                     ELSE
-                        __past_end_0 := i + 0 < 3
+                        __past_end_0 := __next_0 < 3
                     END_IF
-                    i := i + 0
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > 3
@@ -1089,16 +1232,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := 5
             __is_incrementing_0 := 2 > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + 2
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + 2 > 1
+                        __past_end_0 := __next_0 > 1
                     ELSE
-                        __past_end_0 := i + 2 < 1
+                        __past_end_0 := __next_0 < 1
                     END_IF
-                    i := i + 2
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > 1
@@ -1134,16 +1280,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := 1
             __is_incrementing_0 := -1 > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + -1
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + -1 > 5
+                        __past_end_0 := __next_0 > 5
                     ELSE
-                        __past_end_0 := i + -1 < 5
+                        __past_end_0 := __next_0 < 5
                     END_IF
-                    i := i + -1
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > 5
@@ -1179,16 +1328,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := 4
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + 1
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + 1 > 4
+                        __past_end_0 := __next_0 > 4
                     ELSE
-                        __past_end_0 := i + 1 < 4
+                        __past_end_0 := __next_0 < 4
                     END_IF
-                    i := i + 1
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > 4
@@ -1223,16 +1375,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := 0
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + 1
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + 1 > max
+                        __past_end_0 := __next_0 > max
                     ELSE
-                        __past_end_0 := i + 1 < max
+                        __past_end_0 := __next_0 < max
                     END_IF
-                    i := i + 1
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > max
@@ -1267,16 +1422,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := 0
             __is_incrementing_0 := step > 0
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + step
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + step > 10
+                        __past_end_0 := __next_0 > 10
                     ELSE
-                        __past_end_0 := i + step < 10
+                        __past_end_0 := __next_0 < 10
                     END_IF
-                    i := i + step
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > 10
@@ -1314,16 +1472,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := a
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + 1
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + 1 > b
+                        __past_end_0 := __next_0 > b
                     ELSE
-                        __past_end_0 := i + 1 < b
+                        __past_end_0 := __next_0 < b
                     END_IF
-                    i := i + 1
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > b
@@ -1362,16 +1523,19 @@ mod tests {
             alloca __ran_once_0: BOOL
             alloca __is_incrementing_0: BOOL
             alloca __past_end_0: BOOL
+            alloca __next_0: LINT
             i := a
             __is_incrementing_0 := TRUE
             WHILE TRUE DO
                 IF __ran_once_0 THEN
+                    __next_0 := i
+                    __next_0 := __next_0 + 1
                     IF __is_incrementing_0 THEN
-                        __past_end_0 := i + 1 > b
+                        __past_end_0 := __next_0 > b
                     ELSE
-                        __past_end_0 := i + 1 < b
+                        __past_end_0 := __next_0 < b
                     END_IF
-                    i := i + 1
+                    i := __next_0
                 ELSE
                     IF __is_incrementing_0 THEN
                         __past_end_0 := i > b
@@ -1386,6 +1550,69 @@ mod tests {
                 EXIT;
                 
             END_WHILE
+            ");
+        }
+
+        #[test]
+        fn next_value_is_lint_for_integers_up_to_32_bits_and_the_counter_type_else() {
+            let source = r#"
+                TYPE Small : INT(0..10); END_TYPE
+                TYPE Color : (Red, Green, Blue); END_TYPE
+                TYPE Big : ULINT; END_TYPE
+
+                FUNCTION main
+                    VAR
+                        si : SINT;
+                        ud : UDINT;
+                        dw : DWORD;
+                        small : Small;
+                        color : Color;
+                        l : LINT;
+                        big : Big;
+                        lw : LWORD;
+                        r : REAL;
+                        lr : LREAL;
+                        b : BOOL;
+                        c : CHAR;
+                        t : TIME;
+                        d : DATE;
+                    END_VAR
+
+                    FOR si := 0 TO 1 DO END_FOR
+                    FOR ud := 0 TO 1 DO END_FOR
+                    FOR dw := 0 TO 1 DO END_FOR
+                    FOR small := 0 TO 1 DO END_FOR
+                    FOR color := Red TO Blue DO END_FOR
+                    FOR l := 0 TO 1 DO END_FOR
+                    FOR big := 0 TO 1 DO END_FOR
+                    FOR lw := 0 TO 1 DO END_FOR
+                    FOR r := 0.0 TO 1.0 DO END_FOR
+                    FOR lr := 0.0 TO 1.0 DO END_FOR
+                    FOR b := FALSE TO TRUE DO END_FOR
+                    FOR c := 'a' TO 'b' DO END_FOR
+                    FOR t := T#0s TO T#1s BY T#1s DO END_FOR
+                    FOR d := D#2020-01-01 TO D#2020-01-02 DO END_FOR
+                END_FUNCTION
+            "#;
+
+            let serialized = super::serialize(source);
+            let allocations =
+                serialized.lines().filter(|line| line.starts_with("alloca __next_")).collect::<Vec<_>>();
+            insta::assert_snapshot!(allocations.join("\n"), @"
+            alloca __next_0: LINT
+            alloca __next_1: LINT
+            alloca __next_2: LINT
+            alloca __next_3: LINT
+            alloca __next_4: LINT
+            alloca __next_5: LINT
+            alloca __next_6: ULINT
+            alloca __next_7: LWORD
+            alloca __next_8: REAL
+            alloca __next_9: LREAL
+            alloca __next_10: LINT
+            alloca __next_11: CHAR
+            alloca __next_12: TIME
+            alloca __next_13: DATE
             ");
         }
 
@@ -1409,16 +1636,19 @@ mod tests {
             alloca __ran_once_1: BOOL
             alloca __is_incrementing_1: BOOL
             alloca __past_end_1: BOOL
+            alloca __next_1: LINT
             i := start
             __is_incrementing_1 := outer_step > 0
             WHILE TRUE DO
                 IF __ran_once_1 THEN
+                    __next_1 := i
+                    __next_1 := __next_1 + outer_step
                     IF __is_incrementing_1 THEN
-                        __past_end_1 := i + outer_step > finish
+                        __past_end_1 := __next_1 > finish
                     ELSE
-                        __past_end_1 := i + outer_step < finish
+                        __past_end_1 := __next_1 < finish
                     END_IF
-                    i := i + outer_step
+                    i := __next_1
                 ELSE
                     IF __is_incrementing_1 THEN
                         __past_end_1 := i > finish
@@ -1433,16 +1663,19 @@ mod tests {
                 alloca __ran_once_0: BOOL
                 alloca __is_incrementing_0: BOOL
                 alloca __past_end_0: BOOL
+                alloca __next_0: LINT
                 j := 10
                 __is_incrementing_0 := inner_step > 0
                 WHILE TRUE DO
                     IF __ran_once_0 THEN
+                        __next_0 := j
+                        __next_0 := __next_0 + inner_step
                         IF __is_incrementing_0 THEN
-                            __past_end_0 := j + inner_step > 0
+                            __past_end_0 := __next_0 > 0
                         ELSE
-                            __past_end_0 := j + inner_step < 0
+                            __past_end_0 := __next_0 < 0
                         END_IF
-                        j := j + inner_step
+                        j := __next_0
                     ELSE
                         IF __is_incrementing_0 THEN
                             __past_end_0 := j > 0
@@ -1481,16 +1714,19 @@ mod tests {
             alloca __ran_once_1: BOOL
             alloca __is_incrementing_1: BOOL
             alloca __past_end_1: BOOL
+            alloca __next_1: LINT
             i := a
             __is_incrementing_1 := c > 0
             WHILE TRUE DO
                 IF __ran_once_1 THEN
+                    __next_1 := i
+                    __next_1 := __next_1 + c
                     IF __is_incrementing_1 THEN
-                        __past_end_1 := i + c > b
+                        __past_end_1 := __next_1 > b
                     ELSE
-                        __past_end_1 := i + c < b
+                        __past_end_1 := __next_1 < b
                     END_IF
-                    i := i + c
+                    i := __next_1
                 ELSE
                     IF __is_incrementing_1 THEN
                         __past_end_1 := i > b
@@ -1505,16 +1741,19 @@ mod tests {
                 alloca __ran_once_0: BOOL
                 alloca __is_incrementing_0: BOOL
                 alloca __past_end_0: BOOL
+                alloca __next_0: LINT
                 j := 0
                 __is_incrementing_0 := TRUE
                 WHILE TRUE DO
                     IF __ran_once_0 THEN
+                        __next_0 := j
+                        __next_0 := __next_0 + 1
                         IF __is_incrementing_0 THEN
-                            __past_end_0 := j + 1 > 2
+                            __past_end_0 := __next_0 > 2
                         ELSE
-                            __past_end_0 := j + 1 < 2
+                            __past_end_0 := __next_0 < 2
                         END_IF
-                        j := j + 1
+                        j := __next_0
                     ELSE
                         IF __is_incrementing_0 THEN
                             __past_end_0 := j > 2

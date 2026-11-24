@@ -25,7 +25,7 @@ On the date and time types the operators follow rules of their own, which the [t
 
 ## Comparison
 
-`=`, `<>`, `<`, `>`, `<=`, and `>=` compare two values of the same kind and produce a `BOOL`. They work on numbers, on enumerations, and on text, where they compare character by character. A comparison of two values that do not belong together, such as a text and a number, is rejected.
+`=`, `<>`, `<`, `>`, `<=`, and `>=` compare two values of the same kind and produce a `BOOL`. They work on numbers, on `BOOL` values, where `FALSE` is less than `TRUE`, on enumerations, and on text, where they compare character by character. A comparison of two values that do not belong together, such as a text and a number, is rejected.
 
 Note that the test for equality is a single `=`, because `:=` is the assignment.
 

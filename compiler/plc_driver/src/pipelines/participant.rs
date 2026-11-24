@@ -484,6 +484,26 @@ impl PipelineParticipantMut for LoopDesugarer {
 
         ParsedProject { units }
     }
+
+    fn post_annotate(&mut self, mut annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { units, index, annotations, .. } = &mut annotated_project;
+        if !self.type_next_values(units.iter_mut().map(|it| &mut it.unit), index, annotations) {
+            return annotated_project;
+        }
+
+        // Re-annotate, so the uses of the retyped temporaries get their final types.
+        let AnnotatedProject { units, index, diagnostics, .. } = annotated_project;
+        let mut project = IndexedProject {
+            project: ParsedProject {
+                units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
+            },
+            index,
+            _unresolvables: vec![],
+        }
+        .annotate(self.provider());
+        project.diagnostics = diagnostics;
+        project
+    }
 }
 
 impl PipelineParticipantMut for ReferenceToReturnParticipant {
