@@ -12,17 +12,24 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use ast::provider::IdProvider;
+use ast::{ast::AstNode, provider::IdProvider};
 use plc::{
     codegen::GeneratedModule,
-    lowering::{calls::AggregateTypeLowerer, generics::GenericLowerer, polymorphism::PolymorphismLowerer},
+    lowering::{
+        calls::AggregateTypeLowerer, generics::GenericLowerer, helper::for_loop_next_value_type,
+        polymorphism::PolymorphismLowerer,
+    },
     output::FormatOption,
     Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
-    array_lowering, control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
-    initializer::Initializer, loops::LoopDesugarer, reference_to_return::ReferenceToReturnParticipant,
+    array_lowering,
+    control_statement::ControlStatementParticipant,
+    inheritance::InheritanceLowerer,
+    initializer::Initializer,
+    loops::{LoopDesugarer, NextValueTyper},
+    reference_to_return::ReferenceToReturnParticipant,
     retain::RetainParticipant,
 };
 use project::{object::Object, project::LibraryInformation};
@@ -484,10 +491,13 @@ impl PipelineParticipantMut for LoopDesugarer {
 
         ParsedProject { units }
     }
+}
 
+impl PipelineParticipantMut for NextValueTyper {
     fn post_annotate(&mut self, mut annotated_project: AnnotatedProject) -> AnnotatedProject {
         let AnnotatedProject { units, index, annotations, .. } = &mut annotated_project;
-        if !self.type_next_values(units.iter_mut().map(|it| &mut it.unit), index, annotations) {
+        let next_value_type = |counter: &AstNode| for_loop_next_value_type(counter, annotations, index);
+        if !self.type_next_values(units.iter_mut().map(|it| &mut it.unit), &next_value_type) {
             return annotated_project;
         }
 

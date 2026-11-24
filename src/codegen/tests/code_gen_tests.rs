@@ -1856,6 +1856,38 @@ fn for_statement_lint() {
 }
 
 #[test]
+fn for_statement_next_value_has_the_counter_type_above_32_bits() {
+    let result = codegen(
+        "
+        PROGRAM prg
+        VAR
+            r : REAL;
+            ul : ULINT;
+            t : TIME;
+            i : INT;
+        END_VAR
+        FOR r := 0.0 TO 1.0 BY 0.25 DO END_FOR
+        FOR ul := 0 TO 10 DO END_FOR
+        FOR t := T#0s TO T#1s BY T#1s DO END_FOR
+        FOR i := 0 TO 10 DO END_FOR
+        END_PROGRAM
+        ",
+    );
+
+    let allocations = result
+        .lines()
+        .filter(|line| line.contains("= alloca") && line.contains("%__next_"))
+        .map(|line| line.split(", align").next().unwrap_or(line).trim())
+        .collect::<Vec<_>>();
+    insta::assert_snapshot!(allocations.join("\n"), @"
+    %__next_0 = alloca float
+    %__next_1 = alloca i64
+    %__next_2 = alloca i32
+    %__next_3 = alloca i64
+    ");
+}
+
+#[test]
 fn for_statement_continue() {
     let result = codegen(
         "

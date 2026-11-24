@@ -7,7 +7,7 @@ pub mod tests {
     };
 
     use plc_ast::{
-        ast::{pre_process, CompilationUnit, LinkageType},
+        ast::{pre_process, AstNode, CompilationUnit, LinkageType},
         mut_visitor::AstVisitorMut,
         provider::IdProvider,
     };
@@ -24,7 +24,7 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, FxIndexSet, Index},
         lexer,
-        lowering::{calls::AggregateTypeLowerer, generics::GenericLowerer},
+        lowering::{calls::AggregateTypeLowerer, generics::GenericLowerer, helper::for_loop_next_value_type},
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
@@ -253,7 +253,7 @@ pub mod tests {
     ) -> Lowered {
         // Mirror the relevant pre-index lowering participants used by the real pipeline so codegen tests
         // operate on the same loop/control-flow shape as the compiler.
-        let mut loop_desugarer = LoopDesugarer::new(id_provider.clone());
+        let loop_desugarer = LoopDesugarer::new(id_provider.clone());
         loop_desugarer.desugar(std::slice::from_mut(&mut unit));
 
         // TODO: Added the control statement lowerer for now... but maybe we should be using the pipeline participants for codegen as well
@@ -267,6 +267,14 @@ pub mod tests {
 
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
+
+        // Type the `FOR` loop temporaries as the pipeline does, and annotate again if a type changed.
+        let next_value_typer = loop_desugarer.next_value_typer();
+        let next_value_type = |counter: &AstNode| for_loop_next_value_type(counter, &annotations, &index);
+        if next_value_typer.type_next_values(std::iter::once(&mut unit), &next_value_type) {
+            annotations = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone()).0;
+            index.import(std::mem::take(&mut annotations.new_index));
+        }
 
         // Resolve non-builtin generic calls to their concrete monomorphizations (mirrors the pipeline,
         // which runs the `GenericLowerer` before the aggregate-return lowerer) so codegen tests see the

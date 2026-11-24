@@ -124,11 +124,12 @@
 //! next value. The bound check uses `__next_N` before the assignment truncates it to the counter's width, and
 //! the counter is assigned on the last iteration too, so it keeps the value that ended the loop.
 //!
-//! The counter's type is not known before annotation, so `__next_N` is declared as `LINT`. After annotation,
-//! [`LoopDesugarer::type_next_values`] keeps `LINT` for a signed or unsigned integer or bit-string counter of up
-//! to 32 bits, which makes the next value exact, and gives `__next_N` the counter's own intrinsic type
-//! otherwise (64-bit integers, `CHAR`, date and time types, `REAL`, ...). A 64-bit counter therefore
-//! still wraps before the bound check at its limit and can loop without end.
+//! The counter's type is not known before annotation, so `__next_N` is declared as `LINT`. After annotation and
+//! after property accesses are lowered to accessor calls, [`NextValueTyper::type_next_values`] keeps `LINT` for
+//! a signed or unsigned integer or bit-string counter of up to 32 bits, which makes the next value exact, and
+//! gives `__next_N` the counter's own intrinsic type otherwise (64-bit integers, `CHAR`, date and time types,
+//! `REAL`, ...). A 64-bit counter therefore still wraps before the bound check at its limit and can loop
+//! without end.
 //!
 //! Every copy of `<ctrl>`, `<step>`, `<final>` and `__next_N` gets fresh node ids, so the resolver types each
 //! use on its own. The statements on `__next_N` are internal and report no conversion warnings; the
@@ -144,21 +145,14 @@
 //! They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.
 
 use std::{
+    cell::RefCell,
     collections::HashMap,
     rc::Rc,
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use plc::{
-    index::Index,
-    resolver::{AnnotationMap, AstAnnotations},
-    typesystem::{DataType, DataTypeInformation},
-};
 use plc_ast::{
-    ast::{
-        Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement, CompilationUnit, Operator,
-        TypeNature,
-    },
+    ast::{Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement, CompilationUnit, Operator},
     control_statements::{ForLoopStatement, LoopStatement},
     mut_visitor::{clone_with_new_ids, AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -172,11 +166,19 @@ const NEXT_VALUE_PREFIX: &str = "__next_";
 /// The type of the next-value temporary when the counter is an integer of up to 32 bits.
 const NEXT_VALUE_WIDE_TYPE: &str = "LINT";
 
+/// The ids of each `__next_N := <ctrl>` copy and of its `__next_N` allocation, shared by the desugarer that
+/// records them and the typer that reads them.
+type NextValues = Rc<RefCell<HashMap<AstId, AstId>>>;
+
 pub struct LoopDesugarer {
     ids: IdProvider,
+    next_values: NextValues,
+}
 
-    /// The ids of each `__next_N := <ctrl>` copy and of its `__next_N` allocation
-    next_values: HashMap<AstId, AstId>,
+/// Gives the `__next_N` temporaries of the desugared `FOR` loops their final types after annotation.
+pub struct NextValueTyper {
+    ids: IdProvider,
+    next_values: NextValues,
 }
 
 struct WhileDesugarer {
@@ -204,8 +206,7 @@ struct ForDesugarer {
 
 /// Collects, by allocation id, the type of each next-value temporary that does not stay `LINT`.
 struct NextValueTypeCollector<'a> {
-    index: &'a Index,
-    annotations: &'a AstAnnotations,
+    next_value_type: &'a dyn Fn(&AstNode) -> Option<String>,
     next_values: &'a HashMap<AstId, AstId>,
     types: HashMap<AstId, String>,
 }
@@ -217,10 +218,15 @@ struct NextValueTypeSetter {
 
 impl LoopDesugarer {
     pub fn new(ids: IdProvider) -> Self {
-        Self { ids, next_values: HashMap::new() }
+        Self { ids, next_values: NextValues::default() }
     }
 
-    pub fn desugar(&mut self, units: &mut [CompilationUnit]) {
+    /// Returns the typer for the `__next_N` temporaries that this desugarer creates.
+    pub fn next_value_typer(&self) -> NextValueTyper {
+        NextValueTyper { ids: self.ids.clone(), next_values: self.next_values.clone() }
+    }
+
+    pub fn desugar(&self, units: &mut [CompilationUnit]) {
         let counter = Rc::new(AtomicUsize::new(0));
 
         let mut whiled = WhileDesugarer { ids: self.ids.clone() };
@@ -235,31 +241,30 @@ impl LoopDesugarer {
             ford.visit_compilation_unit(unit);
         }
 
-        self.next_values = ford.next_values;
+        *self.next_values.borrow_mut() = ford.next_values;
     }
+}
 
+impl NextValueTyper {
     pub fn provider(&self) -> IdProvider {
         self.ids.clone()
     }
 
-    /// Gives each `__next_N` temporary its final type from the annotated counter: `LINT` for an integer
-    /// or bit-string counter of up to 32 bits, so the next value is exact, else the counter's own
-    /// intrinsic type. Returns whether a temporary changed its type, in which case the units must be
-    /// annotated again.
+    /// Gives each `__next_N` temporary its final type. `next_value_type` maps the annotated counter in the
+    /// copy `__next_N := <ctrl>` to the new type of `__next_N`, or to `None` if it stays `LINT` (see
+    /// `plc::lowering::helper::for_loop_next_value_type`). A property counter must already be lowered to
+    /// its accessor calls, because a property reference has no type annotation. Returns whether a
+    /// temporary changed its type, in which case the units must be annotated again.
     pub fn type_next_values<'u>(
         &self,
         units: impl IntoIterator<Item = &'u mut CompilationUnit>,
-        index: &Index,
-        annotations: &AstAnnotations,
+        next_value_type: &dyn Fn(&AstNode) -> Option<String>,
     ) -> bool {
         let mut units = units.into_iter().collect::<Vec<_>>();
 
-        let mut collector = NextValueTypeCollector {
-            index,
-            annotations,
-            next_values: &self.next_values,
-            types: HashMap::new(),
-        };
+        let next_values = self.next_values.borrow();
+        let mut collector =
+            NextValueTypeCollector { next_value_type, next_values: &next_values, types: HashMap::new() };
         for unit in &units {
             collector.visit_compilation_unit(unit);
         }
@@ -540,35 +545,11 @@ impl AstVisitorMut for ForDesugarer {
     }
 }
 
-impl NextValueTypeCollector<'_> {
-    /// Returns the type of `__next_N` for the given counter type, or `None` if it stays `LINT`.
-    fn next_value_type(&self, counter_type: &DataType) -> Option<String> {
-        let intrinsic = self.index.get_intrinsic_type_by_name(counter_type.get_name());
-        let information = intrinsic.get_type_information();
-
-        // An integer or bit string of up to 32 bits, BOOL included, fits a `LINT`; CHAR, date and time
-        // types do not keep their meaning there.
-        let fits_lint = matches!(information, DataTypeInformation::Integer { size, .. } if *size <= 32)
-            && matches!(
-                intrinsic.get_nature(),
-                TypeNature::Int | TypeNature::Signed | TypeNature::Unsigned | TypeNature::Bit
-            );
-
-        if fits_lint || information.is_void() || intrinsic.get_name() == NEXT_VALUE_WIDE_TYPE {
-            return None;
-        }
-
-        Some(intrinsic.get_name().to_string())
-    }
-}
-
 impl AstVisitor for NextValueTypeCollector<'_> {
     fn visit_assignment(&mut self, stmt: &Assignment, node: &AstNode) {
         // Only the copy `__next_N := <ctrl>` that the desugarer generated tells the counter's type.
         let Some(allocation) = self.next_values.get(&node.get_id()) else { return };
-        let Some(counter_type) = self.annotations.get_type(&stmt.right, self.index) else { return };
-
-        if let Some(next_type) = self.next_value_type(counter_type) {
+        if let Some(next_type) = (self.next_value_type)(&stmt.right) {
             self.types.insert(*allocation, next_type);
         }
     }
@@ -582,6 +563,7 @@ impl AstVisitorMut for NextValueTypeSetter {
         }
     }
 }
+
 pub(crate) mod helper {
     use plc_ast::{
         ast::{Allocation, AstFactory, AstNode, AstStatement, Operator},

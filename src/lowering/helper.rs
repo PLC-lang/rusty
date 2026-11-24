@@ -1,14 +1,44 @@
 use std::path::{Path, PathBuf};
 
-use crate::index::Index;
+use crate::{
+    index::Index,
+    resolver::AnnotationMap,
+    typesystem::{DataTypeInformation, LINT_TYPE},
+};
 use plc_ast::{
     ast::{
         Assignment, AstFactory, AstId, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration,
-        Implementation, LinkageType, Pou, PouType, ReferenceExpr, Variable, VariableBlock,
+        Implementation, LinkageType, Pou, PouType, ReferenceExpr, TypeNature, Variable, VariableBlock,
     },
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
+
+/// Returns the type of the `__next_N` temporary that holds the next value of the `FOR` loop counter
+/// `counter`, or `None` if it stays `LINT`. An integer or bit string of up to 32 bits, `BOOL` included,
+/// fits a `LINT` exactly; every other counter gives its own intrinsic type, because a `LINT` does not
+/// keep the meaning of `CHAR`, date, time and real values, and cannot hold every 64-bit value.
+pub fn for_loop_next_value_type(
+    counter: &AstNode,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) -> Option<String> {
+    let counter_type = annotations.get_type(counter, index)?;
+    let intrinsic = index.get_intrinsic_type_by_name(counter_type.get_name());
+    let information = intrinsic.get_type_information();
+
+    let fits_lint = matches!(information, DataTypeInformation::Integer { size, .. } if *size <= 32)
+        && matches!(
+            intrinsic.get_nature(),
+            TypeNature::Int | TypeNature::Signed | TypeNature::Unsigned | TypeNature::Bit
+        );
+
+    if fits_lint || information.is_void() || intrinsic.get_name() == LINT_TYPE {
+        return None;
+    }
+
+    Some(intrinsic.get_name().to_string())
+}
 
 /// Creates a new AstNode with the same content but with an internal location.
 /// This is used for generated code that should skip source-location-based validation.
