@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -236,7 +236,7 @@ grew quickly, and today they are technical debt. Other compilers do not lower in
 reasons are visible here:</p>
 <ul>
 <li><strong>Order dependence.</strong> All participants change one tree, and each one can depend on the rewrites before it. A different registration order can change the behavior of the program.</li>
-<li><strong>Generated nodes.</strong> Lowering adds constructors, normalized loops, and result parameters. Validation, diagnostics, and debug information must distinguish these nodes from source constructs through locations and metadata.</li>
+<li><strong>Generated nodes.</strong> Lowering adds constructors, destructors, normalized loops, and result parameters. Validation, diagnostics, and debug information must distinguish these nodes from source constructs through locations and metadata.</li>
 <li><strong>Repeated analysis.</strong> A rewrite can make a new index or a new annotation map necessary for the whole project. A plain build runs both stages nine times each; generic calls add more rounds.</li>
 <li><strong>One tree, two forms.</strong> The AST must hold both source constructs and their lowered forms. Each stage must know which form it gets.</li>
 <li><strong>No fixed boundary.</strong> Codegen uses the combined result of all participants, not a separate representation with a stable contract.</li>

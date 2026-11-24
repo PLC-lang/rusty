@@ -2020,7 +2020,7 @@
 <a href=#2020 id=2020 data-nosnippet>2020</a>) -&gt; bool {
 <a href=#2021 id=2021 data-nosnippet>2021</a>    qualified_name.starts_with(pou)
 <a href=#2022 id=2022 data-nosnippet>2022</a>        || qualified_name.starts_with(container)
-<a href=#2023 id=2023 data-nosnippet>2023</a>        || context.index.is_init_function(pou)
+<a href=#2023 id=2023 data-nosnippet>2023</a>        || context.index.is_generated_function(pou)
 <a href=#2024 id=2024 data-nosnippet>2024</a>        <span class="comment">//Hack: Avoid internal check here because of the super call
 <a href=#2025 id=2025 data-nosnippet>2025</a>        </span>|| location.is_internal()
 <a href=#2026 id=2026 data-nosnippet>2026</a>}

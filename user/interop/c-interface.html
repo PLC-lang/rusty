@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -368,20 +368,59 @@ FUNCTION_BLOCK myFunctionBlock
 END_FUNCTION_BLOCK
 </code></pre>
 <p>The C side must also define <code>myFunctionBlock</code>, the body of the function block, because the constructor of the type writes its address into the method table.</p>
+<h2 id="cleanup"><a class="header" href="#cleanup">Cleanup</a></h2>
+<p>The compiler writes a destructor function for every type that needs cleanup: a function block, class, or program that declares the method <code>FB_EXIT</code>, and every type that holds an instance of one. A source file whose globals or programs need cleanup gets a destructor too. It is registered in the destructor list of the binary, so it runs when the application ends or the shared library is unloaded, and no manual call is necessary.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Symbol</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>&lt;TypeName&gt;__dtor</code></td><td>Cleans up one instance of a struct or function block</td></tr>
+<tr><td><code>&lt;FunctionBlock&gt;__FB_EXIT</code></td><td>The <code>FB_EXIT</code> method of a function block, called by the destructor of the type</td></tr>
+<tr><td><code>__unit_&lt;file&gt;_&lt;hash&gt;__dtor</code></td><td>Cleans up the programs and globals of one source file with the destructors above</td></tr>
+</tbody>
+</table>
+</div>
+<p>A type that needs no cleanup has no destructor symbol. A function block that needs cleanup in C declares the method on the Structured Text side and implements the symbol:</p>
+<pre><code class="language-iecst">{external}
+FUNCTION_BLOCK myFunctionBlock
+    VAR
+        a: DINT;
+        b: DINT;
+    END_VAR
+
+    METHOD FB_INIT
+    END_METHOD
+
+    METHOD FB_EXIT
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<pre><code class="language-c">void myFunctionBlock__FB_EXIT(myFunctionBlock_type* self) {
+    self-&gt;a = 0;
+    self-&gt;b = 0;
+}
+</code></pre>
+<p>A function block that releases a file, memory, or a thread in <code>FB_EXIT</code> must handle more cases than this example shows, such as a copy of the instance. The <a href="api-guidelines.html#cleanup">API guidelines</a> list them.</p>
+<blockquote class="blockquote-tag blockquote-tag-note">
+<p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p>The destructor of a source file is an entry in the destructor list of the binary, and on Linux with glibc that has two effects on a library in C++. When the process ends, a static object of the library can be destroyed before <code>FB_EXIT</code> runs, so build an object that <code>FB_EXIT</code> uses with <code>new</code> and never destroy it. A library that must release what the application left open does that in a function with <code>__attribute__((destructor))</code>, which runs after the <code>FB_EXIT</code> calls of the application. When a host unloads the application with <code>dlclose</code>, <code>FB_EXIT</code> runs while the dynamic loader holds its lock. An <code>FB_EXIT</code> that waits for a thread then never returns if that thread loads a shared library, or uses a <code>thread_local</code> object with a destructor for the first time.</p>
+</blockquote>
 <h2 id="constructors-for-external-code"><a class="header" href="#constructors-for-external-code">Constructors for external code</a></h2>
-<p>The compiler writes no constructor for an <code>{external}</code> unit until you ask for it, so the <code>FB_INIT</code> above is never called. Two options control for which units the compiler writes constructors:</p>
+<p>The compiler writes no constructor and no destructor for an <code>{external}</code> unit until you ask for it, so the <code>FB_INIT</code> and the <code>FB_EXIT</code> above are never called. Two options control for which units the compiler writes them:</p>
 <div class="table-wrapper">
 <table>
 <thead>
 <tr><th>Option</th><th>Use</th></tr>
 </thead>
 <tbody>
-<tr><td><code>--constructors-only</code></td><td>Write the generated constructors and no bodies. For building the constructor object of an external library. It implies <code>--generate-external-constructors</code></td></tr>
-<tr><td><code>--generate-external-constructors</code></td><td>Write constructors for <code>{external}</code> units as well. For the application that links such a library</td></tr>
+<tr><td><code>--constructors-only</code></td><td>Write the generated constructors and destructors and no bodies. For building the constructor object of an external library. It implies <code>--generate-external-constructors</code></td></tr>
+<tr><td><code>--generate-external-constructors</code></td><td>Write constructors and destructors for <code>{external}</code> units as well. For the application that links such a library</td></tr>
 </tbody>
 </table>
 </div>
-<pre><code class="language-bash"># 1. Build the constructor object of the library
+<pre><code class="language-bash"># 1. Build the constructor object of the library, which also holds the destructors
 plc --constructors-only -c -o libext_ctor.o my_lib.pli
 
 # 2. Build and ship the shared library

@@ -37,10 +37,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-e5f95eb2.js"></script>
+        <script src="toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1342,6 +1342,27 @@ END_ACTIONS
 END_FUNCTION_BLOCK
 </code></pre>
 <p>The compiler calls <code>FB_INIT</code> once for each instance, when that instance is created. For a global instance and for a member of a program, that is before the program starts. Declare the method without parameters and without a return type, because the compiler calls it with no arguments.</p>
+<h2 id="cleanup"><a class="header" href="#cleanup">Cleanup</a></h2>
+<p>An instance that takes something from the outside, such as a file, a connection, or memory, must give it back. For this, declare the method <code>FB_EXIT</code>:</p>
+<pre><code class="language-iecst">VAR_GLOBAL
+    openBuffers: DINT;
+END_VAR
+
+FUNCTION_BLOCK Buffer
+    METHOD FB_INIT
+        openBuffers := openBuffers + 1;
+    END_METHOD
+
+    METHOD FB_EXIT
+        openBuffers := openBuffers - 1;
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<p>The compiler calls <code>FB_EXIT</code> once for each instance, when that instance ends. For a global instance and for a member of a program, that is when the application ends, after the last cycle. For an instance that is local to a function or a method, and for an instance in <code>VAR_TEMP</code>, that is the end of each call, also when the call leaves through <code>RETURN</code>. Such an instance is initialized and cleaned up again on every call. In code that runs in every cycle this costs time, so use a member there unless a fresh instance is what you want.</p>
+<p>Instances end in the reverse order of their initialization. A function block runs its own <code>FB_EXIT</code> first, while its members are still usable, and then its members end, the last declared one first. With inheritance the derived function block comes first and its base last. Do not call the <code>FB_EXIT</code> of the base from the derived one, because the base method would run two times. The elements of an array are the exception to the reverse order: they end in ascending order.</p>
+<p><code>FB_EXIT</code> belongs to the variable that holds the instance. A pointer, a reference, and a <code>VAR_IN_OUT</code> parameter refer to an instance that lives elsewhere and cause no call. An assignment copies an instance with no call of <code>FB_INIT</code> or <code>FB_EXIT</code>. Both variables then end with the same data, so something that <code>FB_EXIT</code> releases is released two times. The same applies to a function that returns an instance: the returned instance ends with the call, and the caller keeps a copy of it.</p>
+<p>Declare the method without parameters and without a return type. The compiler also accepts <code>METHOD FB_EXIT: BOOL</code> with the single input <code>bInCopyCode: BOOL</code>. The call that the compiler generates passes <code>FALSE</code> and does not use the result. A method that declares <code>bInCopyCode</code> in another way gets a warning (E166). The method is called with every signature: its parameters then have their default values. A class and a program can declare <code>FB_EXIT</code> too.</p>
+<p><code>FB_EXIT</code> runs only when the application ends in an orderly way. It does not run when the process is killed or crashes, and an error inside one <code>FB_EXIT</code> stops the cleanup of the instances that follow.</p>
 <h2 id="whats-next-12"><a class="header" href="#whats-next-12">What’s next</a></h2>
 <p>A function block can do more than run a body. The next chapter gives it <a href="#methods-and-properties">methods and properties</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -2132,7 +2153,7 @@ target remote &lt;host&gt;:&lt;port&gt;
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="interoperability"><a class="header" href="#interoperability">Interoperability</a></h1>
 <p>After this chapter you can call a C library from Structured Text, and call what this compiler built from C.</p>
-<p>It covers how to declare a function that lives in a C library, the variadic forms included, and what every construct of the language becomes on the C side, down to the layout of a function block and the names of the constructors that the compiler generates. It then shows how to let the compiler write the C headers of a project instead of writing them by hand. At the end it gives the rules that make an interface which other people can work with.</p>
+<p>It covers how to declare a function that lives in a C library, the variadic forms included, and what every construct of the language becomes on the C side, down to the layout of a function block and the names of the constructors and destructors that the compiler generates. It then shows how to let the compiler write the C headers of a project instead of writing them by hand. At the end it gives the rules that make an interface which other people can work with.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="calling-c"><a class="header" href="#calling-c">Calling C</a></h1>
 <p>A POU marked <code>{external}</code> has its implementation somewhere else. The compiler takes the declaration, generates no body, and leaves the symbol for the linker.</p>
@@ -2402,20 +2423,59 @@ FUNCTION_BLOCK myFunctionBlock
 END_FUNCTION_BLOCK
 </code></pre>
 <p>The C side must also define <code>myFunctionBlock</code>, the body of the function block, because the constructor of the type writes its address into the method table.</p>
+<h2 id="cleanup-1"><a class="header" href="#cleanup-1">Cleanup</a></h2>
+<p>The compiler writes a destructor function for every type that needs cleanup: a function block, class, or program that declares the method <code>FB_EXIT</code>, and every type that holds an instance of one. A source file whose globals or programs need cleanup gets a destructor too. It is registered in the destructor list of the binary, so it runs when the application ends or the shared library is unloaded, and no manual call is necessary.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Symbol</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td><code>&lt;TypeName&gt;__dtor</code></td><td>Cleans up one instance of a struct or function block</td></tr>
+<tr><td><code>&lt;FunctionBlock&gt;__FB_EXIT</code></td><td>The <code>FB_EXIT</code> method of a function block, called by the destructor of the type</td></tr>
+<tr><td><code>__unit_&lt;file&gt;_&lt;hash&gt;__dtor</code></td><td>Cleans up the programs and globals of one source file with the destructors above</td></tr>
+</tbody>
+</table>
+</div>
+<p>A type that needs no cleanup has no destructor symbol. A function block that needs cleanup in C declares the method on the Structured Text side and implements the symbol:</p>
+<pre><code class="language-iecst">{external}
+FUNCTION_BLOCK myFunctionBlock
+    VAR
+        a: DINT;
+        b: DINT;
+    END_VAR
+
+    METHOD FB_INIT
+    END_METHOD
+
+    METHOD FB_EXIT
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<pre><code class="language-c">void myFunctionBlock__FB_EXIT(myFunctionBlock_type* self) {
+    self-&gt;a = 0;
+    self-&gt;b = 0;
+}
+</code></pre>
+<p>A function block that releases a file, memory, or a thread in <code>FB_EXIT</code> must handle more cases than this example shows, such as a copy of the instance. The <a href="#cleanup-2">API guidelines</a> list them.</p>
+<blockquote class="blockquote-tag blockquote-tag-note">
+<p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
+<p>The destructor of a source file is an entry in the destructor list of the binary, and on Linux with glibc that has two effects on a library in C++. When the process ends, a static object of the library can be destroyed before <code>FB_EXIT</code> runs, so build an object that <code>FB_EXIT</code> uses with <code>new</code> and never destroy it. A library that must release what the application left open does that in a function with <code>__attribute__((destructor))</code>, which runs after the <code>FB_EXIT</code> calls of the application. When a host unloads the application with <code>dlclose</code>, <code>FB_EXIT</code> runs while the dynamic loader holds its lock. An <code>FB_EXIT</code> that waits for a thread then never returns if that thread loads a shared library, or uses a <code>thread_local</code> object with a destructor for the first time.</p>
+</blockquote>
 <h2 id="constructors-for-external-code"><a class="header" href="#constructors-for-external-code">Constructors for external code</a></h2>
-<p>The compiler writes no constructor for an <code>{external}</code> unit until you ask for it, so the <code>FB_INIT</code> above is never called. Two options control for which units the compiler writes constructors:</p>
+<p>The compiler writes no constructor and no destructor for an <code>{external}</code> unit until you ask for it, so the <code>FB_INIT</code> and the <code>FB_EXIT</code> above are never called. Two options control for which units the compiler writes them:</p>
 <div class="table-wrapper">
 <table>
 <thead>
 <tr><th>Option</th><th>Use</th></tr>
 </thead>
 <tbody>
-<tr><td><code>--constructors-only</code></td><td>Write the generated constructors and no bodies. For building the constructor object of an external library. It implies <code>--generate-external-constructors</code></td></tr>
-<tr><td><code>--generate-external-constructors</code></td><td>Write constructors for <code>{external}</code> units as well. For the application that links such a library</td></tr>
+<tr><td><code>--constructors-only</code></td><td>Write the generated constructors and destructors and no bodies. For building the constructor object of an external library. It implies <code>--generate-external-constructors</code></td></tr>
+<tr><td><code>--generate-external-constructors</code></td><td>Write constructors and destructors for <code>{external}</code> units as well. For the application that links such a library</td></tr>
 </tbody>
 </table>
 </div>
-<pre><code class="language-bash"># 1. Build the constructor object of the library
+<pre><code class="language-bash"># 1. Build the constructor object of the library, which also holds the destructors
 plc --constructors-only -c -o libext_ctor.o my_lib.pli
 
 # 2. Build and ship the shared library
@@ -2534,7 +2594,7 @@ void Counter(Counter_type* self);
 <ul>
 <li>Declarations marked <code>{external}</code>, because their implementation is elsewhere already.</li>
 <li>Declarations that came in with <code>-i</code>.</li>
-<li>The constructors that the compiler generates, and the types whose names start with <code>__</code>.</li>
+<li>The constructors and destructors that the compiler generates, and the types whose names start with <code>__</code>.</li>
 </ul>
 <p>A file whose declarations are all external or included produces no header at all. A file that uses such a declaration still names it in its prototypes, so <code>dependencies.plc.h</code> is where the C side declares it.</p>
 <p>The C interface of each construct, and the rules behind the type translation, are in the <a href="#the-c-interface">C interface</a> chapter.</p>
@@ -2559,9 +2619,11 @@ void Counter(Counter_type* self);
 <p>In a <code>FUNCTION</code>, a string, array, or struct in <code>VAR_INPUT</code> arrives as a pointer, and a Structured Text body copies it before the first statement. A change inside the function does not reach the caller. A body written in another language gets no such copy, so it must treat the pointer as read only. In a <code>FUNCTION_BLOCK</code>, such a value is a member of the instance.</p>
 </blockquote>
 <p>A function that must accept arrays of different lengths declares the parameter as <code>ARRAY[*]</code>. The compiler always passes such a parameter by reference, whatever block it stands in.</p>
+<p>Pass an instance of a function block as <code>VAR_IN_OUT</code> as well. In <code>VAR_INPUT</code> of a function block, the instance is copied into a member, and a copy of an instance that has <code>FB_EXIT</code> is cleaned up a second time, see <a href="#cleanup-2">Cleanup</a>.</p>
 <h2 id="results"><a class="header" href="#results">Results</a></h2>
 <p>A <code>FUNCTION</code> states its result as its return type. A <code>FUNCTION_BLOCK</code> states its results as <code>VAR_OUTPUT</code>. Do not return a result through a pointer in <code>VAR_INPUT</code>.</p>
 <p>A return type can be a string, an array, or a struct. The compiler makes such a result a hidden first parameter, and the caller provides the memory, so a large result needs no output parameter.</p>
+<p>Do not return an instance of a function block that has <code>FB_EXIT</code>. The function cleans up its result before the caller gets the copy. Let the caller pass the instance as <code>VAR_IN_OUT</code>, and fill it.</p>
 <h2 id="private-members-are-visible"><a class="header" href="#private-members-are-visible">Private members are visible</a></h2>
 <p>Every member of a function block is part of its struct, so the user of the library sees the members that you keep for internal use. They stand in the <a href="#generating-headers">generated header</a> next to the inputs and the outputs, and an <a href="#access-modifiers">access modifier</a> does not hide them, because the compiler parses the modifier and ignores it. Structured Text code that reads such a member gets a warning and builds; C code sees no difference at all.</p>
 <p>Give these members names that say that they are internal, and document that they are not part of the interface.</p>
@@ -2586,6 +2648,66 @@ void Counter(Counter_type* self);
 END_FUNCTION_BLOCK
 </code></pre>
 <p>For a library whose implementation is not Structured Text, provide the symbol <code>&lt;FunctionBlock&gt;__FB_INIT</code> and declare the method in the interface file. The <a href="#the-c-interface">C interface</a> chapter has the symbol names and the build options.</p>
+<h2 id="cleanup-2"><a class="header" href="#cleanup-2">Cleanup</a></h2>
+<p>A function block that holds something it must release declares the method <code>FB_EXIT</code>. The compiler calls it once for each instance, when that instance ends. Declare it without parameters and without a return type, like <code>FB_INIT</code>.</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Counter
+    VAR
+        current: DINT;
+    END_VAR
+
+    METHOD FB_EXIT
+        current := 0;
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<p>For a library whose implementation is not Structured Text, provide the symbol <code>&lt;FunctionBlock&gt;__FB_EXIT</code> and declare the method in the interface file. An application can only call <code>FB_EXIT</code> of a library function block when the interface file declares it, so a library that adds the method must ship the new interface file and the destructors that <code>--constructors-only</code> writes for it.</p>
+<p><code>FB_EXIT</code> is not a destructor as C++ has it. An assignment copies an instance and calls no method, and each of the two variables is cleaned up when it ends. The example uses <code>LogFile</code>, a function block of a C library that keeps a file descriptor in the member <code>fd</code>:</p>
+<pre><code class="language-c">void LogFile__FB_EXIT(LogFile_type* self) {
+    close(self-&gt;fd);
+}
+</code></pre>
+<pre><code class="language-iecst">VAR_GLOBAL
+    audit: LogFile;
+    data: LogFile;
+END_VAR
+
+FUNCTION snapshot: DINT
+    VAR
+        copy: LogFile;
+    END_VAR
+
+    copy := audit;              // copy.fd = 3, no method is called
+END_FUNCTION                    // FB_EXIT of copy: close(3)
+
+FUNCTION main: DINT
+    audit.Open('audit.log');    // audit.fd = 3
+    snapshot();                 // the file of audit is closed now
+    data.Open('data.log');      // data.fd = 3, the number is free again
+    audit.Write(42);            // writes 42 to data.log, and reports no error
+END_FUNCTION
+</code></pre>
+<p>An instance in <code>VAR_INPUT</code> of a function block and the result of a function are copies of the same kind. An instance in <code>VAR_INPUT</code> of a function is a copy that gets neither <code>FB_INIT</code> nor <code>FB_EXIT</code>, so nothing releases what a method acquires through it. A library cannot stop a copy, but it stays correct when it follows these rules:</p>
+<ul>
+<li><strong>Expect <code>FB_EXIT</code> for an instance that holds nothing.</strong> It runs for every instance, also when the method that acquires the resource was never called. A member that nothing has set is 0, and 0 is a valid file descriptor: the standard input.</li>
+<li><strong>Keep a handle in the member, not the resource.</strong> Look the handle up in a table of the library before each use, remove the entry in <code>FB_EXIT</code>, and never use a handle value again. The cleanup of a copy then finds no entry, and in the example <code>audit.Write(42)</code> returns an error and <code>data.log</code> stays untouched.</li>
+<li><strong>Do not acquire a resource in <code>FB_INIT</code>.</strong> The target of an assignment loses it, because the copy overwrites the member. Acquire it in a method that the application calls, as <code>Open</code> does.</li>
+<li><strong>Do not call the <code>FB_EXIT</code> of the base.</strong> The destructor of a derived function block calls the derived method and then the method of the base. A call from the derived method runs the base cleanup two times.</li>
+<li><strong>Let nothing use the instance after <code>FB_EXIT</code>.</strong> A local instance lives on the stack, and its memory is used again after the call. A thread or a job that can outlive the call must hold data that the library owns, not the address of the instance.</li>
+<li><strong>Catch C++ exceptions inside the library.</strong> An exception that leaves a library function passes through the Structured Text code that called it, and no <code>FB_EXIT</code> runs for the local instances of the functions it leaves.</li>
+</ul>
+<p>The first rule in C, for a library that keeps the descriptor in the member:</p>
+<pre><code class="language-c">void LogFile__FB_INIT(LogFile_type* self) {
+    self-&gt;fd = -1;              // nothing to release
+}
+
+void LogFile__FB_EXIT(LogFile_type* self) {
+    if (self-&gt;fd &lt; 0) {
+        return;
+    }
+    close(self-&gt;fd);
+    self-&gt;fd = -1;              // a second call for this instance does nothing
+}
+</code></pre>
 <h2 id="whats-next-26"><a class="header" href="#whats-next-26">What’s next</a></h2>
 <p>That is everything the guide covers. The <a href="user/reference/README.html">reference</a> holds the complete lists: every option, every project key, every construct, and every error code.</p>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -2739,8 +2861,8 @@ plc [OPTIONS] &lt;input-files&gt;... &lt;SUBCOMMAND&gt;
 <tr><td><code>--generate-headers</code></td><td>Write C headers instead of code</td></tr>
 <tr><td><code>--header-output &lt;dir&gt;</code></td><td>Directory for the generated headers</td></tr>
 <tr><td><code>--hwmap-file[=&lt;file&gt;]</code></td><td>Write the map of hardware-bound variables. The <code>=</code> is required</td></tr>
-<tr><td><code>--generate-external-constructors</code></td><td>Also write constructors for <code>{external}</code> units</td></tr>
-<tr><td><code>--constructors-only</code></td><td>Write the generated constructors and no bodies</td></tr>
+<tr><td><code>--generate-external-constructors</code></td><td>Also write constructors and destructors for <code>{external}</code> units</td></tr>
+<tr><td><code>--constructors-only</code></td><td>Write the generated constructors and destructors and no bodies</td></tr>
 </tbody>
 </table>
 </div>
@@ -5280,6 +5402,38 @@ END_PROGRAM
 <pre><code class="language-iecst">    active := flags &lt;&gt; 0;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e166---unexpected-signature-of-fb_exit-with-bincopycode"><a class="header" href="#e166---unexpected-signature-of-fb_exit-with-bincopycode">E166 - Unexpected signature of FB_EXIT with bInCopyCode</a></h1>
+<p>The method <code>FB_EXIT</code> declares the parameter <code>bInCopyCode</code>, but not in the form that the compiler
+knows: <code>bInCopyCode</code> as the single input of type <code>BOOL</code>, and the return type <code>BOOL</code>. The method is
+still called. The call that the compiler generates for the cleanup of an instance passes no
+arguments and ignores the return value, so each parameter has the default value of its type or its
+declared initial value.</p>
+<p>Code example:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Connection
+    METHOD FB_EXIT: BOOL
+        VAR_INPUT
+            bInCopyCode: DINT;      // warning: BOOL is expected
+        END_VAR
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<p>Declare the parameter as the single <code>BOOL</code> input of a method that returns <code>BOOL</code>. The call that the
+compiler generates passes <code>FALSE</code> for it:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Connection
+    METHOD FB_EXIT: BOOL
+        VAR_INPUT
+            bInCopyCode: BOOL;
+        END_VAR
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<p>Or declare the method with no parameters and no return type:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Connection
+    METHOD FB_EXIT
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="overview"><a class="header" href="#overview">Overview</a></h1>
 <p>RuSTy compiles IEC 61131-3 Structured Text into machine code, with LLVM as its back end. This book explains how the compiler works, from source text to linked binary.</p>
 <p>The compiler is a pipeline of stages. Each stage takes the result of the previous one and adds to it.</p>
@@ -5363,7 +5517,7 @@ grew quickly, and today they are technical debt. Other compilers do not lower in
 reasons are visible here:</p>
 <ul>
 <li><strong>Order dependence.</strong> All participants change one tree, and each one can depend on the rewrites before it. A different registration order can change the behavior of the program.</li>
-<li><strong>Generated nodes.</strong> Lowering adds constructors, normalized loops, and result parameters. Validation, diagnostics, and debug information must distinguish these nodes from source constructs through locations and metadata.</li>
+<li><strong>Generated nodes.</strong> Lowering adds constructors, destructors, normalized loops, and result parameters. Validation, diagnostics, and debug information must distinguish these nodes from source constructs through locations and metadata.</li>
 <li><strong>Repeated analysis.</strong> A rewrite can make a new index or a new annotation map necessary for the whole project. A plain build runs both stages nine times each; generic calls add more rounds.</li>
 <li><strong>One tree, two forms.</strong> The AST must hold both source constructs and their lowered forms. Each stage must know which form it gets.</li>
 <li><strong>No fixed boundary.</strong> Codegen uses the combined result of all participants, not a separate representation with a stable contract.</li>
@@ -6098,7 +6252,7 @@ END_FUNCTION
 </ul>
 <h2 id="per-unit-validation"><a class="header" href="#per-unit-validation">Per-unit validation</a></h2>
 <p>Everything else is checked unit by unit, in the order in which the units were parsed. Inside a unit the walk follows the shape of the compilation unit: the POU declarations first, then the user types, the <code>VAR_CONFIG</code> blocks, the global variable blocks, the implementations, and last the interfaces. Declarations and bodies are validated separately, as they are stored.</p>
-<p>POU checks depend on the kind. A program cannot return a value, and a class cannot have input or output parameters. Inheritance checks require existing base types and interfaces, matching method signatures, and implementations for abstract methods.</p>
+<p>POU checks depend on the kind. A program cannot return a value, and a class cannot have input or output parameters. Inheritance checks require existing base types and interfaces, matching method signatures, and implementations for abstract methods. A method named <code>FB_EXIT</code> that declares the parameter <code>bInCopyCode</code> is checked for its signature: the parameter must be the single input, of type <code>BOOL</code>, and the method must return <code>BOOL</code>. Each other form with this parameter gets a warning (E166) at the parameter. A signature without <code>bInCopyCode</code> is not checked.</p>
 <p>Variable checks cover declared types, initializer compatibility, constant array bounds, and names that shadow base members. They also check restrictions on constant function block instances. The statement visitor checks initializers because they are expressions.</p>
 <p>An implementation is walked statement by statement. The visitor is recursive and mirrors the tree: it visits the children of a node first, then applies the checks for the node itself. A reference is checked for resolution, visibility, and pointer access. An assignment compares the type of the value with the hint the resolver attached to it. A call is matched against the parameters of the callee from the index: argument count, direction of <code>:=</code> and <code>=&gt;</code>, by-reference arguments, and required <code>VAR_IN_OUT</code> arguments. A binary expression with a date or time operand is checked against the table of combinations the standard defines: an undefined one is E156, a defined one whose standard library function is not declared is E073, and a duration combined with a bare integer warns with E157; the builtins <code>ADD</code>, <code>SUB</code>, <code>MUL</code>, and <code>DIV</code> apply the same check to their arguments, folded from the left, and report E156 as well for an argument that is neither a number nor a date or time value.</p>
 <p>Where the type of a value differs from its hint, the value is converted, and a conversion that can change the value warns: a change of sign (E160), an integer that the float cannot hold exactly (E162), a float that loses its fraction (E163), a time or date mixed with another type (E164), and a number used as a <code>BOOL</code> (E165). The check runs at every assignment, argument and initializer, next to the size check of E067, and at both operands of a binary expression, where a sign change is E161. An operand that is reported keeps the result of its expression from being reported again. An untyped integer literal and a constant with a literal value are judged by their value instead of their type. An argument passed by reference is not converted. A builtin that the resolver replaces with an operation, such as <code>ADD(a, b)</code> with <code>a + b</code>, is checked through that operation, so it warns like the operator.</p>
@@ -6487,6 +6641,7 @@ entry:
 }
 </code></pre>
 <p><code>main__ctor</code> receives the instance, calls the constructor of the embedded <code>Buffer</code>, and stores the initial values of <code>i</code> and <code>text</code>. The unit constructor calls it for the global instance, and the <code>llvm.global_ctors</code> entry runs the unit constructor before the program starts.</p>
+<p>Cleanup works the same way in the other direction. For a type that declares <code>FB_EXIT</code> or holds an instance of such a type, the init participant created a destructor with a <code>__dtor</code> suffix, and for a unit whose programs or globals need cleanup a unit destructor. Codegen registers the unit destructor in <code>llvm.global_dtors</code> with the same priority, so it runs when the program ends or the shared library is unloaded. The example declares no <code>FB_EXIT</code>, so it has neither.</p>
 <blockquote class="blockquote-tag blockquote-tag-note">
 <p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
 <p>The unoptimized IR includes redundant work. It computes unused member pointers, repeats some initialization, and emits offset arithmetic such as multiplication by one. LLVM removes much of this at <code>-O1</code> and above. Method table members remain part of function block layouts.</p>
@@ -6588,7 +6743,7 @@ END_PROGRAM
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="participants-1"><a class="header" href="#participants-1">Participants</a></h1>
 <p>After these chapters you know what each participant rewrites, and why the stages after it need the rewrite. A participant runs between two pipeline stages, so that the later ones see a simpler program.</p>
-<p>The subchapters follow the order in which the driver registers them, because each participant sees the rewrites of the ones before it: graphical charts become statements, the loops and <code>ELSIF</code> become one shape each, properties and methods become calls, inheritance and interfaces become embedded members and method tables, initial values become constructor functions, retained variables become globals, generic and aggregate-returning calls become concrete ones, and array literals become element assignments. Every subchapter shows the tree before and after its rewrite, marks the hooks that the participant uses, and explains which other participants it depends on.</p>
+<p>The subchapters follow the order in which the driver registers them, because each participant sees the rewrites of the ones before it: graphical charts become statements, the loops and <code>ELSIF</code> become one shape each, properties and methods become calls, inheritance and interfaces become embedded members and method tables, initial values become constructor functions and cleanup methods become destructor functions, retained variables become globals, generic and aggregate-returning calls become concrete ones, and array literals become element assignments. Every subchapter shows the tree before and after its rewrite, marks the hooks that the participant uses, and explains which other participants it depends on.</p>
 <p>The hooks live in <code>compiler/plc_driver/src/pipelines</code>, and the transformations in <code>compiler/plc_lowering</code> and <code>src/lowering</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="cfc"><a class="header" href="#cfc">CFC</a></h1>
@@ -7733,7 +7888,7 @@ END_FUNCTION
     END_VAR
 END_PROGRAM
 </code></pre>
-<p>the <code>1</code> can be static data, but <code>counterInstance</code> can need member initialization, a method table address, reference bindings, and an <code>FB_INIT</code> call. The init participant generates constructor functions that perform this work through assignments and calls.</p>
+<p>the <code>1</code> can be static data, but <code>counterInstance</code> can need member initialization, a method table address, reference bindings, and an <code>FB_INIT</code> call. The init participant generates constructor functions that perform this work through assignments and calls. In the same step it generates the destructor functions that call <code>FB_EXIT</code> when an instance ends.</p>
 <pre class="mermaid">flowchart LR
     pre_index[pre_index] --&gt; index[Index] --&gt; post_index[post_index] --&gt; pre_annotate[pre_annotate] --&gt; annotate[Annotate] --&gt; post_annotate[post_annotate]
     style post_annotate fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
@@ -7741,7 +7896,7 @@ END_PROGRAM
 
 <p>The participant runs once at <code>post_annotate</code>. It uses the index to identify types, stateful POUs, and <code>FB_INIT</code> methods, and to read evaluated array bounds and literals. It does not need the annotation map.</p>
 <p>For each unit, the participant first registers its POUs and types. It then visits types, globals, <code>VAR_CONFIG</code> entries, and POUs. It collects three kinds of statements: type and POU constructor bodies, initialization at the start of a POU body, and unit initialization.</p>
-<p>The participant appends constructor POUs and inserts stack initialization at the start of existing bodies. It removes non-constant array initializers from declarations, then rebuilds the index and annotations.</p>
+<p>The participant appends constructor POUs and inserts stack initialization at the start of existing bodies. It removes non-constant array initializers from declarations. It then appends the destructor POUs and inserts their calls on the exit paths of existing bodies, and rebuilds the index and annotations one time for both.</p>
 <h2 id="transformation-6"><a class="header" href="#transformation-6">Transformation</a></h2>
 <h3 id="stateful-pous"><a class="header" href="#stateful-pous">Stateful POUs</a></h3>
 <p>A program, function block, or class gets a <code>&lt;Name&gt;__ctor</code> function with an instance parameter named <code>self</code>. It visits members in declaration order. For each member, it calls the type constructor before applying the member’s initializer. A function block or class then sets its method table pointer. An <code>FB_INIT</code> method declared by the POU runs last.</p>
@@ -7832,12 +7987,58 @@ END_PROGRAM
 <p>Function and method locals and outputs, and <code>VAR_TEMP</code> variables in any POU, are initialized at the start of the POU body. These statements use no <code>self.</code> prefix. A function also constructs its return value when needed: <code>FUNCTION useLine: Point</code> with <code>localLine: Line</code> starts with <code>Line__ctor(localLine);</code> and <code>Point__ctor(useLine);</code>. An output of a function or method is caller-owned storage like a return value, and gets the same treatment: codegen zero-fills it on entry, then the constructor call and the initializer assignment run. <code>VAR_IN_OUT</code> variables and variable length array outputs use caller-owned storage that the body must not reset, and get no constructor call; a <code>REFERENCE TO</code> or alias output is bound by the body and is not reset either.</p>
 <h3 id="linkage"><a class="header" href="#linkage">Linkage</a></h3>
 <p>For external or included types and POUs, the participant declares constructors without bodies. The linker must find their definitions in the library. Calls are still generated where the types are used. <code>--generate-external-constructors</code>, also implied by <code>--constructors-only</code>, generates bodies for <code>{external}</code> items. This lets a library be built from its external declarations.</p>
+<h3 id="destructors"><a class="header" href="#destructors">Destructors</a></h3>
+<p>A constructor exists for every type. A destructor exists only for a type that needs cleanup: a function block, class, or program that declares <code>FB_EXIT</code>, and a type that owns an instance of such a type as a member, a struct field, an array element, or through its base. The check follows the types in the index, and a member that is a pointer, a reference, or a <code>VAR_IN_OUT</code> ends it, because such a member does not own an instance. A project that declares no <code>FB_EXIT</code> therefore gets no destructor and no destructor call.</p>
+<p>The destructor <code>&lt;Name&gt;__dtor</code> is the mirror of the constructor. It calls the <code>FB_EXIT</code> method that the POU declares itself, then the destructors of the members in reverse declaration order, then the destructor of the base on the injected base member. Members and a base that need no cleanup get no call. In the example <code>Base</code> needs cleanup too:</p>
+<pre><code class="language-diff"> FUNCTION_BLOCK Client EXTENDS Base
+     VAR
+         primary: Connection;
+         backup: Connection;
+     END_VAR
+
+     METHOD FB_EXIT
+     END_METHOD
+ END_FUNCTION_BLOCK
++FUNCTION Client__dtor
++    VAR_IN_OUT
++        self: Client;
++    END_VAR
++
++    self.FB_EXIT();
++    Connection__dtor(self.backup);
++    Connection__dtor(self.primary);
++    Base__dtor(self.__Base);
++END_FUNCTION
+</code></pre>
+<p>The generated POU has the internal kind <code>Exit</code>. <code>FB_EXIT</code> is called with no arguments, so a declared input gets its default value. The call is direct, not through the method table, and each level of an inheritance chain calls only its own <code>FB_EXIT</code>. A struct type calls the destructors of its fields in reverse order, an alias type calls the destructor of the type it renames, and an array type runs the same loop as its constructor, in ascending order, with the destructor of the element type.</p>
+<p>A unit whose programs or globals need cleanup gets a destructor named <code>__unit_&lt;file&gt;_&lt;hash&gt;__dtor</code> of kind <code>ProjectExit</code>. Its order is the reverse of the unit constructor: the program instances first, then the globals, each from the last declaration to the first.</p>
+<pre><code class="language-diff">+FUNCTION __unit_main_st_&lt;hash&gt;__dtor
++    main__dtor(main);
++    Connection__dtor(gConnection);
++END_FUNCTION
+</code></pre>
+<p>The variables that are constructed at the start of each call are destructed on each path that leaves the body. These are the locals of a function or method, the <code>VAR_TEMP</code> variables of every POU, and the return value of a function. The participant inserts the destructor calls before every <code>RETURN</code>, at any depth, and at the end of the body: the return value first, then the variables in reverse declaration order. A conditional return of a graphical program becomes a branch that holds the calls and an unconditional <code>RETURN</code>.</p>
+<pre><code class="language-diff"> FUNCTION work: DINT
+     VAR
+         connection: Connection;
+     END_VAR
+
++    Connection__ctor(connection);
+     IF failed THEN
++        Connection__dtor(connection);
+         RETURN;
+     END_IF
++    Connection__dtor(connection);
+ END_FUNCTION
+</code></pre>
+<p>Outputs and <code>VAR_IN_OUT</code> variables of a function or method are storage of the caller and get no destructor call, and an input that is passed by value is a plain copy that was not constructed. The body of an action runs with the instance of its POU and gets no calls of its own.</p>
+<p>Destructors follow the linkage rules of constructors. For an external or included type that needs cleanup, the participant declares the destructor without a body, and <code>--generate-external-constructors</code> generates the bodies for <code>{external}</code> items.</p>
 <h2 id="interactions-6"><a class="header" href="#interactions-6">Interactions</a></h2>
 <p>The participant depends on three earlier participants. The polymorphism lowerer (<code>post_index</code>) added the <code>__vtable</code> member, the <code>__vtable_&lt;Name&gt;</code> struct types, and the <code>__vtable_&lt;Name&gt;_instance</code> globals that the constructors assign and construct. The inheritance lowerer (<code>pre_index</code>) injected the <code>__&lt;Base&gt;</code> member that the base constructor call addresses. The reference-to-return participant is registered directly before it and generates new types and variables at <code>post_annotate</code>, and the init participant runs after it so that those get constructors too.</p>
 <p>Pre-processing supplies names for inline types. Constant evaluation supplies array bounds and folded array literals.</p>
 <p>Every later participant sees the constructors as ordinary POUs and processes their bodies. The inheritance lowerer rewrites the <code>self.__vtable</code> assignment of a derived block into <code>self.__Base.__vtable</code>, and the array lowerer turns the assignment of an array literal with non-constant elements in a constructor into one assignment per element.</p>
-<p><a href="#initialization-3">Codegen</a> handles constructor bodies with a few special rules. In <code>Init</code> and <code>ProjectInit</code>, assignment to an alias or <code>REFERENCE TO</code> stores an address. This permits <code>VAR_CONFIG</code> to bind hardware storage. Constructors have no debug information, and codegen errors identify their type. Validation skips POU-level checks for these generated kinds.</p>
-<p>A unit that uses another unit’s type calls its constructor; the linker supplies the definition. Merging units into one LLVM module also combines their <code>llvm.global_ctors</code> entries. The <a href="#initializers">Initializers</a> chapter follows this work alongside static initialization.</p>
+<p><a href="#initialization-3">Codegen</a> handles constructor bodies with a few special rules. In <code>Init</code> and <code>ProjectInit</code>, assignment to an alias or <code>REFERENCE TO</code> stores an address. This permits <code>VAR_CONFIG</code> to bind hardware storage. Constructors and destructors have no debug information, and codegen errors identify their type. Validation skips POU-level checks for the four generated kinds <code>Init</code>, <code>ProjectInit</code>, <code>Exit</code>, and <code>ProjectExit</code>.</p>
+<p>A unit that uses another unit’s type calls its constructor and, when the type needs cleanup, its destructor; the linker supplies the definitions. Merging units into one LLVM module also combines their <code>llvm.global_ctors</code> and <code>llvm.global_dtors</code> entries. The <a href="#initializers">Initializers</a> chapter follows this work alongside static initialization.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="retain"><a class="header" href="#retain">Retain</a></h1>
 <p><code>RETAIN</code> marks storage intended to survive a power cycle. The compiler places retained globals in the <code>.retain</code> linker section; the runtime must provide persistent storage. Program members need a rewrite because a linker section applies to a global symbol, not an individual struct field. In</p>
@@ -8059,7 +8260,7 @@ END_FUNCTION
 <p>The allocation and the references to a temporary take the location of the call; the wrapping expression list takes the location of the statement it replaces and a fresh node ID. The in-out variable takes the location of the POU name.</p>
 <h2 id="interactions-9"><a class="header" href="#interactions-9">Interactions</a></h2>
 <p>The participant depends on most of the participants before it. The <a href="#loop-desugar">loop desugarer</a> has moved every loop condition into a guard <code>IF</code> inside a <code>WHILE TRUE</code> body, so a call in a loop condition is moved out inside the loop and runs on every iteration. The <a href="#control-statements">control statement participant</a> has split every <code>ELSIF</code> into a nested <code>IF</code>, so each condition has a statement list of its own for the calls moved out of it. The polymorphism lowerer wraps an interface instance capture in <code>ADR(...)</code>, which is one reason why <code>ADR</code> pins a temporary.</p>
-<p>The <a href="#reference-to-return">reference-to-return participant</a> has already removed reference returns, so they are skipped here. The <a href="#init">init participant</a> has added calls such as <code>Point__ctor(origin)</code> for struct results. After this rewrite, that constructor fills the caller’s buffer through the in-out parameter. Codegen only zero-fills the temporary before the call.</p>
+<p>The <a href="#reference-to-return">reference-to-return participant</a> has already removed reference returns, so they are skipped here. The <a href="#init">init participant</a> has added calls such as <code>Point__ctor(origin)</code> for struct results. After this rewrite, that constructor fills the caller’s buffer through the in-out parameter. A destructor call for the result, such as <code>Token__dtor(makeToken)</code> at the end of the body, acts on the same buffer. Codegen only zero-fills the temporary before the call.</p>
 <p>The generic lowerer has replaced a generic call by a call to a concrete instance, so <code>LEFT(s, 2)</code> reaches this participant as <code>LEFT__STRING</code>. Its return type <code>STRING[__STRING_LENGTH]</code> gives a 2049-byte temporary <code>__LEFT__STRING7: __LEFT__STRING_return</code>, and the copy into <code>s</code> is cut to the length of <code>s</code> like any string assignment.</p>
 <p>Later stages see an ordinary void function with a pointer parameter. The index registers no return variable for a POU whose return type is marked as aggregate, and the in-out variable is its first declared parameter. Codegen passes <code>VAR_IN_OUT</code> parameters as pointers (see <a href="#codegen">Codegen</a>, Functions), so a method <code>Named.getName</code> compiles to <code>void @Named__getName(ptr instance, ptr getName)</code> and the callee writes its result through the pointer like any in-out variable.</p>
 <p>The inheritance lowerer, registered after this participant, descends into the expression lists it created; the array lowerer looks only at the top-level statements of a body and leaves these lists alone.</p>
@@ -8161,7 +8362,7 @@ END_FUNCTION_BLOCK
 <p>The index supplies base-type chains. The resolver supplies the declaring POU of each member and the type of each base expression. The lowerer turns this information into explicit member paths.</p>
 <p>Before this participant runs, <code>SUPER^</code> has no type, and the resolver resolves a member behind it, <code>SUPER^.text</code>, like a plain name in the current block. The earlier participants therefore see it annotated and rewrite it: the property lowerer turns <code>SUPER^.scaled</code> into <code>SUPER^.__get_scaled()</code>, and the aggregate-return lowerer moves <code>SUPER^.text()</code> into a temporary. Both results reach this participant as ordinary references and get their <code>__Base</code> steps here, so an inherited property read from outside ends as <code>child.__Base.__get_scaled()</code>.</p>
 <p>Polymorphism uses the embedded base layout. A derived method table already names inherited implementations, such as <code>ADR(Base.step)</code>. This participant supplies the path to the table pointer, <code>THIS^.__Base.__vtable</code>. Casting the instance to <code>Base</code> is valid because that base occupies the first field.</p>
-<p>The init participant writes <code>Base__ctor(self.__Base)</code> and skips the member during its walk, so the base is constructed exactly once. Every other statement of a constructor, such as <code>self.offset := self.__Base.limit</code>, is rewritten like user code.</p>
+<p>The init participant writes <code>Base__ctor(self.__Base)</code> and skips the member during its walk, so the base is constructed exactly once. A destructor has the same shape: it ends with <code>Base__dtor(self.__Base)</code> and skips the member during its walk. Every other statement of a constructor, such as <code>self.offset := self.__Base.limit</code>, is rewritten like user code.</p>
 <p>This participant runs late so that it can rewrite member accesses introduced by property, polymorphism, initializer, and call lowering. Only the <a href="#array">array lowerer</a> follows.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="array"><a class="header" href="#array">Array</a></h1>
@@ -8286,7 +8487,7 @@ pub struct Variable {
     /// Default, Array(size), Declaration(value), Variadic, Struct, or MultidimensionalArray(sizes)
     pub variable_type: VariableType,
 }</code></pre>
-<p>The generator visits globals, user types, POUs, and implementations. It skips external and included declarations, generated constructors, and types with names that start with <code>__</code>. The sizes of an inline array declaration, such as <code>a: ARRAY[0..1, 0..2] OF DINT</code> inside a POU, are read from the helper type that the pre-processor created for it.</p>
+<p>The generator visits globals, user types, POUs, and implementations. It skips external and included declarations, generated constructors and destructors, and types with names that start with <code>__</code>. The sizes of an inline array declaration, such as <code>a: ARRAY[0..1, 0..2] OF DINT</code> inside a POU, are read from the helper type that the pre-processor created for it.</p>
 <p>Built-in types are translated from the compiler’s table of built-in types. Integers use <code>intN_t</code> or <code>uintN_t</code>; <code>BOOL</code> uses <code>bool</code>; <code>REAL</code> and <code>LREAL</code> use <code>float_t</code> and <code>double_t</code>. Date and time types use <code>time_t</code>. Strings become arrays of <code>char</code> or <code>int16_t</code>, including a terminator slot. User type names stay unchanged.</p>
 <p>Array bounds and string lengths that are constant expressions rather than literals are evaluated through the index, so <code>STRING[MESSAGE_LEN]</code> with a constant <code>MESSAGE_LEN := 80</code> becomes <code>char[81]</code>. A bound that is not constant stops the run with an error.</p>
 <h2 id="the-example-rendered"><a class="header" href="#the-example-rendered">The example, rendered</a></h2>
@@ -8655,7 +8856,7 @@ END_PROGRAM
     /// The class or function block a method belongs to
     associated_class: Option&lt;String&gt;,
 
-    /// Program, Function, FunctionBlock, Class, Method, Action, or a generated constructor
+    /// Program, Function, FunctionBlock, Class, Method, Action, or a generated constructor or destructor
     implementation_type: ImplementationType,
 
     // ... other omitted fields
@@ -8719,7 +8920,7 @@ main             Program, instance variable "main_instance" of type "main"
 <p>An argument hint carries the position of the parameter in the declaration of the callee, the POU that declares it, and the number of <code>EXTENDS</code> steps between the two. Codegen uses the position to find the struct member or the argument slot, the POU to read the declaration, and the step count to reach the base part of the instance.</p>
 <p>Inside the callee the return member is an ordinary variable: <code>scale := tmp</code> in <code>scale</code> annotates the left side as <code>scale.scale</code> with argument type <code>Return</code>, and <code>exceeded := candidate &gt; max</code> as <code>Limits.exceeded.exceeded</code>. The <code>VAR_IN_OUT</code> member <code>count</code> carries the auto-dereference marker, which is what makes <code>count := count + 1</code> in the body read and write through the pointer without a <code>^</code>.</p>
 <h2 id="lowering"><a class="header" href="#lowering">Lowering</a></h2>
-<p>The index and the annotations above describe the POUs as the parser read them. Several participants then change the declarations, and each one runs the affected stages again before the next one sees the tree. The <a href="#polymorphism">polymorphism lowerer</a> adds method tables and a <code>__vtable</code> member to root classes and function blocks. Derived types access that member through the base inserted by the <a href="#inheritance-1">inheritance lowerer</a>. The <a href="#init">init participant</a> creates constructors. The <a href="#aggregate-return">aggregate-return lowerer</a> adds result parameters for strings, arrays, and structs.</p>
+<p>The index and the annotations above describe the POUs as the parser read them. Several participants then change the declarations, and each one runs the affected stages again before the next one sees the tree. The <a href="#polymorphism">polymorphism lowerer</a> adds method tables and a <code>__vtable</code> member to root classes and function blocks. Derived types access that member through the base inserted by the <a href="#inheritance-1">inheritance lowerer</a>. The <a href="#init">init participant</a> creates constructors, and destructors for the types that need cleanup. The <a href="#aggregate-return">aggregate-return lowerer</a> adds result parameters for strings, arrays, and structs.</p>
 <p>After lowering, <code>Counter</code> has four instance fields instead of three. <code>scratch</code> remains a stack variable. The unit also contains ten type and POU constructors of kind <code>Init</code>, plus one unit constructor.</p>
 <h2 id="codegen-1"><a class="header" href="#codegen-1">Codegen</a></h2>
 <p>Codegen reads the lowered tree and the rebuilt index. The layout comes first, because every signature and every call refers to it.</p>

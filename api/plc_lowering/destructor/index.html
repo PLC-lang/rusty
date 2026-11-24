@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The destructor lowering module generates destructor functions (`__dtor`) for the types and POUs of a compilation unit that need cleanup. It is the mirror of the initializer lowering."><title>plc_lowering::destructor - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-0c87338a.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_lowering" data-themes="" data-resource-suffix="" data-rustdoc-version="1.99.0 (b940084d7 2026-09-28)" data-channel="1.99.0" data-search-js="search-cf4fc35e.js" data-stringdex-js="stringdex-b5109af9.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-9f56287d.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module destructor</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../plc_lowering/index.html">plc_<wbr>lowering</a><span class="version">1.1.0-dev</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module destructor</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#which-types-need-a-destructor" title="Which types need a destructor">Which types need a destructor</a></li><li><a href="#destructor-generation" title="Destructor generation">Destructor generation</a></li><li><a href="#global-cleanup" title="Global cleanup">Global cleanup</a></li><li><a href="#stateless-pous" title="Stateless POUs">Stateless POUs</a></li><li><a href="#linkage-behavior" title="Linkage behavior">Linkage behavior</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate plc_<wbr>lowering</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">plc_lowering</a></div><h1>Module <span>destructor</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/plc_lowering/destructor.rs.html#1-451">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The destructor lowering module generates destructor functions (<code>__dtor</code>) for the types and
+POUs of a compilation unit that need cleanup. It is the mirror of the initializer lowering.</p>
+<h3 id="which-types-need-a-destructor"><a class="doc-anchor" href="#which-types-need-a-destructor">§</a>Which types need a destructor</h3>
+<ul>
+<li>A function block, class, or program that declares an <code>FB_EXIT</code> method.</li>
+<li>A type that owns an instance of such a type: as a member, a struct field, an array element,
+or through its base type.</li>
+</ul>
+<p>All other types get no destructor and no destructor calls. Pointers, references, and
+<code>VAR_IN_OUT</code> variables do not own the instance they refer to.</p>
+<h3 id="destructor-generation"><a class="doc-anchor" href="#destructor-generation">§</a>Destructor generation</h3>
+<ul>
+<li>The destructor <code>&lt;TypeName&gt;__dtor</code> calls the <code>FB_EXIT</code> method of the type, then the
+destructors of the members in reverse declaration order, then the destructor of the base type.</li>
+<li>The destructor of an array type calls the destructor of each element in ascending order.</li>
+</ul>
+<h3 id="global-cleanup"><a class="doc-anchor" href="#global-cleanup">§</a>Global cleanup</h3>
+<ul>
+<li>Program instances and global variables are cleaned up in a per-module function called
+<code>__unit_&lt;name&gt;__dtor</code>, registered via LLVM’s <code>.fini_array</code> for automatic execution when the
+module is unloaded. Its order is the reverse of the unit constructor.</li>
+</ul>
+<h3 id="stateless-pous"><a class="doc-anchor" href="#stateless-pous">§</a>Stateless POUs</h3>
+<ul>
+<li>Local variables of functions and methods, <code>VAR_TEMP</code> variables of every POU, and the return
+value of a function are constructed on each call. Their destructors are called on each path
+that leaves the body: before every <code>RETURN</code> and at the end.</li>
+</ul>
+<h3 id="linkage-behavior"><a class="doc-anchor" href="#linkage-behavior">§</a>Linkage behavior</h3>
+<ul>
+<li>Destructors follow the same linkage rules as constructors: types from included (<code>-i</code>) or
+external units get a declaration only, unless external constructors are generated.</li>
+</ul>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Destructor.html" title="struct plc_lowering::destructor::Destructor">Destructor</a></dt></dl></section></div></main></body></html>

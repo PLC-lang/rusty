@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -488,6 +488,7 @@ entry:
 }
 </code></pre>
 <p><code>main__ctor</code> receives the instance, calls the constructor of the embedded <code>Buffer</code>, and stores the initial values of <code>i</code> and <code>text</code>. The unit constructor calls it for the global instance, and the <code>llvm.global_ctors</code> entry runs the unit constructor before the program starts.</p>
+<p>Cleanup works the same way in the other direction. For a type that declares <code>FB_EXIT</code> or holds an instance of such a type, the init participant created a destructor with a <code>__dtor</code> suffix, and for a unit whose programs or globals need cleanup a unit destructor. Codegen registers the unit destructor in <code>llvm.global_dtors</code> with the same priority, so it runs when the program ends or the shared library is unloaded. The example declares no <code>FB_EXIT</code>, so it has neither.</p>
 <blockquote class="blockquote-tag blockquote-tag-note">
 <p class="blockquote-tag-title"><svg viewbox="0 0 16 16" width="18" height="18"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p>
 <p>The unoptimized IR includes redundant work. It computes unused member pointers, repeats some initialization, and emits offset arithmetic such as multiplication by one. LLVM removes much of this at <code>-O1</code> and above. Method table members remain part of function block layouts.</p>

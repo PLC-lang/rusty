@@ -155,7 +155,7 @@
 <a href=#155 id=155 data-nosnippet>155</a>        index: <span class="kw-2">&amp;</span>Index,
 <a href=#156 id=156 data-nosnippet>156</a>    ) {
 <a href=#157 id=157 data-nosnippet>157</a>        <span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>compilation_unit.pous {
-<a href=#158 id=158 data-nosnippet>158</a>            <span class="kw">if </span><span class="macro">matches!</span>(pou.kind, PouType::Init | PouType::ProjectInit) {
+<a href=#158 id=158 data-nosnippet>158</a>            <span class="kw">if </span>pou.kind.is_generated() {
 <a href=#159 id=159 data-nosnippet>159</a>                <span class="kw">continue</span>;
 <a href=#160 id=160 data-nosnippet>160</a>            }
 <a href=#161 id=161 data-nosnippet>161</a>            <span class="kw">if </span>pou.linkage.is_external_or_included() {
@@ -243,7 +243,7 @@
 <a href=#243 id=243 data-nosnippet>243</a>        }
 <a href=#244 id=244 data-nosnippet>244</a>
 <a href=#245 id=245 data-nosnippet>245</a>        <span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;</span>compilation_unit.implementations {
-<a href=#246 id=246 data-nosnippet>246</a>            <span class="kw">if </span><span class="macro">matches!</span>(implementation.pou_type, PouType::Init | PouType::ProjectInit) {
+<a href=#246 id=246 data-nosnippet>246</a>            <span class="kw">if </span>implementation.pou_type.is_generated() {
 <a href=#247 id=247 data-nosnippet>247</a>                <span class="kw">continue</span>;
 <a href=#248 id=248 data-nosnippet>248</a>            }
 <a href=#249 id=249 data-nosnippet>249</a>            <span class="kw">if </span>implementation.linkage.is_external_or_included() {

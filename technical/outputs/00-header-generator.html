@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -239,7 +239,7 @@ pub struct Variable {
     /// Default, Array(size), Declaration(value), Variadic, Struct, or MultidimensionalArray(sizes)
     pub variable_type: VariableType,
 }</code></pre>
-<p>The generator visits globals, user types, POUs, and implementations. It skips external and included declarations, generated constructors, and types with names that start with <code>__</code>. The sizes of an inline array declaration, such as <code>a: ARRAY[0..1, 0..2] OF DINT</code> inside a POU, are read from the helper type that the pre-processor created for it.</p>
+<p>The generator visits globals, user types, POUs, and implementations. It skips external and included declarations, generated constructors and destructors, and types with names that start with <code>__</code>. The sizes of an inline array declaration, such as <code>a: ARRAY[0..1, 0..2] OF DINT</code> inside a POU, are read from the helper type that the pre-processor created for it.</p>
 <p>Built-in types are translated from the compiler’s table of built-in types. Integers use <code>intN_t</code> or <code>uintN_t</code>; <code>BOOL</code> uses <code>bool</code>; <code>REAL</code> and <code>LREAL</code> use <code>float_t</code> and <code>double_t</code>. Date and time types use <code>time_t</code>. Strings become arrays of <code>char</code> or <code>int16_t</code>, including a terminator slot. User type names stay unchanged.</p>
 <p>Array bounds and string lengths that are constant expressions rather than literals are evaluated through the index, so <code>STRING[MESSAGE_LEN]</code> with a constant <code>MESSAGE_LEN := 80</code> becomes <code>char[81]</code>. A bound that is not constant stops the run with an error.</p>
 <h2 id="the-example-rendered"><a class="header" href="#the-example-rendered">The example, rendered</a></h2>

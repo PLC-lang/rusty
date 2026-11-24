@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -288,6 +288,27 @@ END_ACTIONS
 END_FUNCTION_BLOCK
 </code></pre>
 <p>The compiler calls <code>FB_INIT</code> once for each instance, when that instance is created. For a global instance and for a member of a program, that is before the program starts. Declare the method without parameters and without a return type, because the compiler calls it with no arguments.</p>
+<h2 id="cleanup"><a class="header" href="#cleanup">Cleanup</a></h2>
+<p>An instance that takes something from the outside, such as a file, a connection, or memory, must give it back. For this, declare the method <code>FB_EXIT</code>:</p>
+<pre><code class="language-iecst">VAR_GLOBAL
+    openBuffers: DINT;
+END_VAR
+
+FUNCTION_BLOCK Buffer
+    METHOD FB_INIT
+        openBuffers := openBuffers + 1;
+    END_METHOD
+
+    METHOD FB_EXIT
+        openBuffers := openBuffers - 1;
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<p>The compiler calls <code>FB_EXIT</code> once for each instance, when that instance ends. For a global instance and for a member of a program, that is when the application ends, after the last cycle. For an instance that is local to a function or a method, and for an instance in <code>VAR_TEMP</code>, that is the end of each call, also when the call leaves through <code>RETURN</code>. Such an instance is initialized and cleaned up again on every call. In code that runs in every cycle this costs time, so use a member there unless a fresh instance is what you want.</p>
+<p>Instances end in the reverse order of their initialization. A function block runs its own <code>FB_EXIT</code> first, while its members are still usable, and then its members end, the last declared one first. With inheritance the derived function block comes first and its base last. Do not call the <code>FB_EXIT</code> of the base from the derived one, because the base method would run two times. The elements of an array are the exception to the reverse order: they end in ascending order.</p>
+<p><code>FB_EXIT</code> belongs to the variable that holds the instance. A pointer, a reference, and a <code>VAR_IN_OUT</code> parameter refer to an instance that lives elsewhere and cause no call. An assignment copies an instance with no call of <code>FB_INIT</code> or <code>FB_EXIT</code>. Both variables then end with the same data, so something that <code>FB_EXIT</code> releases is released two times. The same applies to a function that returns an instance: the returned instance ends with the call, and the caller keeps a copy of it.</p>
+<p>Declare the method without parameters and without a return type. The compiler also accepts <code>METHOD FB_EXIT: BOOL</code> with the single input <code>bInCopyCode: BOOL</code>. The call that the compiler generates passes <code>FALSE</code> and does not use the result. A method that declares <code>bInCopyCode</code> in another way gets a warning (E166). The method is called with every signature: its parameters then have their default values. A class and a program can declare <code>FB_EXIT</code> too.</p>
+<p><code>FB_EXIT</code> runs only when the application ends in an orderly way. It does not run when the process is killed or crashes, and an error inside one <code>FB_EXIT</code> stops the cleanup of the instances that follow.</p>
 <h2 id="whats-next"><a class="header" href="#whats-next">What’s next</a></h2>
 <p>A function block can do more than run a body. The next chapter gives it <a href="methods-and-properties.html">methods and properties</a>.</p>
 

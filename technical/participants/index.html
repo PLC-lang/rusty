@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -183,7 +183,7 @@
                     <main>
                         <h1 id="participants"><a class="header" href="#participants">Participants</a></h1>
 <p>After these chapters you know what each participant rewrites, and why the stages after it need the rewrite. A participant runs between two pipeline stages, so that the later ones see a simpler program.</p>
-<p>The subchapters follow the order in which the driver registers them, because each participant sees the rewrites of the ones before it: graphical charts become statements, the loops and <code>ELSIF</code> become one shape each, properties and methods become calls, inheritance and interfaces become embedded members and method tables, initial values become constructor functions, retained variables become globals, generic and aggregate-returning calls become concrete ones, and array literals become element assignments. Every subchapter shows the tree before and after its rewrite, marks the hooks that the participant uses, and explains which other participants it depends on.</p>
+<p>The subchapters follow the order in which the driver registers them, because each participant sees the rewrites of the ones before it: graphical charts become statements, the loops and <code>ELSIF</code> become one shape each, properties and methods become calls, inheritance and interfaces become embedded members and method tables, initial values become constructor functions and cleanup methods become destructor functions, retained variables become globals, generic and aggregate-returning calls become concrete ones, and array literals become element assignments. Every subchapter shows the tree before and after its rewrite, marks the hooks that the participant uses, and explains which other participants it depends on.</p>
 <p>The hooks live in <code>compiler/plc_driver/src/pipelines</code>, and the transformations in <code>compiler/plc_lowering</code> and <code>src/lowering</code>.</p>
 
                     </main>

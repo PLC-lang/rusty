@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -278,7 +278,7 @@ END_FUNCTION_BLOCK
 <p>The index supplies base-type chains. The resolver supplies the declaring POU of each member and the type of each base expression. The lowerer turns this information into explicit member paths.</p>
 <p>Before this participant runs, <code>SUPER^</code> has no type, and the resolver resolves a member behind it, <code>SUPER^.text</code>, like a plain name in the current block. The earlier participants therefore see it annotated and rewrite it: the property lowerer turns <code>SUPER^.scaled</code> into <code>SUPER^.__get_scaled()</code>, and the aggregate-return lowerer moves <code>SUPER^.text()</code> into a temporary. Both results reach this participant as ordinary references and get their <code>__Base</code> steps here, so an inherited property read from outside ends as <code>child.__Base.__get_scaled()</code>.</p>
 <p>Polymorphism uses the embedded base layout. A derived method table already names inherited implementations, such as <code>ADR(Base.step)</code>. This participant supplies the path to the table pointer, <code>THIS^.__Base.__vtable</code>. Casting the instance to <code>Base</code> is valid because that base occupies the first field.</p>
-<p>The init participant writes <code>Base__ctor(self.__Base)</code> and skips the member during its walk, so the base is constructed exactly once. Every other statement of a constructor, such as <code>self.offset := self.__Base.limit</code>, is rewritten like user code.</p>
+<p>The init participant writes <code>Base__ctor(self.__Base)</code> and skips the member during its walk, so the base is constructed exactly once. A destructor has the same shape: it ends with <code>Base__dtor(self.__Base)</code> and skips the member during its walk. Every other statement of a constructor, such as <code>self.offset := self.__Base.limit</code>, is rewritten like user code.</p>
 <p>This participant runs late so that it can rewrite member accesses introduced by property, polymorphism, initializer, and call lowering. Only the <a href="11-array.html">array lowerer</a> follows.</p>
 
                     </main>

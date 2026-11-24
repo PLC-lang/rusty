@@ -995,7 +995,7 @@
 <a href=#995 id=995 data-nosnippet>995</a>            <span class="self">self</span>.register_struct_parameter(pou.get_parent_pou_name().unwrap_or_else(|| pou.get_name()), func);
 <a href=#996 id=996 data-nosnippet>996</a>            param_offset += <span class="number">1</span>;
 <a href=#997 id=997 data-nosnippet>997</a>        }
-<a href=#998 id=998 data-nosnippet>998</a>        <span class="kw">if </span>implementation.get_implementation_type().is_function_method_or_init() {
+<a href=#998 id=998 data-nosnippet>998</a>        <span class="kw">if </span>implementation.get_implementation_type().is_function_method_or_generated() {
 <a href=#999 id=999 data-nosnippet>999</a>            <span class="kw">let </span>declared_params = index.get_available_parameters(implementation.get_call_name());
 <a href=#1000 id=1000 data-nosnippet>1000</a>            <span class="comment">// Register all parameters for debugging
 <a href=#1001 id=1001 data-nosnippet>1001</a>            </span><span class="kw">for </span>(index, variable) <span class="kw">in </span>declared_params.iter().enumerate() {
@@ -1098,7 +1098,7 @@
 <a href=#1098 id=1098 data-nosnippet>1098</a>        <span class="kw">let </span>pou = index.find_pou(func.linking_context.get_call_name()).expect(<span class="string">"POU is available"</span>);
 <a href=#1099 id=1099 data-nosnippet>1099</a>        <span class="kw">if </span>pou.get_linkage().is_external_or_included()
 <a href=#1100 id=1100 data-nosnippet>1100</a>            || pou.get_location().is_internal()
-<a href=#1101 id=1101 data-nosnippet>1101</a>            || func.linking_context.is_init()
+<a href=#1101 id=1101 data-nosnippet>1101</a>            || func.linking_context.is_generated()
 <a href=#1102 id=1102 data-nosnippet>1102</a>        {
 <a href=#1103 id=1103 data-nosnippet>1103</a>            <span class="macro">log::debug!</span>(
 <a href=#1104 id=1104 data-nosnippet>1104</a>                <span class="string">"Skipping pou {}, linkage: {:?}, location: {:?}"</span>,

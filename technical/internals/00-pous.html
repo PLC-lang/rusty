@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -300,7 +300,7 @@ END_PROGRAM
     /// The class or function block a method belongs to
     associated_class: Option&lt;String&gt;,
 
-    /// Program, Function, FunctionBlock, Class, Method, Action, or a generated constructor
+    /// Program, Function, FunctionBlock, Class, Method, Action, or a generated constructor or destructor
     implementation_type: ImplementationType,
 
     // ... other omitted fields
@@ -364,7 +364,7 @@ main             Program, instance variable "main_instance" of type "main"
 <p>An argument hint carries the position of the parameter in the declaration of the callee, the POU that declares it, and the number of <code>EXTENDS</code> steps between the two. Codegen uses the position to find the struct member or the argument slot, the POU to read the declaration, and the step count to reach the base part of the instance.</p>
 <p>Inside the callee the return member is an ordinary variable: <code>scale := tmp</code> in <code>scale</code> annotates the left side as <code>scale.scale</code> with argument type <code>Return</code>, and <code>exceeded := candidate &gt; max</code> as <code>Limits.exceeded.exceeded</code>. The <code>VAR_IN_OUT</code> member <code>count</code> carries the auto-dereference marker, which is what makes <code>count := count + 1</code> in the body read and write through the pointer without a <code>^</code>.</p>
 <h2 id="lowering"><a class="header" href="#lowering">Lowering</a></h2>
-<p>The index and the annotations above describe the POUs as the parser read them. Several participants then change the declarations, and each one runs the affected stages again before the next one sees the tree. The <a href="../participants/03-polymorphism.html">polymorphism lowerer</a> adds method tables and a <code>__vtable</code> member to root classes and function blocks. Derived types access that member through the base inserted by the <a href="../participants/10-inheritance.html">inheritance lowerer</a>. The <a href="../participants/06-init.html">init participant</a> creates constructors. The <a href="../participants/09-aggregate-return.html">aggregate-return lowerer</a> adds result parameters for strings, arrays, and structs.</p>
+<p>The index and the annotations above describe the POUs as the parser read them. Several participants then change the declarations, and each one runs the affected stages again before the next one sees the tree. The <a href="../participants/03-polymorphism.html">polymorphism lowerer</a> adds method tables and a <code>__vtable</code> member to root classes and function blocks. Derived types access that member through the base inserted by the <a href="../participants/10-inheritance.html">inheritance lowerer</a>. The <a href="../participants/06-init.html">init participant</a> creates constructors, and destructors for the types that need cleanup. The <a href="../participants/09-aggregate-return.html">aggregate-return lowerer</a> adds result parameters for strings, arrays, and structs.</p>
 <p>After lowering, <code>Counter</code> has four instance fields instead of three. <code>scratch</code> remains a stack variable. The unit also contains ten type and POU constructors of kind <code>Init</code>, plus one unit constructor.</p>
 <h2 id="codegen"><a class="header" href="#codegen">Codegen</a></h2>
 <p>Codegen reads the lowered tree and the rebuilt index. The layout comes first, because every signature and every call refers to it.</p>

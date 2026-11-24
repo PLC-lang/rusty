@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -199,9 +199,11 @@
 <p>In a <code>FUNCTION</code>, a string, array, or struct in <code>VAR_INPUT</code> arrives as a pointer, and a Structured Text body copies it before the first statement. A change inside the function does not reach the caller. A body written in another language gets no such copy, so it must treat the pointer as read only. In a <code>FUNCTION_BLOCK</code>, such a value is a member of the instance.</p>
 </blockquote>
 <p>A function that must accept arrays of different lengths declares the parameter as <code>ARRAY[*]</code>. The compiler always passes such a parameter by reference, whatever block it stands in.</p>
+<p>Pass an instance of a function block as <code>VAR_IN_OUT</code> as well. In <code>VAR_INPUT</code> of a function block, the instance is copied into a member, and a copy of an instance that has <code>FB_EXIT</code> is cleaned up a second time, see <a href="#cleanup">Cleanup</a>.</p>
 <h2 id="results"><a class="header" href="#results">Results</a></h2>
 <p>A <code>FUNCTION</code> states its result as its return type. A <code>FUNCTION_BLOCK</code> states its results as <code>VAR_OUTPUT</code>. Do not return a result through a pointer in <code>VAR_INPUT</code>.</p>
 <p>A return type can be a string, an array, or a struct. The compiler makes such a result a hidden first parameter, and the caller provides the memory, so a large result needs no output parameter.</p>
+<p>Do not return an instance of a function block that has <code>FB_EXIT</code>. The function cleans up its result before the caller gets the copy. Let the caller pass the instance as <code>VAR_IN_OUT</code>, and fill it.</p>
 <h2 id="private-members-are-visible"><a class="header" href="#private-members-are-visible">Private members are visible</a></h2>
 <p>Every member of a function block is part of its struct, so the user of the library sees the members that you keep for internal use. They stand in the <a href="headers.html">generated header</a> next to the inputs and the outputs, and an <a href="../language/inheritance.html#access-modifiers">access modifier</a> does not hide them, because the compiler parses the modifier and ignores it. Structured Text code that reads such a member gets a warning and builds; C code sees no difference at all.</p>
 <p>Give these members names that say that they are internal, and document that they are not part of the interface.</p>
@@ -226,6 +228,66 @@
 END_FUNCTION_BLOCK
 </code></pre>
 <p>For a library whose implementation is not Structured Text, provide the symbol <code>&lt;FunctionBlock&gt;__FB_INIT</code> and declare the method in the interface file. The <a href="c-interface.html">C interface</a> chapter has the symbol names and the build options.</p>
+<h2 id="cleanup"><a class="header" href="#cleanup">Cleanup</a></h2>
+<p>A function block that holds something it must release declares the method <code>FB_EXIT</code>. The compiler calls it once for each instance, when that instance ends. Declare it without parameters and without a return type, like <code>FB_INIT</code>.</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Counter
+    VAR
+        current: DINT;
+    END_VAR
+
+    METHOD FB_EXIT
+        current := 0;
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<p>For a library whose implementation is not Structured Text, provide the symbol <code>&lt;FunctionBlock&gt;__FB_EXIT</code> and declare the method in the interface file. An application can only call <code>FB_EXIT</code> of a library function block when the interface file declares it, so a library that adds the method must ship the new interface file and the destructors that <code>--constructors-only</code> writes for it.</p>
+<p><code>FB_EXIT</code> is not a destructor as C++ has it. An assignment copies an instance and calls no method, and each of the two variables is cleaned up when it ends. The example uses <code>LogFile</code>, a function block of a C library that keeps a file descriptor in the member <code>fd</code>:</p>
+<pre><code class="language-c">void LogFile__FB_EXIT(LogFile_type* self) {
+    close(self-&gt;fd);
+}
+</code></pre>
+<pre><code class="language-iecst">VAR_GLOBAL
+    audit: LogFile;
+    data: LogFile;
+END_VAR
+
+FUNCTION snapshot: DINT
+    VAR
+        copy: LogFile;
+    END_VAR
+
+    copy := audit;              // copy.fd = 3, no method is called
+END_FUNCTION                    // FB_EXIT of copy: close(3)
+
+FUNCTION main: DINT
+    audit.Open('audit.log');    // audit.fd = 3
+    snapshot();                 // the file of audit is closed now
+    data.Open('data.log');      // data.fd = 3, the number is free again
+    audit.Write(42);            // writes 42 to data.log, and reports no error
+END_FUNCTION
+</code></pre>
+<p>An instance in <code>VAR_INPUT</code> of a function block and the result of a function are copies of the same kind. An instance in <code>VAR_INPUT</code> of a function is a copy that gets neither <code>FB_INIT</code> nor <code>FB_EXIT</code>, so nothing releases what a method acquires through it. A library cannot stop a copy, but it stays correct when it follows these rules:</p>
+<ul>
+<li><strong>Expect <code>FB_EXIT</code> for an instance that holds nothing.</strong> It runs for every instance, also when the method that acquires the resource was never called. A member that nothing has set is 0, and 0 is a valid file descriptor: the standard input.</li>
+<li><strong>Keep a handle in the member, not the resource.</strong> Look the handle up in a table of the library before each use, remove the entry in <code>FB_EXIT</code>, and never use a handle value again. The cleanup of a copy then finds no entry, and in the example <code>audit.Write(42)</code> returns an error and <code>data.log</code> stays untouched.</li>
+<li><strong>Do not acquire a resource in <code>FB_INIT</code>.</strong> The target of an assignment loses it, because the copy overwrites the member. Acquire it in a method that the application calls, as <code>Open</code> does.</li>
+<li><strong>Do not call the <code>FB_EXIT</code> of the base.</strong> The destructor of a derived function block calls the derived method and then the method of the base. A call from the derived method runs the base cleanup two times.</li>
+<li><strong>Let nothing use the instance after <code>FB_EXIT</code>.</strong> A local instance lives on the stack, and its memory is used again after the call. A thread or a job that can outlive the call must hold data that the library owns, not the address of the instance.</li>
+<li><strong>Catch C++ exceptions inside the library.</strong> An exception that leaves a library function passes through the Structured Text code that called it, and no <code>FB_EXIT</code> runs for the local instances of the functions it leaves.</li>
+</ul>
+<p>The first rule in C, for a library that keeps the descriptor in the member:</p>
+<pre><code class="language-c">void LogFile__FB_INIT(LogFile_type* self) {
+    self-&gt;fd = -1;              // nothing to release
+}
+
+void LogFile__FB_EXIT(LogFile_type* self) {
+    if (self-&gt;fd &lt; 0) {
+        return;
+    }
+    close(self-&gt;fd);
+    self-&gt;fd = -1;              // a second call for this instance does nothing
+}
+</code></pre>
 <h2 id="whats-next"><a class="header" href="#whats-next">What’s next</a></h2>
 <p>That is everything the guide covers. The <a href="../reference/README.html">reference</a> holds the complete lists: every option, every project key, every construct, and every error code.</p>
 

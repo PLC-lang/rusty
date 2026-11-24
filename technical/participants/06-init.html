@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -190,7 +190,7 @@
     END_VAR
 END_PROGRAM
 </code></pre>
-<p>the <code>1</code> can be static data, but <code>counterInstance</code> can need member initialization, a method table address, reference bindings, and an <code>FB_INIT</code> call. The init participant generates constructor functions that perform this work through assignments and calls.</p>
+<p>the <code>1</code> can be static data, but <code>counterInstance</code> can need member initialization, a method table address, reference bindings, and an <code>FB_INIT</code> call. The init participant generates constructor functions that perform this work through assignments and calls. In the same step it generates the destructor functions that call <code>FB_EXIT</code> when an instance ends.</p>
 <pre class="mermaid">flowchart LR
     pre_index[pre_index] --&gt; index[Index] --&gt; post_index[post_index] --&gt; pre_annotate[pre_annotate] --&gt; annotate[Annotate] --&gt; post_annotate[post_annotate]
     style post_annotate fill:#bfdbfe,stroke:#000,stroke-width:1px,stroke-dasharray:4 3,color:#0f172a
@@ -198,7 +198,7 @@ END_PROGRAM
 
 <p>The participant runs once at <code>post_annotate</code>. It uses the index to identify types, stateful POUs, and <code>FB_INIT</code> methods, and to read evaluated array bounds and literals. It does not need the annotation map.</p>
 <p>For each unit, the participant first registers its POUs and types. It then visits types, globals, <code>VAR_CONFIG</code> entries, and POUs. It collects three kinds of statements: type and POU constructor bodies, initialization at the start of a POU body, and unit initialization.</p>
-<p>The participant appends constructor POUs and inserts stack initialization at the start of existing bodies. It removes non-constant array initializers from declarations, then rebuilds the index and annotations.</p>
+<p>The participant appends constructor POUs and inserts stack initialization at the start of existing bodies. It removes non-constant array initializers from declarations. It then appends the destructor POUs and inserts their calls on the exit paths of existing bodies, and rebuilds the index and annotations one time for both.</p>
 <h2 id="transformation"><a class="header" href="#transformation">Transformation</a></h2>
 <h3 id="stateful-pous"><a class="header" href="#stateful-pous">Stateful POUs</a></h3>
 <p>A program, function block, or class gets a <code>&lt;Name&gt;__ctor</code> function with an instance parameter named <code>self</code>. It visits members in declaration order. For each member, it calls the type constructor before applying the member’s initializer. A function block or class then sets its method table pointer. An <code>FB_INIT</code> method declared by the POU runs last.</p>
@@ -289,12 +289,58 @@ END_PROGRAM
 <p>Function and method locals and outputs, and <code>VAR_TEMP</code> variables in any POU, are initialized at the start of the POU body. These statements use no <code>self.</code> prefix. A function also constructs its return value when needed: <code>FUNCTION useLine: Point</code> with <code>localLine: Line</code> starts with <code>Line__ctor(localLine);</code> and <code>Point__ctor(useLine);</code>. An output of a function or method is caller-owned storage like a return value, and gets the same treatment: codegen zero-fills it on entry, then the constructor call and the initializer assignment run. <code>VAR_IN_OUT</code> variables and variable length array outputs use caller-owned storage that the body must not reset, and get no constructor call; a <code>REFERENCE TO</code> or alias output is bound by the body and is not reset either.</p>
 <h3 id="linkage"><a class="header" href="#linkage">Linkage</a></h3>
 <p>For external or included types and POUs, the participant declares constructors without bodies. The linker must find their definitions in the library. Calls are still generated where the types are used. <code>--generate-external-constructors</code>, also implied by <code>--constructors-only</code>, generates bodies for <code>{external}</code> items. This lets a library be built from its external declarations.</p>
+<h3 id="destructors"><a class="header" href="#destructors">Destructors</a></h3>
+<p>A constructor exists for every type. A destructor exists only for a type that needs cleanup: a function block, class, or program that declares <code>FB_EXIT</code>, and a type that owns an instance of such a type as a member, a struct field, an array element, or through its base. The check follows the types in the index, and a member that is a pointer, a reference, or a <code>VAR_IN_OUT</code> ends it, because such a member does not own an instance. A project that declares no <code>FB_EXIT</code> therefore gets no destructor and no destructor call.</p>
+<p>The destructor <code>&lt;Name&gt;__dtor</code> is the mirror of the constructor. It calls the <code>FB_EXIT</code> method that the POU declares itself, then the destructors of the members in reverse declaration order, then the destructor of the base on the injected base member. Members and a base that need no cleanup get no call. In the example <code>Base</code> needs cleanup too:</p>
+<pre><code class="language-diff"> FUNCTION_BLOCK Client EXTENDS Base
+     VAR
+         primary: Connection;
+         backup: Connection;
+     END_VAR
+
+     METHOD FB_EXIT
+     END_METHOD
+ END_FUNCTION_BLOCK
++FUNCTION Client__dtor
++    VAR_IN_OUT
++        self: Client;
++    END_VAR
++
++    self.FB_EXIT();
++    Connection__dtor(self.backup);
++    Connection__dtor(self.primary);
++    Base__dtor(self.__Base);
++END_FUNCTION
+</code></pre>
+<p>The generated POU has the internal kind <code>Exit</code>. <code>FB_EXIT</code> is called with no arguments, so a declared input gets its default value. The call is direct, not through the method table, and each level of an inheritance chain calls only its own <code>FB_EXIT</code>. A struct type calls the destructors of its fields in reverse order, an alias type calls the destructor of the type it renames, and an array type runs the same loop as its constructor, in ascending order, with the destructor of the element type.</p>
+<p>A unit whose programs or globals need cleanup gets a destructor named <code>__unit_&lt;file&gt;_&lt;hash&gt;__dtor</code> of kind <code>ProjectExit</code>. Its order is the reverse of the unit constructor: the program instances first, then the globals, each from the last declaration to the first.</p>
+<pre><code class="language-diff">+FUNCTION __unit_main_st_&lt;hash&gt;__dtor
++    main__dtor(main);
++    Connection__dtor(gConnection);
++END_FUNCTION
+</code></pre>
+<p>The variables that are constructed at the start of each call are destructed on each path that leaves the body. These are the locals of a function or method, the <code>VAR_TEMP</code> variables of every POU, and the return value of a function. The participant inserts the destructor calls before every <code>RETURN</code>, at any depth, and at the end of the body: the return value first, then the variables in reverse declaration order. A conditional return of a graphical program becomes a branch that holds the calls and an unconditional <code>RETURN</code>.</p>
+<pre><code class="language-diff"> FUNCTION work: DINT
+     VAR
+         connection: Connection;
+     END_VAR
+
++    Connection__ctor(connection);
+     IF failed THEN
++        Connection__dtor(connection);
+         RETURN;
+     END_IF
++    Connection__dtor(connection);
+ END_FUNCTION
+</code></pre>
+<p>Outputs and <code>VAR_IN_OUT</code> variables of a function or method are storage of the caller and get no destructor call, and an input that is passed by value is a plain copy that was not constructed. The body of an action runs with the instance of its POU and gets no calls of its own.</p>
+<p>Destructors follow the linkage rules of constructors. For an external or included type that needs cleanup, the participant declares the destructor without a body, and <code>--generate-external-constructors</code> generates the bodies for <code>{external}</code> items.</p>
 <h2 id="interactions"><a class="header" href="#interactions">Interactions</a></h2>
 <p>The participant depends on three earlier participants. The polymorphism lowerer (<code>post_index</code>) added the <code>__vtable</code> member, the <code>__vtable_&lt;Name&gt;</code> struct types, and the <code>__vtable_&lt;Name&gt;_instance</code> globals that the constructors assign and construct. The inheritance lowerer (<code>pre_index</code>) injected the <code>__&lt;Base&gt;</code> member that the base constructor call addresses. The reference-to-return participant is registered directly before it and generates new types and variables at <code>post_annotate</code>, and the init participant runs after it so that those get constructors too.</p>
 <p>Pre-processing supplies names for inline types. Constant evaluation supplies array bounds and folded array literals.</p>
 <p>Every later participant sees the constructors as ordinary POUs and processes their bodies. The inheritance lowerer rewrites the <code>self.__vtable</code> assignment of a derived block into <code>self.__Base.__vtable</code>, and the array lowerer turns the assignment of an array literal with non-constant elements in a constructor into one assignment per element.</p>
-<p><a href="../pipeline/05-codegen.html#initialization">Codegen</a> handles constructor bodies with a few special rules. In <code>Init</code> and <code>ProjectInit</code>, assignment to an alias or <code>REFERENCE TO</code> stores an address. This permits <code>VAR_CONFIG</code> to bind hardware storage. Constructors have no debug information, and codegen errors identify their type. Validation skips POU-level checks for these generated kinds.</p>
-<p>A unit that uses another unit’s type calls its constructor; the linker supplies the definition. Merging units into one LLVM module also combines their <code>llvm.global_ctors</code> entries. The <a href="../internals/07-initializers.html">Initializers</a> chapter follows this work alongside static initialization.</p>
+<p><a href="../pipeline/05-codegen.html#initialization">Codegen</a> handles constructor bodies with a few special rules. In <code>Init</code> and <code>ProjectInit</code>, assignment to an alias or <code>REFERENCE TO</code> stores an address. This permits <code>VAR_CONFIG</code> to bind hardware storage. Constructors and destructors have no debug information, and codegen errors identify their type. Validation skips POU-level checks for the four generated kinds <code>Init</code>, <code>ProjectInit</code>, <code>Exit</code>, and <code>ProjectExit</code>.</p>
+<p>A unit that uses another unit’s type calls its constructor and, when the type needs cleanup, its destructor; the linker supplies the definitions. Merging units into one LLVM module also combines their <code>llvm.global_ctors</code> and <code>llvm.global_dtors</code> entries. The <a href="../internals/07-initializers.html">Initializers</a> chapter follows this work alongside static initialization.</p>
 
                     </main>
 

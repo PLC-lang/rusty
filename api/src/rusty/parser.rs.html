@@ -314,7 +314,7 @@
 <a href=#314 id=314 data-nosnippet>314</a>            PouType::Class =&gt; <span class="string">"a class name"</span>,
 <a href=#315 id=315 data-nosnippet>315</a>            PouType::Action =&gt; <span class="string">"an action name"</span>,
 <a href=#316 id=316 data-nosnippet>316</a>            PouType::Method { .. } =&gt; <span class="string">"a method name"</span>,
-<a href=#317 id=317 data-nosnippet>317</a>            PouType::Init | PouType::ProjectInit =&gt; <span class="string">"a POU name"</span>,
+<a href=#317 id=317 data-nosnippet>317</a>            PouType::Init | PouType::ProjectInit | PouType::Exit | PouType::ProjectExit =&gt; <span class="string">"a POU name"</span>,
 <a href=#318 id=318 data-nosnippet>318</a>        };
 <a href=#319 id=319 data-nosnippet>319</a>        <span class="kw">let </span>(name, name_location) = parse_pou_name(lexer, linkage, pou_slot_label)
 <a href=#320 id=320 data-nosnippet>320</a>            .unwrap_or_else(|| (<span class="string">""</span>.to_string(), SourceLocation::undefined()));

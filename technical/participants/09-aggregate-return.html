@@ -36,10 +36,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-20f7858b.js";
+            window.path_to_searchindex_js = "../../searchindex-8bd2de8e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e5f95eb2.js"></script>
+        <script src="../../toc-6f78859b.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -261,7 +261,7 @@ END_FUNCTION
 <p>The allocation and the references to a temporary take the location of the call; the wrapping expression list takes the location of the statement it replaces and a fresh node ID. The in-out variable takes the location of the POU name.</p>
 <h2 id="interactions"><a class="header" href="#interactions">Interactions</a></h2>
 <p>The participant depends on most of the participants before it. The <a href="01-loop-desugar.html">loop desugarer</a> has moved every loop condition into a guard <code>IF</code> inside a <code>WHILE TRUE</code> body, so a call in a loop condition is moved out inside the loop and runs on every iteration. The <a href="04-control-statements.html">control statement participant</a> has split every <code>ELSIF</code> into a nested <code>IF</code>, so each condition has a statement list of its own for the calls moved out of it. The polymorphism lowerer wraps an interface instance capture in <code>ADR(...)</code>, which is one reason why <code>ADR</code> pins a temporary.</p>
-<p>The <a href="05-reference-to-return.html">reference-to-return participant</a> has already removed reference returns, so they are skipped here. The <a href="06-init.html">init participant</a> has added calls such as <code>Point__ctor(origin)</code> for struct results. After this rewrite, that constructor fills the caller’s buffer through the in-out parameter. Codegen only zero-fills the temporary before the call.</p>
+<p>The <a href="05-reference-to-return.html">reference-to-return participant</a> has already removed reference returns, so they are skipped here. The <a href="06-init.html">init participant</a> has added calls such as <code>Point__ctor(origin)</code> for struct results. After this rewrite, that constructor fills the caller’s buffer through the in-out parameter. A destructor call for the result, such as <code>Token__dtor(makeToken)</code> at the end of the body, acts on the same buffer. Codegen only zero-fills the temporary before the call.</p>
 <p>The generic lowerer has replaced a generic call by a call to a concrete instance, so <code>LEFT(s, 2)</code> reaches this participant as <code>LEFT__STRING</code>. Its return type <code>STRING[__STRING_LENGTH]</code> gives a 2049-byte temporary <code>__LEFT__STRING7: __LEFT__STRING_return</code>, and the copy into <code>s</code> is cut to the length of <code>s</code> like any string assignment.</p>
 <p>Later stages see an ordinary void function with a pointer parameter. The index registers no return variable for a POU whose return type is marked as aggregate, and the in-out variable is its first declared parameter. Codegen passes <code>VAR_IN_OUT</code> parameters as pointers (see <a href="../pipeline/05-codegen.html">Codegen</a>, Functions), so a method <code>Named.getName</code> compiles to <code>void @Named__getName(ptr instance, ptr getName)</code> and the callee writes its result through the pointer like any in-out variable.</p>
 <p>The inheritance lowerer, registered after this participant, descends into the expression lists it created; the array lowerer looks only at the top-level statements of a body and leaves these lists alone.</p>
