@@ -19,7 +19,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-use cli::{CompileParameters, ParameterError};
+use cli::{CompileParameters, ParameterError, SubCommands};
 use plc::{
     codegen::CodegenContext,
     linker::LinkerType,
@@ -183,7 +183,20 @@ pub struct CompilationContext {
 
 pub fn compile<T: AsRef<str> + AsRef<OsStr> + Debug>(args: &[T]) -> Result<()> {
     //Parse the arguments
-    let pipeline = BuildPipeline::new(args)?;
+    let compile_parameters = CompileParameters::parse(args)?;
+    if let Some(SubCommands::Format { files, check, config_path, dump_config, stdout }) =
+        &compile_parameters.commands
+    {
+        return plc_formatter::cli::run(plc_formatter::cli::FormatArgs {
+            files,
+            check: *check,
+            config_path: config_path.as_deref(),
+            dump_config: *dump_config,
+            stdout: *stdout,
+        })
+        .map_err(|diagnostic| anyhow!(diagnostic.to_string()));
+    }
+    let pipeline = BuildPipeline::try_from(compile_parameters)?;
     compile_with_pipeline(pipeline)
 }
 
