@@ -332,12 +332,16 @@ impl<T: SourceContainer> BuildPipeline<T> {
         use participant::{ArrayLowerer, CfcParticipant, InitParticipant};
 
         let cfc_sources = self.context.sources_cfc().cloned().collect();
+        let loop_desugarer = LoopDesugarer::new(self.context.provider());
+        let next_value_typer = loop_desugarer.next_value_typer();
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(CfcParticipant::new(self.context.provider(), cfc_sources)),
-            Box::new(LoopDesugarer::new(self.context.provider())),
+            Box::new(loop_desugarer),
             Box::new(PropertyLowerer::new(self.context.provider())),
+            // Types the `FOR` loop temporaries after the property lowerer, so property counters are accessor calls
+            Box::new(next_value_typer),
             Box::new(PolymorphismLowerer::new(
                 self.context.provider(),
                 self.context.should_generate_external_constructors(),

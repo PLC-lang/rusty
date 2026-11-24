@@ -53,7 +53,7 @@ There are two kinds of participants:
 - **Mutating participants** take the project by value and return a new one. They are the lowerers, and they can use the four hooks around indexing and annotation. The diagnostics they collect while they rewrite are gathered after the last `post_annotate` hook and reported with the validation diagnostics.
 - **Read-only participants** get a shared reference and cannot change the project. They see all six hooks, plus one call per generated module. The only one by default is the codegen participant, which writes the modules to disk and links them.
 
-The driver registers twelve mutating participants. Hook order determines when they run; registration order determines their order within a hook. Later participants can depend on earlier rewrites. The [Participants](../participants/README.md) chapters follow the registration order.
+The driver registers thirteen mutating participants. Hook order determines when they run; registration order determines their order within a hook. Later participants can depend on earlier rewrites. The [Participants](../participants/README.md) chapters follow the registration order; the next-value typer, registered after the property participant, is described with the [loop desugarer](../participants/01-loop-desugar.md).
 
 > [!NOTE]
 > **Developer note.** The participant model started small. It gave a simple way to lower inheritance without a dedicated
@@ -63,7 +63,7 @@ The driver registers twelve mutating participants. Hook order determines when th
 >
 > - **Order dependence.** All participants change one tree, and each one can depend on the rewrites before it. A different registration order can change the behavior of the program.
 > - **Generated nodes.** Lowering adds constructors, normalized loops, and result parameters. Validation, diagnostics, and debug information must distinguish these nodes from source constructs through locations and metadata.
-> - **Repeated analysis.** A rewrite can make a new index or a new annotation map necessary for the whole project. A plain build runs both stages nine times each; generic calls add more rounds.
+> - **Repeated analysis.** A rewrite can make a new index or a new annotation map necessary for the whole project. A plain build runs both stages nine times each; generic calls add more rounds, and a `FOR` loop whose counter needs a type other than `LINT` for its next value adds one more annotation.
 > - **One tree, two forms.** The AST must hold both source constructs and their lowered forms. Each stage must know which form it gets.
 > - **No fixed boundary.** Codegen uses the combined result of all participants, not a separate representation with a stable contract.
 >

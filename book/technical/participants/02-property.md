@@ -116,6 +116,8 @@ The resolver selects a getter for a read and a setter for an assignment target. 
 
 Later participants process accessor methods and calls. The [polymorphism lowerer](03-polymorphism.md) adds accessors to method and interface tables. Thus `iface.value := 3` can become an indirect setter call, and an unqualified `scaled := 2` can dispatch through the current instance's table.
 
+The next-value typer of the [loop desugarer](01-loop-desugar.md) runs after this participant. It reads the type of a `FOR` loop counter from the copy `__next_N := <counter>`, so a property counter must already be a getter call there; the replacement keeps the node id of that assignment.
+
 When a getter returns an array or a struct, the aggregate-return lowerer turns its return into a by-reference parameter named `__get_data`.
 
 
