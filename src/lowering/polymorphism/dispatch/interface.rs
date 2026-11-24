@@ -72,6 +72,19 @@
 //! __itable_IA#(reference.table^).foo^(reference.data^, args)
 //! ```
 //!
+//! # Comparisons with zero
+//!
+//! Comparing an interface variable with `0` checks whether an instance is assigned, so the comparison
+//! uses the data pointer, on either side of `=` or `<>`:
+//!
+//! ```text
+//! // Before:
+//! reference <> 0
+//!
+//! // After:
+//! reference.data <> 0
+//! ```
+//!
 //! # Call arguments
 //!
 //! When a concrete POU instance is passed as an argument where an interface type is expected, a temporary fat
@@ -118,8 +131,8 @@
 use plc_ast::{
     ast::{
         flatten_expression_list, resolve_argument_slots, steal_expression_list, Allocation, Assignment,
-        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataType as AstDataType,
-        DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable,
+        AstFactory, AstNode, AstStatement, BinaryExpression, CallStatement, CompilationUnit,
+        DataType as AstDataType, DataTypeDeclaration, LinkageType, Operator, UserTypeDeclaration, Variable,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -422,6 +435,29 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
             // Drop the invalid statement, as for invalid assignments.
             self.replacement = Some(vec![]);
+        }
+    }
+
+    fn visit_binary_expression(&mut self, node: &mut AstNode) {
+        let AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) = &mut node.stmt
+        else {
+            unreachable!();
+        };
+
+        left.walk(self);
+        right.walk(self);
+
+        // `itf = 0` and `itf <> 0` compare the instance address: `itf.data = 0`
+        if !matches!(operator, Operator::Equal | Operator::NotEqual) {
+            return;
+        }
+
+        let is_interface =
+            |node: &AstNode| self.annotations.get_type_or_void(node, self.index).is_interface();
+        if is_interface(left) && right.is_zero() {
+            **left = helper::create_member_access(&mut self.ids, left, FATPOINTER_DATA_FIELD_NAME);
+        } else if left.is_zero() && is_interface(right) {
+            **right = helper::create_member_access(&mut self.ids, right, FATPOINTER_DATA_FIELD_NAME);
         }
     }
 
@@ -906,7 +942,7 @@ mod helper {
 
     /// Appends a member access to a base expression: `base.field_name`.
     /// Clones the base with fresh IDs to avoid duplicate AST node IDs in the tree.
-    fn create_member_access(ids: &mut IdProvider, base: &AstNode, field_name: &str) -> AstNode {
+    pub fn create_member_access(ids: &mut IdProvider, base: &AstNode, field_name: &str) -> AstNode {
         AstFactory::create_member_reference(
             AstFactory::create_identifier(field_name, SourceLocation::internal(), ids.next_id()),
             Some(clone_with_new_ids(base, ids)),
@@ -3862,6 +3898,39 @@ mod tests {
                 END_IF
                 i := i + 1
             END_WHILE
+            ");
+        }
+    }
+
+    mod comparisons {
+        #[test]
+        fn zero_comparison_compares_data_field() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION main
+                    VAR
+                        reference: IA;
+                        result: BOOL;
+                        value: DINT;
+                    END_VAR
+
+                    result := reference = 0;
+                    result := reference <> 0;
+                    result := 0 = reference;
+                    result := 0 <> reference;
+                    result := value = 0;
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
+            // Statements in main
+            result := reference.data = 0
+            result := reference.data <> 0
+            result := 0 = reference.data
+            result := 0 <> reference.data
+            result := value = 0
             ");
         }
     }

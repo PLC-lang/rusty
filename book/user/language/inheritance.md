@@ -86,6 +86,14 @@ sensor := analog;
 value := sensor.Read();
 ```
 
+A call through an interface variable that holds no instance crashes the program. Compare the variable with `0` to check whether an instance is assigned:
+
+```iecst
+IF sensor <> 0 THEN
+    value := sensor.Read();
+END_IF
+```
+
 A parameter of an interface type is the usual way to write code that works with every implementation:
 
 ```iecst
