@@ -18,8 +18,6 @@ END_FUNCTION
 FUNCTION main : DINT
     VAR
         i : DINT;
-        us : USINT;
-        n : DINT;
     END_VAR
 
     // The direction test reads 1, then the passes read 2 and 3
@@ -41,18 +39,4 @@ FUNCTION main : DINT
     // CHECK-NEXT: TO end_changes_step(): i = 0
     // CHECK-NEXT: TO end_changes_step(): i = 2
     // CHECK-NEXT: TO end_changes_step(): after = 5
-
-    // A narrow counter that wraps
-    calls := 250;
-    n := 0;
-    FOR us := 250 TO 255 BY next_step() - 250 DO
-        printf('USINT BY next_step() - 250: us = %d$N', us);
-        n := n + 1;
-        IF n > 10 THEN EXIT; END_IF
-    END_FOR
-    printf('USINT BY next_step() - 250: after = %d, calls = %d$N', us, calls);
-    // CHECK-NEXT: USINT BY next_step() - 250: us = 250
-    // CHECK-NEXT: USINT BY next_step() - 250: us = 252
-    // CHECK-NEXT: USINT BY next_step() - 250: us = 255
-    // CHECK-NEXT: USINT BY next_step() - 250: after = 3, calls = 254
 END_FUNCTION

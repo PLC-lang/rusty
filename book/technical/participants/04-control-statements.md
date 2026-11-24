@@ -76,7 +76,7 @@ Of these lines, only the `ELSE` and the nested `IF` are the work of this partici
 
 ## Interactions
 
-The participant sees loops already in the `WHILE TRUE` form of the loop desugarer. The `WHILE` and `REPEAT` guards and the `FOR` exit test have one condition block each and pass through unchanged. The `IF __ran_once_N ... ELSIF __is_incrementing_N` that sets `__past_end_N` in a `FOR` loop has an `ELSIF`, and the participant gives it a nested `IF` in the `ELSE`, like any other `IF`. The CFC transpiler, which runs later, creates only single-block `IF` statements as well.
+The participant sees loops already in the `WHILE TRUE` form of the loop desugarer; their guard `IF`s have one condition block each and pass through unchanged. The CFC transpiler, which runs later, creates only single-block `IF` statements as well.
 
 The aggregate-return lowerer is the one consumer that depends on the rewrite. It walks all conditions of an `IF` in the scope of the statement that contains the `IF`, so only a single-block `IF` gives every condition its own place for the calls moved out of it.
 

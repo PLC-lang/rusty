@@ -333,30 +333,24 @@ mod tests {
         cVar := ''
         alloca __ran_once_0: BOOL
         alloca __is_incrementing_0: BOOL
-        alloca __past_end_0: BOOL
         alloca __next_0: LINT
         i := 0
         __is_incrementing_0 := TRUE
         WHILE TRUE DO
+            __next_0 := i
             IF __ran_once_0 THEN
-                __next_0 := i
                 __next_0 := __next_0 + 1
-                IF __is_incrementing_0 THEN
-                    __past_end_0 := __next_0 > 10
-                ELSE
-                    __past_end_0 := __next_0 < 10
-                END_IF
                 i := __next_0
-            ELSE
-                IF __is_incrementing_0 THEN
-                    __past_end_0 := i > 10
-                ELSE
-                    __past_end_0 := i < 10
-                END_IF
             END_IF
             __ran_once_0 := TRUE
-            IF __past_end_0 THEN
-                EXIT;
+            IF __is_incrementing_0 THEN
+                IF __next_0 > 10 THEN
+                    EXIT;
+                END_IF
+            ELSE
+                IF __next_0 < 10 THEN
+                    EXIT;
+                END_IF
             END_IF
             IF val = 3 THEN
                 cVar := 'f'

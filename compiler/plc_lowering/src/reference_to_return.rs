@@ -1221,30 +1221,24 @@ mod tests {
         refVal REF= tmpVal;
         alloca __ran_once_0: BOOL;
         alloca __is_incrementing_0: BOOL;
-        alloca __past_end_0: BOOL;
         alloca __next_0: LINT;
         i := 1;
         __is_incrementing_0 := TRUE;
         WHILE TRUE DO
+            __next_0 := i
             IF __ran_once_0 THEN
-                __next_0 := i
                 __next_0 := __next_0 + 1
-                IF __is_incrementing_0 THEN
-                    __past_end_0 := __next_0 > 5
-                ELSE
-                    __past_end_0 := __next_0 < 5
-                END_IF
                 i := __next_0
-            ELSE
-                IF __is_incrementing_0 THEN
-                    __past_end_0 := i > 5
-                ELSE
-                    __past_end_0 := i < 5
-                END_IF
             END_IF
             __ran_once_0 := TRUE
-            IF __past_end_0 THEN
-                EXIT;
+            IF __is_incrementing_0 THEN
+                IF __next_0 > 5 THEN
+                    EXIT;
+                END_IF
+            ELSE
+                IF __next_0 < 5 THEN
+                    EXIT;
+                END_IF
             END_IF
             __referenceFunc_return_val_1 REF= __referenceFunc_return_val_store_1;
             referenceFunc(__referenceFunc_return_val_1, refVal);

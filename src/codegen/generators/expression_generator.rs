@@ -2923,8 +2923,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     /// Generates a boolean binary expression (`AND`, `OR`, `AND_THEN`, `OR_ELSE`,
-    /// `=`, `<>`, `<`, `>`, `<=`, `>=`, `XOR`). The relational operators compare
-    /// the values as unsigned bits, so `FALSE < TRUE`.
+    /// `=`, `<>`, `XOR`).
     ///
     /// `AND` / `OR` evaluate both operands eagerly (no short-circuit), matching
     /// CODESYS semantics. `AND_THEN` / `OR_ELSE` use phi-based short-circuit
@@ -2962,32 +2961,26 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     "",
                 )?
                 .as_basic_value_enum()),
-            Operator::Equal
-            | Operator::NotEqual
-            | Operator::Less
-            | Operator::Greater
-            | Operator::LessOrEqual
-            | Operator::GreaterOrEqual => {
-                let predicate = match operator {
-                    Operator::Equal => IntPredicate::EQ,
-                    Operator::NotEqual => IntPredicate::NE,
-                    Operator::Less => IntPredicate::ULT,
-                    Operator::Greater => IntPredicate::UGT,
-                    Operator::LessOrEqual => IntPredicate::ULE,
-                    Operator::GreaterOrEqual => IntPredicate::UGE,
-                    _ => unreachable!("only comparison operators reach this arm"),
-                };
-                Ok(self
-                    .llvm
-                    .builder
-                    .build_int_compare(
-                        predicate,
-                        to_i1(self.generate_expression(left)?.into_int_value(), &self.llvm.builder)?,
-                        to_i1(self.generate_expression(right)?.into_int_value(), &self.llvm.builder)?,
-                        "",
-                    )?
-                    .as_basic_value_enum())
-            }
+            Operator::Equal => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::EQ,
+                    to_i1(self.generate_expression(left)?.into_int_value(), &self.llvm.builder)?,
+                    to_i1(self.generate_expression(right)?.into_int_value(), &self.llvm.builder)?,
+                    "",
+                )?
+                .as_basic_value_enum()),
+            Operator::NotEqual => Ok(self
+                .llvm
+                .builder
+                .build_int_compare(
+                    IntPredicate::NE,
+                    to_i1(self.generate_expression(left)?.into_int_value(), &self.llvm.builder)?,
+                    to_i1(self.generate_expression(right)?.into_int_value(), &self.llvm.builder)?,
+                    "",
+                )?
+                .as_basic_value_enum()),
             Operator::Xor => Ok(self
                 .llvm
                 .builder
