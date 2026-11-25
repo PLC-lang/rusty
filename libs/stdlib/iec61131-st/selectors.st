@@ -28,19 +28,21 @@ END_FUNCTION
 
 (**************************
  *
- * LIMIT(Min, IN, Max)
+ * LIMIT(MN, IN, MX)
  *
- * This operator limits an input value to the range between Min and Max.
- * If IN lies between the range of Min and Max, IN is displayed as a result.
- * If IN > Max, Max is displayed as a result.
- * If IN < Min, Min is displayed as a result.
+ * This operator limits an input value to the range between MN and MX.
+ * If IN lies between the range of MN and MX, IN is displayed as a result.
+ * If IN > MX, MX is displayed as a result.
+ * If IN < MN, MN is displayed as a result.
+ * The input names MN, IN and MX are those of IEC 61131-3 (table 31), so
+ * that a formal call LIMIT(MN := a, IN := b, MX := c) resolves.
  *
 *************************)
 {external}
 FUNCTION LIMIT<T: ANY_ELEMENTARY> : T
 VAR_INPUT
-    MIN : T;
+    MN : T;
     IN : T;
-    MAX : T;
+    MX : T;
 END_VAR
 END_FUNCTION
